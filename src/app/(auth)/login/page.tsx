@@ -3,8 +3,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+
+    if (email === "deco@gmail.com" && password === "deco123") {
+      router.push("/decorator");
+      return;
+    }
+
+    setError("Invalid email or password.");
+  };
+
   return (
     <div className="min-h-screen flex bg-[#f7f5f2]">
       {/* Left Side */}
@@ -61,7 +80,7 @@ export default function Login() {
           </p>
 
           {/* Form */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email */}
             <div>
               <label className="block uppercase tracking-[5px] text-xs text-black mb-4">
@@ -72,6 +91,8 @@ export default function Login() {
                 type="email"
                 placeholder="you@example.com"
                 className="w-full bg-transparent border-b border-gray-300 pb-3 text-xl text-gray-500 outline-none placeholder:text-gray-400"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
               />
             </div>
 
@@ -85,6 +106,8 @@ export default function Login() {
                 type="password"
                 placeholder="••••••••"
                 className="w-full bg-transparent border-b border-gray-300 pb-3 text-xl text-gray-500 outline-none placeholder:text-gray-400"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
               />
             </div>
 
@@ -113,6 +136,10 @@ export default function Login() {
             >
               Sign In
             </button>
+
+            {error ? (
+              <p className="text-sm text-red-600">{error}</p>
+            ) : null}
           </form>
 
           {/* Bottom Link */}
@@ -122,10 +149,19 @@ export default function Login() {
             </span>
 
             <Link
-              href="/register"
+              href="#"
               className="text-[#d7a04d] hover:underline"
             >
               Create an account
+            </Link>
+          </div>
+
+          <div className="text-center mt-6 text-sm">
+            <Link
+              href="/decorator"
+              className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
+            >
+              Decorator Dashboard
             </Link>
           </div>
         </div>
