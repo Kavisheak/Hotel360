@@ -34,21 +34,21 @@ const PackagesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#fcfaf7] py-24 md:py-32 px-6 md:px-12 lg:px-24 flex flex-col items-center">
+    <section className="w-full bg-[#fcfaf7] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center">
       
       {/* Header Section */}
-      <div className="text-center mb-16 space-y-4">
-        <p className="text-[#c69c6d] text-xs tracking-[0.2em] uppercase font-semibold">
+      <div className="text-center mb-10 space-y-3">
+        <p className="text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold">
           Signature Packages
         </p>
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-900 leading-tight">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-gray-900 leading-tight">
           Three frameworks.<br />
           <span className="italic text-[#c69c6d]">Infinite expression.</span>
         </h2>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
         {packages.map((pkg) => (
           <div 
             key={pkg.id}
@@ -57,35 +57,34 @@ const PackagesSection = () => {
             }`}
           >
             {/* Image Container */}
-            <div className="relative w-full aspect-[4/5] bg-gray-100">
+            <div className="relative w-full aspect-[4/3] bg-gray-100">
               <Image
                 src={pkg.image}
                 alt={pkg.name}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover"
               />
-              {/* Most Loved Tag */}
               {pkg.isMostLoved && (
-                <div className="absolute top-4 right-4 bg-[#c69c6d] text-white text-[10px] uppercase tracking-widest px-3 py-1 font-semibold z-10">
+                <div className="absolute top-3 right-3 bg-[#c69c6d] text-white text-[9px] uppercase tracking-widest px-2.5 py-0.5 font-semibold z-10">
                   Most Loved
                 </div>
               )}
             </div>
 
             {/* Card Content */}
-            <div className="p-8 flex flex-col flex-grow">
-              
-              <div className="mb-6">
-                <p className="text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
+            <div className="p-6 flex flex-col flex-grow">
+              <div className="mb-4">
+                <p className="text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold mb-1.5">
                   {pkg.name}
                 </p>
-                <h3 className="text-3xl font-serif text-gray-900 mb-4">
+                <h3 className="text-2xl font-serif text-gray-900 mb-2">
                   {pkg.price}
                 </h3>
                 
-                <div className="flex items-center gap-2 text-gray-500 mb-4">
-                  <Users size={14} />
-                  <span className="text-xs font-medium">{pkg.guests}</span>
+                <div className="flex items-center gap-2 text-gray-500 mb-2">
+                  <Users size={12} />
+                  <span className="text-[11px] font-medium">{pkg.guests}</span>
                 </div>
                 
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -93,14 +92,12 @@ const PackagesSection = () => {
                 </p>
               </div>
 
-              {/* Spacer to push button to bottom if descriptions vary in height */}
-              <div className="mt-auto pt-4">
-                <button className="flex items-center gap-2 text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold hover:text-[#b0885a] transition-colors group">
+              <div className="mt-auto pt-2">
+                <button className="flex items-center gap-2 text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#b0885a] transition-colors group">
                   Explore
-                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-              
             </div>
           </div>
         ))}

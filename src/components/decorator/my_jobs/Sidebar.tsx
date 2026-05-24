@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, Settings, HelpCircle, LogOut } from 'lucide-react';
 import Link from 'next/link';
