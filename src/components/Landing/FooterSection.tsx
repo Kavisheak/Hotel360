@@ -49,6 +49,7 @@ const FooterSection = () => {
             </p>
             <ul className="flex flex-col gap-3 text-gray-300 text-sm">
               <li><a href="#" className="hover:text-white transition-colors">Packages</a></li>
+              <li><a href="/vendors" className="hover:text-white transition-colors">Vendors</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Virtual Tour</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Reserve a Date</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Client Portal</a></li>
