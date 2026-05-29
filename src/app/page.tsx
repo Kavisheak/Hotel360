@@ -1,10 +1,10 @@
-import LandingHero from "@/components/landing/LandingHero";
-import TheHallSection from "@/components/landing/TheHallSection";
-import AmenitiesSection from "@/components/landing/AmenitiesSection";
-import VirtualTourSection from "@/components/landing/VirtualTourSection";
-import PackagesSection from "@/components/landing/PackagesSection";
-import ReviewsSection from "@/components/landing/ReviewsSection";
-import FooterSection from "@/components/landing/FooterSection";
+import LandingHero from "@/components/landing/home/LandingHero";
+import TheHallSection from "@/components/landing/home/TheHallSection";
+import AmenitiesSection from "@/components/landing/home/AmenitiesSection";
+import VirtualTourSection from "@/components/landing/home/VirtualTourSection";
+import PackagesSection from "@/components/landing/home/PackagesSection";
+import ReviewsSection from "@/components/landing/home/ReviewsSection";
+import FooterSection from "@/components/landing/home/FooterSection";
 
 export default function Home() {
   return (

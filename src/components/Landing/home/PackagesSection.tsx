@@ -93,10 +93,10 @@ const PackagesSection = () => {
               </div>
 
               <div className="mt-auto pt-2">
-                <button className="flex items-center gap-2 text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#b0885a] transition-colors group">
+                <a href="/packages" className="flex items-center gap-2 text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#b0885a] transition-colors group">
                   Explore
                   <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                </button>
+                </a>
               </div>
             </div>
           </div>

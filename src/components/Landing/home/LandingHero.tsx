@@ -27,8 +27,9 @@ const LandingHero = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-8 text-gray-300">
-          <a href="#" className="hover:text-white transition-colors">Home</a>
-          <a href="#" className="hover:text-white transition-colors">Packages</a>
+          <a href="/" className="hover:text-white transition-colors">Home</a>
+          <a href="/packages" className="hover:text-white transition-colors">Packages</a>
+          <a href="/vendors" className="hover:text-white transition-colors">Vendors</a>
           <a href="#" className="hover:text-white transition-colors">Virtual Tour</a>
           <a href="#" className="hover:text-white transition-colors">Book</a>
           <a href="#" className="hover:text-white transition-colors">My Account</a>
