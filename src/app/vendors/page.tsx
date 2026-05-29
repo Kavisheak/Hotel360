@@ -397,7 +397,7 @@ export default function VendorsDirectory() {
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8 text-xs uppercase tracking-widest font-semibold text-gray-300">
             <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-            <Link href="#" className="hover:text-white transition-colors duration-200">Packages</Link>
+            <Link href="/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
             <Link href="/vendors" className="text-[#c69c6d] border-b border-[#c69c6d] pb-0.5 font-bold tracking-widest">Vendors</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">Book</Link>
@@ -984,7 +984,7 @@ export default function VendorsDirectory() {
           
           <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
             <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-            <Link href="#" className="hover:text-white transition-colors duration-200">Packages</Link>
+            <Link href="/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
             <Link href="/vendors" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Vendors</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">Book</Link>
