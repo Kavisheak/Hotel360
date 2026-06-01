@@ -21,6 +21,11 @@ export default function Login() {
       return;
     }
 
+    if (email === "manager@gmail.com" && password === "manager123") {
+      router.push("/hotel-manager");
+      return;
+    }
+
     setError("Invalid email or password.");
   };
 
@@ -156,12 +161,18 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="text-center mt-6 text-sm">
+          <div className="text-center mt-6 text-sm flex flex-col gap-2">
             <Link
               href="/decorator"
               className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
             >
               Decorator Dashboard
+            </Link>
+            <Link
+              href="/hotel-manager"
+              className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
+            >
+              Manager Dashboard
             </Link>
           </div>
         </div>

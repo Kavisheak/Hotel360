@@ -1,0 +1,63 @@
+import React from 'react';
+import { BookOpen } from 'lucide-react';
+
+const rows = [
+  { client: 'Eleanor Rigby',   event: 'Grand Wedding Gala',  date: 'Oct 24, 2024' },
+  { client: 'Julian Sterling', event: 'Corporate Reception', date: 'Nov 02, 2024' },
+  { client: 'Sarah Fitzgerald',event: 'Engagement Soirée',   date: 'Dec 15, 2024' },
+];
+
+const PendingBookings = () => (
+  <section className="mb-8">
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="flex items-center gap-2 text-base lg:text-lg font-serif font-semibold text-[#7C6A2E]">
+        <BookOpen size={18} className="text-[#B08D2C]" />
+        Pending Bookings
+      </h3>
+      <button className="bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-semibold tracking-widest uppercase px-4 py-2 rounded-md transition-colors whitespace-nowrap ml-4">
+        View All Queue
+      </button>
+    </div>
+
+    <div className="bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm">
+      {/* Table for desktop */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[540px] text-left border-collapse">
+          <thead className="bg-[#B08D2C] text-white">
+            <tr>
+              <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-widest">Client Name</th>
+              <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-widest">Event Type</th>
+              <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-widest">Date</th>
+              <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-widest">Status</th>
+              <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-widest text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                key={row.client}
+                className={`border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#FDFAF5]'}`}
+              >
+                <td className="px-4 py-3 text-sm font-semibold text-gray-800">{row.client}</td>
+                <td className="px-4 py-3 text-sm italic font-medium text-gray-500" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{row.event}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{row.date}</td>
+                <td className="px-4 py-3">
+                  <span className="bg-[#F2EADA] text-[#7C6A2E] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-[#E0D8C3]">
+                    Pending
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right space-x-2">
+                  <button className="text-[#7C6A2E] hover:underline text-[10px] font-bold uppercase tracking-widest">Approve</button>
+                  <span className="text-[#E0D8C3]">|</span>
+                  <button className="text-red-500 hover:underline text-[10px] font-bold uppercase tracking-widest">Reject</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+);
+
+export default PendingBookings;

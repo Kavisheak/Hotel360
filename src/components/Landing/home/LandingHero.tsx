@@ -1,12 +1,17 @@
+"use client";
+
 import React from 'react';
 import { ArrowRight, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const LandingHero = () => {
+  const router = useRouter();
+
   return (
     <div className="relative w-full h-screen min-h-[500px] max-h-[800px] flex flex-col font-sans text-white overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
+      {/* Background Image - pointer-events-none so it never blocks clicks */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
           src="/luxury_ballroom_bg.png"
           alt="Luxury Ballroom"
@@ -15,12 +20,12 @@ const LandingHero = () => {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* Navigation Bar */}
-      <nav className="relative z-10 w-full px-6 py-4 flex items-center justify-between text-xs tracking-widest font-medium uppercase border-b border-white/10">
+      <nav className="relative z-20 w-full px-6 py-4 flex items-center justify-between text-xs tracking-widest font-medium uppercase border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-6 h-[1px] bg-white"></div>
           <span className="text-base normal-case font-serif tracking-normal"><span className="font-semibold">EASCC</span></span>
@@ -36,7 +41,12 @@ const LandingHero = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <a href="#" className="hidden sm:block text-gray-300 hover:text-white transition-colors">Sign In</a>
+          <button
+            onClick={() => router.push('/login')}
+            className="text-gray-300 hover:text-white transition-colors cursor-pointer uppercase tracking-widest text-xs"
+          >
+            Sign In
+          </button>
           <a href="#" className="border border-[#c69c6d] text-[#c69c6d] px-5 py-1.5 hover:bg-[#c69c6d] hover:text-black transition-colors text-[11px]">
             Reserve
           </a>
