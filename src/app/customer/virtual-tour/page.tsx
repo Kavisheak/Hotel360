@@ -6,11 +6,10 @@ import { ArrowLeft, View, Cuboid } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Tour360Viewer from "@/components/landing/virtual-tour/Tour360Viewer";
 import SpaceArrangement3D from "@/components/landing/virtual-tour/SpaceArrangement3D";
+import { ControlPanel } from "@/components/landing/virtual-tour/ControlPanel";
 
 export default function VirtualTourPage() {
   const [activeTab, setActiveTab] = useState<"360" | "3d">("360");
-  const [eventType, setEventType] = useState<string>("Wedding");
-  const [guestCount, setGuestCount] = useState<number>(100);
 
   return (
     <div className="min-h-screen bg-[#FAF6EE] text-[#1A1512] font-sans flex flex-col">
@@ -65,58 +64,14 @@ export default function VirtualTourPage() {
           </div>
         ) : (
           <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm border border-[#E8DFC9] h-fit">
-              <h3 className="font-serif text-xl mb-6">Event Settings</h3>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Type
-                  </label>
-                  <select 
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    className="w-full bg-[#FAF6EE] border border-[#E8DFC9] rounded px-4 py-2.5 outline-none focus:border-[#C69C6D]"
-                  >
-                    <option value="Wedding">Wedding</option>
-                    <option value="Meeting">Meeting / Conference</option>
-                    <option value="Birthday Party">Birthday Party</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex justify-between">
-                    <span>Participant Count</span>
-                    <span className="text-[#C69C6D]">{guestCount} Guests</span>
-                  </label>
-                  <input 
-                    type="range" 
-                    min="10" 
-                    max="500" 
-                    step="10"
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(parseInt(e.target.value))}
-                    className="w-full accent-[#C69C6D]"
-                  />
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>10</span>
-                    <span>500</span>
-                  </div>
-                </div>
-                
-                <hr className="border-[#E8DFC9]" />
-                
-                <div className="text-sm text-gray-600">
-                  <p><strong>Arrangement Style:</strong></p>
-                  <p className="mt-1">
-                    {eventType === "Meeting" ? "Theater seating with stage" : "Banquet style with round tables (8 guests/table)"}
-                  </p>
-                </div>
-              </div>
+            {/* Control Panel */}
+            <div className="lg:col-span-1 bg-white rounded-lg shadow-sm border border-[#E8DFC9] overflow-hidden h-fit max-h-[calc(100vh-220px)] lg:sticky lg:top-28">
+              <ControlPanel />
             </div>
             
+            {/* 3D Viewer */}
             <div className="lg:col-span-3">
-              <SpaceArrangement3D eventType={eventType} guestCount={guestCount} />
+              <SpaceArrangement3D />
             </div>
           </div>
         )}
