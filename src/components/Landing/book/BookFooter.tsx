@@ -1,7 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 
-export default function PackagesFooter() {
+export default function BookFooter() {
   return (
     <footer className="w-full bg-[#151210] border-t border-[#c69c6d]/20 text-white">
       <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -12,10 +14,10 @@ export default function PackagesFooter() {
         
         <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
           <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-          <Link href="/packages" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Packages</Link>
+          <Link href="/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
           <Link href="/vendors" className="hover:text-white transition-colors duration-200">Vendors</Link>
           <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
-          <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Book</Link>
+          <Link href="/book" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Book</Link>
         </div>
         
         <p className="text-[9px] text-gray-600 uppercase tracking-widest font-semibold">Crafted with Intention</p>
