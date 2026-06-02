@@ -1,9 +1,9 @@
 import React from "react";
 import Link from "next/link";
 
-export default function PackagesFooter() {
+export default function VendorsFooter() {
   return (
-    <footer className="w-full bg-[#151210] border-t border-[#c69c6d]/20 text-white">
+    <footer className="w-full bg-[#151210] border-t border-[#c69c6d]/20 text-white mt-12">
       <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center gap-3">
           <div className="w-6 h-[1px] bg-[#c69c6d]"></div>
@@ -12,8 +12,8 @@ export default function PackagesFooter() {
         
         <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
           <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-          <Link href="/packages" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Packages</Link>
-          <Link href="/vendors" className="hover:text-white transition-colors duration-200">Vendors</Link>
+          <Link href="/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
+          <Link href="/vendors" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Vendors</Link>
           <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
           <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Book</Link>
         </div>
