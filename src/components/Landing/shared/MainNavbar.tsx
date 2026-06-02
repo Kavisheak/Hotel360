@@ -18,10 +18,10 @@ export default function MainNavbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Packages", path: "/packages" },
-    { name: "Vendors", path: "/vendors" },
-    { name: "Virtual Tour", path: "/virtual-tour" },
-    { name: "Book", path: "/book" },
+    { name: "Packages", path: "/customer/packages" },
+    { name: "Vendors", path: "/customer/vendors" },
+    { name: "Virtual Tour", path: "/customer/virtual-tour" },
+    { name: "Book", path: "/customer/book" },
   ];
 
   return (
@@ -74,7 +74,7 @@ export default function MainNavbar() {
           )}
 
           <Link
-            href="/book"
+            href="/customer/book"
             className="bg-[#c69c6d] text-black px-4 py-1.5 hover:bg-[#b0885a] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest"
           >
             Reserve
