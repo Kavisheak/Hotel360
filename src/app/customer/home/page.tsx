@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+
 export default function CustomerDashboard() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0 });
 
@@ -39,14 +41,14 @@ export default function CustomerDashboard() {
       value: "72%",
       subtext: "13 of 18 completed",
       icon: <CheckSquare className="w-5 h-5 text-[#C69C6D]" />,
-      link: "/customer/checklist"
+      link: "#"
     },
     {
       label: "Payments Cleared",
       value: "50%",
       subtext: "LKR 1.85M of LKR 3.70M",
       icon: <CreditCard className="w-5 h-5 text-[#C69C6D]" />,
-      link: "/customer/payments"
+      link: "#"
     },
     {
       label: "Creative Team",
@@ -73,9 +75,11 @@ export default function CustomerDashboard() {
   ];
 
   return (
-    <div className="space-y-8 animate-fadeIn text-[#1A1512]">
-      {/* Top Welcome Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8DFC9]">
+    <div className="bg-[#FAF6EE] min-h-screen">
+      <MainNavbar />
+      <div className="space-y-8 animate-fadeIn text-[#1A1512] px-6 py-10 max-w-7xl mx-auto">
+        {/* Top Welcome Panel */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8DFC9]">
         <div>
           <span className="text-[10px] uppercase tracking-widest font-bold text-[#C69C6D] flex items-center gap-1.5 mb-1.5">
             <Sparkles className="w-4 h-4 text-[#C69C6D] animate-pulse" /> Welcome back, Farhan & Zainab
@@ -177,7 +181,7 @@ export default function CustomerDashboard() {
 
             <div className="mt-6 pt-4 border-t border-gray-100 text-center">
               <Link 
-                href="/customer/bookings"
+                href="/customer/book"
                 className="text-[10px] uppercase font-bold tracking-widest text-[#C69C6D] hover:text-[#1A1512] transition-colors"
               >
                 View Detailed Booking Statement &rarr;
@@ -189,7 +193,7 @@ export default function CustomerDashboard() {
           <div className="bg-white border border-[#E8DFC9] p-6 shadow-sm rounded-sm">
             <div className="flex justify-between items-baseline mb-4">
               <h3 className="text-lg font-serif text-gray-900">Pending Preparation Tasks</h3>
-              <Link href="/customer/checklist" className="text-[9px] uppercase tracking-widest font-bold text-[#C69C6D]">
+              <Link href="#" className="text-[9px] uppercase tracking-widest font-bold text-[#C69C6D]">
                 View All
               </Link>
             </div>
@@ -261,6 +265,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

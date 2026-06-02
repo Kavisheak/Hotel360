@@ -12,10 +12,10 @@ export default function VendorsFooter() {
         
         <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
           <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-          <Link href="/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
-          <Link href="/vendors" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Vendors</Link>
-          <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
-          <Link href="/virtual-tour" className="hover:text-white transition-colors duration-200">Book</Link>
+          <Link href="/customer/packages" className="hover:text-white transition-colors duration-200">Packages</Link>
+          <Link href="/customer/vendors" className="text-[#C69C6D] hover:text-white transition-colors duration-200">Vendors</Link>
+          <Link href="/customer/virtual-tour" className="hover:text-white transition-colors duration-200">Virtual Tour</Link>
+          <Link href="/customer/virtual-tour" className="hover:text-white transition-colors duration-200">Book</Link>
         </div>
         
         <p className="text-[9px] text-gray-600 uppercase tracking-widest font-semibold">Crafted with Intention</p>

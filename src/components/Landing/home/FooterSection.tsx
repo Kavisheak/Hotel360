@@ -17,7 +17,7 @@ const FooterSection = () => {
         <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-md">
           A bespoke evening starts with a single date. View availability and compose your celebration in minutes.
         </p>
-        <Link href="/book" className="bg-[#c69c6d] text-black px-6 py-3 flex items-center justify-center gap-2 text-[10px] tracking-widest uppercase font-semibold hover:bg-[#b0885a] transition-colors">
+        <Link href="/customer/book" className="bg-[#c69c6d] text-black px-6 py-3 flex items-center justify-center gap-2 text-[10px] tracking-widest uppercase font-semibold hover:bg-[#b0885a] transition-colors">
           Reserve Your Date
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -49,10 +49,10 @@ const FooterSection = () => {
               Explore
             </p>
             <ul className="flex flex-col gap-3 text-gray-300 text-sm">
-              <li><Link href="/packages" className="hover:text-white transition-colors">Packages</Link></li>
-              <li><Link href="/vendors" className="hover:text-white transition-colors">Vendors</Link></li>
-              <li><Link href="/virtual-tour" className="hover:text-white transition-colors">Virtual Tour</Link></li>
-              <li><Link href="/book" className="hover:text-white transition-colors">Reserve a Date</Link></li>
+              <li><Link href="/customer/packages" className="hover:text-white transition-colors">Packages</Link></li>
+              <li><Link href="/customer/vendors" className="hover:text-white transition-colors">Vendors</Link></li>
+              <li><Link href="/customer/virtual-tour" className="hover:text-white transition-colors">Virtual Tour</Link></li>
+              <li><Link href="/customer/book" className="hover:text-white transition-colors">Reserve a Date</Link></li>
               <li><Link href="/customer" className="hover:text-white transition-colors">Client Portal</Link></li>
             </ul>
           </div>
