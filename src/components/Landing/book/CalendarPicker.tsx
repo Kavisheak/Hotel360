@@ -49,15 +49,15 @@ interface CalendarPickerProps {
 
 export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarPickerProps) {
   return (
-    <div className="space-y-4">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5">
-        <CalendarIcon className="w-4 h-4 text-[#c69c6d]" /> Step 1: Select Event Date (June 2026)
+    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300">
+      <label className="block text-[10px] uppercase tracking-widest text-[#A67C52] font-bold flex items-center gap-1.5">
+        <CalendarIcon className="w-4 h-4 text-[#C9A84C]" /> Step 1: Select Event Date (June 2026)
       </label>
       
       {/* Legend */}
-      <div className="flex gap-4 text-[9px] uppercase tracking-widest font-semibold text-gray-500 pb-2 border-b border-gray-100">
+      <div className="flex gap-4 text-[9px] uppercase tracking-widest font-semibold text-gray-500 pb-2 border-b border-[#D4C9A8]">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 bg-white border border-gray-200 block rounded-sm"></span>
+          <span className="w-2.5 h-2.5 bg-white border border-[#D4C9A8] block rounded-sm"></span>
           <span>Available</span>
         </div>
         <div className="flex items-center gap-1">
@@ -71,14 +71,14 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
       </div>
 
       {/* Month Header */}
-      <div className="text-center py-2 bg-[#FAF6EE] text-xs font-serif font-semibold border-t border-b border-[#E0D8C3]">
+      <div className="text-center py-2 bg-[#F0E6D0]/50 text-xs font-serif font-semibold border-t border-b border-[#D4C9A8]">
         June 2026
       </div>
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-2 pt-2 text-center text-xs">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => (
-          <div key={idx} className="font-semibold text-[9px] text-[#A6955C] uppercase tracking-widest py-1">
+          <div key={idx} className="font-semibold text-[9px] text-[#A67C52] uppercase tracking-widest py-1">
             {day}
           </div>
         ))}
@@ -86,7 +86,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
         {JUNE_2026_DAYS.map((day) => {
           const isSelected = selectedDate === day.date;
           
-          let cellStyle = "bg-white text-gray-900 border border-gray-200 hover:border-[#c69c6d] cursor-pointer";
+          let cellStyle = "bg-white text-gray-900 border border-[#D4C9A8] hover:border-[#C9A84C] cursor-pointer hover-lift";
           if (day.status === "reserved") {
             cellStyle = "bg-red-50 text-red-300 border border-red-100 cursor-not-allowed line-through";
           } else if (day.status === "pending") {
@@ -94,7 +94,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
           }
 
           if (isSelected && day.status === "available") {
-            cellStyle = "bg-[#1A1512] text-white border-[#1A1512] shadow-md ring-2 ring-[#c69c6d] ring-offset-2 font-bold scale-[1.03]";
+            cellStyle = "bg-[#2C1E14] text-[#C9A84C] border-[#2C1E14] shadow-md ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#F0E6D0] font-bold scale-[1.03]";
           }
 
           return (
@@ -113,7 +113,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
                 <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-orange-400">Pending</span>
               )}
               {day.status === "available" && isSelected && (
-                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-[#c69c6d]">Active</span>
+                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-[#C9A84C]">Active</span>
               )}
             </button>
           );

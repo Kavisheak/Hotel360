@@ -34,39 +34,39 @@ const PackagesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#fcfaf7] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center">
+    <section className="w-full bg-[#F0E6D0] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center section-reveal">
       
       {/* Header Section */}
       <div className="text-center mb-10 space-y-3">
-        <p className="text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold">
+        <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold">
           Signature Packages
         </p>
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-gray-900 leading-tight">
           Three frameworks.<br />
-          <span className="italic text-[#c69c6d]">Infinite expression.</span>
+          <span className="italic text-[#C9A84C]">Infinite expression.</span>
         </h2>
       </div>
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
-        {packages.map((pkg) => (
+        {packages.map((pkg, index) => (
           <div 
             key={pkg.id}
-            className={`flex flex-col bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 relative ${
-              pkg.isMostLoved ? 'border border-[#c69c6d]' : 'border border-gray-100'
+            className={`flex flex-col bg-white overflow-hidden shadow-sm hover-lift hover-glow transition-all duration-300 relative card-entrance stagger-${index + 1} ${
+              pkg.isMostLoved ? 'border border-[#C9A84C]' : 'border border-gray-100'
             }`}
           >
             {/* Image Container */}
-            <div className="relative w-full aspect-[4/3] bg-gray-100">
+            <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden">
               <Image
                 src={pkg.image}
                 alt={pkg.name}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover"
+                className="object-cover transition-transform duration-700 hover:scale-105"
               />
               {pkg.isMostLoved && (
-                <div className="absolute top-3 right-3 bg-[#c69c6d] text-white text-[9px] uppercase tracking-widest px-2.5 py-0.5 font-semibold z-10">
+                <div className="absolute top-3 right-3 bg-[#C9A84C] text-white text-[9px] uppercase tracking-widest px-2.5 py-0.5 font-semibold z-10">
                   Most Loved
                 </div>
               )}
@@ -75,7 +75,7 @@ const PackagesSection = () => {
             {/* Card Content */}
             <div className="p-6 flex flex-col flex-grow">
               <div className="mb-4">
-                <p className="text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold mb-1.5">
+                <p className="text-[#C9A84C] text-[9px] tracking-[0.2em] uppercase font-semibold mb-1.5">
                   {pkg.name}
                 </p>
                 <h3 className="text-2xl font-serif text-gray-900 mb-2">
@@ -93,7 +93,7 @@ const PackagesSection = () => {
               </div>
 
               <div className="mt-auto pt-2">
-                <a href="/customer/packages" className="flex items-center gap-2 text-[#c69c6d] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#b0885a] transition-colors group">
+                <a href="/customer/packages" className="flex items-center gap-2 text-[#C9A84C] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#A67C52] transition-colors group">
                   Explore
                   <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </a>

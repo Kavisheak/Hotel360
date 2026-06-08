@@ -11,6 +11,7 @@ interface CostBreakdownProps {
     extraGuestsCount: number;
     guestSurcharges: number;
     timeslotPremium: number;
+    addonsCost: number;
     grandTotal: number;
   };
   formatCurrency: (val: number) => string;
@@ -23,10 +24,10 @@ export default function CostBreakdown({
   formatCurrency
 }: CostBreakdownProps) {
   return (
-    <div className="bg-[#1A1512] text-white border border-[#c69c6d]/20 p-6 md:p-8 shadow-2xl rounded-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-[#c69c6d]/20 pointer-events-none"></div>
+    <div className="bg-[#2C1E14] text-white border border-[#C9A84C]/20 p-6 md:p-8 shadow-2xl rounded-sm relative overflow-hidden hover-glow transition-all duration-300">
+      <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-[#C9A84C]/20 pointer-events-none"></div>
       
-      <div className="flex items-center gap-2 text-[#c69c6d] mb-4">
+      <div className="flex items-center gap-2 text-[#C9A84C] mb-4">
         <Award className="w-4 h-4 animate-pulse" />
         <span className="text-[9px] tracking-[0.2em] uppercase font-bold">Estimated Cost Summary</span>
       </div>
@@ -47,16 +48,23 @@ export default function CostBreakdown({
         )}
 
         {costBreakdown.guestSurcharges > 0 && (
-          <div className="flex justify-between items-center text-[#d9b891]">
+          <div className="flex justify-between items-center text-[#D4BD6E]">
             <span>Additional Attendees ({costBreakdown.extraGuestsCount} guests):</span>
             <span className="font-semibold">{formatCurrency(costBreakdown.guestSurcharges)}</span>
+          </div>
+        )}
+
+        {costBreakdown.addonsCost > 0 && (
+          <div className="flex justify-between items-center text-[#D4BD6E]">
+            <span>Vendors & Catering:</span>
+            <span className="font-semibold">{formatCurrency(costBreakdown.addonsCost)}</span>
           </div>
         )}
 
         <div className="pt-6 mt-6 border-t border-white/10 flex justify-between items-baseline">
           <span className="text-[10px] tracking-wider uppercase font-bold text-gray-400">Total Price</span>
           <div className="text-right">
-            <span className="text-2xl font-serif font-bold text-[#c69c6d]">
+            <span className="text-2xl font-serif font-bold text-[#C9A84C]">
               {formatCurrency(costBreakdown.grandTotal)}
             </span>
             <p className="text-[8px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Estimated Total</p>

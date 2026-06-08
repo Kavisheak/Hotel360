@@ -1,72 +1,81 @@
 "use client";
 
 import React from "react";
-import { Clock } from "lucide-react";
+import { Clock, Sun, Moon, SunMoon } from "lucide-react";
 
 interface TimeslotSelectorProps {
-  selectedTimeslot: "morning" | "evening" | "full-day";
-  onSelectTimeslot: (timeslot: "morning" | "evening" | "full-day") => void;
+  timeslot: string;
+  onSelectTimeslot: (t: string) => void;
 }
 
-export default function TimeslotSelector({ selectedTimeslot, onSelectTimeslot }: TimeslotSelectorProps) {
+export default function TimeslotSelector({ timeslot, onSelectTimeslot }: TimeslotSelectorProps) {
+  const slots = [
+    {
+      id: "morning",
+      label: "Morning Ceremony",
+      time: "08:00 AM - 02:00 PM",
+      desc: "Perfect for traditional poruwa ceremonies with natural sunlight.",
+      icon: <Sun className="w-5 h-5 text-[#C9A84C]" />
+    },
+    {
+      id: "evening",
+      label: "Evening Soiree",
+      time: "04:00 PM - 10:00 PM",
+      desc: "Our signature timeslot. Golden hour cocktails leading to a grand dinner.",
+      icon: <Moon className="w-5 h-5 text-[#C9A84C]" />
+    },
+    {
+      id: "full",
+      label: "Full Day Exclusive",
+      time: "08:00 AM - 11:00 PM",
+      desc: "Ultimate flexibility for multi-ceremony events with outfit changes.",
+      icon: <SunMoon className="w-5 h-5 text-[#C9A84C]" />
+    }
+  ];
+
   return (
-    <div className="space-y-4">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5">
-        <Clock className="w-4 h-4 text-[#c69c6d]" /> Step 2: Choose Event Timeslot
+    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300">
+      <label className="block text-[10px] uppercase tracking-widest text-[#A67C52] font-bold flex items-center gap-1.5">
+        <Clock className="w-4 h-4 text-[#C9A84C]" /> Step 2: Choose Timeslot
       </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Morning slot */}
-        <button
-          type="button"
-          onClick={() => onSelectTimeslot("morning")}
-          className={`p-4 border text-left rounded-sm transition-all duration-300 flex flex-col justify-between ${
-            selectedTimeslot === "morning"
-              ? "border-[#c69c6d] bg-[#C69C6D]/5"
-              : "border-gray-200 hover:border-gray-300"
-          }`}
-        >
-          <div>
-            <span className="text-[8px] uppercase tracking-widest text-[#A6955C] font-bold">8:00 AM - 2:00 PM</span>
-            <h4 className="text-sm font-serif font-bold text-gray-900 mt-1">Morning Gala</h4>
-          </div>
-          <span className="text-[10px] text-gray-500 mt-3 font-semibold">Standard Pricing</span>
-        </button>
-
-        {/* Evening slot */}
-        <button
-          type="button"
-          onClick={() => onSelectTimeslot("evening")}
-          className={`p-4 border text-left rounded-sm transition-all duration-300 flex flex-col justify-between relative ${
-            selectedTimeslot === "evening"
-              ? "border-[#c69c6d] bg-[#C69C6D]/5"
-              : "border-gray-200 hover:border-gray-300"
-          }`}
-        >
-          <span className="absolute top-2 right-2 bg-[#c69c6d] text-white text-[7px] uppercase tracking-wider px-1.5 py-0.5 font-bold">Premium</span>
-          <div>
-            <span className="text-[8px] uppercase tracking-widest text-[#A6955C] font-bold">4:00 PM - 10:00 PM</span>
-            <h4 className="text-sm font-serif font-bold text-gray-900 mt-1">Evening Soiree</h4>
-          </div>
-          <span className="text-[10px] text-[#7C6A2E] mt-3 font-semibold">+ LKR 100,000</span>
-        </button>
-
-        {/* Full day slot */}
-        <button
-          type="button"
-          onClick={() => onSelectTimeslot("full-day")}
-          className={`p-4 border text-left rounded-sm transition-all duration-300 flex flex-col justify-between ${
-            selectedTimeslot === "full-day"
-              ? "border-[#c69c6d] bg-[#C69C6D]/5"
-              : "border-gray-200 hover:border-gray-300"
-          }`}
-        >
-          <div>
-            <span className="text-[8px] uppercase tracking-widest text-[#A6955C] font-bold">9:00 AM - Midnight</span>
-            <h4 className="text-sm font-serif font-bold text-gray-900 mt-1">Full-Day Grandeur</h4>
-          </div>
-          <span className="text-[10px] text-[#7C6A2E] mt-3 font-semibold">+ LKR 300,000</span>
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        {slots.map((slot) => {
+          const isActive = timeslot === slot.id;
+          return (
+            <div 
+              key={slot.id}
+              onClick={() => onSelectTimeslot(slot.id)}
+              className={`
+                p-5 cursor-pointer transition-all duration-300 relative rounded-sm hover-lift
+                ${isActive 
+                  ? "bg-[#2C1E14] border-[#2C1E14] text-white shadow-lg ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#F0E6D0]" 
+                  : "bg-white border border-[#D4C9A8] text-gray-900 hover:border-[#C9A84C]"
+                }
+              `}
+            >
+              <div className="flex flex-col h-full space-y-3">
+                <div className="flex items-center justify-between">
+                  {slot.icon}
+                  {isActive && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-[#C9A84C]">Selected</span>
+                  )}
+                </div>
+                <div>
+                  <h4 className={`font-serif text-sm font-semibold ${isActive ? "text-white" : "text-gray-900"}`}>
+                    {slot.label}
+                  </h4>
+                  <span className={`text-[10px] font-bold tracking-wider mt-1 block ${isActive ? "text-[#C9A84C]" : "text-[#A67C52]"}`}>
+                    {slot.time}
+                  </span>
+                </div>
+                <p className={`text-[10px] leading-relaxed font-light mt-auto pt-2 ${isActive ? "text-gray-400" : "text-gray-500"}`}>
+                  {slot.desc}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
