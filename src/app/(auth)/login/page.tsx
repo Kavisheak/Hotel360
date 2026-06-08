@@ -28,6 +28,8 @@ export default function Login() {
       return;
     }
 
+    if (email === "admin@gmail.com" && password === "admin123") {
+      router.push("/super-admin");
     if (email === "customer@gmail.com" && password === "customer123") {
       localStorage.setItem("user", "customer");
       router.push("/");
@@ -190,6 +192,12 @@ export default function Login() {
               className="uppercase tracking-[3px] text-[#C9A84C] hover:underline hover:text-[#A67C52] transition-colors"
             >
               Manager Dashboard
+            </Link>
+            <Link
+              href="/super-admin"
+              className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
+            >
+              Admin Dashboard
             </Link>
           </div>
         </div>
