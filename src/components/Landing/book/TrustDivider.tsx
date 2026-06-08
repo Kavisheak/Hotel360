@@ -5,11 +5,11 @@ import { ShieldCheck, Clock, Award } from "lucide-react";
 
 export default function TrustDivider() {
   return (
-    <section className="bg-[#1A1512] text-white py-12 px-6 border-t border-[#c69c6d]/20 mt-12">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+    <section className="bg-[#2C1E14] text-white py-12 px-6 border-t border-[#C9A84C]/20 mt-12 rounded-sm hover-glow transition-all duration-300">
+      <div className="max-w-5xl mx-auto flex flex-col gap-8 text-center md:text-left">
         
-        <div className="space-y-2 border-b md:border-b-0 md:border-r border-[#c69c6d]/20 pb-6 md:pb-0 md:pr-8">
-          <div className="flex justify-center md:justify-start text-[#c69c6d]">
+        <div className="space-y-2 border-b border-[#C9A84C]/20 pb-6 hover-lift stagger-1">
+          <div className="flex justify-center md:justify-start text-[#C9A84C]">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h4 className="font-serif text-lg">100% Date Exclusivity</h4>
@@ -18,8 +18,8 @@ export default function TrustDivider() {
           </p>
         </div>
 
-        <div className="space-y-2 border-b md:border-b-0 md:border-r border-[#c69c6d]/20 pb-6 md:pb-0 md:pr-8">
-          <div className="flex justify-center md:justify-start text-[#c69c6d]">
+        <div className="space-y-2 border-b border-[#C9A84C]/20 pb-6 hover-lift stagger-2">
+          <div className="flex justify-center md:justify-start text-[#C9A84C]">
             <Clock className="w-6 h-6" />
           </div>
           <h4 className="font-serif text-lg">Custom Timeline Bending</h4>
@@ -28,8 +28,8 @@ export default function TrustDivider() {
           </p>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-center md:justify-start text-[#c69c6d]">
+        <div className="space-y-2 hover-lift stagger-3">
+          <div className="flex justify-center md:justify-start text-[#C9A84C]">
             <Award className="w-6 h-6" />
           </div>
           <h4 className="font-serif text-lg">Deposit Holding Grace</h4>

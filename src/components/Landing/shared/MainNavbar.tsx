@@ -20,18 +20,19 @@ export default function MainNavbar() {
     { name: "Home", path: "/" },
     { name: "Packages", path: "/customer/packages" },
     { name: "Vendors", path: "/customer/vendors" },
+    { name: "Food Menu", path: "/customer/food-menu" },
     { name: "Virtual Tour", path: "/customer/virtual-tour" },
-    { name: "Book", path: "/customer/book" },
+    { name: "Book", path: "/book" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#151210]/95 backdrop-blur-md border-b border-[#c69c6d]/20 text-white shadow-xl">
+    <header className="sticky top-0 z-50 w-full bg-[#2C1E14]/95 backdrop-blur-md border-b border-[#C9A84C]/20 text-white shadow-xl">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-5 h-[1px] bg-[#c69c6d] group-hover:w-8 transition-all duration-300"></div>
-          <span className="font-serif text-lg tracking-wider text-[#FAF6EE] normal-case">
-            EASCC <span className="font-light italic text-[#c69c6d] text-sm hidden sm:inline">Conference Center</span>
+          <div className="w-5 h-[1px] bg-[#C9A84C] group-hover:w-8 transition-all duration-300"></div>
+          <span className="font-serif text-lg tracking-wider text-[#F0E6D0] normal-case">
+            EASCC <span className="font-light italic text-[#C9A84C] text-sm hidden sm:inline">Conference Center</span>
           </span>
         </Link>
 
@@ -43,9 +44,9 @@ export default function MainNavbar() {
               <Link
                 key={link.name}
                 href={link.path}
-                className={`transition-colors duration-200 ${
+                className={`nav-link-animated transition-colors duration-200 ${
                   isActive
-                    ? "text-[#c69c6d] border-b border-[#c69c6d] pb-0.5 font-bold tracking-widest"
+                    ? "text-[#C9A84C] border-b border-[#C9A84C] pb-0.5 font-bold tracking-widest"
                     : "hover:text-white"
                 }`}
               >
@@ -59,7 +60,7 @@ export default function MainNavbar() {
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
             <Link
-              href="/customer"
+              href="/customer/myaccount"
               className="text-xs uppercase tracking-widest font-semibold text-gray-300 hover:text-white transition-colors duration-200"
             >
               My Account
@@ -74,8 +75,8 @@ export default function MainNavbar() {
           )}
 
           <Link
-            href="/customer/book"
-            className="bg-[#c69c6d] text-black px-4 py-1.5 hover:bg-[#b0885a] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest"
+            href="/book"
+            className="btn-interactive bg-[#C9A84C] text-[#2C1E14] px-4 py-1.5 hover:bg-[#B89238] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest"
           >
             Reserve
           </Link>

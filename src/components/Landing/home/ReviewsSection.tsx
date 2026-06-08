@@ -24,24 +24,24 @@ const ReviewsSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#fcfaf7] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center">
+    <section className="w-full bg-[#F0E6D0] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center section-reveal">
       
       {/* Header */}
       <div className="text-center mb-10 space-y-3">
-        <p className="text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold">
+        <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold">
           Words of Praise
         </p>
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-gray-900 leading-tight">
-          A legacy of <span className="italic text-[#c69c6d]">celebration.</span>
+          A legacy of <span className="italic text-[#C9A84C]">celebration.</span>
         </h2>
       </div>
 
       {/* Reviews Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-        {reviews.map((review) => (
-          <div key={review.id} className="flex flex-col bg-white p-7 shadow-sm border border-gray-100 relative">
+        {reviews.map((review, index) => (
+          <div key={review.id} className={`flex flex-col bg-white p-7 shadow-sm border border-gray-100 relative hover-lift hover-glow card-entrance stagger-${index + 1}`}>
             {/* Stars */}
-            <div className="flex gap-1 mb-4 text-[#c69c6d]">
+            <div className="flex gap-1 mb-4 text-[#C9A84C]">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={14} fill="currentColor" strokeWidth={0} />
               ))}
