@@ -3,30 +3,29 @@ import Image from 'next/image';
 
 const bookings = [
   {
-    title: 'The Sterling-Vance Wedding',
-    venue: 'Estate at Rosewood',
+    title: 'Wedding Reception',
+    venue: 'EASCCA Wedding Hall',
     status: 'Confirmed',
     image: '/images/01.png',
   },
   {
-    title: 'Lumière Annual Gala',
-    venue: 'Skyline Lounge',
-    status: 'Pending',
+    title: 'Engagement Ceremony',
+    venue: 'EASCCA Wedding Hall',
+    status: 'Upcoming',
     image: '/images/02.png',
   },
   {
-    title: '30th Birthday Soirée',
-    venue: 'Private Residence, Bel-Air',
-    status: 'Deposit Paid',
+    title: 'Birthday Celebration',
+    venue: 'EASCCA Wedding Hall',
+    status: 'Completed',
     image: '/images/03.png',
   },
 ];
-
 const RecentBookings = () => {
   return (
     <article className="border border-[#E0D8C3] bg-[#FDF9F1] p-6 shadow-sm">
       <div className="mb-5 flex items-center justify-between border-b border-[#E0D8C3] pb-3">
-        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#7C6A2E]">Recent Bookings</h3>
+        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#7C6A2E]">Recent Assignments</h3>
         <span className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Latest Assignments</span>
       </div>
 
