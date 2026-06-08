@@ -22,12 +22,19 @@ export default function Login() {
     }
 
     if (email === "manager@gmail.com" && password === "manager123") {
+      localStorage.setItem("user", "manager");
       router.push("/hotel-manager");
       return;
     }
 
     if (email === "admin@gmail.com" && password === "admin123") {
       router.push("/super-admin");
+      return;
+    }
+
+    if (email === "customer@gmail.com" && password === "customer123") {
+      localStorage.setItem("user", "customer");
+      router.push("/");
       return;
     }
 
