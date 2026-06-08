@@ -20,9 +20,38 @@ const BookingDetailsModal = () => {
           <p className="mt-1 font-semibold text-gray-900">The Sterling-Vance Wedding</p>
           <p className="text-xs text-gray-500">Oct 24, 2024 · 6:00 PM · Estate at Rosewood</p>
         </div>
+<div>
+  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+    Music Preferences
+  </p>
+
+  <p className="mt-1 text-xs text-gray-600">
+    Tamil Hits, Bollywood Classics, EDM
+  </p>
+</div>
+
+<div>
+  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+    Equipment Required
+  </p>
+
+  <p className="mt-1 text-xs text-gray-600">
+    Mixer, Speakers, Wireless Microphone
+  </p>
+</div>
+
+<div>
+  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+    Special Requests
+  </p>
+
+  <p className="mt-1 text-xs text-gray-600">
+    First dance song at 8:30 PM
+  </p>
+</div>
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Assigned Services</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">DJ Package</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <span className="border border-[#E0D8C3] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7C6A2E]">Diamond Premium</span>
             <span className="border border-[#E0D8C3] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7C6A2E]">Crystal Stage</span>

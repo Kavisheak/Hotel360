@@ -13,27 +13,27 @@ interface Review {
 const reviewsData: Review[] = [
   {
     name: 'Eleanor Vance',
-    event: 'VANCE HARLOW GALA 2024',
+    event: 'VANCE HARLOW WEDDING RECEPTION',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120',
     rating: 5,
-    comment: '“The attention to detail was absolutely breathtaking. Sattar Elite transformed our vision into a sophisticated reality that left our guests speechless. The floral arrangements were fresh, sculptural, and perfectly aligned with our monochromatic gold theme. Truly a 5-star experience from planning to execution.”',
-    tags: ['Luxury Decor', 'Floral Design']
+    comment: '“The DJ performance was absolutely outstanding. The music flow perfectly matched the event atmosphere, from soft background music during dinner to an energetic dance set later in the night. The transitions were smooth and professional, keeping the guests fully engaged throughout the event.”',
+    tags: ['Wedding DJ', 'Music Mixing']
   },
   {
     name: 'Julian Sterling',
-    event: 'STERLING EXECUTIVE SUMMIT',
+    event: 'STERLING EXECUTIVE SUMMIT 2024',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120',
     rating: 5,
-    comment: '“Impeccable service. We required a balance of corporate professionalism and elite elegance for our summit, and the team delivered beyond expectations. The stage setup was modern yet classic. They managed late changes with grace and absolute precision.”',
-    tags: ['Corporate Gala', 'Stage Management']
+    comment: '“Excellent DJ service for our corporate summit. The audio setup was clear, professional, and perfectly balanced. Background music during networking sessions was subtle and appropriate, and the transition into event highlights was seamless.”',
+    tags: ['Corporate Event', 'Professional DJ']
   },
   {
     name: 'Amara Okafor',
-    event: 'OKAFOR-DUMONT WEDDING',
+    event: 'OKAFOR-DUMONT WEDDING CELEBRATION',
     avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=120&h=120',
     rating: 5,
-    comment: '“Working with the decorators was a dream. The atmosphere they created was magical—exactly what we wanted for our garden wedding. Only minor feedback was on the late arrival of the entrance signage, but it was corrected immediately. Highly recommend for any high-end event.”',
-    tags: ['Wedding Decor', 'Lighting Design']
+    comment: '“The DJ created an unforgettable experience for our wedding. Every song selection matched the mood perfectly, and the crowd was energized all night. There was a slight delay in setup, but the final performance more than made up for it. Highly recommended.”',
+    tags: ['Wedding DJ', 'Live Mixing']
   }
 ];
 

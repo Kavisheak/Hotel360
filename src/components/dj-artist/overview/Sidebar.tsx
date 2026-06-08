@@ -60,17 +60,18 @@ const DjSidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />, label: 'Overview', href: '/dj-artist/overview' },
-    { icon: <Calendar size={20} />, label: 'Performance Schedule', href: '/dj-artist/performance' },
-    { icon: <BookOpen size={20} />, label: 'Events & Bookings', href: '/dj-artist/events-bookings' },
-    { icon: <Star size={20} />, label: 'Ratings', href: '/dj-artist/ratings' },
-    { icon: <ImageIcon size={20} />, label: 'Gallery', href: '/dj-artist/gallery' },
-    { icon: <Settings size={20} />, label: 'Settings', href: '/dj-artist/settings' },
+    { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/dj-artist/overview' },
+    { icon: <Calendar size={20} />, label: 'PERFORMANCE', href: '/dj-artist/performance' },
+    { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
+    { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
+    { icon: <ImageIcon size={20} />, label: 'GALLERY', href: '/dj-artist/gallery' },
+    { icon: <Settings size={20} />, label: 'SETTINGS', href: '/dj-artist/settings' },
+   
   ];
 
   const bottomItems = [
-    { icon: <HelpCircle size={20} />, label: 'Support', href: '/support' },
-    { icon: <LogOut size={20} />, label: 'Sign Out', href: '/' },
+    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '/support' },
+    { icon: <LogOut size={20} />, label: 'SIGN OUT', href: '/' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -81,7 +82,7 @@ const DjSidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">AUREUM</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Julian Dashboard</h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">DJ ARTIST PORTAL</p>
             </div>
           ) : (
@@ -112,16 +113,16 @@ const DjSidebar = () => {
         </nav>
 
         <Link
-          href="/dj-artist/events-bookings/new"
-          onClick={close}
-          title={collapsedState ? 'Create New Event' : undefined}
-          className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
-            collapsedState ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
-          }`}
-        >
-          <Plus size={16} />
-          {!collapsedState && <span>NEW BOOKING</span>}
-        </Link>
+  href="/dj-artist/upcoming-events"
+  onClick={close}
+  title={collapsedState ? 'Upcoming Events' : undefined}
+  className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
+    collapsedState ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
+  }`}
+>
+  <Plus size={16} />
+  {!collapsedState && <span>UPCOMING EVENTS</span>}
+</Link>
       </div>
 
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
