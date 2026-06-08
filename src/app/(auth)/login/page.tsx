@@ -26,6 +26,11 @@ export default function Login() {
       return;
     }
 
+    if (email === "admin@gmail.com" && password === "admin123") {
+      router.push("/super-admin");
+      return;
+    }
+
     setError("Invalid email or password.");
   };
 
@@ -173,6 +178,12 @@ export default function Login() {
               className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
             >
               Manager Dashboard
+            </Link>
+            <Link
+              href="/super-admin"
+              className="uppercase tracking-[3px] text-[#d7a04d] hover:underline"
+            >
+              Admin Dashboard
             </Link>
           </div>
         </div>
