@@ -6,26 +6,57 @@ import Link from "next/link";
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-[#f6f1e8] flex flex-col">
+    <div className="min-h-screen bg-[#F0E6D0] flex flex-col">
+      {/* ================= NAVBAR ================= */}
+      <header className="w-full border-b border-[#D4C9A8] bg-[#F0E6D0]">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between h-20 px-8">
+          {/* Logo */}
+          <h1 className="text-[34px] italic font-semibold text-[#A67C52]">
+            Sattar Elite
+          </h1>
+
+          {/* Nav Links */}
+          <nav className="hidden lg:flex items-center gap-16 text-[15px] tracking-[2px] uppercase text-[#2C1E14]">
+            <Link href="/" className="nav-link-animated">Home</Link>
+            <Link href="/" className="nav-link-animated">Packages</Link>
+            <Link href="/" className="nav-link-animated">Availability</Link>
+            <Link href="/" className="nav-link-animated">Contact</Link>
+          </nav>
+
+          {/* Right */}
+          <div className="flex items-center gap-8">
+            <Link
+              href="/login"
+              className="uppercase tracking-[2px] text-[15px] font-semibold hover:text-[#C9A84C] transition-colors"
+            >
+              Sign In
+            </Link>
+
+            <button className="btn-interactive bg-[#C9A84C] hover:bg-[#B89238] transition px-8 py-3 uppercase tracking-[3px] text-[14px] font-semibold text-[#2C1E14]">
+              Book Now
+            </button>
+          </div>
+        </div>
+      </header>
+
       {/* ================= MAIN ================= */}
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* LEFT IMAGE */}
         <div className="relative w-full lg:w-1/2 min-h-[900px]">
           <Image
-            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80"
+            src="/images/wedding.jpg"
             alt="Wedding Hall"
             fill
             priority
-            sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-[#2C1E14]/35" />
 
           {/* Text */}
-          <div className="absolute bottom-16 left-14 text-white max-w-[500px]">
-            <h1 className="text-[64px] leading-[1] font-semibold">
+          <div className="absolute bottom-16 left-14 text-white max-w-[500px] text-reveal">
+            <h1 className="text-[80px] leading-[0.95] font-semibold">
               Begin Your
               <br />
               Journey
@@ -33,7 +64,7 @@ export default function RegisterPage() {
               With Us
             </h1>
 
-            <p className="mt-6 text-[16px] leading-7 text-[#f5f5f5]">
+            <p className="mt-8 text-[18px] leading-9 text-[#f5f5f5]">
               Experience the pinnacle of hospitality and elegance at
               Sattar Elite Wedding Hall.
             </p>
@@ -42,13 +73,13 @@ export default function RegisterPage() {
 
         {/* RIGHT FORM */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-16">
-          <div className="w-full max-w-[540px]">
+          <div className="w-full max-w-[540px] text-reveal stagger-2">
             {/* Heading */}
-            <h2 className="text-[40px] leading-tight font-semibold text-[#8b6b08]">
+            <h2 className="text-[56px] leading-none font-semibold text-[#A67C52]">
               Create Account
             </h2>
 
-            <p className="mt-3 text-[16px] text-[#444]">
+            <p className="mt-4 text-[20px] text-[#444]">
               Enter your details to start planning your elite event.
             </p>
 
@@ -57,59 +88,59 @@ export default function RegisterPage() {
               {/* Names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                  <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                     First Name
                   </label>
 
                   <input
                     type="text"
                     placeholder="John"
-                    className="w-full h-[60px] px-4 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                    className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                  <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                     Last Name
                   </label>
 
                   <input
                     type="text"
                     placeholder="Doe"
-                    className="w-full h-[60px] px-4 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                    className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div>
-                <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                   Email Address
                 </label>
 
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className="w-full h-[60px] px-4 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                  className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                   Phone Number
                 </label>
 
                 <input
                   type="tel"
                   placeholder="+1 (555) 000-0000"
-                  className="w-full h-[60px] px-4 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                  className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
               </div>
 
               {/* Password */}
               <div>
-                <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                   Password
                 </label>
 
@@ -117,11 +148,11 @@ export default function RegisterPage() {
                   <input
                     type="password"
                     placeholder="••••••••"
-                    className="w-full h-[60px] px-4 pr-12 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                    className="input-glow w-full h-[74px] px-5 pr-14 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
 
                   {/* Simple Eye Icon */}
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#8c816f] text-xl cursor-pointer">
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A67C52] text-xl cursor-pointer hover:scale-110 transition-transform">
                     👁
                   </span>
                 </div>
@@ -129,52 +160,51 @@ export default function RegisterPage() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block mb-2 text-[12px] uppercase tracking-[2px] font-semibold text-[#2d2d2d]">
+                <label className="block mb-3 text-[14px] uppercase tracking-[2px] font-semibold text-[#2C1E14]">
                   Confirm Password
                 </label>
 
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full h-[60px] px-4 border border-[#d2c8b7] bg-[#fafafa] outline-none text-[18px] text-[#5b6470]"
+                  className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
               </div>
 
               {/* Terms */}
-              <div className="flex items-start gap-3 pt-2">
+              <div className="flex items-start gap-4 pt-2">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 mt-1 border border-[#c8bba5]"
+                  className="w-6 h-6 mt-1 border border-[#D4C9A8] accent-[#C9A84C]"
                 />
 
-                <p className="text-[15px] text-[#3d3d3d] leading-7">
+                <p className="text-[17px] text-[#3d3d3d] leading-8">
                   I agree to the{" "}
-                  <span className="text-[#8b6b08]">
-                    Event Hall Booking Terms
+                  <span className="text-[#A67C52] hover:underline cursor-pointer">
+                    Terms of Service
                   </span>{" "}
                   and{" "}
-                  <span className="text-[#8b6b08]">
+                  <span className="text-[#A67C52] hover:underline cursor-pointer">
                     Privacy Policy
                   </span>
-                  , including reservation deposits, cancellation windows,
-                  and guest data handling for event planning.
+                  .
                 </p>
               </div>
 
               {/* Button */}
               <button
                 type="submit"
-                className="w-full h-[60px] bg-[#b99607] hover:bg-[#a78906] transition uppercase tracking-[4px] text-[14px] font-semibold"
+                className="btn-interactive w-full h-[74px] bg-[#C9A84C] hover:bg-[#B89238] transition uppercase tracking-[5px] text-[16px] font-semibold text-[#2C1E14]"
               >
                 Create Account
               </button>
 
               {/* Bottom */}
-              <p className="text-center text-[15px] text-[#333] pt-2">
+              <p className="text-center text-[18px] text-[#333] pt-3">
                 Already have an account?{" "}
                 <Link
                   href="/login"
-                  className="text-[#8b6b08] font-semibold"
+                  className="text-[#A67C52] font-semibold hover:underline"
                 >
                   Sign In
                 </Link>
@@ -184,6 +214,29 @@ export default function RegisterPage() {
         </div>
       </div>
 
+      {/* ================= FOOTER ================= */}
+      <footer className="border-t border-[#D4C9A8] bg-[#F0E6D0]">
+        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row justify-between items-center px-8 py-12 gap-8">
+          {/* Left */}
+          <div>
+            <h2 className="text-[34px] italic font-semibold text-[#A67C52]">
+              Sattar Elite
+            </h2>
+
+            <p className="mt-4 text-[16px] text-[#444]">
+              © 2024 Sattar Elite Wedding Hall. All rights reserved.
+            </p>
+          </div>
+
+          {/* Right */}
+          <div className="flex flex-wrap items-center gap-14 text-[16px] text-[#333]">
+            <Link href="/" className="hover:text-[#C9A84C] transition-colors">Privacy Policy</Link>
+            <Link href="/" className="hover:text-[#C9A84C] transition-colors">Terms of Service</Link>
+            <Link href="/" className="hover:text-[#C9A84C] transition-colors">FAQ</Link>
+            <Link href="/" className="hover:text-[#C9A84C] transition-colors">Cookie Settings</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

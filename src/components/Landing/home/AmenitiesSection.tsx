@@ -23,11 +23,11 @@ const AmenitiesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#fcfaf7] py-12 md:py-16 px-6 md:px-12 lg:px-20 flex justify-center">
+    <section className="w-full bg-[#F0E6D0] py-12 md:py-16 px-6 md:px-12 lg:px-20 flex justify-center section-reveal">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         
         {/* Left Column - Image */}
-        <div className="relative w-full aspect-[4/5] max-h-[500px] overflow-hidden shadow-md">
+        <div className="relative w-full aspect-[4/5] max-h-[500px] overflow-hidden shadow-md hover-scale">
           <Image
             src="/crystal_chandelier.png"
             alt="Bohemian crystal chandelier"
@@ -39,7 +39,7 @@ const AmenitiesSection = () => {
 
         {/* Right Column - Content */}
         <div className="flex flex-col">
-          <p className="text-[#c69c6d] text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
+          <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
             Amenities
           </p>
           <h2 className="text-3xl md:text-4xl font-serif leading-tight text-gray-900 mb-8">
@@ -50,9 +50,9 @@ const AmenitiesSection = () => {
             {amenities.map((amenity, index) => (
               <div 
                 key={index} 
-                className="flex items-start gap-4 py-4 border-b border-gray-200 last:border-b"
+                className="flex items-start gap-4 py-4 border-b border-[#D4C9A8] last:border-b hover-glow rounded-sm px-2 -mx-2 transition-all cursor-default"
               >
-                <div className="mt-1 flex-shrink-0 text-[#c69c6d]">
+                <div className="mt-1 flex-shrink-0 text-[#C9A84C]">
                   <Sparkles size={16} strokeWidth={1.5} />
                 </div>
                 <div className="flex flex-col gap-0.5">

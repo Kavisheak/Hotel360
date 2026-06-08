@@ -1,0 +1,173 @@
+"use client";
+
+import React, { useState } from "react";
+import { Lock, ShieldCheck, Smartphone, KeyRound, Eye, EyeOff } from "lucide-react";
+
+export default function SecuritySettings() {
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [twoFA, setTwoFA] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  return (
+    <div className="bg-white border border-[#D4C9A8] rounded-sm shadow-sm hover-glow transition-all duration-300 overflow-hidden">
+      {/* Section Header */}
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-[#F0E6D0] bg-[#F0E6D0]/20">
+        <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
+          <Lock className="w-4 h-4 text-[#C9A84C]" />
+        </div>
+        <div>
+          <h4 className="text-sm font-serif text-[#2C1E14]">Security Settings</h4>
+          <p className="text-[10px] text-gray-400 font-light">Manage your password and authentication preferences.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSave} className="p-6 space-y-6">
+        {/* Password Change */}
+        <div>
+          <h5 className="text-[10px] uppercase font-bold tracking-widest text-[#A67C52] mb-4 flex items-center gap-1.5">
+            <KeyRound className="w-3.5 h-3.5" />
+            Change Password
+          </h5>
+          <div className="space-y-4">
+            <div className="relative">
+              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Current Password</label>
+              <input
+                type={showCurrent ? "text" : "password"}
+                placeholder="Enter your current password"
+                className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 pr-10 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              />
+              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-[34px] text-gray-400 hover:text-[#2C1E14] transition-colors">
+                {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">New Password</label>
+                <input
+                  type={showNew ? "text" : "password"}
+                  placeholder="Min 8 characters"
+                  className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 pr-10 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+                />
+                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-[34px] text-gray-400 hover:text-[#2C1E14] transition-colors">
+                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="relative">
+                <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Confirm Password</label>
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Re-enter new password"
+                  className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 pr-10 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+                />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-[34px] text-gray-400 hover:text-[#2C1E14] transition-colors">
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            {/* Password Strength Hint */}
+            <div className="flex gap-1.5">
+              <div className="h-1 flex-1 rounded-full bg-emerald-400" />
+              <div className="h-1 flex-1 rounded-full bg-emerald-400" />
+              <div className="h-1 flex-1 rounded-full bg-[#D4C9A8]" />
+              <div className="h-1 flex-1 rounded-full bg-[#D4C9A8]" />
+            </div>
+            <p className="text-[9px] text-gray-400 font-light">Use 8+ characters with a mix of letters, numbers & symbols.</p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <hr className="border-[#F0E6D0]" />
+
+        {/* Two-Factor Authentication */}
+        <div>
+          <h5 className="text-[10px] uppercase font-bold tracking-widest text-[#A67C52] mb-4 flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" />
+            Two-Factor Authentication
+          </h5>
+
+          <div
+            className={`p-4 border rounded-sm transition-all duration-300 cursor-pointer ${
+              twoFA ? "border-emerald-300 bg-emerald-50" : "border-[#D4C9A8] bg-[#F0E6D0]/20 hover:border-[#C9A84C]/40"
+            }`}
+            onClick={() => setTwoFA(!twoFA)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${twoFA ? "bg-emerald-100" : "bg-[#F0E6D0]"}`}>
+                  <ShieldCheck className={`w-5 h-5 ${twoFA ? "text-emerald-600" : "text-gray-400"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#2C1E14]">
+                    {twoFA ? "2FA is enabled" : "Enable Two-Factor Authentication"}
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-light mt-0.5">
+                    {twoFA
+                      ? "Your account is protected with SMS verification."
+                      : "Add an extra layer of security via SMS or authenticator app."}
+                  </p>
+                </div>
+              </div>
+              {/* Toggle Switch */}
+              <div className={`w-11 h-6 rounded-full relative transition-colors duration-300 ${twoFA ? "bg-emerald-500" : "bg-gray-300"}`}>
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${twoFA ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Sessions */}
+        <div>
+          <h5 className="text-[10px] uppercase font-bold tracking-widest text-[#A67C52] mb-3">Active Sessions</h5>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-3 border border-[#D4C9A8] rounded-sm bg-[#F0E6D0]/10">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div>
+                  <p className="text-xs font-semibold text-[#2C1E14]">Chrome on Windows</p>
+                  <p className="text-[9px] text-gray-400 font-light">Colombo, Sri Lanka — Active now</p>
+                </div>
+              </div>
+              <span className="text-[8px] uppercase tracking-widest font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-sm">Current</span>
+            </div>
+            <div className="flex items-center justify-between p-3 border border-[#D4C9A8] rounded-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-gray-300" />
+                <div>
+                  <p className="text-xs font-semibold text-[#2C1E14]">Safari on iPhone</p>
+                  <p className="text-[9px] text-gray-400 font-light">Colombo, Sri Lanka — 2 days ago</p>
+                </div>
+              </div>
+              <button className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-700 transition-colors btn-interactive">
+                Revoke
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="pt-4 border-t border-[#F0E6D0] flex items-center gap-4">
+          <button
+            type="submit"
+            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] transition-colors btn-interactive flex items-center gap-2"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            Update Security
+          </button>
+          {saved && (
+            <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest animate-fadeIn">
+              ✓ Security updated
+            </span>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+}
