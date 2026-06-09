@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 
 interface BookingFormProps {
   selectedDate: number;
+  onSubmitBooking: (contact: any) => void;
 }
 
-export default function BookingForm({ selectedDate }: BookingFormProps) {
+export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFormProps) {
   const router = useRouter();
   
   // Pre-filled mock profile data
@@ -45,6 +46,7 @@ export default function BookingForm({ selectedDate }: BookingFormProps) {
     // Simulate API delay
     setTimeout(() => {
       setIsProcessing(false);
+      onSubmitBooking(formData);
       alert("Booking Confirmed & Payment Processed! The Concierge will contact you shortly.");
       router.push("/customer/home");
     }, 1500);

@@ -15,6 +15,7 @@ import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useBookingStore } from "@/store/bookingStore";
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -106,6 +107,36 @@ export default function BookPage() {
     return "LKR " + val.toLocaleString();
   };
 
+  const addBooking = useBookingStore(state => state.addBooking);
+  const clearCart = useVendorCartStore(state => state.clearCart);
+
+  const handleFinalizeBooking = (contactInfo: any) => {
+    const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
+    
+    const dateString = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD";
+
+    addBooking({
+      id: "bk-" + Math.floor(1000 + Math.random() * 9000),
+      clientName: `${contactInfo.firstName} ${contactInfo.lastName}`,
+      email: contactInfo.email,
+      eventType: eventTypeName,
+      date: dateString,
+      guests: guestCount,
+      status: "Pending",
+      totalCost: grandTotal,
+      vendors: {
+        decorator: vendors.decorator,
+        dj: vendors.dj,
+        videographer: vendors.videographer,
+        caterer: vendors.caterer,
+      },
+      menuType: menu,
+      createdAt: new Date().toISOString()
+    });
+
+    clearCart();
+  };
+
   const handleNext = () => {
     if (currentStep === 1 && selectedDate === 0) {
       alert("Please select an available date to continue.");
@@ -177,7 +208,7 @@ export default function BookPage() {
             {/* Step 4: Checkout */}
             {currentStep === 4 && (
               <div className="animate-fadeIn">
-                <BookingForm selectedDate={selectedDate} />
+                <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
               </div>
             )}
 

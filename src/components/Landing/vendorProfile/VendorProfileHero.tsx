@@ -16,17 +16,26 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
   const setVendor = useVendorCartStore((state) => state.setVendor);
   const [added, setAdded] = useState(false);
 
-  const handleAddVendor = () => {
-    const categoryMap: Record<string, "decorator" | "dj" | "videographer" | "caterer"> = {
-      decorators: "decorator",
-      djs: "dj",
-      videographers: "videographer",
-      caterers: "caterer"
-    };
-    const storeKey = categoryMap[vendor.category] || "decorator";
-    setVendor(storeKey, vendor.id);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+  const vendors = useVendorCartStore((state) => state.vendors);
+  
+  const categoryMap: Record<string, "decorator" | "dj" | "videographer" | "caterer"> = {
+    decorators: "decorator",
+    djs: "dj",
+    videographers: "videographer",
+    caterers: "caterer"
+  };
+  const storeKey = categoryMap[vendor.category] || "decorator";
+  
+  const isSelected = vendors[storeKey] === vendor.id;
+
+  const handleToggleVendor = () => {
+    if (isSelected) {
+      setVendor(storeKey, "none");
+    } else {
+      setVendor(storeKey, vendor.id);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    }
   };
 
   return (
@@ -81,10 +90,10 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col gap-3">
             <button 
-              onClick={handleAddVendor}
-              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
+              onClick={handleToggleVendor}
+              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${isSelected ? "bg-red-900/80 text-white hover:bg-red-800" : added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
             >
-              {added ? <><Check className="w-4 h-4"/> Added to Cart</> : "Add to Booking Cart"}
+              {isSelected ? "Remove from Cart" : added ? <><Check className="w-4 h-4"/> Added to Cart</> : "Add to Booking Cart"}
             </button>
             <button 
               onClick={() => router.push("/book")}

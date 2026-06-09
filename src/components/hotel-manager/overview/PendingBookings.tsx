@@ -1,13 +1,19 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
+import { useBookingStore } from '@/store/bookingStore';
 
-const rows = [
-  { client: 'Eleanor Rigby',   event: 'Grand Wedding Gala',  date: 'Oct 24, 2024' },
-  { client: 'Julian Sterling', event: 'Corporate Reception', date: 'Nov 02, 2024' },
-  { client: 'Sarah Fitzgerald',event: 'Engagement Soirée',   date: 'Dec 15, 2024' },
-];
+const PendingBookings = () => {
+  const [isClient, setIsClient] = useState(false);
+  const pendingBookings = useBookingStore(state => state.getPendingBookings());
+  const updateBookingStatus = useBookingStore(state => state.updateBookingStatus);
 
-const PendingBookings = () => (
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  return (
   <section className="mb-8">
     <div className="flex justify-between items-center mb-4">
       <h3 className="flex items-center gap-2 text-base lg:text-lg font-serif font-semibold text-[#7C6A2E]">
@@ -33,31 +39,52 @@ const PendingBookings = () => (
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
-              <tr
-                key={row.client}
-                className={`border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#FDFAF5]'}`}
-              >
-                <td className="px-4 py-3 text-sm font-semibold text-gray-800">{row.client}</td>
-                <td className="px-4 py-3 text-sm italic font-medium text-gray-500" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{row.event}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{row.date}</td>
-                <td className="px-4 py-3">
-                  <span className="bg-[#F2EADA] text-[#7C6A2E] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-[#E0D8C3]">
-                    Pending
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <button className="text-[#7C6A2E] hover:underline text-[10px] font-bold uppercase tracking-widest">Approve</button>
-                  <span className="text-[#E0D8C3]">|</span>
-                  <button className="text-red-500 hover:underline text-[10px] font-bold uppercase tracking-widest">Reject</button>
+            {isClient && pendingBookings.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500 font-light italic">
+                  No pending bookings in the queue.
                 </td>
               </tr>
-            ))}
+            ) : isClient ? (
+              pendingBookings.map((row, i) => (
+                <tr
+                  key={row.id}
+                  className={`border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#FDFAF5]'}`}
+                >
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-800">{row.clientName}</td>
+                  <td className="px-4 py-3 text-sm italic font-medium text-gray-500" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{row.eventType}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{row.date}</td>
+                  <td className="px-4 py-3">
+                    <span className="bg-[#F2EADA] text-[#7C6A2E] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-[#E0D8C3]">
+                      Pending
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2">
+                    <button 
+                      onClick={() => updateBookingStatus(row.id, "Confirmed")}
+                      className="text-[#7C6A2E] hover:underline text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      Approve
+                    </button>
+                    <span className="text-[#E0D8C3]">|</span>
+                    <button 
+                      onClick={() => updateBookingStatus(row.id, "Rejected")}
+                      className="text-red-500 hover:underline text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : null}
           </tbody>
         </table>
       </div>
     </div>
+      </div>
+    </div>
   </section>
-);
+  );
+};
 
 export default PendingBookings;
