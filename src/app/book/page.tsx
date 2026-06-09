@@ -14,6 +14,7 @@ import BookingVendorSelector from "@/components/landing/book/BookingVendorSelect
 import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -22,8 +23,26 @@ export default function BookPage() {
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
   const [guestCount, setGuestCount] = useState<number>(380);
   
-  const [vendors, setVendors] = useState({ decorator: "none", dj: "none", videographer: "none" });
+  const cartVendors = useVendorCartStore((state) => state.vendors);
+  const cartMenu = useVendorCartStore((state) => state.menuSelection);
+  const setStoreVendor = useVendorCartStore((state) => state.setVendor);
+
+  const [vendors, setLocalVendors] = useState({ 
+    decorator: cartVendors.decorator, 
+    dj: cartVendors.dj, 
+    videographer: cartVendors.videographer,
+    caterer: cartVendors.caterer
+  });
+  
   const [menu, setMenu] = useState("signature");
+
+  const setVendors = (newVendors: typeof vendors) => {
+    setLocalVendors(newVendors);
+    if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
+    if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
+    if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
+    if (newVendors.caterer !== cartVendors.caterer) setStoreVendor("caterer", newVendors.caterer);
+  };
 
   // Read URL params on mount
   useEffect(() => {
@@ -32,12 +51,16 @@ export default function BookPage() {
       const preDecorator = searchParams.get("decorator");
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
+      const preCat = searchParams.get("caterer");
 
-      setVendors(prev => ({
-        decorator: preDecorator || prev.decorator,
-        dj: preDj || prev.dj,
-        videographer: preVid || prev.videographer
-      }));
+      if (preDecorator || preDj || preVid || preCat) {
+        setVendors({
+          decorator: preDecorator || cartVendors.decorator,
+          dj: preDj || cartVendors.dj,
+          videographer: preVid || cartVendors.videographer,
+          caterer: preCat || cartVendors.caterer
+        });
+      }
     }
   }, []);
 
@@ -68,9 +91,14 @@ export default function BookPage() {
   const guestSurcharges = extraGuests * 8500;
   const timeslotPremium = timeslot === "full" ? 500000 : 0;
   
-  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
+  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer) + getVendorCost(vendors.caterer);
 
-  if (menu === "custom") addonsCost += 200000; // custom menu surcharge
+  if (menu === "custom") {
+    addonsCost += 200000; // custom menu surcharge
+    // Add cost of selected custom menu items
+    const customMenuCost = cartMenu.items.reduce((total, item) => total + item.price, 0);
+    addonsCost += customMenuCost;
+  }
 
   const grandTotal = basePrice + guestSurcharges + timeslotPremium + addonsCost;
 

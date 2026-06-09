@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Utensils } from "lucide-react";
+import { Utensils, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 interface BookingMenuSelectorProps {
   menu: string;
@@ -65,10 +66,17 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
         })}
       </div>
       
-      <div className="mt-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
-        <p className="text-[11px] text-gray-600 font-light leading-relaxed">
-          <strong>Note:</strong> You will be able to select individual dishes, live action stations, and dietary requirements in detail through the <em>Interactive Food Menu Builder</em> in your customer dashboard after booking.
+      <div className="mt-4 p-4 bg-gray-50 border border-gray-100 rounded-sm flex items-center justify-between">
+        <p className="text-[11px] text-gray-600 font-light leading-relaxed max-w-[70%]">
+          <strong>Note:</strong> You can select individual dishes, live action stations, and dietary requirements in detail through our interactive builder.
         </p>
+        <Link 
+          href="/customer/menu" 
+          target="_blank"
+          className="text-[10px] uppercase font-bold tracking-widest text-[#C9A84C] hover:text-[#B89238] flex items-center gap-1 transition-colors"
+        >
+          Open Menu Builder <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
     </div>
   );

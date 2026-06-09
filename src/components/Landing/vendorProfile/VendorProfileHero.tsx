@@ -1,13 +1,34 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
-import { MapPin, Star, Phone, Mail, Award, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MapPin, Star, Phone, Mail, Award, Clock, Check } from "lucide-react";
 import { Vendor } from "@/components/landing/vendors/types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface VendorProfileHeroProps {
   vendor: Vendor;
 }
 
 export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
+  const router = useRouter();
+  const setVendor = useVendorCartStore((state) => state.setVendor);
+  const [added, setAdded] = useState(false);
+
+  const handleAddVendor = () => {
+    const categoryMap: Record<string, "decorator" | "dj" | "videographer" | "caterer"> = {
+      decorators: "decorator",
+      djs: "dj",
+      videographers: "videographer",
+      caterers: "caterer"
+    };
+    const storeKey = categoryMap[vendor.category] || "decorator";
+    setVendor(storeKey, vendor.id);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
   return (
     <div className="relative w-full h-[50vh] min-h-100 bg-black">
       {/* Background Cover Image */}
@@ -60,18 +81,16 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col gap-3">
             <button 
-              onClick={() => {
-                const paramKey = vendor.category === "decorators" ? "decorator" 
-                               : vendor.category === "djs" ? "dj" 
-                               : "videographer";
-                window.location.href = `/book?${paramKey}=${vendor.id}`;
-              }}
-              className="bg-[#C69C6D] text-black px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white transition-colors rounded-sm shadow-xl btn-interactive"
+              onClick={handleAddVendor}
+              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
             >
-              Select for Booking
+              {added ? <><Check className="w-4 h-4"/> Added to Cart</> : "Add to Booking Cart"}
             </button>
-            <button className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive">
-              Save to Favorites
+            <button 
+              onClick={() => router.push("/book")}
+              className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive"
+            >
+              Proceed to Checkout
             </button>
           </div>
         </div>

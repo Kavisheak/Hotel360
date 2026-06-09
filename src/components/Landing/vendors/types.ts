@@ -17,7 +17,7 @@ export interface VendorReview {
 export interface Vendor {
   id: string;
   name: string;
-  category: "decorators" | "djs" | "others";
+  category: "decorators" | "djs" | "videographers" | "caterers" | "others";
   categoryLabel: string;
   rating: number;
   reviewsCount: number;
@@ -240,7 +240,7 @@ export const VENDORS_DATA: Vendor[] = [
   {
     id: "epicurean-elite",
     name: "Epicurean Elite",
-    category: "others",
+    category: "caterers",
     categoryLabel: "Fine Dining Caterer",
     rating: 4.8,
     reviewsCount: 150,

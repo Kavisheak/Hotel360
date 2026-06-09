@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { packagesData, PackageData } from "./data";
 import PackageCard from "./components/PackageCard";
 import PackageDetailsModal from "./components/PackageDetailsModal";
@@ -38,8 +39,16 @@ export default function PackagesPage() {
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden bg-[#2C1E14] text-white">
-        <div className="absolute inset-0 bg-[url('/luxury_ballroom_bg.png')] bg-cover bg-center opacity-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#2C1E14]/50 to-[#2C1E14]"></div>
+        <div className="absolute inset-0">
+          <Image
+            src="/luxury_ballroom_bg.png"
+            alt="Luxury Ballroom"
+            fill
+            className="object-cover opacity-40"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#2C1E14]/50 via-[#2C1E14]/70 to-[#2C1E14]"></div>
+        </div>
         
         <div className="relative max-w-5xl mx-auto text-center section-reveal">
           <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
