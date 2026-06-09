@@ -1,52 +1,191 @@
 "use client";
 
-import React from 'react';
-import { LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, Settings, HelpCircle, LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock,
+  Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
+} from 'lucide-react';
 import Link from 'next/link';
-
-const Sidebar = () => {
-  return (
-    <div className="w-64 border-r border-[#E0D8C3] bg-[#FDF9F1] flex flex-col justify-between p-6 h-screen sticky top-0">
-      <div>
-        <div className="mb-12">
-          <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
-            Elite Dashboard
-          </h1>
-          <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">
-            DECORATOR PORTAL
-          </p>
-        </div>
-
-        <nav className="space-y-2">
-          <NavItem icon={<LayoutGrid size={20} />} label="MY JOBS" active={true} />
-          <NavItem icon={<Calendar size={20} />} label="SCHEDULE" />
-          <NavItem icon={<FolderHeart size={20} />} label="MY PORTFOLIO" />
-          <NavItem icon={<BarChart3 size={20} />} label="RATINGS" />
-          <NavItem icon={<Clock size={20} />} label="HISTORY" />
-          <NavItem icon={<Settings size={20} />} label="SETTINGS" />
-        </nav>
-      </div>
-
-      <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
-        <NavItem icon={<HelpCircle size={20} />} label="SUPPORT" />
-        <NavItem icon={<LogOut size={20} />} label="LOGOUT" />
-      </div>
-    </div>
-  );
-};
+import { usePathname } from 'next/navigation';
 
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
+  href: string;
   active?: boolean;
+  isCollapsed?: boolean;
+  onClick?: () => void;
 }
 
-const NavItem = ({ icon, label, active = false }: NavItemProps) => {
+const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onClick }: NavItemProps) => {
   return (
-    <Link href="#" className={`flex items-center space-x-4 px-4 py-3 rounded-md transition-colors ${active ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm' : 'text-gray-600 hover:bg-[#F2EADA]'}`}>
+    <Link
+      href={href}
+      onClick={onClick}
+      title={isCollapsed ? label : undefined}
+      className={`flex items-center rounded-md transition-all duration-200 ${
+        isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+      } ${
+        active
+          ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm'
+          : 'text-gray-600 hover:bg-[#F2EADA]'
+      }`}
+    >
       <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
-      <span className={`text-sm font-medium tracking-wide ${active ? 'font-bold' : ''}`}>{label}</span>
+      {!isCollapsed && (
+        <span className={`text-sm font-bold tracking-wide ${active ? 'font-bold' : ''}`}>
+          {label}
+        </span>
+      )}
     </Link>
+  );
+};
+
+const Sidebar = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('decorator-sidebar-collapsed');
+    if (saved === 'true') {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    const nextState = !isCollapsed;
+    setIsCollapsed(nextState);
+    localStorage.setItem('decorator-sidebar-collapsed', String(nextState));
+  };
+
+  const navItems = [
+    { icon: <LayoutGrid size={20} />,   label: 'MY JOBS',      href: '/decorator' },
+    { icon: <Calendar size={20} />,     label: 'SCHEDULE',     href: '/decorator/schedule' },
+    { icon: <FolderHeart size={20} />,  label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
+    { icon: <BarChart3 size={20} />,    label: 'RATINGS',      href: '/decorator/ratings' },
+    { icon: <Clock size={20} />,       label: 'HISTORY',      href: '/decorator/history' },
+    { icon: <Settings size={20} />,    label: 'SETTINGS',     href: '/decorator/settings' },
+  ];
+
+  const bottomItems = [
+    { icon: <HelpCircle size={20} />,   label: 'SUPPORT',      href: '#' },
+    { icon: <LogOut size={20} />,       label: 'LOGOUT',       href: '/' },
+  ];
+
+  const close = () => setMobileOpen(false);
+
+  const sidebarBody = (collapsedState: boolean) => (
+    <div className="flex flex-col justify-between h-full">
+      <div>
+        {/* Top Header Row with Logo and Toggle Button */}
+        <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
+          {!collapsedState ? (
+            <div>
+              <h1 className="text-2xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                Elite Dashboard
+              </h1>
+              <p className="text-[10px] font-semibold tracking-[0.2em] text-[#A6955C] mt-1">
+                DECORATOR PORTAL
+              </p>
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-[#FAF6EE] border border-[#E0D8C3] flex items-center justify-center text-[#7C6A2E]">
+              <FolderHeart size={18} />
+            </div>
+          )}
+
+          {/* Desktop Toggle Button */}
+          <button
+            onClick={toggleCollapse}
+            className="hidden lg:flex p-1.5 rounded-md border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-500 hover:text-gray-800 transition-colors"
+            title={collapsedState ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {collapsedState ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        </div>
+
+        {/* Nav links */}
+        <nav className="space-y-1">
+          {navItems.map((item) => (
+            <NavItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              active={
+                item.href === '/decorator'
+                  ? pathname === '/decorator'
+                  : pathname === item.href || pathname?.startsWith(item.href + '/')
+              }
+              isCollapsed={collapsedState}
+              onClick={close}
+            />
+          ))}
+        </nav>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="border-t border-[#E0D8C3] pt-6 space-y-1">
+        {bottomItems.map((item) => (
+          <NavItem
+            key={item.label}
+            icon={item.icon}
+            label={item.label}
+            href={item.href}
+            active={pathname === item.href}
+            isCollapsed={collapsedState}
+            onClick={close}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-50 bg-[#FDF9F1] border border-[#E0D8C3] p-2 rounded-md shadow-sm"
+        onClick={() => setMobileOpen(true)}
+      >
+        <Menu size={22} className="text-[#7C6A2E]" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={close}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <div
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-[#FDF9F1] border-r border-[#E0D8C3] z-50 p-6 transition-transform duration-300 overflow-y-auto ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+          onClick={close}
+        >
+          <X size={20} />
+        </button>
+        {sidebarBody(false)}
+      </div>
+
+      {/* Desktop sidebar with smooth collapse */}
+      <div
+        className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${
+          mounted && isCollapsed ? 'w-20' : 'w-64'
+        }`}
+      >
+        {sidebarBody(mounted && isCollapsed)}
+      </div>
+    </>
   );
 };
 

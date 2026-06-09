@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
+import Link from 'next/link';
 import { Tier } from './packagesData';
 import TierCard from './TierCard';
 
@@ -10,7 +11,7 @@ interface TierConfigurationsProps {
 
 const TierConfigurations = ({ tiers, onPriceChange }: TierConfigurationsProps) => {
   return (
-    <div className="bg-white border border-[#E0D8C3] p-6 sm:p-10">
+    <div className="bg-white border border-[#E0D8C3] p-6 sm:p-10 shadow-sm">
       {/* Section Header */}
       <div className="flex justify-between items-center mb-10">
         <div>
@@ -22,10 +23,13 @@ const TierConfigurations = ({ tiers, onPriceChange }: TierConfigurationsProps) =
             Configure base rates and inclusions for each service tier
           </p>
         </div>
-        <button className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#B08D2C] transition-colors border border-[#E0D8C3] hover:border-[#B08D2C] px-4 py-2">
+        <Link
+          href="/super-admin/packages/new"
+          className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#B08D2C] transition-colors border border-[#E0D8C3] hover:border-[#B08D2C] px-4 py-2"
+        >
           <Plus size={12} />
           ADD NEW TIER
-        </button>
+        </Link>
       </div>
 
       {/* Three Tier Cards — Gold is elevated */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, Users, Package, BarChart3,
-  Settings, HelpCircle, LogOut, Menu, X, Plus,
+  Settings, HelpCircle, LogOut, Menu, X,
   PanelLeftClose, PanelLeftOpen, ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
@@ -126,18 +126,7 @@ const Sidebar = () => {
           ))}
         </nav>
 
-        {/* Create New Event Button */}
-        <Link
-          href="/super-admin/events/new"
-          onClick={close}
-          title={collapsedState ? "Create New Event" : undefined}
-          className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
-            collapsedState ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
-          }`}
-        >
-          <Plus size={16} />
-          {!collapsedState && <span>CREATE NEW EVENT</span>}
-        </Link>
+
       </div>
 
       {/* Bottom Profile & Navigation */}

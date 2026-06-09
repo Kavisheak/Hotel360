@@ -7,7 +7,6 @@ interface TierCardProps {
   onPriceChange: (id: string, val: number) => void;
 }
 
-// Visual identity per tier
 const tierThemes: Record<string, {
   bg: string;
   border: string;
@@ -19,149 +18,151 @@ const tierThemes: Record<string, {
   inputBorder: string;
   inputFocus: string;
   inputBg: string;
-  checkColor: string;
+  checkBg: string;
+  checkBorder: string;
+  checkIconColor: string;
   featureIncluded: string;
+  featureExcluded: string;
   shadow: string;
   icon: string;
 }> = {
   silver: {
-    bg: 'bg-gradient-to-b from-white to-[#F8F7F5]',
-    border: 'border-[#D0CAB8]',
+    bg: 'bg-white',
+    border: 'border-[#E5DFD1]',
     badgeBg: '',
-    labelColor: 'text-gray-400',
-    priceColor: 'text-[#4A4030]',
-    guestColor: 'text-gray-400',
-    divider: 'bg-[#E8E3D8]',
-    inputBorder: 'border-[#D0CAB8]',
-    inputFocus: 'focus:border-[#9A8A60]',
-    inputBg: 'bg-white',
-    checkColor: 'text-[#9A8A60]',
+    labelColor: 'text-[#9C9380]',
+    priceColor: 'text-[#3D341D]',
+    guestColor: 'text-[#9C9380]',
+    divider: 'bg-[#E5DFD1]/50',
+    inputBorder: 'border-[#E5DFD1]',
+    inputFocus: 'focus:border-[#B08D2C]',
+    inputBg: 'bg-white text-gray-800',
+    checkBg: 'bg-transparent',
+    checkBorder: 'border-[#B08D2C]',
+    checkIconColor: 'text-[#B08D2C]',
     featureIncluded: 'text-gray-700',
+    featureExcluded: 'text-gray-300 line-through',
     shadow: 'hover:shadow-md',
     icon: '✦',
   },
   gold: {
-    bg: 'bg-gradient-to-b from-[#FFFBF0] to-[#FFF7E0]',
-    border: 'border-[#B08D2C]',
+    bg: 'bg-[#FFFDF6]',
+    border: 'border-[#C5A040]',
     badgeBg: 'bg-[#7C6A2E]',
     labelColor: 'text-[#7C6A2E]',
-    priceColor: 'text-[#3D3000]',
-    guestColor: 'text-[#A08040]',
-    divider: 'bg-[#E0C868]/40',
-    inputBorder: 'border-[#B08D2C]',
+    priceColor: 'text-[#3D341D]',
+    guestColor: 'text-[#A08848]',
+    divider: 'bg-[#E5DFD1]/50',
+    inputBorder: 'border-[#C5A040]',
     inputFocus: 'focus:border-[#7C6A2E]',
-    inputBg: 'bg-white',
-    checkColor: 'text-[#B08D2C]',
-    featureIncluded: 'text-[#3D3000] font-semibold',
-    shadow: 'hover:shadow-[0_8px_30px_rgba(176,141,44,0.2)]',
+    inputBg: 'bg-white text-gray-800',
+    checkBg: 'bg-[#FFFDF6]',
+    checkBorder: 'border-[#C5A040]',
+    checkIconColor: 'text-[#C5A040]',
+    featureIncluded: 'text-gray-900 font-semibold',
+    featureExcluded: 'text-gray-300',
+    shadow: 'shadow-[0_4px_20px_rgba(197,160,64,0.15)]',
     icon: '★',
   },
   diamond: {
-    bg: 'bg-gradient-to-b from-[#1A1410] to-[#2C2218]',
-    border: 'border-[#7C6A2E]',
+    bg: 'bg-[#1C1613]',
+    border: 'border-[#C5A040]',
     badgeBg: '',
-    labelColor: 'text-[#B08D2C]',
+    labelColor: 'text-[#C5A040]',
     priceColor: 'text-white',
-    guestColor: 'text-[#A09070]',
-    divider: 'bg-[#B08D2C]/20',
-    inputBorder: 'border-[#7C6A2E]',
-    inputFocus: 'focus:border-[#B08D2C]',
-    inputBg: 'bg-[#2C2218] text-[#F5E9C8]',
-    checkColor: 'text-[#B08D2C]',
-    featureIncluded: 'text-[#F5E9C8]',
-    shadow: 'hover:shadow-[0_8px_40px_rgba(0,0,0,0.5)]',
+    guestColor: 'text-[#9E9080]',
+    divider: 'bg-[#C5A040]/30',
+    inputBorder: 'border-[#3D342B]',
+    inputFocus: 'focus:border-[#C5A040]',
+    inputBg: 'bg-[#1C1613] text-[#F3EFE9]',
+    checkBg: 'bg-transparent',
+    checkBorder: 'border-[#C5A040]',
+    checkIconColor: 'text-[#C5A040]',
+    featureIncluded: 'text-[#F3EFE9]',
+    featureExcluded: 'text-gray-600',
+    shadow: 'hover:shadow-lg',
     icon: '◆',
   },
 };
 
 const TierCard = ({ tier, onPriceChange }: TierCardProps) => {
   const theme = tierThemes[tier.id] ?? tierThemes.silver;
+  const isGold = tier.id === 'gold';
   const isDiamond = tier.id === 'diamond';
 
   return (
     <div
       className={`
         relative flex flex-col border-2 overflow-hidden
-        transition-all duration-300 cursor-default
+        transition-all duration-300 cursor-default p-6
         ${theme.bg} ${theme.border} ${theme.shadow}
-        ${tier.highlighted ? 'scale-[1.03] shadow-[0_4px_24px_rgba(176,141,44,0.25)] z-10' : ''}
+        ${isGold ? 'pt-10' : ''}
       `}
     >
-      {/* Decorative top accent line */}
-      <div className={`h-1 w-full ${isDiamond ? 'bg-gradient-to-r from-[#B08D2C] via-[#E9C340] to-[#B08D2C]' : tier.highlighted ? 'bg-gradient-to-r from-[#B08D2C] to-[#E9C340]' : 'bg-[#D0CAB8]'}`} />
-
       {/* Most Popular Badge */}
-      {tier.badge && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
-          <span className="flex items-center gap-1.5 bg-[#7C6A2E] text-white text-[8px] font-bold tracking-[0.2em] uppercase px-5 py-2 shadow-md">
-            <span className="text-yellow-300">★</span>
-            {tier.badge}
-            <span className="text-yellow-300">★</span>
-          </span>
+      {isGold && (
+        <div className="absolute top-0 left-0 right-0">
+          <div className="bg-[#7C6A2E] text-white text-[8px] font-bold tracking-[0.25em] uppercase py-2 text-center flex items-center justify-center gap-1.5 shadow-sm">
+            <span>★</span>
+            <span>MOST POPULAR</span>
+            <span>★</span>
+          </div>
         </div>
       )}
 
-      <div className={`flex flex-col flex-1 p-6 ${tier.badge ? 'pt-10' : ''}`}>
-        {/* Tier Label + Icon + Edit */}
-        <div className="flex justify-between items-start mb-5">
-          <div className="flex items-center gap-2">
-            <span className={`text-base ${theme.checkColor}`}>{theme.icon}</span>
-            <p className={`text-[9px] font-bold tracking-[0.22em] uppercase ${theme.labelColor}`}>
-              {tier.label}
-            </p>
-          </div>
-          <button
-            className={`transition-colors ${isDiamond ? 'text-[#B08D2C] hover:text-[#E9C340]' : 'text-gray-400 hover:text-[#7C6A2E]'}`}
-            title="Edit Tier"
-          >
-            <PencilLine size={13} />
-          </button>
+      {/* Header Info */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs ${theme.labelColor}`}>{theme.icon}</span>
+          <span className={`text-[10px] font-bold tracking-[0.2em] uppercase ${theme.labelColor}`}>
+            {tier.label}
+          </span>
         </div>
+        <button className="text-gray-400 hover:text-[#7C6A2E] transition-colors">
+          <PencilLine size={14} className={isDiamond ? 'text-[#C5A040]/70 hover:text-[#C5A040]' : ''} />
+        </button>
+      </div>
 
-        {/* Price */}
-        <div className="mb-5">
-          <p className={`text-5xl font-serif font-bold leading-none tracking-tight ${theme.priceColor}`}>
-            ${tier.price.toLocaleString()}
-          </p>
-          <p className={`text-[10px] font-semibold mt-2 tracking-wide ${theme.guestColor}`}>
-            Base Rate / {tier.guests} Guests
-          </p>
+      {/* Price */}
+      <div className="mb-6">
+        <div className={`text-5xl font-serif font-bold tracking-tight ${theme.priceColor}`}>
+          ${tier.price.toLocaleString()}
         </div>
+        <div className={`text-[10px] mt-1 font-serif ${theme.guestColor}`}>
+          Base Rate / {tier.guests} Guests
+        </div>
+      </div>
 
-        {/* Divider */}
-        <div className={`h-px w-full mb-5 ${theme.divider}`} />
+      {/* Divider */}
+      <div className={`h-px w-full mb-6 ${theme.divider}`} />
 
-        {/* Features */}
-        <ul className="space-y-3 mb-6 flex-1">
-          {tier.features.map((f, i) => (
-            <li key={i} className="flex items-center gap-2.5">
-              {f.included ? (
-                <span className={`flex items-center justify-center w-4 h-4 rounded-full border ${isDiamond ? 'border-[#B08D2C] bg-[#B08D2C]/20' : tier.highlighted ? 'border-[#B08D2C] bg-[#B08D2C]/10' : 'border-[#C0B090] bg-transparent'} shrink-0`}>
-                  <Check size={9} className={theme.checkColor} strokeWidth={3} />
-                </span>
-              ) : (
-                <span className="flex items-center justify-center w-4 h-4 rounded-full border border-gray-200 bg-transparent shrink-0">
-                  <X size={9} className="text-gray-300" strokeWidth={2.5} />
-                </span>
-              )}
-              <span className={`text-sm leading-snug ${f.included ? theme.featureIncluded : (isDiamond ? 'text-[#6B5840]' : 'text-gray-400')}`}>
-                {f.text}
+      {/* Features List */}
+      <ul className="space-y-4 mb-8 flex-1">
+        {tier.features.map((f, idx) => (
+          <li key={idx} className="flex items-center gap-3">
+            {f.included ? (
+              <span className={`w-4 h-4 rounded-full border ${theme.checkBorder} ${theme.checkBg} flex items-center justify-center shrink-0`}>
+                <Check size={10} className={theme.checkIconColor} strokeWidth={3} />
               </span>
-            </li>
-          ))}
-        </ul>
+            ) : (
+              <span className="w-4 h-4 rounded-full border border-gray-200 bg-transparent flex items-center justify-center shrink-0">
+                <X size={10} className="text-gray-300" strokeWidth={2.5} />
+              </span>
+            )}
+            <span className={`text-xs ${f.included ? theme.featureIncluded : 'text-gray-400'}`}>
+              {f.text}
+            </span>
+          </li>
+        ))}
+      </ul>
 
-        {/* Editable Price Input */}
+      {/* Editable Price Box */}
+      <div className="mt-auto">
         <input
           type="number"
           value={tier.price}
-          onChange={e => onPriceChange(tier.id, Number(e.target.value))}
-          className={`
-            w-full border px-3 py-3 text-sm font-bold text-center
-            focus:outline-none transition-colors
-            ${theme.inputBorder} ${theme.inputFocus} ${theme.inputBg}
-            ${isDiamond ? 'text-[#F5E9C8] placeholder-[#A09070]' : 'text-gray-700'}
-          `}
+          onChange={(e) => onPriceChange(tier.id, Number(e.target.value))}
+          className={`w-full border px-3 py-2 text-center text-xs font-bold font-mono focus:outline-none transition-colors ${theme.inputBorder} ${theme.inputBg} ${theme.inputFocus}`}
         />
       </div>
     </div>
