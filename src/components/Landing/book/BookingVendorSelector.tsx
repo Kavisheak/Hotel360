@@ -8,6 +8,7 @@ interface VendorsState {
   decorator: string;
   dj: string;
   videographer: string;
+  caterer: string;
 }
 
 interface BookingVendorSelectorProps {
@@ -24,6 +25,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   const decorators = VENDORS_DATA.filter(v => v.category === "decorators");
   const djs = VENDORS_DATA.filter(v => v.category === "djs");
   const videographers = VENDORS_DATA.filter(v => v.category === "others" && v.id === "luxe-cinema");
+  const caterers = VENDORS_DATA.filter(v => v.category === "caterers");
 
   const renderCategory = (
     title: string, 
@@ -111,6 +113,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         {renderCategory("Decorator", <Palette className="w-4 h-4 text-[#C9A84C]" />, "decorator", decorators)}
         {renderCategory("DJ & Music", <Music className="w-4 h-4 text-[#C9A84C]" />, "dj", djs)}
         {renderCategory("Photography & Video", <Video className="w-4 h-4 text-[#C9A84C]" />, "videographer", videographers)}
+        {renderCategory("Gourmet Catering", <Sparkles className="w-4 h-4 text-[#C9A84C]" />, "caterer", caterers)}
       </div>
       
       <p className="text-[10px] text-gray-500 font-light mt-4 italic text-center">
