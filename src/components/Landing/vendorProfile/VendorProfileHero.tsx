@@ -59,10 +59,18 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col gap-3">
-            <button className="bg-[#C69C6D] text-black px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white transition-colors rounded-sm shadow-xl">
-              Request a Quote
+            <button 
+              onClick={() => {
+                const paramKey = vendor.category === "decorators" ? "decorator" 
+                               : vendor.category === "djs" ? "dj" 
+                               : "videographer";
+                window.location.href = `/book?${paramKey}=${vendor.id}`;
+              }}
+              className="bg-[#C69C6D] text-black px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white transition-colors rounded-sm shadow-xl btn-interactive"
+            >
+              Select for Booking
             </button>
-            <button className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm">
+            <button className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive">
               Save to Favorites
             </button>
           </div>
