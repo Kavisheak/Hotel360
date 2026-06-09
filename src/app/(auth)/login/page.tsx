@@ -30,6 +30,9 @@ export default function Login() {
 
     if (email === "admin@gmail.com" && password === "admin123") {
       router.push("/super-admin");
+      return;
+    }
+
     if (email === "customer@gmail.com" && password === "customer123") {
       localStorage.setItem("user", "customer");
       router.push("/");
