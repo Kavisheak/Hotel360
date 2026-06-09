@@ -36,6 +36,12 @@ export default function Login() {
       return;
     }
 
+    if (email === "customer@gmail.com" && password === "customer123") {
+      localStorage.setItem("user", "customer");
+      router.push("/");
+      return;
+    }
+
     setError("Invalid email or password.");
   };
 

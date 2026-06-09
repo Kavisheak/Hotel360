@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, Bell, HelpCircle } from 'lucide-react';
 
-const PackagesHeader = () => {
+const ConfigHeader = () => {
   return (
     <div className="border-b border-[#E0D8C3] bg-[#FDF9F1] px-6 sm:px-10 py-4 flex justify-between items-center sticky top-0 z-10">
       {/* Left: Search */}
@@ -10,7 +10,7 @@ const PackagesHeader = () => {
           <Search size={16} className="text-gray-500 shrink-0" />
           <input
             type="text"
-            placeholder="Search packages or services..."
+            placeholder="Search system logs..."
             className="bg-transparent text-sm text-gray-600 placeholder-gray-500 focus:outline-none w-full font-serif italic"
           />
         </div>
@@ -32,4 +32,4 @@ const PackagesHeader = () => {
   );
 };
 
-export default PackagesHeader;
+export default ConfigHeader;
