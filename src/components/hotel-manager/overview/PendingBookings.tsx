@@ -81,8 +81,6 @@ const PendingBookings = () => {
         </table>
       </div>
     </div>
-      </div>
-    </div>
   </section>
   );
 };
