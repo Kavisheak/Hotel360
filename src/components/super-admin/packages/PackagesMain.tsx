@@ -25,7 +25,7 @@ const PackagesMain = () => {
     setFees(prev => prev.map(f => (f.id === id ? { ...f, fee: val } : f)));
 
   return (
-    <div className="flex min-h-screen bg-[#FDF9F1] font-sans text-gray-800">
+    <div className="flex min-h-screen bg-[#FDF9F1] font-sans text-gray-800 flex-col lg:flex-row">
       <Sidebar />
 
       <div className="flex-1 min-w-0 pt-14 lg:pt-0 flex flex-col">
@@ -53,7 +53,7 @@ const PackagesMain = () => {
           </div>
 
           {/* Two-column layout: Left (main) + Right (sidebar) */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start">
             {/* Left Column */}
             <div className="space-y-6">
               <TierConfigurations tiers={tiers} onPriceChange={handlePriceChange} />
@@ -61,7 +61,7 @@ const PackagesMain = () => {
             </div>
 
             {/* Right Sidebar Panel */}
-            <div className="space-y-5">
+            <div className="space-y-6">
               <GlobalParameters
                 deposit={deposit}
                 onDepositChange={setDeposit}
