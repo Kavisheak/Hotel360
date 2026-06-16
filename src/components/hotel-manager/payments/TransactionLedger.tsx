@@ -1,13 +1,18 @@
-import React from 'react';
+"use client";
 
-const rows = [
-  { date: 'Oct 14, 2024', ref: 'INV-9901-CS', category: 'Venue Rental',     amount: '$12,000.00', status: 'Fully Paid',      statusColor: 'text-green-600 font-bold' },
-  { date: 'Oct 12, 2024', ref: 'INV-9884-DP', category: 'Catering Deposit', amount: '$3,500.00',  status: 'Deposit Paid',    statusColor: 'text-[#B08D2C] font-bold' },
-  { date: 'Oct 10, 2024', ref: 'INV-9852-EX', category: 'Decor Services',   amount: '$2,100.00',  status: 'Pending',         statusColor: 'text-gray-500 font-semibold' },
-];
+import React, { useState, useEffect } from 'react';
+import { useBookingStore } from '@/store/bookingStore';
 
-const TransactionLedger = () => (
-  <div className="bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm">
+const TransactionLedger = () => {
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  return (
+    <div className="bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm">
     <h3 className="text-sm font-serif font-semibold text-gray-800 px-5 py-4 border-b border-[#E0D8C3] bg-[#FDF9F1]">
       Transaction Ledger
     </h3>
@@ -22,19 +27,29 @@ const TransactionLedger = () => (
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className={`border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#FDFAF5]'}`}>
-              <td className="px-4 py-3 text-xs text-gray-600">{r.date}</td>
-              <td className="px-4 py-3 text-xs font-mono text-gray-700 font-semibold">{r.ref}</td>
-              <td className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">{r.category}</td>
-              <td className="px-4 py-3 text-sm font-serif font-bold text-[#B08D2C]">{r.amount}</td>
-              <td className="px-4 py-3">
-                <span className={`text-[10px] uppercase tracking-widest ${r.statusColor}`}>
-                  {r.status}
-                </span>
-              </td>
+          {isClient && globalBookings.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="px-4 py-8 text-center text-xs text-gray-500 italic">No transactions found.</td>
             </tr>
-          ))}
+          ) : isClient ? (
+            globalBookings.map((b, i) => {
+              const displayStatus = b.status === "Pending" ? "Pending" : "Fully Paid";
+              const statusColor = b.status === "Pending" ? "text-gray-500 font-semibold" : "text-green-600 font-bold";
+              return (
+                <tr key={b.id} className={`border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-[#FDFAF5]'}`}>
+                  <td className="px-4 py-3 text-xs text-gray-600">{b.date}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-gray-700 font-semibold">{b.id}</td>
+                  <td className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">{b.eventType}</td>
+                  <td className="px-4 py-3 text-sm font-serif font-bold text-[#B08D2C]">LKR {b.totalCost.toLocaleString()}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[10px] uppercase tracking-widest ${statusColor}`}>
+                      {displayStatus}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })
+          ) : null}
         </tbody>
       </table>
     </div>
@@ -46,6 +61,7 @@ const TransactionLedger = () => (
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default TransactionLedger;

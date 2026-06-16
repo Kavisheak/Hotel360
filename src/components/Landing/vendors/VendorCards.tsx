@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Award, Info, ArrowRight } from "lucide-react";
+import { Star, Award, Info, ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { Vendor } from "./types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface VendorCardsProps {
   filteredVendors: Vendor[];
@@ -14,6 +15,7 @@ export default function VendorCards({
   onClearFilters
 }: VendorCardsProps) {
   const router = useRouter();
+  const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
   return (
     <section className="max-w-7xl mx-auto px-6 py-8">
       {filteredVendors.length === 0 ? (
@@ -32,9 +34,13 @@ export default function VendorCards({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredVendors.map((vendor, index) => (
-            <div 
-              key={vendor.id} 
+          {filteredVendors.map((vendor, index) => {
+            const inCart = cartVendors?.includes(vendor.id) || false;
+            const isFavorite = favoriteVendors?.includes(vendor.id) || false;
+            
+            return (
+              <div 
+                key={vendor.id} 
               className={`bg-white border border-[#D4C9A8] flex flex-col justify-between shadow-sm hover:shadow-2xl transition-all duration-300 hover-lift hover-glow rounded-sm overflow-hidden group card-entrance stagger-${index + 1}`}
             >
               {/* Image Wrap & Category Tag Overlay */}
@@ -52,6 +58,22 @@ export default function VendorCards({
                 <span className="absolute top-4 left-4 bg-[#2C1E14]/85 text-[#C9A84C] text-[8px] uppercase tracking-[0.2em] font-bold px-3 py-1.5 border border-[#C9A84C]/30 shadow-md">
                   {vendor.categoryLabel}
                 </span>
+
+                {/* Quick Actions */}
+                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                  <button 
+                    onClick={() => toggleFavoriteVendor(vendor.id)} 
+                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isFavorite ? 'bg-[#C9A84C] text-white' : 'bg-white/95 text-gray-400 hover:text-[#C9A84C]'}`}
+                  >
+                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white' : ''}`} />
+                  </button>
+                  <button 
+                    onClick={() => toggleCartVendor(vendor.id)} 
+                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${inCart ? 'bg-[#C9A84C] text-white' : 'bg-white/95 text-gray-400 hover:text-[#C9A84C]'}`}
+                  >
+                    <ShoppingCart className={`w-4 h-4 ${inCart ? 'fill-white' : ''}`} />
+                  </button>
+                </div>
                 
                 {/* Rating Tag */}
                 <div className="absolute bottom-4 right-4 bg-white/95 text-[#2C1E14] px-2.5 py-1 flex items-center gap-1.5 text-xs font-bold shadow-md rounded-sm">
@@ -105,8 +127,9 @@ export default function VendorCards({
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

@@ -16,11 +16,12 @@ export default function VendorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState(0);
   const [priceFilter, setPriceFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState<"all" | "decorators" | "djs" | "caterers" | "others">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "decorators" | "djs" | "others">("all");
   
   const router = useRouter();
-  const cartVendors = useVendorCartStore((state) => state.vendors);
-  const selectedCount = Object.values(cartVendors).filter(v => v !== "none").length;
+  const storeVendors = useVendorCartStore((state) => state.vendors);
+  const cartVendorsList = useVendorCartStore((state) => state.cartVendors) || [];
+  const selectedCount = cartVendorsList.length;
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -72,7 +73,7 @@ export default function VendorsPage() {
       {selectedCount > 0 && (
         <div className="fixed bottom-8 right-8 z-50">
           <button 
-            onClick={() => router.push("/book")}
+            onClick={() => router.push("/customer/saved")}
             className="bg-[#C9A84C] text-[#2C1E14] px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:bg-[#B89238] transition-transform hover:scale-105 btn-interactive"
           >
             <div className="relative">
@@ -82,7 +83,7 @@ export default function VendorsPage() {
               </span>
             </div>
             <span className="text-[11px] uppercase font-bold tracking-widest">
-              Proceed to Booking
+              View Cart
             </span>
           </button>
         </div>

@@ -12,13 +12,16 @@ interface VendorCartState {
     decorator: string;
     dj: string;
     videographer: string;
-    caterer: string;
   };
   menuSelection: {
     type: "signature" | "custom" | "none";
     items: MenuItemSelection[];
   };
+  cartVendors: string[];
+  favoriteVendors: string[];
   setVendor: (category: keyof VendorCartState["vendors"], id: string) => void;
+  toggleCartVendor: (id: string) => void;
+  toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
   addMenuItem: (item: MenuItemSelection) => void;
   removeMenuItem: (itemId: string) => void;
@@ -31,13 +34,14 @@ export const useVendorCartStore = create<VendorCartState>()(
       vendors: {
         decorator: "none",
         dj: "none",
-        videographer: "none",
-        caterer: "none",
+        videographer: "none"
       },
       menuSelection: {
         type: "none",
         items: [],
       },
+      cartVendors: [],
+      favoriteVendors: [],
       setVendor: (category, id) =>
         set((state) => ({
           vendors: {
@@ -45,6 +49,24 @@ export const useVendorCartStore = create<VendorCartState>()(
             [category]: id,
           },
         })),
+      toggleCartVendor: (id) =>
+        set((state) => {
+          const isSelected = state.cartVendors.includes(id);
+          return {
+            cartVendors: isSelected 
+              ? state.cartVendors.filter(vId => vId !== id)
+              : [...state.cartVendors, id]
+          };
+        }),
+      toggleFavoriteVendor: (id) =>
+        set((state) => {
+          const isSelected = state.favoriteVendors.includes(id);
+          return {
+            favoriteVendors: isSelected 
+              ? state.favoriteVendors.filter(vId => vId !== id)
+              : [...state.favoriteVendors, id]
+          };
+        }),
       setMenuType: (type) =>
         set((state) => ({
           menuSelection: {
@@ -71,13 +93,13 @@ export const useVendorCartStore = create<VendorCartState>()(
           vendors: {
             decorator: "none",
             dj: "none",
-            videographer: "none",
-            caterer: "none",
+            videographer: "none"
           },
           menuSelection: {
             type: "none",
             items: [],
           },
+          cartVendors: [],
         }),
     }),
     {

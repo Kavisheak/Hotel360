@@ -6,17 +6,17 @@ import { Sparkles } from "lucide-react";
 
 export default function BookHero() {
   return (
-    <section className="relative w-full py-24 bg-[#2C1E14] text-white overflow-hidden border-b border-[#C9A84C]/20">
+    <section className="relative w-full py-24 bg-[#0A0A0A] text-white overflow-hidden border-b border-[#C9A84C]/20">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
           src="/crystal_pavilion_venue.png"
           alt="Crystal Pavilion Venue"
           fill
-          className="object-cover opacity-40"
+          className="object-cover opacity-40 mix-blend-overlay"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#2C1E14]/50 via-[#2C1E14]/70 to-[#2C1E14]"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/50 via-[#0A0A0A]/70 to-[#0A0A0A]"></div>
       </div>
 
       <div className="absolute inset-0 opacity-10 pointer-events-none z-0">

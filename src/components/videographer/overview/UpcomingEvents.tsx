@@ -1,4 +1,7 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import { useBookingStore } from '@/store/bookingStore';
 
 interface UpcomingEventProps {
   date: string;
@@ -43,26 +46,43 @@ const UpcomingEvent = ({ date, month, status, title, venue, details, progress }:
 };
 
 const UpcomingEvents = () => {
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const videoBookings = globalBookings.filter(b => b.vendors.videographer !== "none");
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <UpcomingEvent
-        date="18"
-        month="SEPT"
-        status="BRIEFING SENT"
-        title="Fatima's Engagement Reel"
-        venue="ELITE BALLROOM"
-        details="120 GUESTS"
-        progress={1}
-      />
-      <UpcomingEvent
-        date="22"
-        month="SEPT"
-        status="ON SITE"
-        title="Corporate Gala 2024"
-        venue="ROOFTOP GARDEN"
-        details="200 GUESTS"
-        progress={2}
-      />
+      {isClient && videoBookings.length === 0 ? (
+        <div className="col-span-full py-12 text-center text-sm text-gray-500 font-light italic border border-[#E0D8C3] bg-white">
+          No videography events scheduled yet.
+        </div>
+      ) : isClient ? (
+        videoBookings.slice(0, 2).map((booking, idx) => {
+          // Extract day and month from date
+          const dateParts = new Date(booking.date);
+          const day = isNaN(dateParts.getDate()) ? "22" : dateParts.getDate().toString();
+          const month = isNaN(dateParts.getMonth()) ? "SEPT" : dateParts.toLocaleString('default', { month: 'short' }).toUpperCase();
+          const displayStatus = booking.status === "Pending" ? "BRIEFING SENT" : "ON SITE";
+
+          return (
+            <UpcomingEvent
+              key={booking.id}
+              date={day}
+              month={month}
+              status={displayStatus}
+              title={`${booking.clientName}'s ${booking.eventType}`}
+              venue={booking.menuType + " Menu"}
+              details={`${booking.guests} GUESTS`}
+              progress={idx === 0 ? 1 : 2}
+            />
+          );
+        })
+      ) : null}
     </div>
   );
 };

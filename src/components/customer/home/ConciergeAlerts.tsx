@@ -8,7 +8,7 @@ export default function ConciergeAlerts() {
   const [notifications, setNotifications] = useState([
     {
       id: 1,
-      title: "Catering Menu Confirmation Required",
+      title: "Food Menu Confirmation Required",
       desc: "Please review and finalize your selected menu options with your concierge by tomorrow evening.",
       time: "2 hours ago"
     },
@@ -73,7 +73,7 @@ export default function ConciergeAlerts() {
         <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-[#C9A84C] block mb-1">Planning Guide</span>
         <h4 className="text-sm font-serif font-semibold text-gray-900 mb-2">Did you know?</h4>
         <p className="text-xs font-light text-gray-500 leading-normal">
-          EASCC collaborates directly with premium verified decorators, photographers, and local florists. You can select your creative team directly through your dashboard to link catering and setup timelines seamlessly.
+          EASCC collaborates directly with premium verified decorators, photographers, and local florists. You can select your creative team directly through your dashboard to link culinary and setup timelines seamlessly.
         </p>
         <div className="mt-4">
           <Link 

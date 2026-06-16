@@ -1,71 +1,80 @@
 import React from 'react';
-import Image from 'next/image';
-import { Sparkles } from 'lucide-react';
 
 const AmenitiesSection = () => {
   const amenities = [
     {
+      id: '01',
       title: 'Vaulted Ballroom',
-      description: '12 m hand-painted ceiling, Bohemian crystal chandeliers',
+      description: '12m ceilings and pillarless design to accommodate grand celebrations.',
     },
     {
+      id: '02',
       title: 'Bridal Suites',
-      description: 'Two private suites with hair, makeup and concierge',
+      description: 'Two private suites with dedicated styling stations and concierge.',
     },
     {
-      title: 'Rooftop Terrace',
-      description: 'Skyline cocktail garden overlooking the Indian Ocean',
-    },
-    {
+      id: '03',
       title: 'Culinary Atelier',
-      description: 'On-site kitchen led by Chef Anjana Perera',
+      description: 'On-site kitchens led by Executive Chef Anjana Perera.',
+    },
+    {
+      id: '04',
+      title: 'Smart Lighting',
+      description: 'Custom programmable LED systems and Bohemian crystal chandeliers.',
+    },
+    {
+      id: '05',
+      title: 'Arrival Courtyard',
+      description: 'A grand entrance designed specifically for VIP arrivals and red carpets.',
+    },
+    {
+      id: '06',
+      title: 'Valet Service',
+      description: 'Seamless parking coordination for up to 250 vehicles.',
     },
   ];
 
   return (
-    <section className="w-full bg-[#F0E6D0] py-12 md:py-16 px-6 md:px-12 lg:px-20 flex justify-center section-reveal">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <section className="w-full bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal">
+      <div className="max-w-6xl w-full flex flex-col">
         
-        {/* Left Column - Image */}
-        <div className="relative w-full aspect-[4/5] max-h-[500px] overflow-hidden shadow-md hover-scale">
-          <Image
-            src="/crystal_chandelier.png"
-            alt="Bohemian crystal chandelier"
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover object-center"
-          />
+        {/* Header Row */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-20 relative z-10">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-[1px] bg-[#C9A84C]/60"></div>
+              <p className="text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">
+                The Anatomy of Elegance
+              </p>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-white max-w-xl text-reveal stagger-2">
+              Composed with <span className="italic text-[#C9A84C] font-light">unwavering precision</span>
+            </h2>
+          </div>
+          
+          <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-md font-light text-reveal stagger-3 lg:pb-2">
+            EASCC isn't just an empty ballroom. We provide an integrated ecosystem of luxury amenities, ensuring every facet of your event is executed flawlessly.
+          </p>
         </div>
 
-        {/* Right Column - Content */}
-        <div className="flex flex-col">
-          <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
-            Amenities
-          </p>
-          <h2 className="text-3xl md:text-4xl font-serif leading-tight text-gray-900 mb-8">
-            Every detail, considered.
-          </h2>
-
-          <div className="flex flex-col w-full">
-            {amenities.map((amenity, index) => (
-              <div 
-                key={index} 
-                className="flex items-start gap-4 py-4 border-b border-[#D4C9A8] last:border-b hover-glow rounded-sm px-2 -mx-2 transition-all cursor-default"
-              >
-                <div className="mt-1 flex-shrink-0 text-[#C9A84C]">
-                  <Sparkles size={16} strokeWidth={1.5} />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <h3 className="text-lg font-serif text-gray-900">
-                    {amenity.title}
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    {amenity.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* 3x2 Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16 relative z-10">
+          {amenities.map((amenity, index) => (
+            <div 
+              key={amenity.id} 
+              className={`flex flex-col border-t border-[#C9A84C]/20 pt-6 hover-glow transition-all cursor-default card-entrance stagger-${index + 1}`}
+            >
+              <span className="text-[#C9A84C] text-sm font-serif italic mb-6">
+                {amenity.id}
+              </span>
+              <h3 className="text-xl md:text-2xl font-serif text-white mb-3">
+                {amenity.title}
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed font-light">
+                {amenity.description}
+              </p>
+            </div>
+          ))}
         </div>
 
       </div>

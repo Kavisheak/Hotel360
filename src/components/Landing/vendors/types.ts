@@ -17,7 +17,7 @@ export interface VendorReview {
 export interface Vendor {
   id: string;
   name: string;
-  category: "decorators" | "djs" | "videographers" | "caterers" | "others";
+  category: "decorators" | "djs" | "videographers" | "others";
   categoryLabel: string;
   rating: number;
   reviewsCount: number;
@@ -233,40 +233,6 @@ export const VENDORS_DATA: Vendor[] = [
       {
         client: "Sarah & Chris",
         text: "Our wedding highlight film looks like a literal Hollywood movie! They captured the grand lighting of EASCC so beautifully. Extremely professional and invisible during the ceremony.",
-        rating: 5
-      }
-    ]
-  },
-  {
-    id: "epicurean-elite",
-    name: "Epicurean Elite",
-    category: "caterers",
-    categoryLabel: "Fine Dining Caterer",
-    rating: 4.8,
-    reviewsCount: 150,
-    priceLevel: "elite",
-    priceLevelLabel: "Elite Tier",
-    startingPrice: "LKR 4,500/Pax",
-    image: "/silver_package.png",
-    specialties: ["Gourmet Buffets", "Live Plated Dinner", "Molecular Mixology", "Artisanal Dessert Bars"],
-    description: "Crafting premium culinary journeys, Epicurean Elite curates tailored plated meals, luxurious live oyster and sushi bars, molecular mixology setups, and artistic dessert displays, vetted for high-end EASCC events.",
-    portfolio: ["/silver_package.png"],
-    packages: [
-      {
-        name: "Gourmet Grand Banquet",
-        price: "LKR 4,500 / Guest",
-        features: ["Multi-cuisine premium buffet structure", "4 Luxurious main course selections", "Live carving station (Premium Roast Beef)", "6 Cold appetizers & salads", "Curated dessert bar with 8 varieties"]
-      },
-      {
-        name: "Elite Plated Fine Dining",
-        price: "LKR 7,500 / Guest",
-        features: ["5-Course plated gourmet dinner", "Custom menu designed by Executive Chef", "Artisanal mocktail pairing session", "Luxury chocolate & pastry display station", "Uniformed silver-service wait staff"]
-      }
-    ],
-    reviews: [
-      {
-        client: "Nishan & Tanya",
-        text: "The molecular mixology bar was an absolute sensation! Every single dish was elegant, hot, and tasted incredible. They raised the bar for wedding dining in Colombo.",
         rating: 5
       }
     ]

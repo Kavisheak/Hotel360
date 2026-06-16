@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { PackageData } from "../data";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, Users } from "lucide-react";
 
 interface Props {
   pkg: PackageData;
@@ -14,88 +14,89 @@ interface Props {
 
 export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: Props) {
   const router = useRouter();
+  const isGold = pkg.name === "Gold";
   
   return (
-    <div className={`relative bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-[#D4C9A8] flex flex-col h-full group hover-lift hover-glow card-entrance stagger-${index + 1}`}>
+    <div className={`relative bg-white flex flex-col h-full group hover-lift shadow-sm hover:shadow-xl transition-all duration-300 ${isGold ? 'border-2 border-[#C9A84C]' : 'border border-[#D4C9A8]'} stagger-${index + 1}`}>
+      
+      {/* MOST CHOSEN Badge */}
+      {isGold && (
+        <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#C9A84C] text-[#2C1E14] text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1 shadow-md z-10">
+          Most Chosen
+        </div>
+      )}
+
       {/* Header Image */}
-      <div className="relative h-64 w-full overflow-hidden bg-gray-100">
+      <div className="relative h-48 w-full overflow-hidden bg-gray-100">
         <Image 
-          src={pkg.images[0]}
+          src={pkg.image}
           alt={pkg.name}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 33vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className={`absolute inset-0 bg-gradient-to-t from-[#2C1E14]/80 via-transparent to-transparent pointer-events-none`}></div>
-        
-        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-sm font-bold shadow-sm text-[#2C1E14] text-sm">
-          LKR {(pkg.price / 1000000).toFixed(2)}M
-        </div>
-        
-        <div className="absolute bottom-4 left-6">
-          <h3 className={`text-3xl font-serif text-white drop-shadow-md`}>{pkg.name}</h3>
-        </div>
+        <div className="absolute inset-0 bg-black/10"></div>
       </div>
 
       {/* Content */}
-      <div className="p-6 flex-1 flex flex-col">
-        <p className="text-gray-600 text-sm font-light leading-relaxed mb-6">{pkg.description}</p>
+      <div className="p-8 flex-1 flex flex-col">
         
-        <div className="space-y-3 mb-8 flex-1">
-          {pkg.features.slice(0, 4).map((feature, idx) => (
+        {/* Title & Price */}
+        <div className="mb-4">
+          <h3 className="text-2xl md:text-3xl font-serif text-[#2C1E14] mb-1">{pkg.name} Package</h3>
+          <p className="text-2xl md:text-3xl font-serif text-[#C9A84C]">{pkg.priceLabel}</p>
+        </div>
+
+        {/* Guest Count */}
+        <div className="flex items-center gap-2 text-[#C9A84C] mb-4">
+          <Users size={14} className="text-[#C9A84C]" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#2C1E14]">{pkg.guestsLabel}</span>
+        </div>
+
+        {/* Description */}
+        <p className="text-gray-600 text-sm font-light leading-relaxed mb-8">{pkg.description}</p>
+        
+        {/* Features List */}
+        <div className="space-y-4 mb-8 flex-1">
+          {pkg.features.map((feature, idx) => (
             <div key={idx} className="flex items-start gap-3">
-              <Check className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" />
-              <span className="text-gray-700 font-medium text-xs leading-relaxed">{feature}</span>
+              <Check className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" strokeWidth={3} />
+              <span className="text-gray-700 text-xs font-medium leading-relaxed">{feature}</span>
             </div>
           ))}
-          {pkg.features.length > 4 && (
-            <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider pl-7 pt-2 border-t border-[#F0E6D0]">
-              + {pkg.features.length - 4} more inclusions
-            </div>
-          )}
         </div>
 
         {/* Actions Section */}
-        <div className="space-y-3 mt-auto">
+        <div className="mt-auto">
           {isGuest ? (
-            <>
+            <div className="relative group/tooltip">
               <button 
-                onClick={() => onViewDetails(pkg)}
-                className="w-full py-2.5 rounded-sm border border-[#2C1E14] text-[#2C1E14] text-[10px] uppercase font-bold tracking-widest hover:bg-[#2C1E14] hover:text-[#C9A84C] transition-colors btn-interactive"
+                disabled
+                className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all cursor-not-allowed flex items-center justify-center gap-2 ${
+                  isGold 
+                    ? 'bg-[#E5D7B3] text-gray-500 border border-[#C9A84C]/30' 
+                    : 'bg-gray-50 text-gray-400 border border-gray-200'
+                }`}
               >
-                View Details
+                <span className="material-symbols-outlined text-[14px]">lock</span>
+                Login to Select {pkg.name}
               </button>
-              
-              <div className="relative group/tooltip">
-                <button 
-                  disabled
-                  className="w-full py-2.5 rounded-sm bg-[#F0E6D0]/50 text-gray-400 text-[10px] uppercase font-bold tracking-widest cursor-not-allowed flex items-center justify-center gap-2 border border-[#D4C9A8]/50"
-                >
-                  <span className="material-symbols-outlined text-[14px]">lock</span>
-                  Login to Book
-                </button>
-                {/* Tooltip */}
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#2C1E14] text-[#F0E6D0] text-[10px] text-center p-2 rounded-sm opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg border border-[#C9A84C]/30">
-                  You must register or sign in to start a booking.
-                </div>
+              {/* Tooltip */}
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#2C1E14] text-[#F0E6D0] text-[10px] text-center p-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg border border-[#C9A84C]/30">
+                You must register or sign in to start a booking.
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <button 
-                onClick={() => onViewDetails(pkg)}
-                className="w-full py-2.5 rounded-sm border border-[#2C1E14] text-[#2C1E14] text-[10px] uppercase font-bold tracking-widest hover:bg-[#2C1E14] hover:text-[#C9A84C] transition-colors btn-interactive"
-              >
-                Compare Features
-              </button>
-              
-              <button 
-                onClick={() => router.push(`/book?pkg=${pkg.id}`)}
-                className="w-full py-2.5 rounded-sm bg-[#C9A84C] text-[#2C1E14] text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-all btn-interactive flex items-center justify-center gap-2"
-              >
-                Start Booking <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </button>
-            </>
+            <button 
+              onClick={() => router.push(`/book?pkg=${pkg.id}`)}
+              className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all btn-interactive ${
+                isGold 
+                  ? 'bg-[#C9A84C] text-[#2C1E14] hover:bg-[#B89238]' 
+                  : 'bg-transparent text-[#2C1E14] border border-[#2C1E14] hover:bg-[#2C1E14] hover:text-[#C9A84C]'
+              }`}
+            >
+              Select {pkg.name}
+            </button>
           )}
         </div>
       </div>

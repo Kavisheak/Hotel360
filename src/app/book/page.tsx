@@ -15,6 +15,7 @@ import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useBookingStore } from "@/store/bookingStore";
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -29,9 +30,8 @@ export default function BookPage() {
 
   const [vendors, setLocalVendors] = useState({ 
     decorator: cartVendors.decorator, 
-    dj: cartVendors.dj, 
-    videographer: cartVendors.videographer,
-    caterer: cartVendors.caterer
+    dj: cartVendors.dj,
+    videographer: cartVendors.videographer
   });
   
   const [menu, setMenu] = useState("signature");
@@ -41,7 +41,6 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
-    if (newVendors.caterer !== cartVendors.caterer) setStoreVendor("caterer", newVendors.caterer);
   };
 
   // Read URL params on mount
@@ -51,14 +50,12 @@ export default function BookPage() {
       const preDecorator = searchParams.get("decorator");
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
-      const preCat = searchParams.get("caterer");
 
-      if (preDecorator || preDj || preVid || preCat) {
+      if (preDecorator || preDj || preVid) {
         setVendors({
           decorator: preDecorator || cartVendors.decorator,
           dj: preDj || cartVendors.dj,
-          videographer: preVid || cartVendors.videographer,
-          caterer: preCat || cartVendors.caterer
+          videographer: preVid || cartVendors.videographer
         });
       }
     }
@@ -91,7 +88,7 @@ export default function BookPage() {
   const guestSurcharges = extraGuests * 8500;
   const timeslotPremium = timeslot === "full" ? 500000 : 0;
   
-  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer) + getVendorCost(vendors.caterer);
+  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
 
   if (menu === "custom") {
     addonsCost += 200000; // custom menu surcharge
@@ -104,6 +101,35 @@ export default function BookPage() {
 
   const formatCurrency = (val: number) => {
     return "LKR " + val.toLocaleString();
+  };
+
+  const addBooking = useBookingStore(state => state.addBooking);
+  const clearCart = useVendorCartStore(state => state.clearCart);
+
+  const handleFinalizeBooking = (contactInfo: any) => {
+    const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
+    
+    const dateString = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD";
+
+    addBooking({
+      id: "bk-" + Math.floor(1000 + Math.random() * 9000),
+      clientName: `${contactInfo.firstName} ${contactInfo.lastName}`,
+      email: contactInfo.email,
+      eventType: eventTypeName,
+      date: dateString,
+      guests: guestCount,
+      status: "Pending",
+      totalCost: grandTotal,
+      vendors: {
+        decorator: vendors.decorator,
+        dj: vendors.dj,
+        videographer: vendors.videographer
+      },
+      menuType: menu,
+      createdAt: new Date().toISOString()
+    });
+
+    clearCart();
   };
 
   const handleNext = () => {
@@ -119,7 +145,7 @@ export default function BookPage() {
   };
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen flex flex-col font-sans text-[#2C1E14]">
+    <div className="bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-white">
       <MainNavbar />
 
       <main className="flex-grow pb-24">
@@ -177,7 +203,7 @@ export default function BookPage() {
             {/* Step 4: Checkout */}
             {currentStep === 4 && (
               <div className="animate-fadeIn">
-                <BookingForm selectedDate={selectedDate} />
+                <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
               </div>
             )}
 
