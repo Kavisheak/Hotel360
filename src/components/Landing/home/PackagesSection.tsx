@@ -34,70 +34,81 @@ const PackagesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#F0E6D0] py-16 md:py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center section-reveal">
+    <section className="w-full bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex flex-col items-center section-reveal relative">
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#C9A84C]/30 to-transparent"></div>
       
       {/* Header Section */}
-      <div className="text-center mb-10 space-y-3">
-        <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-semibold">
-          Signature Packages
+      <div className="text-center mb-20 space-y-4 relative z-10">
+        <p className="text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">
+          Bespoke Offerings
         </p>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-gray-900 leading-tight">
-          Three frameworks.<br />
-          <span className="italic text-[#C9A84C]">Infinite expression.</span>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white leading-tight text-reveal stagger-2">
+          Three suites of <span className="italic text-[#C9A84C] font-light">celebration.</span>
         </h2>
+        <p className="text-gray-400 text-sm md:text-base font-light max-w-xl mx-auto pt-2 text-reveal stagger-3">
+          Each tier is thoughtfully composed to balance grand vision with precise execution. Compare our signature collections below.
+        </p>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full items-center relative z-10">
         {packages.map((pkg, index) => (
           <div 
             key={pkg.id}
-            className={`flex flex-col bg-white overflow-hidden shadow-sm hover-lift hover-glow transition-all duration-300 relative card-entrance stagger-${index + 1} ${
-              pkg.isMostLoved ? 'border border-[#C9A84C]' : 'border border-gray-100'
+            className={`flex flex-col bg-[#111111] overflow-hidden transition-all duration-500 relative card-entrance stagger-${index + 1} ${
+              pkg.isMostLoved 
+                ? 'border border-[#C9A84C] shadow-[0_0_30px_rgba(201,168,76,0.15)] md:-translate-y-4 md:scale-105 z-20 py-10 px-8' 
+                : 'border border-[#C9A84C]/30 hover:border-[#C9A84C]/60 z-10 py-8 px-6'
             }`}
           >
-            {/* Image Container */}
-            <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden">
-              <Image
-                src={pkg.image}
-                alt={pkg.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-700 hover:scale-105"
-              />
-              {pkg.isMostLoved && (
-                <div className="absolute top-3 right-3 bg-[#C9A84C] text-white text-[9px] uppercase tracking-widest px-2.5 py-0.5 font-semibold z-10">
-                  Most Loved
-                </div>
-              )}
-            </div>
+            {/* Top Badge for Most Loved */}
+            {pkg.isMostLoved && (
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#C9A84C] text-[#0A0A0A] text-[9px] uppercase tracking-[0.2em] px-4 py-1.5 font-bold rounded-b-sm">
+                Most Loved
+              </div>
+            )}
 
             {/* Card Content */}
-            <div className="p-6 flex flex-col flex-grow">
-              <div className="mb-4">
-                <p className="text-[#C9A84C] text-[9px] tracking-[0.2em] uppercase font-semibold mb-1.5">
-                  {pkg.name}
-                </p>
-                <h3 className="text-2xl font-serif text-gray-900 mb-2">
+            <div className="flex flex-col flex-grow text-center">
+              <h3 className="text-[#C9A84C] font-serif text-2xl mb-1 mt-2">
+                {pkg.name}
+              </h3>
+              
+              <div className="my-6">
+                <h4 className="text-4xl md:text-5xl font-serif text-white mb-2 tracking-tight">
                   {pkg.price}
-                </h3>
-                
-                <div className="flex items-center gap-2 text-gray-500 mb-2">
-                  <Users size={12} />
-                  <span className="text-[11px] font-medium">{pkg.guests}</span>
+                </h4>
+                <div className="flex items-center justify-center gap-2 text-gray-400">
+                  <Users size={12} className="text-[#C9A84C]" />
+                  <span className="text-[10px] uppercase tracking-widest">{pkg.guests}</span>
                 </div>
-                
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {pkg.description}
-                </p>
               </div>
 
-              <div className="mt-auto pt-2">
-                <a href="/customer/packages" className="flex items-center gap-2 text-[#C9A84C] text-[9px] tracking-[0.2em] uppercase font-semibold hover:text-[#A67C52] transition-colors group">
-                  Explore
-                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                </a>
+              <p className="text-gray-400 text-sm leading-relaxed font-light mb-8 pb-8 border-b border-white/10">
+                {pkg.description}
+              </p>
+
+              <div className="flex flex-col gap-4 text-left mb-8 flex-grow">
+                {['Dedicated Wedding Planner', 'Exclusive Ballroom Access', 'Complimentary Tasting Menu', 'Valet Parking for Guests'].map((feature, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="mt-1 w-1.5 h-1.5 rotate-45 bg-[#C9A84C]/60 flex-shrink-0"></div>
+                    <span className="text-gray-300 text-xs md:text-sm font-light">{feature}</span>
+                  </div>
+                ))}
               </div>
+
+              {/* Action Button */}
+              <a 
+                href="/customer/packages"
+                className={`w-full py-3.5 flex items-center justify-center gap-2 text-[10px] tracking-widest uppercase font-bold transition-all duration-300 ${
+                  pkg.isMostLoved 
+                    ? 'bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+                    : 'border border-[#C9A84C]/50 text-[#C9A84C] hover:bg-[#C9A84C]/10'
+                }`}
+              >
+                Select Package
+                <ArrowRight size={14} />
+              </a>
             </div>
           </div>
         ))}

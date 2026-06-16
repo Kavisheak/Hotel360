@@ -7,7 +7,21 @@ import { useVendorCartStore } from "@/store/vendorCartStore";
 import { Check, Plus, Utensils, X, ChefHat, Info } from "lucide-react";
 
 // Mock Data for Menu Items
-const MENU_CATEGORIES = [
+type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+  dietary?: string[];
+  isStation?: boolean;
+};
+
+type MenuCategory = {
+  id: string;
+  name: string;
+  items: MenuItem[];
+};
+
+const MENU_CATEGORIES: MenuCategory[] = [
   {
     id: "appetizers",
     name: "Appetizers & Canapés",

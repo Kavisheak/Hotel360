@@ -30,9 +30,8 @@ export default function BookPage() {
 
   const [vendors, setLocalVendors] = useState({ 
     decorator: cartVendors.decorator, 
-    dj: cartVendors.dj, 
-    videographer: cartVendors.videographer,
-    caterer: cartVendors.caterer
+    dj: cartVendors.dj,
+    videographer: cartVendors.videographer
   });
   
   const [menu, setMenu] = useState("signature");
@@ -42,7 +41,6 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
-    if (newVendors.caterer !== cartVendors.caterer) setStoreVendor("caterer", newVendors.caterer);
   };
 
   // Read URL params on mount
@@ -52,14 +50,12 @@ export default function BookPage() {
       const preDecorator = searchParams.get("decorator");
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
-      const preCat = searchParams.get("caterer");
 
-      if (preDecorator || preDj || preVid || preCat) {
+      if (preDecorator || preDj || preVid) {
         setVendors({
           decorator: preDecorator || cartVendors.decorator,
           dj: preDj || cartVendors.dj,
-          videographer: preVid || cartVendors.videographer,
-          caterer: preCat || cartVendors.caterer
+          videographer: preVid || cartVendors.videographer
         });
       }
     }
@@ -92,7 +88,7 @@ export default function BookPage() {
   const guestSurcharges = extraGuests * 8500;
   const timeslotPremium = timeslot === "full" ? 500000 : 0;
   
-  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer) + getVendorCost(vendors.caterer);
+  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
 
   if (menu === "custom") {
     addonsCost += 200000; // custom menu surcharge
@@ -127,8 +123,7 @@ export default function BookPage() {
       vendors: {
         decorator: vendors.decorator,
         dj: vendors.dj,
-        videographer: vendors.videographer,
-        caterer: vendors.caterer,
+        videographer: vendors.videographer
       },
       menuType: menu,
       createdAt: new Date().toISOString()
@@ -150,7 +145,7 @@ export default function BookPage() {
   };
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen flex flex-col font-sans text-[#2C1E14]">
+    <div className="bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-white">
       <MainNavbar />
 
       <main className="flex-grow pb-24">

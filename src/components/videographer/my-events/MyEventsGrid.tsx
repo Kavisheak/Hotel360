@@ -1,59 +1,19 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, Calendar, MapPin } from 'lucide-react';
-
-interface EventItem {
-  code: string;
-  status: 'UPCOMING' | 'IN PROGRESS' | 'COMPLETED';
-  title: string;
-  date: string;
-  customer: string;
-  venue: string;
-  note: string;
-}
-
-const eventsData: EventItem[] = [
-  {
-    code: '#EV-8842',
-    status: 'UPCOMING',
-    title: "Zahra & Omar's Nikah",
-    date: 'October 24, 2024 · 06:00 PM',
-    customer: 'Mr. & Mrs. Farhan Siddiqui',
-    venue: 'Grand Majestic Hall',
-    note: 'Cinematic ceremony coverage with additional drone establishing shots.',
-  },
-  {
-    code: '#EV-9012',
-    status: 'IN PROGRESS',
-    title: "Elena & Julian's Gala",
-    date: 'October 28, 2024 · 07:30 PM',
-    customer: 'Julian Torres',
-    venue: 'Royal Garden Pavilion',
-    note: 'Low-light reception, on-site audio monitoring, and branded aftermovie cut.',
-  },
-  {
-    code: '#EV-8850',
-    status: 'COMPLETED',
-    title: "Sana's Boutique Walima",
-    date: 'November 02, 2024 · 08:00 PM',
-    customer: 'Sana Malik',
-    venue: 'Crystal Ballroom B',
-    note: 'Delivered teaser reel and clean highlight sequence within 24 hours.',
-  },
-  {
-    code: '#EV-9104',
-    status: 'UPCOMING',
-    title: 'Executive Annual Banquet',
-    date: 'November 05, 2024 · 06:30 PM',
-    customer: 'Mariam Ahmed',
-    venue: 'Sky Terrace Lounge',
-    note: 'Two-camera keynote coverage and evening recap package.',
-  },
-];
+import { useBookingStore } from '@/store/bookingStore';
 
 const MyEventsGrid = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const videoBookings = globalBookings.filter(b => b.vendors.videographer !== "none");
 
   return (
     <div>
@@ -92,70 +52,77 @@ const MyEventsGrid = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {eventsData
-          .filter((event) =>
-            event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.customer.toLowerCase().includes(searchTerm.toLowerCase()),
-          )
-          .map((event) => {
-            const statusStyles = {
-              UPCOMING: 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]',
-              'IN PROGRESS': 'bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]',
-              COMPLETED: 'bg-[#EDF6EC] text-[#4C7A4F] border border-[#DCE9D9]',
-            } as const;
+        {isClient && videoBookings.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-sm text-gray-500 font-light italic">
+            No videography events found.
+          </div>
+        ) : isClient ? (
+          videoBookings
+            .filter((event) =>
+              event.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              event.eventType.toLowerCase().includes(searchTerm.toLowerCase()),
+            )
+            .map((event) => {
+              const statusStyles = {
+                UPCOMING: 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]',
+                'IN PROGRESS': 'bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]',
+                COMPLETED: 'bg-[#EDF6EC] text-[#4C7A4F] border border-[#DCE9D9]',
+              } as const;
 
-            return (
-              <div key={event.code} className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300">
-                <div className="w-full sm:w-[42%] h-56 sm:h-auto shrink-0 relative overflow-hidden group bg-[#F2EBE1]">
-                  <div
-                    className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage:
-                        'url(https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80)',
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/5" />
-                </div>
+              const displayStatus = event.status === 'Pending' ? 'UPCOMING' : 'IN PROGRESS';
 
-                <div className="flex-1 p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${statusStyles[event.status]}`}>
-                        {event.status}
-                      </span>
-                      <span className="text-[10px] font-bold text-gray-400 tracking-wider">{event.code}</span>
-                    </div>
-
-                    <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-3">
-                      {event.title}
-                    </h3>
-
-                    <div className="space-y-1.5 mb-4 text-xs text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <Calendar size={13} className="text-[#A6955C]" />
-                        <span>{event.date}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin size={13} className="text-[#A6955C]" />
-                        <span>{event.venue}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4">
-                      {event.note}
-                    </p>
-
-                    <p className="text-[10px] font-bold tracking-[0.15em] text-gray-500 uppercase">{event.customer}</p>
+              return (
+                <div key={event.id} className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300">
+                  <div className="w-full sm:w-[42%] h-56 sm:h-auto shrink-0 relative overflow-hidden group bg-[#F2EBE1]">
+                    <div
+                      className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                      style={{
+                        backgroundImage:
+                          'url(https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80)',
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/5" />
                   </div>
 
-                  <button className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase text-center block mt-5">
-                    VIEW DETAILS
-                  </button>
+                  <div className="flex-1 p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${statusStyles[displayStatus]}`}>
+                          {displayStatus}
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-400 tracking-wider">{event.id}</span>
+                      </div>
+
+                      <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-3">
+                        {event.clientName} - {event.eventType}
+                      </h3>
+
+                      <div className="space-y-1.5 mb-4 text-xs text-gray-600">
+                        <div className="flex items-center space-x-2">
+                          <Calendar size={13} className="text-[#A6955C]" />
+                          <span>{event.date}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin size={13} className="text-[#A6955C]" />
+                          <span>{event.guests} Guests</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4">
+                        Video package for {event.eventType} with {event.vendors.decorator !== "none" ? "decor highlights" : "standard coverage"}.
+                      </p>
+
+                      <p className="text-[10px] font-bold tracking-[0.15em] text-gray-500 uppercase">{event.clientName}</p>
+                    </div>
+
+                    <button className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase text-center block mt-5">
+                      VIEW DETAILS
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+        ) : null}
       </div>
 
       <div className="flex justify-center items-center space-x-2 my-12">

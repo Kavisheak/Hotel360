@@ -31,8 +31,8 @@ export default function PackageSelector({ selectedPackage, onSelectPackage }: Pa
   ];
 
   return (
-    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A67C52] font-bold flex items-center gap-1.5 mb-2">
+    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
+      <label className="block text-[10px] uppercase tracking-widest text-[#C9A84C] font-bold flex items-center gap-1.5 mb-2">
         <Package className="w-4 h-4 text-[#C9A84C]" /> Step 3: Select Baseline Framework
       </label>
 
@@ -44,18 +44,18 @@ export default function PackageSelector({ selectedPackage, onSelectPackage }: Pa
               key={pkg.id}
               onClick={() => onSelectPackage(pkg.id)}
               className={`
-                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm hover-lift
+                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm hover-glow relative
                 ${isActive 
-                  ? "bg-[#2C1E14] text-white shadow-lg ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#F0E6D0]" 
-                  : "bg-white border border-[#D4C9A8] text-gray-900 hover:border-[#C9A84C]"
+                  ? "bg-gradient-to-br from-[#D4AF37] to-[#8C6D23] border-[#C9A84C] text-black shadow-lg ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#0A0A0A] scale-[1.03] z-10" 
+                  : "bg-[#1A1A1A] border border-[#C9A84C]/30 text-white hover:border-[#C9A84C]/80 text-[#C9A84C]"
                 }
               `}
             >
-              <h4 className="font-serif text-lg mb-1">{pkg.name}</h4>
-              <span className={`text-xs font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-[#C9A84C]" : "text-[#A67C52]"}`}>
+              <h4 className={`font-serif text-lg mb-1 ${isActive ? "text-black" : "text-white"}`}>{pkg.name}</h4>
+              <span className={`text-xs font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-black/80" : "text-[#C9A84C]"}`}>
                 {pkg.base} base
               </span>
-              <p className={`text-[10px] font-light ${isActive ? "text-gray-400" : "text-gray-500"}`}>
+              <p className={`text-[10px] font-light ${isActive ? "text-black/70" : "text-gray-400"}`}>
                 {pkg.pax}
               </p>
             </div>

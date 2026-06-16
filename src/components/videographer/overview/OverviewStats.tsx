@@ -1,14 +1,28 @@
-import React from 'react';
-import { Camera, CalendarDays, CheckCircle2, Star } from 'lucide-react';
+"use client";
 
-const stats = [
-  { label: 'TOTAL ASSIGNED EVENTS', value: '18', icon: <Camera size={22} className="text-[#B08D2C]" /> },
-  { label: 'UPCOMING EVENTS', value: '06', icon: <CalendarDays size={22} className="text-[#B08D2C]" /> },
-  { label: 'COMPLETED EVENTS', value: '12', icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
-  { label: 'AVERAGE RATING', value: '4.9', icon: <Star size={22} className="text-[#B08D2C]" /> },
-];
+import React, { useState, useEffect } from 'react';
+import { Camera, CalendarDays, CheckCircle2, Star } from 'lucide-react';
+import { useBookingStore } from '@/store/bookingStore';
 
 const OverviewStats = () => {
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const videoBookings = globalBookings.filter(b => b.vendors.videographer !== "none");
+  const upcomingCount = videoBookings.filter(b => b.status === "Pending").length;
+  const completedCount = videoBookings.filter(b => b.status === "Confirmed").length;
+
+  const stats = [
+    { label: 'TOTAL ASSIGNED EVENTS', value: isClient ? videoBookings.length.toString().padStart(2, '0') : '00', icon: <Camera size={22} className="text-[#B08D2C]" /> },
+    { label: 'UPCOMING EVENTS', value: isClient ? upcomingCount.toString().padStart(2, '0') : '00', icon: <CalendarDays size={22} className="text-[#B08D2C]" /> },
+    { label: 'COMPLETED EVENTS', value: isClient ? completedCount.toString().padStart(2, '0') : '00', icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
+    { label: 'AVERAGE RATING', value: '4.9', icon: <Star size={22} className="text-[#B08D2C]" /> },
+  ];
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
       {stats.map((stat) => (

@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import Footer from '../../videographer/shared/Footer';
@@ -12,42 +14,18 @@ const weekDays = [
   { day: 'SUN', date: '18', active: false, today: false },
 ];
 
-const engagements = [
-  {
-    status: 'CONFIRMED',
-    date: 'SAT, OCT 17 · 19:00',
-    title: 'The Beaumont-Smith Nuptials',
-    venue: 'Grand Ballroom, Ritz-Carlton',
-    image: '/images/01.png',
-    cta: 'VIEW DETAILS',
-  },
-  {
-    status: 'PENDING',
-    date: 'FRI, OCT 23 · 18:30',
-    title: 'Estate Gala & Anniversary',
-    venue: 'Silver Sands Cliffside Estate',
-    image: '/images/02.png',
-    cta: 'CONFIRM',
-  },
-  {
-    status: 'DEPOSIT PAID',
-    date: 'SAT, OCT 31 · 20:00',
-    title: 'Vogue Fall Collection Party',
-    venue: 'The Glasshouse, Manhattan',
-    image: '/images/03.png',
-    cta: 'VIEW DETAILS',
-  },
-  {
-    status: 'CONFIRMED',
-    date: 'SAT, NOV 07 · 17:00',
-    title: 'Hamilton-Wellesley Wedding',
-    venue: 'The Orangery, Kensington',
-    image: '/images/04.png',
-    cta: 'VIEW DETAILS',
-  },
-];
+import { useBookingStore } from '@/store/bookingStore';
 
 export default function PerformanceMain() {
+  const [isClient, setIsClient] = React.useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const djBookings = globalBookings.filter(b => b.vendors.dj !== "none");
+
   return (
     <div className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
       <section className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -92,43 +70,52 @@ export default function PerformanceMain() {
       <section className="mb-12">
         <div className="mb-5 flex items-end gap-3">
           <h2 className="font-serif text-3xl tracking-[-0.04em] text-[#4E3A16] sm:text-[34px]">Upcoming Engagements</h2>
-          <span className="pb-1 text-sm text-[#84735A]">(4 total)</span>
+          <span className="pb-1 text-sm text-[#84735A]">({isClient ? djBookings.length : 0} total)</span>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-2">
-          {engagements.map((event) => (
-            <article key={event.title} className="grid overflow-hidden border border-[#E3D4AB] bg-[#FCF8F0] shadow-[0_8px_24px_rgba(127,103,32,0.06)] md:grid-cols-[220px_1fr]">
-              <div className="relative min-h-[220px] bg-[#eadfc1]">
-                <Image src={event.image} alt={event.title} fill className="object-cover" />
-                <div className="absolute left-3 top-3 bg-[#D8C28A]/90 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-[#6E520E]">
-                  {event.status}
-                </div>
-              </div>
+          {isClient && djBookings.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-sm text-gray-500 font-light italic">
+              No DJ bookings found.
+            </div>
+          ) : isClient ? (
+            djBookings.map((event, idx) => {
+              const displayStatus = event.status === 'Pending' ? 'PENDING' : 'CONFIRMED';
+              const imgUrl = idx % 2 === 0 ? '/images/01.png' : '/images/02.png';
 
-              <div className="flex flex-col justify-between p-5 sm:p-6">
-                <div>
-                  <p className="text-[11px] font-semibold tracking-[0.24em] text-[#8C6A11]">{event.date}</p>
-                  <h3 className="mt-2 max-w-md font-serif text-[1.7rem] leading-[1.05] tracking-[-0.04em] text-[#362612]">
-                    {event.title}
-                  </h3>
-                  <p className="mt-3 text-sm text-[#665A43]">⌾ {event.venue}</p>
-                </div>
+              return (
+                <article key={event.id} className="grid overflow-hidden border border-[#E3D4AB] bg-[#FCF8F0] shadow-[0_8px_24px_rgba(127,103,32,0.06)] md:grid-cols-[220px_1fr]">
+                  <div className="relative min-h-[220px] bg-[#eadfc1]">
+                    <img src={imgUrl} alt={event.clientName} className="object-cover w-full h-full" />
+                    <div className="absolute left-3 top-3 bg-[#D8C28A]/90 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-[#6E520E]">
+                      {displayStatus}
+                    </div>
+                  </div>
 
-                <div className="mt-6 flex items-center gap-3">
-                  <button className="min-w-[126px] bg-[#9A7A10] px-4 py-2.5 text-[11px] font-semibold tracking-[0.22em] text-white transition hover:bg-[#84680E]">
-                    {event.cta}
-                  </button>
-                  {event.status === 'PENDING' ? (
-                    <button className="grid h-11 w-11 place-items-center border border-[#E0D2AD] text-[#8C6A11] transition hover:bg-[#F3E8CA]">×</button>
-                  ) : event.status === 'DEPOSIT PAID' ? (
-                    <button className="grid h-11 w-11 place-items-center border border-[#E0D2AD] text-[#8C6A11] transition hover:bg-[#F3E8CA]">✎</button>
-                  ) : (
-                    <button className="grid h-11 w-11 place-items-center border border-[#E0D2AD] text-[#8C6A11] transition hover:bg-[#F3E8CA]">↗</button>
-                  )}
-                </div>
-              </div>
-            </article>
-          ))}
+                  <div className="flex flex-col justify-between p-5 sm:p-6">
+                    <div>
+                      <p className="text-[11px] font-semibold tracking-[0.24em] text-[#8C6A11]">{event.date}</p>
+                      <h3 className="mt-2 max-w-md font-serif text-[1.7rem] leading-[1.05] tracking-[-0.04em] text-[#362612]">
+                        {event.clientName} - {event.eventType}
+                      </h3>
+                      <p className="mt-3 text-sm text-[#665A43]">⌾ {event.guests} Guests</p>
+                    </div>
+
+                    <div className="mt-6 flex items-center gap-3">
+                      <button className="min-w-[126px] bg-[#9A7A10] px-4 py-2.5 text-[11px] font-semibold tracking-[0.22em] text-white transition hover:bg-[#84680E]">
+                        VIEW DETAILS
+                      </button>
+                      {displayStatus === 'PENDING' ? (
+                        <button className="grid h-11 w-11 place-items-center border border-[#E0D2AD] text-[#8C6A11] transition hover:bg-[#F3E8CA]">×</button>
+                      ) : (
+                        <button className="grid h-11 w-11 place-items-center border border-[#E0D2AD] text-[#8C6A11] transition hover:bg-[#F3E8CA]">↗</button>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          ) : null}
         </div>
       </section>
 

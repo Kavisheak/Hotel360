@@ -10,11 +10,11 @@ export interface Booking {
   guests: number;
   status: "Pending" | "Confirmed" | "Rejected";
   totalCost: number;
+  package?: string;
   vendors: {
     decorator: string;
     dj: string;
     videographer: string;
-    caterer: string;
   };
   menuType: string;
   createdAt: string;
@@ -42,7 +42,7 @@ export const useBookingStore = create<BookingState>()(
           guests: 250,
           status: "Pending",
           totalCost: 4500000,
-          vendors: { decorator: "none", dj: "none", videographer: "none", caterer: "none" },
+          vendors: { decorator: "none", dj: "none", videographer: "none" },
           menuType: "signature",
           createdAt: new Date().toISOString()
         },
@@ -55,7 +55,7 @@ export const useBookingStore = create<BookingState>()(
           guests: 250,
           status: "Confirmed",
           totalCost: 5200000,
-          vendors: { decorator: "none", dj: "none", videographer: "none", caterer: "none" },
+          vendors: { decorator: "none", dj: "none", videographer: "none" },
           menuType: "custom",
           createdAt: new Date().toISOString()
         },
@@ -68,7 +68,7 @@ export const useBookingStore = create<BookingState>()(
           guests: 400,
           status: "Confirmed",
           totalCost: 3800000,
-          vendors: { decorator: "none", dj: "none", videographer: "none", caterer: "none" },
+          vendors: { decorator: "none", dj: "none", videographer: "none" },
           menuType: "signature",
           createdAt: new Date().toISOString()
         }

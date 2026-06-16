@@ -8,8 +8,8 @@ interface VendorsFiltersProps {
   setRatingFilter: (r: number) => void;
   priceFilter: string;
   setPriceFilter: (p: string) => void;
-  activeTab: "all" | "decorators" | "djs" | "caterers" | "others";
-  setActiveTab: (t: "all" | "decorators" | "djs" | "caterers" | "others") => void;
+  activeTab: "all" | "decorators" | "djs" | "others";
+  setActiveTab: (t: "all" | "decorators" | "djs" | "others") => void;
   filteredCount: number;
 }
 
@@ -91,7 +91,6 @@ export default function VendorsFilters({
             { id: "all", label: "All Vetted Partners" },
             { id: "decorators", label: "Bespoke Decorators" },
             { id: "djs", label: "DJ Artists & Entertainment" },
-            { id: "caterers", label: "Gourmet Caterers" },
             { id: "others", label: "Other Services & Visuals" }
           ].map((tab) => (
             <button

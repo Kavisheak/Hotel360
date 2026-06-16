@@ -21,7 +21,7 @@ export default function CustomerDashboard() {
     },
     {
       id: 2,
-      title: "Confirm Catering Menu Customizations",
+      title: "Confirm Food Menu Customizations",
       subtext: "Urgent due tomorrow",
       color: "text-red-500",
       completed: false

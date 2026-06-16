@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, Star, Phone, Mail, Award, Clock, Check } from "lucide-react";
+import { MapPin, Star, Phone, Mail, Award, Clock, Check, Heart, ShoppingCart } from "lucide-react";
 import { Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
@@ -13,26 +13,15 @@ interface VendorProfileHeroProps {
 
 export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
   const router = useRouter();
-  const setVendor = useVendorCartStore((state) => state.setVendor);
+  const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
   const [added, setAdded] = useState(false);
 
-  const vendors = useVendorCartStore((state) => state.vendors);
-  
-  const categoryMap: Record<string, "decorator" | "dj" | "videographer" | "caterer"> = {
-    decorators: "decorator",
-    djs: "dj",
-    videographers: "videographer",
-    caterers: "caterer"
-  };
-  const storeKey = categoryMap[vendor.category] || "decorator";
-  
-  const isSelected = vendors[storeKey] === vendor.id;
+  const inCart = cartVendors?.includes(vendor.id) || false;
+  const isFavorite = favoriteVendors?.includes(vendor.id) || false;
 
-  const handleToggleVendor = () => {
-    if (isSelected) {
-      setVendor(storeKey, "none");
-    } else {
-      setVendor(storeKey, vendor.id);
+  const handleToggleCart = () => {
+    toggleCartVendor(vendor.id);
+    if (!inCart) {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -88,18 +77,25 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
           </div>
 
           {/* Action Buttons */}
-          <div className="w-full md:w-auto flex flex-col gap-3">
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-3">
             <button 
-              onClick={handleToggleVendor}
-              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${isSelected ? "bg-red-900/80 text-white hover:bg-red-800" : added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
+              onClick={() => toggleFavoriteVendor(vendor.id)}
+              className={`p-3.5 flex items-center justify-center transition-colors rounded-sm shadow-xl btn-interactive ${isFavorite ? "bg-red-500 text-white hover:bg-red-600" : "bg-white/10 text-white hover:bg-white/20 border border-white/30"}`}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
             >
-              {isSelected ? "Remove from Cart" : added ? <><Check className="w-4 h-4"/> Added to Cart</> : "Add to Booking Cart"}
+              <Heart className={`w-5 h-5 ${isFavorite ? 'fill-white' : ''}`} />
             </button>
             <button 
-              onClick={() => router.push("/book")}
+              onClick={handleToggleCart}
+              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${inCart ? "bg-red-900/80 text-white hover:bg-red-800" : added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
+            >
+              {inCart ? "Remove from Cart" : added ? <><Check className="w-4 h-4"/> Added to Cart</> : <><ShoppingCart className="w-4 h-4"/> Add to Cart</>}
+            </button>
+            <button 
+              onClick={() => router.push("/customer/saved")}
               className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive"
             >
-              Proceed to Checkout
+              View Cart
             </button>
           </div>
         </div>
