@@ -61,7 +61,7 @@ const DjSidebar = () => {
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/dj-artist/overview' },
-    { icon: <Calendar size={20} />, label: 'PERFORMANCE', href: '/dj-artist/performance' },
+    { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/dj-artist/performance' },
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
     { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
     { icon: <ImageIcon size={20} />, label: 'GALLERY', href: '/dj-artist/gallery' },
