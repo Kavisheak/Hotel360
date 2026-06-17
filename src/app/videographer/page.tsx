@@ -1,16 +1,17 @@
 import React from 'react';
 import Sidebar from '@/components/videographer/shared/Sidebar';
-import OverviewMain from '@/components/videographer/overview/OverviewMain';
+import MainContent from '@/components/videographer/overview/MainContent';
 
-const VideographerHome = () => {
+const VideographerDashboard = () => {
   return (
     <div className="flex min-h-screen bg-[#FDF9F1] font-sans text-gray-800">
       <Sidebar />
-      <div className="flex-1 pt-14 lg:pt-0 min-w-0">
-        <OverviewMain />
+      {/* On mobile, add top padding so content doesn't hide behind the hamburger button */}
+      <div className="flex-1 lg:pl-0 pt-14 lg:pt-0 min-w-0">
+        <MainContent />
       </div>
     </div>
   );
 };
 
-export default VideographerHome;
+export default VideographerDashboard;
