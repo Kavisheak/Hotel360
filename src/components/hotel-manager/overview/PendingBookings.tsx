@@ -6,8 +6,13 @@ import { useBookingStore } from '@/store/bookingStore';
 
 const PendingBookings = () => {
   const [isClient, setIsClient] = useState(false);
-  const pendingBookings = useBookingStore(state => state.getPendingBookings());
+  const bookings = useBookingStore(state => state.bookings);
   const updateBookingStatus = useBookingStore(state => state.updateBookingStatus);
+
+  const pendingBookings = React.useMemo(() => 
+    bookings.filter(b => b.status === "Pending"),
+    [bookings]
+  );
 
   useEffect(() => {
     setIsClient(true);

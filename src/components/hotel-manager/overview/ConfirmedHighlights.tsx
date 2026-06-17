@@ -6,7 +6,12 @@ import { useBookingStore } from '@/store/bookingStore';
 
 const ConfirmedHighlights = () => {
   const [isClient, setIsClient] = useState(false);
-  const confirmedBookings = useBookingStore(state => state.getConfirmedBookings());
+  const bookings = useBookingStore(state => state.bookings);
+
+  const confirmedBookings = React.useMemo(() => 
+    bookings.filter(b => b.status === "Confirmed"),
+    [bookings]
+  );
 
   useEffect(() => {
     setIsClient(true);
