@@ -9,8 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface Booking {
   code: string;
@@ -30,7 +29,7 @@ const bookingsData: Booking[] = [
     date: "July 24, 2026 · 06:00 PM",
     location: "Rosewood Estate",
     djPackage: "Diamond DJ Package",
-    image: "/images/01.png",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80",
   },
   {
     code: "#BK-9012",
@@ -39,7 +38,7 @@ const bookingsData: Booking[] = [
     date: "August 02, 2026 · 07:00 PM",
     location: "Grand Convention Hall",
     djPackage: "Premium DJ Package",
-    image: "/images/02.png",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
   },
   {
     code: "#BK-9104",
@@ -48,11 +47,12 @@ const bookingsData: Booking[] = [
     date: "June 14, 2026 · 08:00 PM",
     location: "Ocean View Resort",
     djPackage: "Gold DJ Package",
-    image: "/images/03.png",
+    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=600&q=80",
   },
 ];
 
 const BookingsGrid = () => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredBookings = bookingsData.filter(
@@ -119,13 +119,11 @@ const BookingsGrid = () => {
           >
             {/* Image */}
             <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden group">
-              <Image
+              <img
                 src={booking.image}
                 alt={booking.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-
               <div className="absolute inset-0 bg-black/5" />
             </div>
 
@@ -171,12 +169,12 @@ const BookingsGrid = () => {
                 </p>
               </div>
 
-              <Link
-                href={`/dj-artist/bookings/${booking.code.substring(1)}`}
+              <button
+                onClick={() => router.push(`/dj-artist/events-bookings/${booking.code.replace('#', '')}`)}
                 className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase text-center block"
               >
                 VIEW DETAILS
-              </Link>
+              </button>
             </div>
           </div>
         ))}

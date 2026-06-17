@@ -2,6 +2,7 @@ import React from "react";
 import BookingsHeader from "./BookingsHeader";
 import BookingsStats from "./BookingsStats";
 import BookingsGrid from "./BookingsGrid";
+import Footer from "../overview/Footer";
 
 const BookingsMain = () => {
   return (
@@ -11,6 +12,7 @@ const BookingsMain = () => {
         <BookingsStats />
         <BookingsGrid />
       </div>
+      <Footer />
     </div>
   );
 };

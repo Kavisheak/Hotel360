@@ -70,7 +70,7 @@ const DjSidebar = () => {
   ];
 
   const bottomItems = [
-    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '/support' },
+    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '/dj-artist/support' },
     { icon: <LogOut size={20} />, label: 'SIGN OUT', href: '/' },
   ];
 
@@ -127,7 +127,7 @@ const DjSidebar = () => {
 
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
         <div className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`} title={collapsedState ? 'DJ Name' : undefined}>
-          <img src="/images/profile-placeholder.jpg" alt="DJ Profile" className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
+          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100" alt="DJ Profile" className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-gray-800 tracking-wide truncate">Julian Saint-Clair</span>
