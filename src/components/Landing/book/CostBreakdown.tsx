@@ -24,7 +24,8 @@ export default function CostBreakdown({
   formatCurrency
 }: CostBreakdownProps) {
   return (
-    <div className="bg-[#2C1E14] text-white border border-[#C9A84C]/20 p-6 md:p-8 shadow-2xl rounded-sm relative overflow-hidden hover-glow transition-all duration-300">
+    <div className="bg-[#111111] text-white border border-[#C9A84C]/30 p-6 md:p-8 shadow-[0_0_30px_rgba(201,168,76,0.15)] rounded-sm relative overflow-hidden hover-glow transition-all duration-300">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#C9A84C] to-[#D4BD6E]"></div>
       <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-[#C9A84C]/20 pointer-events-none"></div>
       
       <div className="flex items-center gap-2 text-[#C9A84C] mb-4">
@@ -56,7 +57,7 @@ export default function CostBreakdown({
 
         {costBreakdown.addonsCost > 0 && (
           <div className="flex justify-between items-center text-[#D4BD6E]">
-            <span>Vendors & Catering:</span>
+            <span>Vendors & Custom Menu:</span>
             <span className="font-semibold">{formatCurrency(costBreakdown.addonsCost)}</span>
           </div>
         )}

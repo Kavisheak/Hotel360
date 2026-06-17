@@ -9,7 +9,8 @@ interface BookingRow {
   eventType: string;
   date: string;
   time: string;
-  djPackage: string;
+  djPackage?: string;
+  venue: string;
   status: BookingStatus;
 }
 

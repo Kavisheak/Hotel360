@@ -3,75 +3,72 @@ export type PackageType = "Silver" | "Gold" | "Diamond";
 export interface PackageData {
   id: string;
   name: PackageType;
-  price: number;
+  priceLabel: string;
+  priceValue: number; // base value for calculations
+  guestsLabel: string;
   description: string;
   features: string[];
-  images: string[];
-  color: string;
-  gradient: string;
+  image: string;
 }
 
 export const packagesData: PackageData[] = [
   {
-    id: "pkg_1",
+    id: "pkg_silver",
     name: "Silver",
-    price: 5000,
-    description: "Perfect for intimate gatherings with essential amenities.",
+    priceLabel: "LKR 1.8M",
+    priceValue: 1800000,
+    guestsLabel: "UP TO 200 GUESTS",
+    description: "An intimate option of refined essentials, curated for those who appreciate understated elegance.",
     features: [
-      "Standard Hall Access (6 Hours)",
-      "Basic Floral Decoration",
-      "Standard Lighting Setup",
-      "Seating for up to 100 guests",
-      "1 Dressing Room",
+      "Exclusive 4-Hour Ballroom Access",
+      "Gourmet Classic Buffet (3 main courses)",
+      "Traditional welcome drink presentation",
+      "Elegant stage backdrop & high-end bridal settee",
+      "Standard House PA & Ambient Warm Lighting",
+      "Dedicated On-Day Event Coordinator",
+      "Bridal preparation & changing room",
+      "Complimentary standard tablescapes"
     ],
-    images: [
-      "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800",
-    ],
-    color: "text-slate-500",
-    gradient: "from-slate-200 to-slate-100",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=800"
   },
   {
-    id: "pkg_2",
+    id: "pkg_gold",
     name: "Gold",
-    price: 8500,
-    description: "Our most popular choice, balancing elegance and value.",
+    priceLabel: "LKR 3.4M",
+    priceValue: 3400000,
+    guestsLabel: "UP TO 350 GUESTS",
+    description: "Our most chosen offering — celebrated for its balance of luxury, creative and attention to detail.",
     features: [
-      "Premium Hall Access (8 Hours)",
-      "Premium Theme Decoration",
-      "Advanced Lighting & Sound",
-      "Seating for up to 250 guests",
-      "2 Dressing Rooms",
-      "Welcome Drink Station",
+      "Exclusive 8-Hour Ballroom & Terrace Access",
+      "Signature Premium Buffet (5 main courses)",
+      "Crafted premium mocktail on arrival",
+      "Suspended visual florals & custom aisle runway",
+      "Synchronized intelligent LED Lighting rig",
+      "Full rehearsal coordination & dedicated concierge",
+      "Dedicated Bridal Car, Luxury Suite for the Couple",
+      "Floral table centerpieces & customized linens"
     ],
-    images: [
-      "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&q=80&w=800",
-    ],
-    color: "text-amber-500",
-    gradient: "from-amber-200 to-amber-50",
+    image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800"
   },
   {
-    id: "pkg_3",
+    id: "pkg_diamond",
     name: "Diamond",
-    price: 15000,
-    description: "The ultimate luxury experience for your special day.",
+    priceLabel: "LKR 5.0M",
+    priceValue: 5000000,
+    guestsLabel: "UP TO 450 GUESTS",
+    description: "A no-detail-left-out experience for those who want nothing but the highest standard of celebration.",
     features: [
-      "Full Day Hall Access (12 Hours)",
-      "Custom Luxury Decoration",
-      "Professional Lighting & Concert Sound",
-      "Seating for up to 500 guests",
-      "4 Dressing Rooms",
-      "Valet Parking",
-      "Bridal Suite Access",
+      "Exclusive Full-Day Ballroom, Foyer & Garden Access",
+      "Grand Culinary Buffet & Live carving station",
+      "Molecular mixology & customizable arrival welcome cocktails",
+      "Imported floral architectural installs & custom vinyl dancefloor",
+      "Club-spec sound system with dynamic synchronized lasers",
+      "Dedicated Personal Liaison & full-scope coordinator support",
+      "Overnight stay in Exclusive Luxury Suite + Couple Breakfast",
+      "Opulent floral designs & custom-engraved stationery"
     ],
-    images: [
-      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&q=80&w=800",
-    ],
-    color: "text-sky-500",
-    gradient: "from-sky-200 to-sky-50",
-  },
+    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800"
+  }
 ];
 
 export const vendorsData = {

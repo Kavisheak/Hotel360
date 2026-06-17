@@ -3,7 +3,7 @@ import { ShieldCheck, Clock, Award } from "lucide-react";
 
 export default function TrustSection() {
   return (
-    <section className="bg-[#2C1E14] text-white py-12 px-6 border-t border-[#C9A84C]/20">
+    <section className="bg-[#0A0A0A] text-white py-12 px-6 border-t border-[#C9A84C]/20">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left section-reveal">
         
         <div className="space-y-2 border-b md:border-b-0 md:border-r border-[#C9A84C]/20 pb-6 md:pb-0 md:pr-8 hover-lift">

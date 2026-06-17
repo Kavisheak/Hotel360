@@ -1,39 +1,47 @@
 import React from 'react';
-import { TrendingUp } from 'lucide-react';
 
-const performance = [
-  { label: 'On-time arrival', value: 96, accent: 'bg-[#7C6A2E]' },
-  { label: 'Media delivery', value: 88, accent: 'bg-[#5A87C7]' },
-  { label: 'Client feedback', value: 98, accent: 'bg-[#B08D2C]' },
-  { label: 'Coverage completeness', value: 91, accent: 'bg-[#4A463B]' },
+const bars = [
+  { month: 'JAN', value: '40%', tone: 'light' },
+  { month: 'FEB', value: '62%', tone: 'light' },
+  { month: 'MAR', value: '78%', tone: 'dark' },
+  { month: 'APR', value: '55%', tone: 'light' },
+  { month: 'MAY', value: '85%', tone: 'dark' },
+  { month: 'JUN', value: '96%', tone: 'dark' },
 ];
 
-const MonthlyPerformance = () => {
+export default function MonthlyPerformance() {
   return (
-    <div className="bg-[#FDF9F1] border border-[#E0D8C3] p-6 sm:p-8 shadow-sm">
-      <div className="flex items-center justify-between border-b border-[#E0D8C3] pb-3 mb-6">
-        <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">MONTHLY PERFORMANCE</h3>
-        <span className="flex items-center space-x-1 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase">
-          <TrendingUp size={12} />
-          <span>+8% VS LAST MONTH</span>
-        </span>
+    <article className="min-h-[560px] border border-[#E7DDCC] bg-[#F8F4EC] p-6 lg:p-8">
+      <div className="mb-12 flex items-start justify-between gap-4">
+        <h2 className="mb-2 text-[28px] font-serif text-gray-800">Monthly Projects</h2>
+        <button className="mt-2 inline-flex items-center gap-3 text-[15px] font-serif text-gray-800">
+          Annual View (2026)
+          <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center">
+            <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </span>
+        </button>
       </div>
 
-      <div className="space-y-4">
-        {performance.map((item) => (
-          <div key={item.label}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-gray-700">{item.label}</span>
-              <span className="text-[10px] font-bold tracking-widest text-gray-500">{item.value}%</span>
+      <div className="flex h-[210px] items-end gap-5">
+        {bars.map((bar) => (
+          <div key={bar.month} className="flex flex-1 flex-col items-center gap-3">
+            <div className="relative h-[185px] w-full bg-[#DDD6C8]">
+              <div
+                className={`absolute right-0 bottom-0 left-0 ${
+                  bar.tone === 'dark' ? 'bg-[#6F5B00]' : 'bg-[#E6C340]'
+                }`}
+                style={{ height: bar.value }}
+              />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[6px] bg-[#E7E1D4]" />
             </div>
-            <div className="h-2 bg-[#FAF6EE] border border-[#E0D8C3] rounded-sm overflow-hidden">
-              <div className={`h-full ${item.accent}`} style={{ width: `${item.value}%` }} />
-            </div>
+            <span className="text-[34px] leading-none tracking-[0.08em] text-[#181818]">{bar.month}</span>
           </div>
         ))}
       </div>
-    </div>
-  );
-};
 
-export default MonthlyPerformance;
+      <div className="h-28" aria-hidden="true" />
+    </article>
+  );
+}

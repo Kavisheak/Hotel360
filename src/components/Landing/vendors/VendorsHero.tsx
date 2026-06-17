@@ -1,11 +1,24 @@
 import React from "react";
+import Image from "next/image";
 import { Sparkles } from "lucide-react";
 
 export default function VendorsHero() {
   return (
-    <section className="relative w-full py-16 bg-[#2C1E14] text-white overflow-hidden border-b border-[#C9A84C]/20">
+    <section className="relative w-full py-24 bg-[#2C1E14] text-white overflow-hidden border-b border-[#C9A84C]/20">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/Frontimg.png"
+          alt="Vendors Hero Background"
+          fill
+          className="object-cover opacity-40"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2C1E14]/50 via-[#2C1E14]/70 to-[#2C1E14]"></div>
+      </div>
+
       {/* Subtle Decorative Background Lines */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-[1px] h-full bg-white"></div>
         <div className="absolute top-0 left-3/4 w-[1px] h-full bg-white"></div>
         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>

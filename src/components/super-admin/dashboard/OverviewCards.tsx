@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
+import { useBookingStore } from '@/store/bookingStore';
 
 const weeklyData = [
   { day: 'Mon', bookings: 14 },
@@ -21,14 +22,23 @@ const monthlyData = [
 ];
 
 const RevenueCard = () => {
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const totalRevenue = isClient ? globalBookings.reduce((acc, curr) => acc + curr.totalCost, 0) : 0;
+
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 flex flex-col justify-between">
       <div>
         <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4">
-          Total Revenue (MTD)
+          Total Revenue (All Time)
         </p>
         <h2 className="text-4xl sm:text-5xl font-serif font-bold text-[#3D3000] mb-4">
-          $482,930
+          LKR {totalRevenue.toLocaleString()}
         </h2>
         <div className="flex items-center gap-2 text-green-600">
           <TrendingUp size={16} />

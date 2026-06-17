@@ -91,7 +91,7 @@ export default function VendorsFilters({
             { id: "all", label: "All Vetted Partners" },
             { id: "decorators", label: "Bespoke Decorators" },
             { id: "djs", label: "DJ Artists & Entertainment" },
-            { id: "others", label: "Other Services & Cuisine" }
+            { id: "others", label: "Other Services & Visuals" }
           ].map((tab) => (
             <button
               key={tab.id}

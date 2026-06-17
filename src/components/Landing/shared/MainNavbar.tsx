@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Heart, ShoppingCart } from "lucide-react";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 export default function MainNavbar() {
   const pathname = usePathname();
   
   // Mock logged-in state. In a real app, you would get this from auth context.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { cartVendors, favoriteVendors } = useVendorCartStore();
 
   // You can toggle this manually or via some global state to simulate login
   useEffect(() => {
@@ -58,6 +61,24 @@ export default function MainNavbar() {
 
         {/* Call to Actions */}
         <div className="flex items-center gap-4">
+          <Link href="/customer/saved" className="relative group text-gray-300 hover:text-[#C9A84C] transition-colors">
+            <Heart className="w-5 h-5" />
+            {favoriteVendors?.length > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                {favoriteVendors.length}
+              </span>
+            )}
+          </Link>
+
+          <Link href="/customer/saved" className="relative group text-gray-300 hover:text-[#C9A84C] transition-colors mr-2">
+            <ShoppingCart className="w-5 h-5" />
+            {cartVendors?.length > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                {cartVendors.length}
+              </span>
+            )}
+          </Link>
+
           {isLoggedIn ? (
             <Link
               href="/customer/myaccount"

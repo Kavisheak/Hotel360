@@ -1,13 +1,32 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
-import { MapPin, Star, Phone, Mail, Award, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MapPin, Star, Phone, Mail, Award, Clock, Check, Heart, ShoppingCart } from "lucide-react";
 import { Vendor } from "@/components/landing/vendors/types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface VendorProfileHeroProps {
   vendor: Vendor;
 }
 
 export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
+  const router = useRouter();
+  const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
+  const [added, setAdded] = useState(false);
+
+  const inCart = cartVendors?.includes(vendor.id) || false;
+  const isFavorite = favoriteVendors?.includes(vendor.id) || false;
+
+  const handleToggleCart = () => {
+    toggleCartVendor(vendor.id);
+    if (!inCart) {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    }
+  };
+
   return (
     <div className="relative w-full h-[50vh] min-h-100 bg-black">
       {/* Background Cover Image */}
@@ -58,20 +77,25 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
           </div>
 
           {/* Action Buttons */}
-          <div className="w-full md:w-auto flex flex-col gap-3">
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-3">
             <button 
-              onClick={() => {
-                const paramKey = vendor.category === "decorators" ? "decorator" 
-                               : vendor.category === "djs" ? "dj" 
-                               : "videographer";
-                window.location.href = `/book?${paramKey}=${vendor.id}`;
-              }}
-              className="bg-[#C69C6D] text-black px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white transition-colors rounded-sm shadow-xl btn-interactive"
+              onClick={() => toggleFavoriteVendor(vendor.id)}
+              className={`p-3.5 flex items-center justify-center transition-colors rounded-sm shadow-xl btn-interactive ${isFavorite ? "bg-red-500 text-white hover:bg-red-600" : "bg-white/10 text-white hover:bg-white/20 border border-white/30"}`}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
             >
-              Select for Booking
+              <Heart className={`w-5 h-5 ${isFavorite ? 'fill-white' : ''}`} />
             </button>
-            <button className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive">
-              Save to Favorites
+            <button 
+              onClick={handleToggleCart}
+              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-xl btn-interactive flex items-center justify-center gap-2 ${inCart ? "bg-red-900/80 text-white hover:bg-red-800" : added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-black hover:bg-white"}`}
+            >
+              {inCart ? "Remove from Cart" : added ? <><Check className="w-4 h-4"/> Added to Cart</> : <><ShoppingCart className="w-4 h-4"/> Add to Cart</>}
+            </button>
+            <button 
+              onClick={() => router.push("/customer/saved")}
+              className="bg-transparent border border-white/30 text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-white/10 transition-colors rounded-sm btn-interactive"
+            >
+              View Cart
             </button>
           </div>
         </div>

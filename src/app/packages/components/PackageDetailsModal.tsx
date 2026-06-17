@@ -23,7 +23,7 @@ export default function PackageDetailsModal({ isOpen, onClose, pkg }: Props) {
 
         {/* Gallery */}
         <div className="grid grid-cols-2 gap-1 p-1 bg-white">
-          {pkg.images.map((img, i) => (
+          {[pkg.image].map((img, i) => (
             <div key={i} className="relative h-64 overflow-hidden group">
               <Image
                 src={img}
@@ -49,7 +49,7 @@ export default function PackageDetailsModal({ isOpen, onClose, pkg }: Props) {
             <div className="text-right bg-white border border-[#D4C9A8] p-5 rounded-sm shadow-sm shrink-0">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Starting from</p>
               <p className="text-3xl font-serif text-[#C9A84C]">
-                LKR {(pkg.price / 1000000).toFixed(2)}M
+                LKR {(pkg.priceValue / 1000000).toFixed(2)}M
               </p>
             </div>
           </div>

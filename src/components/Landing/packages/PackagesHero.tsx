@@ -1,11 +1,24 @@
 import React from "react";
+import Image from "next/image";
 import { Sparkles } from "lucide-react";
 
 export default function PackagesHero() {
   return (
-    <section className="relative w-full py-16 bg-[#2C1E14] text-white overflow-hidden border-b border-[#C9A84C]/20">
+    <section className="relative w-full py-24 bg-[#0A0A0A] text-white overflow-hidden border-b border-[#C9A84C]/20">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/luxury_ballroom_bg.png"
+          alt="Packages Hero Background"
+          fill
+          className="object-cover opacity-40 mix-blend-overlay"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/50 via-[#0A0A0A]/70 to-[#0A0A0A]"></div>
+      </div>
+
       {/* Subtle Decorative Background Lines */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-[1px] h-full bg-white"></div>
         <div className="absolute top-0 left-3/4 w-[1px] h-full bg-white"></div>
         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>

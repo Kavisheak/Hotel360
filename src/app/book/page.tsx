@@ -14,6 +14,8 @@ import BookingVendorSelector from "@/components/landing/book/BookingVendorSelect
 import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useBookingStore } from "@/store/bookingStore";
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -22,8 +24,24 @@ export default function BookPage() {
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
   const [guestCount, setGuestCount] = useState<number>(380);
   
-  const [vendors, setVendors] = useState({ decorator: "none", dj: "none", videographer: "none" });
+  const cartVendors = useVendorCartStore((state) => state.vendors);
+  const cartMenu = useVendorCartStore((state) => state.menuSelection);
+  const setStoreVendor = useVendorCartStore((state) => state.setVendor);
+
+  const [vendors, setLocalVendors] = useState({ 
+    decorator: cartVendors.decorator, 
+    dj: cartVendors.dj,
+    videographer: cartVendors.videographer
+  });
+  
   const [menu, setMenu] = useState("signature");
+
+  const setVendors = (newVendors: typeof vendors) => {
+    setLocalVendors(newVendors);
+    if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
+    if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
+    if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
+  };
 
   // Read URL params on mount
   useEffect(() => {
@@ -33,11 +51,13 @@ export default function BookPage() {
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
 
-      setVendors(prev => ({
-        decorator: preDecorator || prev.decorator,
-        dj: preDj || prev.dj,
-        videographer: preVid || prev.videographer
-      }));
+      if (preDecorator || preDj || preVid) {
+        setVendors({
+          decorator: preDecorator || cartVendors.decorator,
+          dj: preDj || cartVendors.dj,
+          videographer: preVid || cartVendors.videographer
+        });
+      }
     }
   }, []);
 
@@ -70,12 +90,46 @@ export default function BookPage() {
   
   let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
 
-  if (menu === "custom") addonsCost += 200000; // custom menu surcharge
+  if (menu === "custom") {
+    addonsCost += 200000; // custom menu surcharge
+    // Add cost of selected custom menu items
+    const customMenuCost = cartMenu.items.reduce((total, item) => total + item.price, 0);
+    addonsCost += customMenuCost;
+  }
 
   const grandTotal = basePrice + guestSurcharges + timeslotPremium + addonsCost;
 
   const formatCurrency = (val: number) => {
     return "LKR " + val.toLocaleString();
+  };
+
+  const addBooking = useBookingStore(state => state.addBooking);
+  const clearCart = useVendorCartStore(state => state.clearCart);
+
+  const handleFinalizeBooking = (contactInfo: any) => {
+    const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
+    
+    const dateString = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD";
+
+    addBooking({
+      id: "bk-" + Math.floor(1000 + Math.random() * 9000),
+      clientName: `${contactInfo.firstName} ${contactInfo.lastName}`,
+      email: contactInfo.email,
+      eventType: eventTypeName,
+      date: dateString,
+      guests: guestCount,
+      status: "Pending",
+      totalCost: grandTotal,
+      vendors: {
+        decorator: vendors.decorator,
+        dj: vendors.dj,
+        videographer: vendors.videographer
+      },
+      menuType: menu,
+      createdAt: new Date().toISOString()
+    });
+
+    clearCart();
   };
 
   const handleNext = () => {
@@ -91,7 +145,7 @@ export default function BookPage() {
   };
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen flex flex-col font-sans text-[#2C1E14]">
+    <div className="bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-white">
       <MainNavbar />
 
       <main className="flex-grow pb-24">
@@ -149,7 +203,7 @@ export default function BookPage() {
             {/* Step 4: Checkout */}
             {currentStep === 4 && (
               <div className="animate-fadeIn">
-                <BookingForm selectedDate={selectedDate} />
+                <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
               </div>
             )}
 

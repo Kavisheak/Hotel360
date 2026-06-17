@@ -49,36 +49,36 @@ interface CalendarPickerProps {
 
 export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarPickerProps) {
   return (
-    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A67C52] font-bold flex items-center gap-1.5">
+    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
+      <label className="block text-[10px] uppercase tracking-widest text-[#C9A84C] font-bold flex items-center gap-1.5">
         <CalendarIcon className="w-4 h-4 text-[#C9A84C]" /> Step 1: Select Event Date (June 2026)
       </label>
       
       {/* Legend */}
-      <div className="flex gap-4 text-[9px] uppercase tracking-widest font-semibold text-gray-500 pb-2 border-b border-[#D4C9A8]">
+      <div className="flex gap-4 text-[9px] uppercase tracking-widest font-semibold text-gray-500 pb-2 border-b border-[#C9A84C]/30">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 bg-white border border-[#D4C9A8] block rounded-sm"></span>
-          <span>Available</span>
+          <span className="w-2.5 h-2.5 bg-[#1A1A1A] border border-[#C9A84C]/30 block rounded-sm"></span>
+          <span className="text-gray-400">Available</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 bg-red-50 border border-red-200 block rounded-sm"></span>
-          <span>Reserved</span>
+          <span className="w-2.5 h-2.5 bg-[#2A1111] border border-red-900/50 block rounded-sm"></span>
+          <span className="text-gray-400">Reserved</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 bg-orange-50 border border-orange-200 block rounded-sm"></span>
-          <span>Pending Hold</span>
+          <span className="w-2.5 h-2.5 bg-[#2A1A00] border border-orange-900/50 block rounded-sm"></span>
+          <span className="text-gray-400">Pending Hold</span>
         </div>
       </div>
 
       {/* Month Header */}
-      <div className="text-center py-2 bg-[#F0E6D0]/50 text-xs font-serif font-semibold border-t border-b border-[#D4C9A8]">
+      <div className="text-center py-2 bg-[#1A1A1A] text-xs text-white font-serif font-semibold border-t border-b border-[#C9A84C]/30">
         June 2026
       </div>
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-2 pt-2 text-center text-xs">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => (
-          <div key={idx} className="font-semibold text-[9px] text-[#A67C52] uppercase tracking-widest py-1">
+          <div key={idx} className="font-semibold text-[9px] text-[#C9A84C] uppercase tracking-widest py-1">
             {day}
           </div>
         ))}
@@ -86,15 +86,15 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
         {JUNE_2026_DAYS.map((day) => {
           const isSelected = selectedDate === day.date;
           
-          let cellStyle = "bg-white text-gray-900 border border-[#D4C9A8] hover:border-[#C9A84C] cursor-pointer hover-lift";
+          let cellStyle = "bg-[#1A1A1A] text-white border border-[#C9A84C]/30 hover:border-[#C9A84C] cursor-pointer hover-glow";
           if (day.status === "reserved") {
-            cellStyle = "bg-red-50 text-red-300 border border-red-100 cursor-not-allowed line-through";
+            cellStyle = "bg-[#2A1111] text-red-500/50 border border-red-900/50 cursor-not-allowed line-through";
           } else if (day.status === "pending") {
-            cellStyle = "bg-orange-50/70 text-orange-400 border border-orange-100 cursor-not-allowed";
+            cellStyle = "bg-[#2A1A00] text-orange-500/60 border border-orange-900/50 cursor-not-allowed";
           }
 
           if (isSelected && day.status === "available") {
-            cellStyle = "bg-[#2C1E14] text-[#C9A84C] border-[#2C1E14] shadow-md ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#F0E6D0] font-bold scale-[1.03]";
+            cellStyle = "bg-gradient-to-br from-[#D4AF37] to-[#8C6D23] text-black border-[#C9A84C] shadow-[0_0_15px_rgba(212,175,55,0.4)] font-bold scale-[1.05] z-10 relative";
           }
 
           return (
@@ -107,13 +107,13 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
             >
               <span className="font-medium text-xs">{day.date}</span>
               {day.status === "reserved" && (
-                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-red-400">Booked</span>
+                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-red-500/70">Booked</span>
               )}
               {day.status === "pending" && (
-                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-orange-400">Pending</span>
+                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-orange-500/70">Pending</span>
               )}
               {day.status === "available" && isSelected && (
-                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-semibold text-[#C9A84C]">Active</span>
+                <span className="absolute bottom-0.5 text-[7px] uppercase tracking-wider font-extrabold text-black">Active</span>
               )}
             </button>
           );
