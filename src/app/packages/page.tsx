@@ -24,31 +24,31 @@ export default function PackagesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2] flex flex-col font-sans text-[#2C1E14]">
+    <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0A0A0A] flex flex-col font-sans text-[#2C1E14] dark:text-white transition-colors duration-300">
       
       <MainNavbar />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-4 overflow-hidden bg-[#2C1E14] text-white">
+      <section className="relative pt-32 pb-24 px-4 overflow-hidden bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white transition-colors duration-300">
         <div className="absolute inset-0">
           <Image
-            src="/luxury_ballroom_bg.png"
-            alt="Luxury Ballroom"
+            src="/packages_hero_bg.png"
+            alt="Packages Hero Background"
             fill
-            className="object-cover opacity-50"
+            className="object-cover opacity-40 dark:opacity-30"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#2C1E14]/70 via-[#2C1E14]/50 to-[#2C1E14]"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#0A0A0A]/60 dark:to-[#0A0A0A]"></div>
         </div>
         
         <div className="relative max-w-5xl mx-auto text-left mt-10 section-reveal">
-          <p className="text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-bold mb-4">
+          <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-bold mb-4">
             Event Packages
           </p>
-          <h1 className="text-5xl md:text-7xl font-serif text-white mb-6 drop-shadow-sm leading-tight stagger-1">
+          <h1 className="text-5xl md:text-7xl font-serif text-[#2C1E14] dark:text-white mb-6 drop-shadow-sm leading-tight stagger-1">
             Tailored Experience.<br />Timeless Moments.
           </h1>
-          <p className="text-base md:text-lg text-gray-300 max-w-xl mb-10 font-light leading-relaxed stagger-2">
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-xl mb-10 font-light leading-relaxed stagger-2">
             Choose the perfect package that fits your vision.<br />We'll handle the rest.
           </p>
         </div>
@@ -80,32 +80,32 @@ export default function PackagesPage() {
       <PackagesFAQ />
 
       {/* Features Strip */}
-      <section className="w-full bg-[#2C1E14] py-16 border-t border-[#C9A84C]/20">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-white">
+      <section className="w-full bg-[#F0E6D0] dark:bg-[#2C1E14] py-16 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-[#2C1E14] dark:text-white">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="w-12 h-12 mb-5 border border-[#C9A84C] rounded-sm flex items-center justify-center">
-              <CheckCircle2 className="text-[#C9A84C] w-5 h-5" />
+            <div className="w-12 h-12 mb-5 border border-[#D4C9A8] dark:border-[#C9A84C] rounded-sm flex items-center justify-center">
+              <CheckCircle2 className="text-[#805D3A] dark:text-[#C9A84C] w-5 h-5" />
             </div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#F0E6D0]">100% Quality Vetted</h4>
-            <p className="text-xs text-gray-400 font-light leading-relaxed max-w-xs">
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#2C1E14] dark:text-[#F0E6D0]">100% Quality Vetted</h4>
+            <p className="text-xs text-gray-700 dark:text-gray-400 font-light leading-relaxed max-w-xs">
               Every vendor is legally licensed, management-checked, and highly rated across the Colombo event community.
             </p>
           </div>
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="w-12 h-12 mb-5 border border-[#C9A84C] rounded-sm flex items-center justify-center">
-              <UserCheck className="text-[#C9A84C] w-5 h-5" />
+            <div className="w-12 h-12 mb-5 border border-[#D4C9A8] dark:border-[#C9A84C] rounded-sm flex items-center justify-center">
+              <UserCheck className="text-[#805D3A] dark:text-[#C9A84C] w-5 h-5" />
             </div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#F0E6D0]">Venue Trained</h4>
-            <p className="text-xs text-gray-400 font-light leading-relaxed max-w-xs">
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#2C1E14] dark:text-[#F0E6D0]">Venue Trained</h4>
+            <p className="text-xs text-gray-700 dark:text-gray-400 font-light leading-relaxed max-w-xs">
               Familiar with EASCC rules, safety policies, structural ceiling systems, and layouts to ensure seamless execution.
             </p>
           </div>
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="w-12 h-12 mb-5 border border-[#C9A84C] rounded-sm flex items-center justify-center">
-              <Star className="text-[#C9A84C] w-5 h-5" />
+            <div className="w-12 h-12 mb-5 border border-[#D4C9A8] dark:border-[#C9A84C] rounded-sm flex items-center justify-center">
+              <Star className="text-[#805D3A] dark:text-[#C9A84C] w-5 h-5" />
             </div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#F0E6D0]">Bespoke Customization</h4>
-            <p className="text-xs text-gray-400 font-light leading-relaxed max-w-xs">
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-3 text-[#2C1E14] dark:text-[#F0E6D0]">Bespoke Customization</h4>
+            <p className="text-xs text-gray-700 dark:text-gray-400 font-light leading-relaxed max-w-xs">
               Collaborates directly with venue managers and the EASCC concierge to build templates specifically for your guest list.
             </p>
           </div>

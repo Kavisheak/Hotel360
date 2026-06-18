@@ -27,97 +27,95 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-white border border-[#D4C9A8] rounded-sm shadow-sm hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 rounded-lg shadow-sm hover-glow transition-all duration-300 overflow-hidden">
       {/* Section Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-[#F0E6D0] bg-[#F0E6D0]/20">
-        <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
-          <User className="w-4 h-4 text-[#C9A84C]" />
-        </div>
+      <div className="flex items-center gap-4 px-8 py-6 border-b border-[#E8DFC9] dark:border-gray-800">
+        <User className="w-5 h-5 text-[#C69C6D]" />
         <div>
-          <h4 className="text-sm font-serif text-[#2C1E14]">Personal Information</h4>
-          <p className="text-[10px] text-gray-400 font-light">Update your profile details and contact information.</p>
+          <h4 className="text-xl font-serif text-[#1A1512] dark:text-white">Personal Information</h4>
+          <p className="text-[10px] text-gray-500 font-medium">Update your profile details and contact information.</p>
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="p-6 space-y-5">
+      <form onSubmit={handleSave} className="p-8 space-y-8">
         {/* Avatar Upload */}
-        <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-full bg-[#F0E6D0] flex items-center justify-center text-[#C9A84C] relative group cursor-pointer overflow-hidden border-2 border-[#D4C9A8]">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-full bg-[#FAF6EE] dark:bg-[#2A2A2A] flex items-center justify-center text-[#C69C6D] relative group cursor-pointer overflow-hidden border border-[#E8DFC9] dark:border-gray-700">
             <User className="w-8 h-8" />
-            <div className="absolute inset-0 bg-[#2C1E14]/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <Camera className="w-5 h-5 text-white" />
             </div>
           </div>
           <div>
-            <p className="text-xs font-semibold text-[#2C1E14]">Profile Photo</p>
-            <p className="text-[10px] text-gray-400 font-light mt-0.5">JPG, PNG or WEBP. Max 2MB.</p>
-            <button type="button" className="mt-1.5 text-[9px] font-bold uppercase tracking-widest text-[#C9A84C] hover:text-[#2C1E14] transition-colors btn-interactive">
+            <p className="text-xs font-bold text-[#1A1512] dark:text-white">Profile Photo</p>
+            <p className="text-[10px] text-gray-500 font-medium mt-1 mb-3">JPG, PNG or WEBP. Max 2MB.</p>
+            <button type="button" className="px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#C69C6D] border border-[#C69C6D]/30 rounded hover:bg-[#FAF6EE] transition-colors btn-interactive">
               Upload Photo
             </button>
           </div>
         </div>
 
         {/* Form Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">First Name</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">First Name</label>
             <input
               value={profile.firstName}
               onChange={(e) => handleChange("firstName", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Last Name</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">Last Name</label>
             <input
               value={profile.lastName}
               onChange={(e) => handleChange("lastName", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Email Address</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">Email Address</label>
             <input
               type="email"
               value={profile.email}
               onChange={(e) => handleChange("email", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Phone Number</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">Phone Number</label>
             <input
               type="tel"
               value={profile.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Street Address</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">Street Address</label>
             <input
               value={profile.address}
               onChange={(e) => handleChange("address", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">City / Region</label>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2 pl-1">City / Region</label>
             <input
               value={profile.city}
               onChange={(e) => handleChange("city", e.target.value)}
-              className="w-full border border-[#D4C9A8] bg-[#F0E6D0]/20 p-3 rounded-sm text-sm focus:border-[#C9A84C] focus:bg-white outline-none transition-all input-glow"
+              className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#111111] px-4 py-3.5 rounded-lg text-sm text-[#1A1512] dark:text-white focus:border-[#C69C6D] focus:bg-white dark:focus:bg-[#1A1A1A] outline-none transition-all shadow-sm"
             />
           </div>
         </div>
 
         {/* Actions */}
-        <div className="pt-4 border-t border-[#F0E6D0] flex items-center gap-4">
+        <div className="pt-6 flex items-center gap-4">
           <button
             type="submit"
-            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] transition-colors btn-interactive flex items-center gap-2"
+            className="px-8 py-3.5 bg-[#C69C6D] text-white font-bold text-[10px] uppercase tracking-widest rounded hover:bg-[#B58A59] transition-colors btn-interactive flex items-center gap-2 shadow-sm"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save className="w-4 h-4" />
             Save Changes
           </button>
           {saved && (

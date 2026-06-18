@@ -35,7 +35,7 @@ const AmenitiesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal">
+    <section className="w-full bg-white dark:bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal transition-colors duration-300">
       <div className="max-w-6xl w-full flex flex-col">
         
         {/* Header Row */}
@@ -43,16 +43,16 @@ const AmenitiesSection = () => {
           <div className="flex flex-col">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-[1px] bg-[#C9A84C]/60"></div>
-              <p className="text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">
+              <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">
                 The Anatomy of Elegance
               </p>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-white max-w-xl text-reveal stagger-2">
-              Composed with <span className="italic text-[#C9A84C] font-light">unwavering precision</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-[#2C1E14] dark:text-white max-w-xl text-reveal stagger-2">
+              Composed with <span className="italic text-[#805D3A] dark:text-[#C9A84C] font-light">unwavering precision</span>
             </h2>
           </div>
           
-          <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-md font-light text-reveal stagger-3 lg:pb-2">
+          <p className="text-gray-700 dark:text-gray-400 text-sm md:text-base leading-relaxed max-w-md font-light text-reveal stagger-3 lg:pb-2">
             EASCC isn't just an empty ballroom. We provide an integrated ecosystem of luxury amenities, ensuring every facet of your event is executed flawlessly.
           </p>
         </div>
@@ -62,15 +62,15 @@ const AmenitiesSection = () => {
           {amenities.map((amenity, index) => (
             <div 
               key={amenity.id} 
-              className={`flex flex-col border-t border-[#C9A84C]/20 pt-6 hover-glow transition-all cursor-default card-entrance stagger-${index + 1}`}
+              className={`flex flex-col border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 pt-6 hover-glow transition-all cursor-default card-entrance stagger-${index + 1}`}
             >
-              <span className="text-[#C9A84C] text-sm font-serif italic mb-6">
+              <span className="text-[#805D3A] dark:text-[#C9A84C] text-sm font-serif italic mb-6">
                 {amenity.id}
               </span>
-              <h3 className="text-xl md:text-2xl font-serif text-white mb-3">
+              <h3 className="text-xl md:text-2xl font-serif text-[#2C1E14] dark:text-white mb-3">
                 {amenity.title}
               </h3>
-              <p className="text-gray-400 text-sm leading-relaxed font-light">
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed font-light">
                 {amenity.description}
               </p>
             </div>

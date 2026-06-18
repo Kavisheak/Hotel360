@@ -13,6 +13,7 @@ import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
 import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
+import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingStore } from "@/store/bookingStore";
@@ -23,6 +24,7 @@ export default function BookPage() {
   const [timeslot, setTimeslot] = useState<string>("evening");
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
   const [guestCount, setGuestCount] = useState<number>(380);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
@@ -63,14 +65,13 @@ export default function BookPage() {
 
   const getBasePrice = () => {
     if (selectedPackage === "silver") return 1800000;
-    if (selectedPackage === "diamond") return 5900000;
+    if (selectedPackage === "diamond") return 5000000;
     return 3400000;
   };
 
-  const getBaseGuests = () => {
-    if (selectedPackage === "silver") return 250;
-    if (selectedPackage === "diamond") return 480;
-    return 380;
+  const getMenuPricePerGuest = () => {
+    if (menu === "custom") return 6500;
+    return 3500; // signature
   };
 
   const getVendorCost = (vendorId: string) => {
@@ -84,20 +85,18 @@ export default function BookPage() {
   };
 
   const basePrice = getBasePrice();
-  const extraGuests = Math.max(0, guestCount - getBaseGuests());
-  const guestSurcharges = extraGuests * 8500;
+  const foodCost = guestCount * getMenuPricePerGuest();
   const timeslotPremium = timeslot === "full" ? 500000 : 0;
   
   let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
 
   if (menu === "custom") {
-    addonsCost += 200000; // custom menu surcharge
-    // Add cost of selected custom menu items
-    const customMenuCost = cartMenu.items.reduce((total, item) => total + item.price, 0);
-    addonsCost += customMenuCost;
+    // Add cost of selected custom menu items * guest count
+    const customMenuCost = cartMenu.addedOptionalItems.reduce((total, item) => total + item.price, 0);
+    addonsCost += (customMenuCost * guestCount);
   }
 
-  const grandTotal = basePrice + guestSurcharges + timeslotPremium + addonsCost;
+  const grandTotal = basePrice + foodCost + timeslotPremium + addonsCost;
 
   const formatCurrency = (val: number) => {
     return "LKR " + val.toLocaleString();
@@ -134,7 +133,7 @@ export default function BookPage() {
 
   const handleNext = () => {
     if (currentStep === 1 && selectedDate === 0) {
-      alert("Please select an available date to continue.");
+      setIsDateModalOpen(true);
       return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 4));
@@ -145,22 +144,23 @@ export default function BookPage() {
   };
 
   return (
-    <div className="bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-white">
+    <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
       <MainNavbar />
 
-      <main className="flex-grow pb-24">
+      <main className="flex-grow">
         <BookHero />
         
-        <div className="max-w-6xl mx-auto px-6 mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start section-reveal">
+        <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
           
           {/* Left Column: Booking Form Steps */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="lg:col-span-8 space-y-12">
             
-            {/* Step Indicator */}
-            <div className="flex items-center justify-between border-b border-[#D4C9A8] pb-4 mb-8">
+            {/* Stepper Indicator */}
+            <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
+              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
               {[1, 2, 3, 4].map((step) => (
-                <div key={step} className={`flex items-center gap-2 ${currentStep === step ? 'text-[#C9A84C]' : currentStep > step ? 'text-[#2C1E14]' : 'text-gray-400 opacity-50'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${currentStep >= step ? 'border-current bg-current text-white' : 'border-gray-400'}`}>
+                <div key={step} className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
                     {step}
                   </div>
                   <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:block">
@@ -181,8 +181,7 @@ export default function BookPage() {
                 <TimeslotSelector timeslot={timeslot} onSelectTimeslot={setTimeslot} />
                 <div className="h-px bg-[#D4C9A8] w-full"></div>
                 <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} baseLine={getBaseGuests()} />
+                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
               </div>
             )}
 
@@ -208,22 +207,13 @@ export default function BookPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-[#D4C9A8] mt-8">
-              {currentStep > 1 ? (
-                <button 
-                  onClick={handleBack}
-                  className="px-6 py-3 text-[10px] uppercase font-bold tracking-widest text-[#2C1E14] border border-[#2C1E14] hover:bg-[#2C1E14] hover:text-white transition-colors rounded-sm"
-                >
-                  Go Back
-                </button>
-              ) : <div></div>}
-              
+            <div className="flex items-center justify-end pt-8">
               {currentStep < 4 && (
                 <button 
                   onClick={handleNext}
-                  className="px-8 py-3 bg-[#C9A84C] text-[#2C1E14] text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#B89238] transition-colors rounded-sm shadow-md hover-lift"
+                  className="px-8 py-3 bg-[#C69C6D] text-white text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
                 >
-                  Next Step
+                  Next Step &rarr;
                 </button>
               )}
             </div>
@@ -231,14 +221,14 @@ export default function BookPage() {
           </div>
 
           {/* Right Column: Sticky Cost Breakdown & Trust Flags */}
-          <div className="lg:col-span-5 space-y-8 sticky top-24 section-reveal stagger-2">
+          <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
             <CostBreakdown 
               packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
               selectedTimeslot={timeslot}
               costBreakdown={{
                 basePrice,
-                extraGuestsCount: extraGuests,
-                guestSurcharges,
+                foodCost,
+                guestCount,
                 timeslotPremium,
                 addonsCost,
                 grandTotal
@@ -249,9 +239,41 @@ export default function BookPage() {
           </div>
 
         </div>
+
+        {/* Bottom Call to Action */}
+        <section className="relative w-full py-24 bg-[#FAF6EE] dark:bg-[#0A0A0A] overflow-hidden border-t border-[#E8DFC9] dark:border-gray-800">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#0A0A0A] dark:via-[#0A0A0A]/80 z-10"></div>
+            <img 
+              src="/vendors_hero_bg_v3.png" 
+              alt="EASCC Venue" 
+              className="w-full h-full object-cover opacity-60 dark:opacity-30"
+            />
+          </div>
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-6">
+            <div className="text-[10px] tracking-[0.3em] uppercase font-bold text-[#A6955C]">
+              Reservations Open
+            </div>
+            <h2 className="text-4xl md:text-5xl font-serif text-[#1A1512] dark:text-white">
+              Begin the conversation.
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-light max-w-lg mx-auto">
+              A bespoke evening starts with a single date. View availability and compose your celebration in minutes.
+            </p>
+            <button className="px-8 py-3.5 bg-[#C69C6D] text-white text-[10px] uppercase font-bold tracking-widest hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md mt-4">
+              Reserve Your Date &rarr;
+            </button>
+          </div>
+        </section>
+
       </main>
 
       <Footer />
+      
+      <DateRequiredModal 
+        isOpen={isDateModalOpen} 
+        onClose={() => setIsDateModalOpen(false)} 
+      />
     </div>
   );
 }

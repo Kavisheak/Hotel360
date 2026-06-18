@@ -41,7 +41,7 @@ export default function VendorsPage() {
   });
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen flex flex-col font-sans text-[#2C1E14]">
+    <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#2C1E14] dark:text-white transition-colors duration-300">
       <MainNavbar />
       
       <main className="flex-grow">
@@ -74,7 +74,7 @@ export default function VendorsPage() {
         <div className="fixed bottom-8 right-8 z-50">
           <button 
             onClick={() => router.push("/customer/saved")}
-            className="bg-[#C9A84C] text-[#2C1E14] px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:bg-[#B89238] transition-transform hover:scale-105 btn-interactive"
+            className="bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:bg-[#B89238] transition-transform hover:scale-105 btn-interactive"
           >
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />

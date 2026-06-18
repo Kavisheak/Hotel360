@@ -14,7 +14,7 @@ export default function PackagesPage() {
   const [activePackage, setActivePackage] = useState<"silver" | "gold" | "diamond">("gold");
 
   return (
-    <div className="bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-white">
+    <div className="bg-[#FDFBF7] dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#2C1E14] dark:text-white transition-colors duration-300">
       <MainNavbar />
       
       <main className="flex-grow">

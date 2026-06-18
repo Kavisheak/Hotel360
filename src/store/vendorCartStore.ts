@@ -15,7 +15,9 @@ interface VendorCartState {
   };
   menuSelection: {
     type: "signature" | "custom" | "none";
-    items: MenuItemSelection[];
+    items: MenuItemSelection[]; // legacy
+    removedDefaultItems: string[];
+    addedOptionalItems: MenuItemSelection[];
   };
   cartVendors: string[];
   favoriteVendors: string[];
@@ -25,6 +27,8 @@ interface VendorCartState {
   setMenuType: (type: "signature" | "custom" | "none") => void;
   addMenuItem: (item: MenuItemSelection) => void;
   removeMenuItem: (itemId: string) => void;
+  toggleDefaultItem: (itemId: string) => void;
+  toggleOptionalItem: (item: MenuItemSelection) => void;
   clearCart: () => void;
 }
 
@@ -39,6 +43,8 @@ export const useVendorCartStore = create<VendorCartState>()(
       menuSelection: {
         type: "none",
         items: [],
+        removedDefaultItems: [],
+        addedOptionalItems: [],
       },
       cartVendors: [],
       favoriteVendors: [],
@@ -88,6 +94,31 @@ export const useVendorCartStore = create<VendorCartState>()(
             items: state.menuSelection.items.filter((i) => i.id !== itemId),
           },
         })),
+      toggleDefaultItem: (itemId) =>
+        set((state) => {
+          const removed = state.menuSelection.removedDefaultItems;
+          return {
+            menuSelection: {
+              ...state.menuSelection,
+              removedDefaultItems: removed.includes(itemId)
+                ? removed.filter(id => id !== itemId)
+                : [...removed, itemId],
+            }
+          };
+        }),
+      toggleOptionalItem: (item) =>
+        set((state) => {
+          const added = state.menuSelection.addedOptionalItems;
+          const isAdded = added.some(i => i.id === item.id);
+          return {
+            menuSelection: {
+              ...state.menuSelection,
+              addedOptionalItems: isAdded
+                ? added.filter(i => i.id !== item.id)
+                : [...added, item],
+            }
+          };
+        }),
       clearCart: () =>
         set({
           vendors: {
@@ -98,12 +129,14 @@ export const useVendorCartStore = create<VendorCartState>()(
           menuSelection: {
             type: "none",
             items: [],
+            removedDefaultItems: [],
+            addedOptionalItems: [],
           },
           cartVendors: [],
         }),
     }),
     {
-      name: "vendor-cart-storage",
+      name: "vendor-cart-storage-v2",
     }
   )
 );
