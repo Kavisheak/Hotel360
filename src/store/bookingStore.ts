@@ -1,6 +1,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface Feedback {
+  overall: number;
+  food: number;
+  decorator?: number;
+  dj?: number;
+  videographer?: number;
+  comments: {
+    overall: string;
+    food: string;
+    decorator?: string;
+    dj?: string;
+    videographer?: string;
+  };
+}
+
 export interface Booking {
   id: string;
   clientName: string;
@@ -8,7 +23,7 @@ export interface Booking {
   eventType: string; // e.g. "Grand Ballroom Ceremony" derived from package
   date: string; // Formatted date string
   guests: number;
-  status: "Pending" | "Confirmed" | "Rejected";
+  status: "Pending" | "Confirmed" | "Rejected" | "Completed";
   totalCost: number;
   package?: string;
   vendors: {
@@ -18,12 +33,14 @@ export interface Booking {
   };
   menuType: string;
   createdAt: string;
+  feedback?: Feedback;
 }
 
 interface BookingState {
   bookings: Booking[];
   addBooking: (booking: Booking) => void;
-  updateBookingStatus: (id: string, status: "Pending" | "Confirmed" | "Rejected") => void;
+  updateBookingStatus: (id: string, status: "Pending" | "Confirmed" | "Rejected" | "Completed") => void;
+  submitFeedback: (id: string, feedback: Feedback) => void;
   getPendingBookings: () => Booking[];
   getConfirmedBookings: () => Booking[];
 }
@@ -71,6 +88,19 @@ export const useBookingStore = create<BookingState>()(
           vendors: { decorator: "none", dj: "none", videographer: "none" },
           menuType: "signature",
           createdAt: new Date().toISOString()
+        },
+        {
+          id: "bk-1004",
+          clientName: "David & Sarah",
+          email: "david@example.com",
+          eventType: "Intimate Garden Wedding",
+          date: "Sep 15, 2023",
+          guests: 100,
+          status: "Completed",
+          totalCost: 2100000,
+          vendors: { decorator: "Floral Symphony", dj: "DJ Spark", videographer: "Cinematic Memories" },
+          menuType: "signature",
+          createdAt: new Date().toISOString()
         }
       ],
       addBooking: (booking) => 
@@ -83,9 +113,15 @@ export const useBookingStore = create<BookingState>()(
         })),
       getPendingBookings: () => get().bookings.filter(b => b.status === "Pending"),
       getConfirmedBookings: () => get().bookings.filter(b => b.status === "Confirmed"),
+      submitFeedback: (id, feedback) =>
+        set((state) => ({
+          bookings: state.bookings.map((b) =>
+            b.id === id ? { ...b, feedback } : b
+          )
+        })),
     }),
     {
-      name: "booking-storage",
+      name: "booking-storage-v3",
     }
   )
 );

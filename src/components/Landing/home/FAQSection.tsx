@@ -30,22 +30,22 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="w-full bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal relative">
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#C9A84C]/30 to-transparent"></div>
+    <section className="w-full bg-white dark:bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal relative transition-colors duration-300">
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#805D3A]/30 dark:via-[#C9A84C]/30 to-transparent"></div>
       
       <div className="max-w-4xl w-full flex flex-col items-center">
         
         {/* Header Section */}
         <div className="text-center mb-16 space-y-4">
           <div className="flex items-center justify-center gap-4 text-reveal stagger-1">
-            <div className="w-8 h-[1px] bg-[#C9A84C]/60"></div>
-            <p className="text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold">
+            <div className="w-8 h-[1px] bg-[#805D3A]/60 dark:bg-[#C9A84C]/60"></div>
+            <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold">
               Curated Answers
             </p>
-            <div className="w-8 h-[1px] bg-[#C9A84C]/60"></div>
+            <div className="w-8 h-[1px] bg-[#805D3A]/60 dark:bg-[#C9A84C]/60"></div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-serif text-white leading-tight text-reveal stagger-2">
-            Frequently <span className="italic text-[#C9A84C] font-light">Asked.</span>
+          <h2 className="text-4xl md:text-5xl font-serif text-[#2C1E14] dark:text-white leading-tight text-reveal stagger-2">
+            Frequently <span className="italic text-[#805D3A] dark:text-[#C9A84C] font-light">Asked.</span>
           </h2>
         </div>
 
@@ -56,25 +56,25 @@ const FAQSection = () => {
             return (
               <div 
                 key={index} 
-                className={`border border-[#C9A84C]/20 transition-all duration-300 ${isOpen ? 'bg-[#111111]' : 'bg-transparent hover:bg-[#111111]/50'}`}
+                className={`border border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-all duration-300 ${isOpen ? 'bg-white dark:bg-[#111111]' : 'bg-transparent hover:bg-gray-50 dark:hover:bg-[#111111]/50'}`}
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                   className="w-full px-6 py-6 flex items-center justify-between text-left"
                 >
-                  <span className={`font-serif text-lg md:text-xl transition-colors duration-300 ${isOpen ? 'text-[#C9A84C]' : 'text-gray-200'}`}>
+                  <span className={`font-serif text-lg md:text-xl transition-colors duration-300 ${isOpen ? 'text-[#805D3A] dark:text-[#C9A84C]' : 'text-[#2C1E14] dark:text-gray-200'}`}>
                     {faq.question}
                   </span>
                   <ChevronDown 
                     size={20} 
-                    className={`text-[#C9A84C] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`text-[#805D3A] dark:text-[#C9A84C] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
                 
                 <div 
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
-                  <p className="px-6 pb-6 text-gray-400 font-light text-sm md:text-base leading-relaxed">
+                  <p className="px-6 pb-6 text-gray-700 dark:text-gray-400 font-light text-sm md:text-base leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

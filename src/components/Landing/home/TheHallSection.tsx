@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 const TheHallSection = () => {
   return (
-    <section className="w-full bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal">
+    <section className="w-full bg-white dark:bg-[#0A0A0A] py-24 md:py-32 px-6 md:px-12 lg:px-20 flex justify-center section-reveal transition-colors duration-300">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
         
         {/* Left Column - Image */}
@@ -16,9 +16,10 @@ const TheHallSection = () => {
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-80"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#0A0A0A] via-transparent to-transparent opacity-80"></div>
           
-          <button className="absolute bottom-6 right-6 border border-[#C9A84C]/50 bg-black/40 backdrop-blur-md text-[#C9A84C] px-6 py-3 flex items-center gap-3 text-[10px] tracking-[0.2em] uppercase font-bold hover:bg-[#C9A84C]/20 transition-all">
+          {/* View Gallery Button overlaying image */}
+          <button className="absolute bottom-6 right-6 border border-[#805D3A]/30 dark:border-[#C9A84C]/50 bg-white/80 dark:bg-transparent backdrop-blur-md text-[#805D3A] dark:text-[#C9A84C] px-6 py-3 flex items-center gap-3 text-[10px] tracking-[0.2em] uppercase font-bold hover:bg-white dark:hover:bg-[#C9A84C]/10 transition-all shadow-sm">
             View Gallery
             <ArrowRight size={14} />
           </button>
@@ -27,37 +28,37 @@ const TheHallSection = () => {
         {/* Right Column - Content */}
         <div className="flex flex-col">
           <div className="flex items-center gap-4 mb-6 text-reveal stagger-1">
-            <div className="w-10 h-[1px] bg-[#C9A84C]/60"></div>
-            <p className="text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold">
+            <div className="w-10 h-[1px] bg-[#805D3A]/60 dark:bg-[#C9A84C]/60"></div>
+            <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.3em] uppercase font-bold">
               The Venue
             </p>
           </div>
           
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-white mb-8 text-reveal stagger-2">
-            A sanctuary held <span className="italic text-[#C9A84C] font-light">safely above.</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-[#2C1E14] dark:text-white mb-8 text-reveal stagger-2">
+            A sanctuary held <span className="italic text-[#805D3A] dark:text-[#C9A84C] font-light">safely above.</span>
           </h2>
 
-          <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-lg font-light mb-12 text-reveal stagger-3">
+          <p className="text-gray-700 dark:text-gray-400 text-sm md:text-base leading-relaxed max-w-lg font-light mb-12 text-reveal stagger-3">
             The venue encompasses the entire upper floor of the complex, ensuring absolute privacy for your celebration. Our space is meticulously designed to elevate the standard of hospitality in Batticaloa.
           </p>
 
           <div className="flex flex-col gap-8 text-reveal stagger-4">
-            <div className="flex flex-col pl-6 border-l border-[#C9A84C]/30 relative">
-              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#C9A84C]"></div>
-              <h4 className="text-white font-serif text-lg mb-2">Pillarless Grandeur</h4>
-              <p className="text-gray-500 text-sm font-light leading-relaxed">Unobstructed sightlines from every corner of the room.</p>
+            <div className="flex flex-col pl-6 border-l border-[#D4C9A8] dark:border-[#C9A84C]/30 relative">
+              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#805D3A] dark:bg-[#C9A84C]"></div>
+              <h4 className="text-[#2C1E14] dark:text-white font-serif text-lg mb-2">Pillarless Grandeur</h4>
+              <p className="text-gray-600 dark:text-gray-500 text-sm font-light leading-relaxed">Unobstructed sightlines from every corner of the room.</p>
             </div>
 
-            <div className="flex flex-col pl-6 border-l border-[#C9A84C]/30 relative">
-              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#C9A84C]"></div>
-              <h4 className="text-white font-serif text-lg mb-2">Acoustic Precision</h4>
-              <p className="text-gray-500 text-sm font-light leading-relaxed">Sound-engineered walls for perfect musical resonance.</p>
+            <div className="flex flex-col pl-6 border-l border-[#D4C9A8] dark:border-[#C9A84C]/30 relative">
+              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#805D3A] dark:bg-[#C9A84C]"></div>
+              <h4 className="text-[#2C1E14] dark:text-white font-serif text-lg mb-2">Acoustic Precision</h4>
+              <p className="text-gray-600 dark:text-gray-500 text-sm font-light leading-relaxed">Sound-engineered walls for perfect musical resonance.</p>
             </div>
 
-            <div className="flex flex-col pl-6 border-l border-[#C9A84C]/30 relative">
-              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#C9A84C]"></div>
-              <h4 className="text-white font-serif text-lg mb-2">Bespoke Customization</h4>
-              <p className="text-gray-500 text-sm font-light leading-relaxed">A blank canvas to bring your exact vision to life.</p>
+            <div className="flex flex-col pl-6 border-l border-[#D4C9A8] dark:border-[#C9A84C]/30 relative">
+              <div className="absolute top-0 left-[-1px] w-[2px] h-1/3 bg-[#805D3A] dark:bg-[#C9A84C]"></div>
+              <h4 className="text-[#2C1E14] dark:text-white font-serif text-lg mb-2">Bespoke Customization</h4>
+              <p className="text-gray-600 dark:text-gray-500 text-sm font-light leading-relaxed">A blank canvas to bring your exact vision to life.</p>
             </div>
           </div>
         </div>

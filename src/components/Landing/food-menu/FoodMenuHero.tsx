@@ -9,7 +9,7 @@ export default function FoodMenuHero() {
     <section className="relative w-full pt-12 pb-14 text-center overflow-hidden">
       {/* Background Decorative Element */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full opacity-[0.03] pointer-events-none flex items-center justify-center">
-        <UtensilsCrossed className="w-96 h-96 text-[#2C1E14]" />
+        <UtensilsCrossed className="w-96 h-96 text-[#2C1E14]/5 dark:text-white/20 transition-colors duration-300" />
       </div>
 
       <motion.div 
@@ -34,7 +34,7 @@ export default function FoodMenuHero() {
           Curate Your Feast
         </p>
 
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#2C1E14] leading-tight mb-6">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#2C1E14] dark:text-white leading-tight mb-6 transition-colors duration-300">
           A Celebration of{" "}
           <span className="italic text-[#C9A84C] relative inline-block">
             Sri Lankan
@@ -44,7 +44,7 @@ export default function FoodMenuHero() {
           Culinary Heritage
         </h1>
 
-        <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-600 font-light leading-relaxed px-4">
+        <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-600 dark:text-gray-400 font-light leading-relaxed px-4 transition-colors duration-300">
           Handpick from an exquisite selection of traditional dishes — customized
           to your spice preference, portion size, and dietary needs. Every dish
           tells a story of the island&apos;s rich flavors.
@@ -52,9 +52,9 @@ export default function FoodMenuHero() {
 
         {/* Decorative bottom line */}
         <div className="flex items-center justify-center gap-3 mt-10">
-          <span className="block w-12 h-px bg-[#D4C9A8]" />
+          <span className="block w-12 h-px bg-[#C9A84C]/30" />
           <span className="block w-2 h-2 rounded-full bg-[#C9A84C] shadow-[0_0_10px_rgba(201,168,76,0.5)]" />
-          <span className="block w-12 h-px bg-[#D4C9A8]" />
+          <span className="block w-12 h-px bg-[#C9A84C]/30" />
         </div>
       </motion.div>
     </section>

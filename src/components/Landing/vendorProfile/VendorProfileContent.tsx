@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
-import { CheckCircle, MapPin } from "lucide-react";
+import { CheckCircle, MapPin, Star, Calendar, Truck } from "lucide-react";
 
 interface VendorProfileContentProps {
   vendor: Vendor;
@@ -205,9 +205,29 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
             </ul>
           </div>
           
-          <button className="w-full bg-black text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#C69C6D] transition-colors">
+          <button className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors">
             Contact Vendor
           </button>
+        </div>
+
+        {/* Features Checklist */}
+        <div className="space-y-4 px-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-4 h-4 text-[#C69C6D]" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">Verified Vendor</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Star className="w-4 h-4 text-[#C69C6D]" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">{vendor.reviewsCount} Reviews</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Calendar className="w-4 h-4 text-[#C69C6D]" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">{((vendor as any).eventsCompleted) || "120+"} Events Completed</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Truck className="w-4 h-4 text-[#C69C6D]" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">Available Island-wide</span>
+          </div>
         </div>
       </div>
     </div>

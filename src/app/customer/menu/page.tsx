@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import { useVendorCartStore } from "@/store/vendorCartStore";
-import { Check, Plus, Utensils, X, ChefHat, Info } from "lucide-react";
+import { Plus, CheckCircle2, ChefHat, Info } from "lucide-react";
+import Image from "next/image";
 
-// Mock Data for Menu Items
 type MenuItem = {
   id: string;
   name: string;
   price: number;
-  dietary?: string[];
-  isStation?: boolean;
+  image: string;
 };
 
 type MenuCategory = {
@@ -21,207 +20,289 @@ type MenuCategory = {
   items: MenuItem[];
 };
 
-const MENU_CATEGORIES: MenuCategory[] = [
+const DEFAULT_MENU_CATEGORIES: MenuCategory[] = [
   {
-    id: "appetizers",
-    name: "Appetizers & Canapés",
+    id: "welcome-drink",
+    name: "Welcome Drink",
     items: [
-      { id: "app-1", name: "Smoked Salmon Blinis with Dill Creme Fraiche", price: 1500, dietary: ["pescatarian"] },
-      { id: "app-2", name: "Miniature Beef Wellington with Truffle Jus", price: 2200, dietary: [] },
-      { id: "app-3", name: "Wild Mushroom Arancini with Garlic Aioli", price: 1200, dietary: ["vegetarian"] },
-      { id: "app-4", name: "Chilled Gazpacho Shooters", price: 900, dietary: ["vegan", "gluten-free"] }
+      { id: "wd-1", name: "Fruit Punch", price: 0, image: "https://images.unsplash.com/photo-1506084868230-bb1d9420041f?auto=format&fit=crop&q=80&w=200&h=200" },
     ]
   },
   {
-    id: "mains",
-    name: "Main Courses",
+    id: "rice-curry",
+    name: "Rice & Curry Buffet",
     items: [
-      { id: "main-1", name: "Herb-Crusted Rack of Lamb", price: 4500, dietary: ["gluten-free"] },
-      { id: "main-2", name: "Pan-Seared Sea Bass with Lemon Caper Butter", price: 3800, dietary: ["pescatarian", "gluten-free"] },
-      { id: "main-3", name: "Truffle & Wild Mushroom Risotto", price: 2800, dietary: ["vegetarian"] },
-      { id: "main-4", name: "Roasted Duck Breast with Cherry Reduction", price: 4200, dietary: ["gluten-free"] }
+      { id: "rc-1", name: "Steamed White Rice", price: 0, image: "https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-2", name: "Yellow Rice", price: 0, image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-3", name: "Chicken Curry", price: 0, image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-4", name: "Fish Curry", price: 0, image: "https://images.unsplash.com/photo-1599084942896-675e73122f10?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-5", name: "Dhal Curry", price: 0, image: "https://images.unsplash.com/photo-1585937421612-70e008356fbe?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-6", name: "Mixed Vegetable Curry", price: 0, image: "https://images.unsplash.com/photo-1625944227318-bd7dff1b2394?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-7", name: "Potato Curry", price: 0, image: "https://images.unsplash.com/photo-1511690655006-25f05244bd33?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-8", name: "Wambatu Moju", price: 0, image: "https://images.unsplash.com/photo-1565557612140-7e4d8fb5d2b7?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-9", name: "Papadam", price: 0, image: "https://images.unsplash.com/photo-1623428454614-abaf00244e52?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "rc-10", name: "Pol Sambol", price: 0, image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&q=80&w=200&h=200" },
     ]
   },
   {
-    id: "live-stations",
-    name: "Live Action Stations",
+    id: "main-sides",
+    name: "Main Side Dishes",
     items: [
-      { id: "live-1", name: "Premium Sushi & Sashimi Bar", price: 120000, isStation: true },
-      { id: "live-2", name: "Artisanal Pasta & Risotto Wheel", price: 85000, isStation: true },
-      { id: "live-3", name: "Wagyu Beef Carving Station", price: 150000, isStation: true }
+      { id: "ms-1", name: "Vegetable Fried Rice", price: 0, image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "ms-2", name: "Chicken Devilled", price: 0, image: "https://images.unsplash.com/photo-1563379926898-54f982c5f1cd?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "ms-3", name: "Mixed Salad", price: 0, image: "https://images.unsplash.com/photo-1504544750208-dc0358e10f2f?auto=format&fit=crop&q=80&w=200&h=200" },
     ]
   },
   {
-    id: "desserts",
-    name: "Desserts & Pastries",
+    id: "dessert",
+    name: "Dessert",
     items: [
-      { id: "dessert-1", name: "Deconstructed Lemon Meringue Tart", price: 1400, dietary: ["vegetarian"] },
-      { id: "dessert-2", name: "Valrhona Chocolate Fondant with Pistachio Gelato", price: 1800, dietary: ["vegetarian"] },
-      { id: "dessert-3", name: "Passionfruit Pavlova Nests", price: 1200, dietary: ["vegetarian", "gluten-free"] }
+      { id: "ds-1", name: "Watalappam", price: 0, image: "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "ds-2", name: "Fruit Salad", price: 0, image: "https://images.unsplash.com/photo-1523920254052-1fca71a62024?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "beverages",
+    name: "Beverages",
+    items: [
+      { id: "bv-1", name: "Soft Drinks", price: 0, image: "https://images.unsplash.com/photo-1527661593350-5b452ae20ace?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "bv-2", name: "Water", price: 0, image: "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "bv-3", name: "Tea / Coffee", price: 0, image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  }
+];
+
+const OPTIONAL_MENU_CATEGORIES: MenuCategory[] = [
+  {
+    id: "opt-meat",
+    name: "Premium Meat Options",
+    items: [
+      { id: "op-m1", name: "Beef Curry", price: 500, image: "https://images.unsplash.com/photo-1504669886280-be36f1c480a4?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-m2", name: "Mutton Curry", price: 800, image: "https://images.unsplash.com/photo-1544025162-81111420d4f9?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-m3", name: "BBQ Chicken", price: 600, image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-m4", name: "Roasted Chicken", price: 600, image: "https://images.unsplash.com/photo-1564834724105-9e8b737af98f?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-m5", name: "Chicken Cordon Bleu", price: 900, image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "opt-seafood",
+    name: "Seafood Upgrade",
+    items: [
+      { id: "op-s1", name: "Prawn Curry", price: 700, image: "https://images.unsplash.com/photo-1626200419356-9bd90e1fceeb?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-s2", name: "Crab Curry", price: 900, image: "https://images.unsplash.com/photo-1580476262798-b768aa05c6d3?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-s3", name: "Fish Ambul Thiyal", price: 500, image: "https://images.unsplash.com/photo-1599084942896-675e73122f10?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-s4", name: "Fried Calamari", price: 650, image: "https://images.unsplash.com/photo-1605481755913-c36b447432ea?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-s5", name: "Seafood Platter", price: 1500, image: "https://images.unsplash.com/photo-1535400255456-9b56f05041de?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "opt-western",
+    name: "Western Food Station",
+    items: [
+      { id: "op-w1", name: "Chicken Pasta", price: 550, image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-w2", name: "Vegetable Pasta", price: 400, image: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-w3", name: "French Fries", price: 300, image: "https://images.unsplash.com/photo-1603569283847-3295e6904a2b?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-w4", name: "Pizza Station", price: 800, image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-w5", name: "Sandwich Platter", price: 500, image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "opt-live",
+    name: "Sri Lankan Live Stations",
+    items: [
+      { id: "op-l1", name: "Kottu Station", price: 700, image: "https://images.unsplash.com/photo-1587314168485-69f8563c623c?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-l2", name: "Hopper Station", price: 500, image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-l3", name: "String Hopper Station", price: 400, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-l4", name: "BBQ Station", price: 1200, image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "opt-dessert",
+    name: "Dessert Upgrade",
+    items: [
+      { id: "op-d1", name: "Chocolate Fountain", price: 800, image: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-d2", name: "Ice Cream Station", price: 400, image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-d3", name: "Cheesecake", price: 600, image: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-d4", name: "Chocolate Cake", price: 450, image: "https://images.unsplash.com/photo-1563805042-7684c8a9e9bc?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-d5", name: "Dessert Table", price: 1500, image: "https://images.unsplash.com/photo-1550547660-d1548cbca1f9?auto=format&fit=crop&q=80&w=200&h=200" },
+    ]
+  },
+  {
+    id: "opt-bev",
+    name: "Beverage Upgrade",
+    items: [
+      { id: "op-b1", name: "Fresh Juice Bar", price: 500, image: "https://images.unsplash.com/photo-1513442542250-854d436a73f2?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-b2", name: "Mocktail Station", price: 700, image: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&q=80&w=200&h=200" },
+      { id: "op-b3", name: "Coffee Bar", price: 400, image: "https://images.unsplash.com/photo-1536935338-722e0514061a?auto=format&fit=crop&q=80&w=200&h=200" },
     ]
   }
 ];
 
 export default function MenuBuilderPage() {
-  const { menuSelection, addMenuItem, removeMenuItem } = useVendorCartStore();
-  const [activeTab, setActiveTab] = useState(MENU_CATEGORIES[0].id);
+  const { menuSelection, toggleDefaultItem, toggleOptionalItem } = useVendorCartStore();
+  const removedDefaultItems = menuSelection.removedDefaultItems || [];
+  const addedOptionalItems = menuSelection.addedOptionalItems || [];
 
-  const selectedItemIds = menuSelection.items.map(item => item.id);
-
-  const calculateTotal = () => {
-    return menuSelection.items.reduce((total, item) => total + item.price, 0);
+  const calculateOptionalTotal = () => {
+    return addedOptionalItems.reduce((sum, item) => sum + item.price, 0);
   };
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen flex flex-col font-sans text-[#2C1E14]">
+    <div className="bg-[#FAF8F5] dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#2C1E14] dark:text-white transition-colors duration-300">
       <MainNavbar />
       
-      {/* Header Section */}
-      <section className="relative w-full py-20 bg-[#2C1E14] text-white overflow-hidden border-b border-[#C9A84C]/20">
-        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
-          <div className="absolute top-0 left-1/4 w-[1px] h-full bg-white"></div>
-          <div className="absolute top-0 left-3/4 w-[1px] h-full bg-white"></div>
-          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
+      {/* Hero Section */}
+      <section className="relative w-full pt-32 pb-16 bg-white dark:bg-[#111111] text-center border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20 transition-colors duration-300">
+        <div className="absolute inset-0 pointer-events-none">
+          <Image
+            src="/food_menu_hero_bg.png"
+            alt="Food Menu Background"
+            fill
+            className="object-cover opacity-50 dark:opacity-40"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-[#111111]/80"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#111111]/80 dark:to-[#111111]"></div>
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-4">
-          <div className="flex items-center justify-center gap-2 text-[#C9A84C]">
-            <ChefHat className="w-5 h-5" />
-            <span className="text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">Interactive Kitchen</span>
-            <ChefHat className="w-5 h-5" />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-6">
+          <div className="flex flex-col items-center justify-center gap-2 text-[#C9A84C]">
+            <ChefHat className="w-8 h-8 opacity-80" />
+            <span className="text-[10px] tracking-[0.3em] uppercase font-bold text-[#A67C52] dark:text-[#C9A84C]">Structured Feast</span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-serif leading-tight text-reveal stagger-2">
-            Curate Your <span className="italic text-[#C9A84C]">Culinary Journey</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-[#2C1E14] dark:text-white">
+            Curate Your <span className="italic text-[#C9A84C]">Culinary</span><br/>
+            Experience
           </h1>
           
-          <p className="max-w-2xl mx-auto text-gray-400 text-sm font-light leading-relaxed text-reveal stagger-3">
-            Build a bespoke dining experience for your guests. From delicate canapés to grand live carving stations, our Executive Chefs will execute your vision to perfection.
+          <p className="max-w-2xl mx-auto text-gray-600 dark:text-gray-400 text-sm md:text-base font-light leading-relaxed">
+            Start with our generous Default Signature Menu, remove anything you do not prefer, and elevate your event with our Optional Premium Upgrades.
           </p>
         </div>
       </section>
 
-      <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+      {/* Main Layout */}
+      <main className="flex-grow max-w-[1400px] mx-auto w-full px-6 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
         
-        {/* Left Side: Menu Builder */}
-        <div className="lg:col-span-8 space-y-8">
-          
-          {/* Category Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-[#D4C9A8] pb-4">
-            {MENU_CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveTab(cat.id)}
-                className={`px-5 py-2.5 text-xs font-bold tracking-widest uppercase transition-all duration-300 rounded-sm ${
-                  activeTab === cat.id
-                    ? "bg-[#C9A84C] text-[#2C1E14] shadow-md"
-                    : "bg-transparent text-gray-600 hover:bg-[#D4C9A8]/30"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+        {/* LEFT COLUMN: Default Menu */}
+        <div className="flex flex-col gap-6">
+          <div className="border-b border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 pb-4 flex justify-between items-end">
+            <div>
+              <h2 className="text-2xl font-serif text-[#2C1E14] dark:text-white font-bold">Default Menu</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Included in your base package (LKR 3,500 / Guest)</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-500 uppercase tracking-widest font-bold">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Included
+            </div>
           </div>
 
-          {/* Menu Items Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {MENU_CATEGORIES.find(c => c.id === activeTab)?.items.map(item => {
-              const isSelected = selectedItemIds.includes(item.id);
-              
-              return (
-                <div 
-                  key={item.id}
-                  onClick={() => isSelected ? removeMenuItem(item.id) : addMenuItem({ id: item.id, name: item.name, price: item.price })}
-                  className={`
-                    p-5 border rounded-sm cursor-pointer transition-all flex flex-col justify-between group hover-lift
-                    ${isSelected 
-                      ? "border-[#C9A84C] bg-white shadow-inner" 
-                      : "border-[#D4C9A8] bg-[#F0E6D0]/50 hover:border-[#C9A84C] hover:bg-white"
-                    }
-                  `}
-                >
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className={`text-sm font-serif font-bold leading-tight ${isSelected ? 'text-[#2C1E14]' : 'text-gray-800'}`}>
-                        {item.name}
-                      </h4>
-                      <div className={`w-5 h-5 shrink-0 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'border-[#C9A84C] bg-[#C9A84C] text-white' : 'border-gray-400 text-transparent'}`}>
-                        <Check className="w-3 h-3" />
-                      </div>
-                    </div>
-                    
-                    {item.dietary && item.dietary.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {item.dietary.map(d => (
-                          <span key={d} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[9px] uppercase tracking-wider rounded-sm border border-gray-200">
-                            {d}
+          <div className="space-y-6">
+            {DEFAULT_MENU_CATEGORIES.map(category => (
+              <div key={category.id} className="bg-white dark:bg-[#1A1A1A] border border-[#D4C9A8]/50 dark:border-[#C9A84C]/20 rounded-sm shadow-sm overflow-hidden p-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#C9A84C] mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
+                  {category.name}
+                </h3>
+                <div className="space-y-3">
+                  {category.items.map(item => {
+                    const isRemoved = removedDefaultItems.includes(item.id);
+                    return (
+                      <div key={item.id} className="flex items-center justify-between group p-2 hover:bg-[#FAF8F5] dark:hover:bg-[#242424] rounded-sm transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-800">
+                        <div className="flex items-center gap-4">
+                          <div className={`relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 shadow-sm transition-all ${isRemoved ? 'grayscale opacity-50' : ''}`}>
+                            <Image src={item.image} alt={item.name} fill className="object-cover" />
+                          </div>
+                          <span className={`text-sm font-medium transition-colors ${isRemoved ? 'text-gray-400 line-through' : 'text-[#2C1E14] dark:text-gray-200'}`}>
+                            {item.name}
                           </span>
-                        ))}
+                        </div>
+                        <button 
+                          onClick={() => toggleDefaultItem(item.id)}
+                          className={`text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-sm border transition-all shrink-0 ml-4 ${
+                            isRemoved 
+                              ? 'border-gray-300 text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-[#333]' 
+                              : 'border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/10'
+                          }`}
+                        >
+                          {isRemoved ? '+ Restore' : '- Remove'}
+                        </button>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="mt-6 flex justify-between items-end">
-                    <span className="text-[10px] text-[#A67C52] font-bold tracking-widest uppercase">
-                      LKR {item.price.toLocaleString()} {item.isStation ? "/ Flat Rate" : "/ Guest"}
-                    </span>
-                  </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right Side: Order Summary */}
-        <div className="lg:col-span-4">
-          <div className="bg-white border border-[#D4C9A8] p-6 shadow-xl rounded-sm sticky top-24">
-            <h3 className="font-serif text-2xl text-[#2C1E14] mb-6 flex items-center gap-2 border-b border-[#D4C9A8] pb-4">
-              <Utensils className="w-5 h-5 text-[#C9A84C]" />
-              Your Tasting Menu
-            </h3>
-
-            {menuSelection.items.length === 0 ? (
-              <div className="py-8 text-center text-gray-500 flex flex-col items-center gap-3">
-                <Info className="w-8 h-8 text-gray-300" />
-                <p className="text-sm font-light">Your menu is currently empty.<br/>Select items from the left to build your menu.</p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                {menuSelection.items.map(item => (
-                  <div key={item.id} className="flex justify-between items-start gap-4 p-3 bg-gray-50 rounded-sm border border-gray-100 group">
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-[#2C1E14] leading-tight">{item.name}</p>
-                      <p className="text-[10px] text-[#A67C52] font-bold mt-1">LKR {item.price.toLocaleString()}</p>
-                    </div>
-                    <button 
-                      onClick={() => removeMenuItem(item.id)}
-                      className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-6 pt-6 border-t border-[#D4C9A8]">
-              <div className="flex justify-between items-end mb-6">
-                <div>
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Estimated Food Cost</p>
-                  <p className="text-[10px] text-gray-400 font-light italic mt-0.5">*Based on single serving/station</p>
-                </div>
-                <p className="text-2xl font-serif font-bold text-[#2C1E14]">
-                  LKR {calculateTotal().toLocaleString()}
-                </p>
-              </div>
-
-              <button 
-                onClick={() => window.location.href = '/book'}
-                className="w-full bg-[#C9A84C] text-[#2C1E14] py-4 text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#B89238] transition-colors rounded-sm shadow-md"
-              >
-                Save & Return to Booking
-              </button>
+        {/* RIGHT COLUMN: Optional Upgrades */}
+        <div className="flex flex-col gap-6">
+          <div className="border-b border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 pb-4 flex justify-between items-end">
+            <div>
+              <h2 className="text-2xl font-serif text-[#2C1E14] dark:text-white font-bold">Optional Upgrades</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Enhance your feast with premium additions</p>
             </div>
+            <div className="text-right">
+              <span className="text-[9px] text-gray-400 uppercase tracking-widest block mb-0.5">Upgrade Total</span>
+              <span className="text-[#A67C52] dark:text-[#C9A84C] font-bold text-lg">+ LKR {calculateOptionalTotal()} / pax</span>
+            </div>
+          </div>
+
+          <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+            {OPTIONAL_MENU_CATEGORIES.map(category => (
+              <div key={category.id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-gray-800 rounded-sm shadow-sm p-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#A67C52] dark:text-gray-400 mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
+                  {category.name}
+                </h3>
+                <div className="space-y-3">
+                  {category.items.map(item => {
+                    const isAdded = addedOptionalItems.some(i => i.id === item.id);
+                    return (
+                      <div key={item.id} className={`flex items-center justify-between group p-2 rounded-sm transition-colors border ${isAdded ? 'border-[#C9A84C] bg-[#FAF8F5] dark:bg-[#242424]' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-800'}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`relative w-12 h-12 rounded-sm overflow-hidden shrink-0 border shadow-sm transition-all ${isAdded ? 'border-[#C9A84C]' : 'border-gray-200 dark:border-gray-800'}`}>
+                            <Image src={item.image} alt={item.name} fill className="object-cover" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`text-sm ${isAdded ? 'text-[#A67C52] dark:text-[#C9A84C] font-bold' : 'text-gray-700 dark:text-gray-300'}`}>
+                              {item.name}
+                            </span>
+                            <span className="text-[9px] text-gray-500 uppercase tracking-wider font-bold">
+                              + LKR {item.price}
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => toggleOptionalItem({ id: item.id, name: item.name, price: item.price })}
+                          className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all shrink-0 ml-4 ${
+                            isAdded 
+                              ? 'bg-[#A67C52] border-[#A67C52] text-white' 
+                              : 'bg-transparent border-gray-300 dark:border-gray-700 text-gray-400 hover:border-[#A67C52] hover:text-[#A67C52]'
+                          }`}
+                        >
+                          {isAdded ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-auto bg-[#FAF8F5] dark:bg-[#111111] p-6 border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 rounded-sm shadow-sm flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-[#C9A84C] shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
+                Upgrades are calculated on a per-guest basis. Final pricing will be automatically reflected in your Booking Summary.
+              </p>
+            </div>
+            <button 
+              onClick={() => window.location.href = '/book'}
+              className="bg-[#C9A84C] text-[#2C1E14] dark:text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-colors rounded-sm shadow-md whitespace-nowrap"
+            >
+              Return to Booking
+            </button>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function VendorsFooter() {
   return (
-    <footer className="w-full bg-[#151210] border-t border-[#c69c6d]/20 text-white mt-12">
+    <footer className="w-full bg-[#1A1A1A] border-t border-[#c69c6d]/20 text-white mt-12 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center gap-3">
           <div className="w-6 h-[1px] bg-[#c69c6d]"></div>

@@ -52,11 +52,11 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
               p-3 border rounded-sm cursor-pointer transition-all flex flex-col items-center text-center justify-center hover-glow btn-interactive
               ${vendors[categoryKey] === "none" 
                 ? "border-[#C9A84C] bg-gradient-to-br from-[#D4AF37]/10 to-[#8C6D23]/10 shadow-[0_0_15px_rgba(212,175,55,0.2)] ring-1 ring-[#C9A84C]" 
-                : "border-[#C9A84C]/30 bg-[#1A1A1A] hover:border-[#C9A84C]/80"
+                : "border-[#C9A84C]/30 bg-white dark:bg-[#1A1A1A] hover:border-[#C9A84C]/80"
               }
             `}
           >
-            <span className={`text-xs font-semibold mb-1 ${vendors[categoryKey] === "none" ? 'text-[#C9A84C]' : 'text-gray-400'}`}>
+            <span className={`text-xs font-semibold mb-1 ${vendors[categoryKey] === "none" ? 'text-[#C9A84C]' : 'text-gray-600 dark:text-gray-400'}`}>
               No Selection
             </span>
             <span className="text-[9px] text-[#C9A84C]/80 font-bold tracking-wider">
@@ -74,7 +74,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   p-3 border rounded-sm cursor-pointer transition-all flex items-center gap-3 hover-glow btn-interactive
                   ${isSelected 
                     ? "border-[#C9A84C] bg-gradient-to-br from-[#D4AF37]/10 to-[#8C6D23]/10 shadow-[0_0_15px_rgba(212,175,55,0.2)] ring-1 ring-[#C9A84C]" 
-                    : "border-[#C9A84C]/30 bg-[#1A1A1A] hover:border-[#C9A84C]/80"
+                    : "border-[#C9A84C]/30 bg-white dark:bg-[#1A1A1A] hover:border-[#C9A84C]/80"
                   }
                 `}
               >
@@ -82,10 +82,10 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   <img src={opt.image} alt={opt.name} className="w-full h-full object-cover opacity-80" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#C9A84C]' : 'text-gray-200'}`}>
+                  <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#C9A84C]' : 'text-[#2C1E14] dark:text-gray-200'}`}>
                     {opt.name}
                   </span>
-                  <span className="text-[9px] text-gray-500 mt-0.5 uppercase tracking-wider">
+                  <span className="text-[9px] text-gray-600 dark:text-gray-500 mt-0.5 uppercase tracking-wider">
                     {opt.rating} ⭐ • <span className="text-[#C9A84C]/80">{opt.priceLevelLabel}</span>
                   </span>
                   <span className="text-[10px] text-[#C9A84C] font-bold mt-1">
@@ -97,7 +97,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-[9px] uppercase tracking-widest text-[#D4AF37] hover:text-white font-bold mt-2 flex items-center gap-1 transition-colors"
+                    className="text-[9px] uppercase tracking-widest text-[#D4AF37] hover:text-[#2C1E14] dark:text-white font-bold mt-2 flex items-center gap-1 transition-colors"
                   >
                     View Profile ↗
                   </a>
@@ -111,28 +111,28 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   };
 
   return (
-    <div className="space-y-6 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
+    <div className="space-y-6 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#FDFBF7] dark:bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
       <label className="block text-[10px] uppercase tracking-widest text-[#C9A84C] font-bold flex items-center gap-1.5 border-b border-[#C9A84C]/30 pb-3 mb-4">
         <Sparkles className="w-4 h-4 text-[#C9A84C]" /> Step 2: Preliminary Vendors
       </label>
 
       <div className="flex items-center flex-wrap gap-2 mb-6 border-b border-[#C9A84C]/30 pb-4">
-        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400 mr-2">Filter By:</span>
+        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-600 dark:text-gray-400 mr-2">Filter By:</span>
         <button 
           onClick={() => setFilterType("all")}
-          className={`px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "all" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-400 hover:text-white hover:border-[#C9A84C]"}`}
+          className={`px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "all" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
         >
           All
         </button>
         <button 
           onClick={() => setFilterType("cart")}
-          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "cart" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-400 hover:text-white hover:border-[#C9A84C]"}`}
+          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "cart" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
         >
           <ShoppingCart className="w-3 h-3" /> Cart
         </button>
         <button 
           onClick={() => setFilterType("favorites")}
-          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "favorites" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-400 hover:text-white hover:border-[#C9A84C]"}`}
+          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "favorites" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
         >
           <Heart className="w-3 h-3" /> Favorites
         </button>
@@ -144,7 +144,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         {renderCategory("Cinematic Videography", <Video className="w-4 h-4 text-[#C9A84C]" />, "videographer", videographers)}
       </div>
       
-      <p className="text-[10px] text-gray-500 font-light mt-4 italic text-center">
+      <p className="text-[10px] text-gray-600 dark:text-gray-500 font-light mt-4 italic text-center">
         View full portfolios and reviews in the dedicated Vendors portal.
       </p>
     </div>
