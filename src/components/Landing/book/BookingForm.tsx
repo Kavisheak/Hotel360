@@ -53,7 +53,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
   };
 
   return (
-    <div className="space-y-8 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#FDFBF7] dark:bg-[#FDFBF7] dark:bg-[#111111] border border-[#D4C9A8] dark:border-[#C9A84C]/20 shadow-[0_0_20px_rgba(128,93,58,0.05)] dark:shadow-[0_0_20px_rgba(201,168,76,0.05)]">
+    <div className="space-y-8 hover-glow p-4 md:p-6 rounded-sm transition-all duration-300 bg-white dark:bg-[#111111] border border-[#D4C9A8] dark:border-[#C9A84C]/20 shadow-[0_0_20px_rgba(128,93,58,0.05)] dark:shadow-[0_0_20px_rgba(201,168,76,0.05)]">
       <label className="block text-[10px] uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold flex items-center gap-1.5 border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 pb-3 mb-4">
         <User className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> Step 4: Details & Checkout
       </label>
@@ -69,7 +69,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
               <input 
                 required
                 type="text" 
-                className="w-full border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-transparent py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors input-glow"
+                className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.firstName}
                 onChange={e => setFormData({...formData, firstName: e.target.value})}
               />
@@ -79,7 +79,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
               <input 
                 required
                 type="text" 
-                className="w-full border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-transparent py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors input-glow"
+                className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.lastName}
                 onChange={e => setFormData({...formData, lastName: e.target.value})}
               />
@@ -92,7 +92,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
               <input 
                 required
                 type="email" 
-                className="w-full border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-transparent py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors input-glow"
+                className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
               />
@@ -102,7 +102,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
               <input 
                 required
                 type="tel" 
-                className="w-full border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-transparent py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors input-glow"
+                className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
               />
@@ -113,7 +113,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
             <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Special Requests / Notes</label>
             <textarea 
               rows={3}
-              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#F0E6D0]/50 dark:bg-[#0A0A0A] p-3 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
+              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] p-3 text-sm text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
               placeholder="Any initial thoughts on theme, specific cultural requirements, etc."
               value={formData.notes}
               onChange={e => setFormData({...formData, notes: e.target.value})}
