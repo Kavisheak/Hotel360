@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { MoreVertical, ChevronLeft, ChevronRight, FileOutput } from 'lucide-react';
 import { transactionsData } from './financeData';
@@ -90,8 +91,8 @@ const FinancialsTable = () => {
                   <p className="font-bold text-gray-800 text-sm">{txn.clientName}</p>
                   <p className="text-[10px] text-gray-500">{txn.event}</p>
                 </td>
-                <td className="px-6 py-4 text-xs text-gray-700 flex items-center gap-2 mt-2">
-                  <span className="text-gray-400">💳</span> {txn.method}
+                <td className="px-6 py-4 text-xs font-bold text-gray-700 flex items-center gap-2 mt-2">
+                  <PremiumCardIcon /> {txn.method}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-block border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getStatusStyle(txn.status)}`}>
@@ -109,35 +110,7 @@ const FinancialsTable = () => {
                   )}
                 </td>
               </tr>
-            ) : isClient ? (
-              globalBookings.map((booking, idx) => {
-                const displayStatus = booking.status === "Pending" ? "PENDING" : "BALANCE PAID";
-                return (
-                  <tr key={booking.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE]'}>
-                    <td className="px-6 py-4 text-gray-500 text-xs">{booking.date}</td>
-                    <td className="px-6 py-4 font-mono text-xs text-gray-700">{booking.id}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-gray-800 text-sm">{booking.clientName}</p>
-                      <p className="text-[10px] text-gray-500">{booking.eventType}</p>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-bold text-gray-700 flex items-center gap-2 mt-2">
-                      <PremiumCardIcon /> Card
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getStatusStyle(displayStatus)}`}>
-                        {displayStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-gray-900">
-                      LKR {booking.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-400 hover:text-[#7C6A2E]"><MoreVertical size={16} /></button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : null}
+            ))}
           </tbody>
         </table>
       </div>
