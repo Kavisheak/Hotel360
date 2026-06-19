@@ -15,16 +15,16 @@ export default function VendorsHero() {
           priority
         />
         <Image
-          src="/luxury_ballroom_bg.png"
+          src="/crystal_chandelier.png"
           alt="Vendors Hero Background Dark"
           fill
-          className="object-cover opacity-40 mix-blend-overlay hidden dark:block"
+          className="object-cover opacity-90 hidden dark:block"
           priority
         />
         {/* Horizontal gradient to wash out the center for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/95 to-transparent dark:via-[#0A0A0A]/95"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/95 to-transparent dark:via-[#0A0A0A]/70"></div>
         {/* Vertical gradient to smoothly blend into the section below */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white dark:from-[#0A0A0A]/80 dark:via-[#0A0A0A]/70 dark:to-[#0A0A0A]"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white dark:from-[#0A0A0A]/40 dark:via-[#0A0A0A]/60 dark:to-[#0A0A0A]"></div>
       </div>
 
       {/* Subtle Decorative Background Lines */}

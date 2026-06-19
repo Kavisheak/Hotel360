@@ -153,16 +153,40 @@ export default function MenuBuilderPage() {
       
       {/* Hero Section */}
       <section className="relative w-full pt-32 pb-16 bg-white dark:bg-[#111111] text-center border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20 transition-colors duration-300">
-        <div className="absolute inset-0 pointer-events-none">
-          <Image
-            src="/food_menu_hero_bg.png"
-            alt="Food Menu Background"
-            fill
-            className="object-cover opacity-50 dark:opacity-40"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-[#111111]/80"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#111111]/80 dark:to-[#111111]"></div>
+        {/* Background Image */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          {/* Light Mode Background */}
+          <div className="absolute inset-0 dark:hidden">
+            <Image
+              src="/food_menu_hero_bg.png"
+              alt="Food Menu Background Light"
+              fill
+              className="object-cover opacity-100"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/95 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-[#FAF8F5]"></div>
+          </div>
+
+          {/* Dark Mode Background */}
+          <div className="absolute inset-0 hidden dark:block">
+            <Image
+              src="/crystal_chandelier.png"
+              alt="Food Menu Background Dark"
+              fill
+              className="object-cover opacity-70"
+              priority
+            />
+            {/* Only a bottom fade so the image remains completely visible in the center */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent"></div>
+          </div>
+        </div>
+
+        {/* Subtle Decorative Background Lines */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+          <div className="absolute top-0 left-1/4 w-[1px] h-full bg-[#A67C52] dark:bg-white"></div>
+          <div className="absolute top-0 left-3/4 w-[1px] h-full bg-[#A67C52] dark:bg-white"></div>
+          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#A67C52] dark:bg-white"></div>
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-6">

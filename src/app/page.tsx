@@ -9,18 +9,18 @@ import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 
 export default function Home() {
-  return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-[#0A0A0A] transition-colors duration-300">
-      <MainNavbar />
-      <LandingHero />
-      <PackagesSection />
-      <AmenitiesSection />
-      <EstimateSection />
-      <TheHallSection />
-      <FAQSection />
-      <CTASection />
-      <Footer />
-    </div>
-  );
+ return (
+ <div className="flex flex-col min-h-screen bg-white transition-colors duration-300">
+ <MainNavbar />
+ <LandingHero />
+ <PackagesSection />
+ <AmenitiesSection />
+ <EstimateSection />
+ <TheHallSection />
+ <FAQSection />
+ <CTASection />
+ <Footer />
+ </div>
+ );
 }
 

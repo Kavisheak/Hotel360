@@ -78,7 +78,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   }
                 `}
               >
-                <div className="w-12 h-12 shrink-0 rounded-sm overflow-hidden bg-[#0A0A0A] border border-[#C9A84C]/20">
+                <div className="w-12 h-12 shrink-0 rounded-sm overflow-hidden bg-gray-100 dark:bg-[#0A0A0A] border border-[#C9A84C]/20">
                   <img src={opt.image} alt={opt.name} className="w-full h-full object-cover opacity-80" />
                 </div>
                 <div className="flex flex-col text-left">

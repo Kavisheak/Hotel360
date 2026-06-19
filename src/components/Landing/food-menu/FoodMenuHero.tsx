@@ -3,12 +3,35 @@
 import React from "react";
 import { Sparkles, UtensilsCrossed } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function FoodMenuHero() {
   return (
     <section className="relative w-full pt-12 pb-14 text-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        <Image
+          src="/food_menu_hero_bg.png"
+          alt="Food Menu Background Light"
+          fill
+          className="object-cover opacity-60 dark:hidden"
+          priority
+        />
+        <Image
+          src="/crystal_chandelier.png"
+          alt="Food Menu Background Dark"
+          fill
+          className="object-cover opacity-100 hidden dark:block"
+          priority
+        />
+        {/* Light mode gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white/30 to-white dark:hidden" />
+        {/* Dark mode gradient to wash out center for text readability and blend edges */}
+        <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-[#0a0a0a]/20 via-transparent to-[#0a0a0a]/90" />
+      </div>
+
       {/* Background Decorative Element */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full opacity-[0.03] pointer-events-none flex items-center justify-center">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full opacity-[0.03] pointer-events-none flex items-center justify-center z-0">
         <UtensilsCrossed className="w-96 h-96 text-[#2C1E14]/5 dark:text-white/20 transition-colors duration-300" />
       </div>
 

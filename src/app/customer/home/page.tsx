@@ -46,9 +46,9 @@ export default function CustomerDashboard() {
   const progressPercent = Math.round((totalCompleted / totalTasks) * 100);
 
   return (
-    <div className="bg-[#F0E6D0] min-h-screen">
+    <div className="bg-[#F0E6D0] dark:bg-[#0A0A0A] min-h-screen transition-colors duration-300">
       <MainNavbar />
-      <div className="space-y-8 text-[#2C1E14] px-6 py-10 max-w-7xl mx-auto overflow-hidden">
+      <div className="space-y-8 text-[#2C1E14] dark:text-gray-100 px-6 py-10 max-w-7xl mx-auto overflow-hidden">
         <WelcomePanel />
         
         <DashboardMetrics 

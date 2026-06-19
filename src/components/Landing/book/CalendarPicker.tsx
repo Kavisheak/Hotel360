@@ -72,9 +72,9 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
 
       {/* Month Header and Navigation */}
       <div className="flex items-center justify-between text-xs font-serif font-bold text-[#1A1512] dark:text-white px-2">
-        <button className="text-gray-400 hover:text-[#1A1512]">&lt;</button>
+        <button className="text-gray-400 hover:text-[#1A1512] dark:hover:text-white">&lt;</button>
         <span>June 2026</span>
-        <button className="text-gray-400 hover:text-[#1A1512]">&gt;</button>
+        <button className="text-gray-400 hover:text-[#1A1512] dark:hover:text-white">&gt;</button>
       </div>
 
       {/* Calendar Grid */}
@@ -107,7 +107,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
               onClick={() => onSelectDate(day.date)}
               className={`h-14 w-full flex flex-col justify-center items-center rounded-sm relative ${cellStyle}`}
             >
-              <span className={`font-semibold text-xs ${day.status === 'available' ? 'text-[#1A1512]' : ''}`}>{day.date}</span>
+              <span className={`font-semibold text-xs ${day.status === 'available' ? 'text-[#1A1512] dark:text-white' : ''}`}>{day.date}</span>
               {day.status === "reserved" && (
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-[#D94F4F]">BOOKED</span>
               )}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Check, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { SIGNATURE_PACKAGES } from "./types";
 
 interface PackageCardsProps {
@@ -8,6 +9,8 @@ interface PackageCardsProps {
 }
 
 export default function PackageCards({ activePackage, setActivePackage }: PackageCardsProps) {
+  const router = useRouter();
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-16 -mt-10 relative z-20 bg-white dark:bg-transparent">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
@@ -55,6 +58,10 @@ export default function PackageCards({ activePackage, setActivePackage }: Packag
               </div>
 
               <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/book?package=${pkg.id}`);
+                }}
                 className={`
                   w-full py-3.5 text-[10px] uppercase tracking-widest font-bold transition-all duration-300 btn-interactive flex justify-center items-center gap-2
                   ${isActive 
