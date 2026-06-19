@@ -95,7 +95,6 @@ const FinancialsTable = () => {
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 italic">No financial transactions found.</td>
               </tr>
-            ))}
             ) : isClient ? (
               globalBookings.map((booking, idx) => {
                 const displayStatus = booking.status === "Pending" ? "PENDING" : "BALANCE PAID";
@@ -115,7 +114,7 @@ const FinancialsTable = () => {
                         {displayStatus}
                       </span>
                     </td>
-                    <td className={`px-6 py-4 font-bold text-gray-900`}>
+                    <td className="px-6 py-4 font-bold text-gray-900">
                       LKR {booking.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -125,7 +124,6 @@ const FinancialsTable = () => {
                 );
               })
             ) : null}
-
           </tbody>
         </table>
       </div>
