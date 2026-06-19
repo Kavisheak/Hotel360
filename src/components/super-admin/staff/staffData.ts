@@ -1,13 +1,13 @@
 // Shared types, static data and status config for the Staff section
 
-export type Role = 'all' | 'managers' | 'decorators';
+export type Role = 'all' | 'managers' | 'decorators' | 'videographers' | 'djs';
 
 export interface StaffMember {
   id: number;
   name: string;
   email: string;
   role: string;
-  roleCategory: 'managers' | 'decorators' | 'other';
+  roleCategory: 'managers' | 'decorators' | 'videographers' | 'djs' | 'other';
   roleBadge: string;
   rating: number;
   reviews: number;
@@ -45,7 +45,7 @@ export const staffData: StaffMember[] = [
     name: 'Sophia Rossi',
     email: 'sophia.cinema@eliteexcellence.com',
     role: 'Cinematographer',
-    roleCategory: 'other',
+    roleCategory: 'videographers',
     roleBadge: 'Cinematographer',
     rating: 4.9,
     reviews: 210,
@@ -57,7 +57,7 @@ export const staffData: StaffMember[] = [
     name: 'Marcus Thorne',
     email: 'm.thorne@eliteexcellence.com',
     role: 'DJ Artist',
-    roleCategory: 'other',
+    roleCategory: 'djs',
     roleBadge: 'DJ Artist',
     rating: 4.7,
     reviews: 56,

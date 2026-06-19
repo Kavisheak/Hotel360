@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, Users, Package, BarChart3,
+  LayoutGrid, Users, BarChart3,
   Settings, HelpCircle, LogOut, Menu, X,
   PanelLeftClose, PanelLeftOpen, ShieldCheck
 } from 'lucide-react';
@@ -65,7 +65,6 @@ const Sidebar = () => {
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'Global Overview',       href: '/super-admin' },
     { icon: <Users size={20} />,       label: 'Staff Management',      href: '/super-admin/staff' },
-    { icon: <Package size={20} />,     label: 'Package Settings',      href: '/super-admin/packages' },
     { icon: <BarChart3 size={20} />,   label: 'Financial Records',     href: '/super-admin/financials' },
     { icon: <Settings size={20} />,    label: 'System Configuration',  href: '/super-admin/configuration' },
   ];

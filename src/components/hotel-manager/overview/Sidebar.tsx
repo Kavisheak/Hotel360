@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, CalendarDays, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus
+  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -59,12 +59,13 @@ const ManagerSidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />,    label: 'DASHBOARD', href: '/hotel-manager' },
-    { icon: <CalendarCheck size={20} />, label: 'BOOKINGS',  href: '/hotel-manager/bookings' },
-    { icon: <CalendarDays size={20} />,  label: 'CALENDAR',  href: '/hotel-manager/calendar' },
-    { icon: <CreditCard size={20} />,    label: 'PAYMENTS',  href: '/hotel-manager/payments' },
-    { icon: <BarChart3 size={20} />,     label: 'REPORTS',   href: '/hotel-manager/reports' },
-    { icon: <Settings size={20} />,      label: 'SETTINGS',  href: '/hotel-manager/settings' },
+    { icon: <LayoutGrid size={20} />,    label: 'DASHBOARD',  href: '/hotel-manager' },
+    { icon: <CalendarCheck size={20} />, label: 'BOOKINGS',   href: '/hotel-manager/bookings' },
+    { icon: <CalendarDays size={20} />,  label: 'CALENDAR',   href: '/hotel-manager/calendar' },
+    { icon: <CreditCard size={20} />,    label: 'PAYMENTS',   href: '/hotel-manager/payments' },
+    { icon: <Package size={20} />,       label: 'PACKAGES',   href: '/hotel-manager/packages' },
+    { icon: <BarChart3 size={20} />,     label: 'REPORTS',    href: '/hotel-manager/reports' },
+    { icon: <Settings size={20} />,      label: 'SETTINGS',   href: '/hotel-manager/settings' },
   ];
 
   const bottomItems = [
@@ -118,16 +119,7 @@ const ManagerSidebar = () => {
           ))}
         </nav>
 
-        {/* Quick Action Button */}
-        <button
-          title={collapsed ? 'New Booking' : undefined}
-          className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
-            collapsed ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
-          }`}
-        >
-          <Plus size={16} />
-          {!collapsed && <span>NEW BOOKING</span>}
-        </button>
+
       </div>
 
       {/* Bottom */}

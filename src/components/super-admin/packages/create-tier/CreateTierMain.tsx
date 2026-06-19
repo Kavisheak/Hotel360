@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import Sidebar from '@/components/super-admin/dashboard/Sidebar';
+import Sidebar from '@/components/hotel-manager/overview/Sidebar';
 import PackagesHeader from '../PackagesHeader';
 import TierIdentity from './TierIdentity';
 import PricingCapacity from './PricingCapacity';
@@ -65,7 +65,7 @@ const CreateTierMain = () => {
           {/* Breadcrumbs + Page Title */}
           <div className="mb-8">
             <div className="flex items-center gap-2 text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-2">
-              <Link href="/super-admin/packages" className="hover:text-gray-600 transition-colors">Package Settings</Link>
+              <Link href="/hotel-manager/packages" className="hover:text-gray-600 transition-colors">Package Settings</Link>
               <span>&gt;</span>
               <span className="text-[#7C6A2E]">Add New Tier</span>
             </div>
@@ -74,7 +74,7 @@ const CreateTierMain = () => {
                 Create New Hall Tier
               </h1>
               <Link
-                href="/super-admin/packages"
+                href="/hotel-manager/packages"
                 className="flex items-center gap-2 text-xs font-bold text-[#7C6A2E] hover:text-[#5E4F20] transition-colors"
               >
                 <ArrowLeft size={16} /> BACK TO LIST

@@ -18,7 +18,7 @@ const PackagesHeader = () => {
 
       {/* Right: Portal indicator + Action Icons */}
       <div className="flex items-center gap-4">
-        <span className="text-sm font-serif font-semibold text-[#7C6A2E]">Admin Portal</span>
+        <span className="text-sm font-serif font-semibold text-[#7C6A2E]">Manager Portal</span>
         <div className="w-px h-5 bg-[#E0D8C3]" />
         <button className="relative p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 transition-colors">
           <Bell size={18} />

@@ -1,7 +1,11 @@
 import React from 'react';
-import { Download, UserRoundPlus } from 'lucide-react';
+import { Download, UserRoundPlus, UserCog } from 'lucide-react';
 
-const StaffHeader = () => {
+interface StaffHeaderProps {
+  onOpenChangeManager: () => void;
+}
+
+const StaffHeader = ({ onOpenChangeManager }: StaffHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
       {/* Title & Subtitle */}
@@ -19,6 +23,13 @@ const StaffHeader = () => {
         <button className="flex items-center gap-2 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#FAF6EE] transition-colors">
           <Download size={13} />
           EXPORT RECORDS
+        </button>
+        <button 
+          onClick={onOpenChangeManager}
+          className="flex items-center gap-2 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#FAF6EE] transition-colors bg-white"
+        >
+          <UserCog size={13} />
+          CHANGE LEAD MANAGER
         </button>
         <button className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 transition-colors shadow-sm">
           <UserRoundPlus size={13} />

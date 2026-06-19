@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { MoreVertical, ChevronLeft, ChevronRight, FileOutput } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
 
+const PremiumCardIcon = () => (
+  <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0 drop-shadow-sm">
+    <rect width="24" height="16" rx="3" fill="url(#goldGradient)" />
+    <path d="M3 5H6V9H3V5Z" fill="#FFF3CD" fillOpacity="0.9" />
+    <circle cx="15" cy="8" r="3" fill="#FFF" fillOpacity="0.4" />
+    <circle cx="19" cy="8" r="3" fill="#FFF" fillOpacity="0.4" />
+    <defs>
+      <linearGradient id="goldGradient" x1="0" y1="0" x2="24" y2="16" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#D4C9A8" />
+        <stop offset="0.5" stopColor="#B08D2C" />
+        <stop offset="1" stopColor="#7C6A2E" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 const getStatusStyle = (status: string) => {
   switch (status) {
     case 'DEPOSIT PAID':
@@ -79,6 +95,7 @@ const FinancialsTable = () => {
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 italic">No financial transactions found.</td>
               </tr>
+            ))}
             ) : isClient ? (
               globalBookings.map((booking, idx) => {
                 const displayStatus = booking.status === "Pending" ? "PENDING" : "BALANCE PAID";
@@ -90,8 +107,8 @@ const FinancialsTable = () => {
                       <p className="font-bold text-gray-800 text-sm">{booking.clientName}</p>
                       <p className="text-[10px] text-gray-500">{booking.eventType}</p>
                     </td>
-                    <td className="px-6 py-4 text-xs text-gray-700 flex items-center gap-2 mt-2">
-                      <span className="text-gray-400">💳</span> Card
+                    <td className="px-6 py-4 text-xs font-bold text-gray-700 flex items-center gap-2 mt-2">
+                      <PremiumCardIcon /> Card
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-block border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getStatusStyle(displayStatus)}`}>
@@ -108,6 +125,7 @@ const FinancialsTable = () => {
                 );
               })
             ) : null}
+
           </tbody>
         </table>
       </div>
