@@ -1,19 +1,26 @@
 import LandingHero from "@/components/landing/home/LandingHero";
-import TheHallSection from "@/components/landing/home/TheHallSection";
-import AmenitiesSection from "@/components/landing/home/AmenitiesSection";
-import VirtualTourSection from "@/components/landing/home/VirtualTourSection";
 import PackagesSection from "@/components/landing/home/PackagesSection";
-import ReviewsSection from "@/components/landing/home/ReviewsSection";
+import AmenitiesSection from "@/components/landing/home/AmenitiesSection";
+import EstimateSection from "@/components/landing/home/EstimateSection";
+import TheHallSection from "@/components/landing/home/TheHallSection";
+import FAQSection from "@/components/landing/home/FAQSection";
+import CTASection from "@/components/landing/home/CTASection";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
+
 export default function Home() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <LandingHero />
-      <TheHallSection />
-      <AmenitiesSection />
-      <VirtualTourSection />
-      <PackagesSection />
-      <ReviewsSection />
-    </div>
-  );
+ return (
+ <div className="flex flex-col min-h-screen bg-white transition-colors duration-300">
+ <MainNavbar />
+ <LandingHero />
+ <PackagesSection />
+ <AmenitiesSection />
+ <EstimateSection />
+ <TheHallSection />
+ <FAQSection />
+ <CTASection />
+ <Footer />
+ </div>
+ );
 }
 

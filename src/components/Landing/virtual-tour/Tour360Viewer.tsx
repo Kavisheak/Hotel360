@@ -4,6 +4,7 @@ import React, { useState, useRef, Suspense } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls, Html, useProgress } from "@react-three/drei";
 import * as THREE from "three";
+import { Minus, Plus, Grid2X2 } from "lucide-react";
 
 // 10 nodes for the tour
 const nodes = [
@@ -73,10 +74,17 @@ function TourEnvironment({ currentNode, onNodeClick }: { currentNode: number, on
             onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
             onPointerOut={() => { document.body.style.cursor = 'auto'; }}
           >
-            <sphereGeometry args={[1, 32, 32]} />
-            <meshStandardMaterial color="#c69c6d" emissive="#c69c6d" emissiveIntensity={0.5} />
-            <Html center position={[0, -2, 0]}>
-              <div className="bg-black/70 text-white px-3 py-1 rounded-md text-sm whitespace-nowrap border border-[#c69c6d] pointer-events-none">
+            {/* Outer hollow ring */}
+            <mesh>
+              <ringGeometry args={[1.2, 1.5, 32]} />
+              <meshBasicMaterial color="#FFFFFF" transparent opacity={0.8} side={THREE.DoubleSide} />
+            </mesh>
+            {/* Inner solid sphere */}
+            <sphereGeometry args={[0.8, 32, 32]} />
+            <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.2} />
+            
+            <Html center position={[0, -2.5, 0]}>
+              <div className="bg-[#1A1512] text-white px-4 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest whitespace-nowrap shadow-lg pointer-events-none">
                 Go to {node.name}
               </div>
             </Html>
@@ -91,11 +99,26 @@ export default function Tour360Viewer() {
   const [currentNode, setCurrentNode] = useState(0);
 
   return (
-    <div className="w-full h-[600px] relative bg-black rounded-lg overflow-hidden border border-[#c69c6d]/30">
-      <div className="absolute top-4 left-4 z-10 bg-black/60 p-4 rounded-lg border border-[#c69c6d]/50 backdrop-blur-md">
-        <h3 className="text-[#c69c6d] font-serif text-xl mb-1">360 Virtual Tour</h3>
-        <p className="text-gray-300 text-sm">Current Location: <span className="text-white font-medium">{nodes.find(n => n.id === currentNode)?.name}</span></p>
-        <p className="text-gray-400 text-xs mt-2">Drag to look around. Click gold spheres to navigate.</p>
+    <div className="w-full h-[550px] relative bg-[#1A1512] rounded-xl overflow-hidden border border-[#E8DFC9] dark:border-gray-800 shadow-sm">
+      
+      {/* Top Left Info Panel */}
+      <div className="absolute top-6 left-6 z-10 bg-white dark:bg-[#1A1A1A] p-5 rounded-lg border border-[#E8DFC9] dark:border-gray-800 shadow-xl max-w-xs">
+        <h3 className="text-[#1A1512] dark:text-white font-serif text-lg mb-1">360° Virtual Tour</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-[11px] mb-4">Current Location: <span className="text-[#C69C6D] font-bold">{nodes.find(n => n.id === currentNode)?.name}</span></p>
+        <p className="text-gray-500 dark:text-gray-400 text-[10px] leading-relaxed">Drag to look around.<br/>Click gold spheres to navigate.</p>
+      </div>
+
+      {/* Bottom Control Pill */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md px-6 py-2 rounded-full border border-[#E8DFC9] dark:border-gray-700 shadow-xl flex items-center gap-6">
+        <button className="text-gray-500 hover:text-[#1A1512] dark:hover:text-white transition-colors">
+          <Minus className="w-4 h-4" />
+        </button>
+        <button className="text-gray-500 hover:text-[#1A1512] dark:hover:text-white transition-colors">
+          <Grid2X2 className="w-4 h-4" />
+        </button>
+        <button className="text-gray-500 hover:text-[#1A1512] dark:hover:text-white transition-colors">
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
 
       <Canvas camera={{ position: [0, 0, 0.1], fov: 75 }}>

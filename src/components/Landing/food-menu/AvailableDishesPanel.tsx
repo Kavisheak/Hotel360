@@ -29,12 +29,12 @@ export default function AvailableDishesPanel({
   }, [availableDishes, activeCategory, searchQuery]);
 
   return (
-    <div className="bg-[#2C1E14] text-white p-6 shadow-xl h-full flex flex-col">
+    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 text-[#2C1E14] dark:text-white p-6 shadow-xl dark:shadow-[#C9A84C]/5 h-full flex flex-col rounded-sm transition-colors duration-300">
       <div className="mb-6">
         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#C9A84C] mb-1">
           Customize
         </p>
-        <h2 className="text-2xl font-serif font-bold text-[#F0E6D0]">
+        <h2 className="text-2xl font-serif font-bold text-[#2C1E14] dark:text-[#F0E6D0]">
           Available Upgrades
         </h2>
         <p className="text-xs text-gray-400 font-light mt-1 mb-4">
@@ -50,7 +50,7 @@ export default function AvailableDishesPanel({
               placeholder="Search dishes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 text-sm text-white px-10 py-2.5 focus:outline-none focus:border-[#C9A84C] transition-colors placeholder:text-gray-600 input-glow"
+              className="w-full bg-white dark:bg-white/5 border border-[#D4C9A8] dark:border-white/10 text-sm text-[#2C1E14] dark:text-white px-10 py-2.5 focus:outline-none focus:border-[#C9A84C] transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-600 input-glow rounded-sm"
             />
           </div>
 
@@ -67,7 +67,7 @@ export default function AvailableDishesPanel({
                   ${
                     activeCategory === cat
                       ? "bg-[#C9A84C] text-[#2C1E14]"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                      : "bg-[#F0E6D0]/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-[#D4C9A8]/50 dark:hover:bg-white/10 hover:text-[#2C1E14] dark:hover:text-white"
                   }
                 `}
               >
@@ -96,7 +96,7 @@ export default function AvailableDishesPanel({
                 exit={{ opacity: 0, scale: 0.9 }}
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
-                className="flex gap-4 p-4 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-[#C9A84C]/40 transition-colors group rounded-md shadow-lg hover-glow"
+                className="flex gap-4 p-4 border border-[#D4C9A8] dark:border-white/10 bg-[#F0E6D0]/20 dark:bg-white/5 hover:bg-[#F0E6D0]/50 dark:hover:bg-white/10 hover:border-[#C9A84C] dark:hover:border-[#C9A84C]/40 transition-colors group rounded-md shadow-lg hover-glow"
               >
                 <div
                   className="w-16 h-16 shrink-0 flex items-center justify-center rounded-lg shadow-inner"
@@ -107,7 +107,7 @@ export default function AvailableDishesPanel({
                 <div className="grow min-w-0 flex flex-col justify-between">
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h4 className="text-sm font-bold text-white truncate">
+                      <h4 className="text-sm font-bold text-[#2C1E14] dark:text-white truncate">
                         {dish.name}
                       </h4>
                       <p className="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
@@ -125,7 +125,7 @@ export default function AvailableDishesPanel({
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex gap-1.5">
-                      <span className="text-[8px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                      <span className="text-[8px] bg-[#A67C52]/10 dark:bg-white/10 text-[#A67C52] dark:text-gray-300 px-2 py-0.5 rounded-sm uppercase tracking-wider">
                         {dish.category}
                       </span>
                     </div>

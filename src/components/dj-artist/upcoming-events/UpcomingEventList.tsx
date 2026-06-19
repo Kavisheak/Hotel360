@@ -1,23 +1,18 @@
-import React from "react";
+"use client";
 
-const events = [
-  {
-    title: "Wedding Night Performance",
-    date: "2026-06-20",
-    time: "08:00 PM",
-    venue: "Grand Ballroom",
-    status: "Confirmed",
-  },
-  {
-    title: "Corporate DJ Night",
-    date: "2026-06-25",
-    time: "09:30 PM",
-    venue: "Skyline Hotel",
-    status: "Pending",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { useBookingStore } from "@/store/bookingStore";
 
 const UpcomingEventList = () => {
+  const [isClient, setIsClient] = useState(false);
+  const globalBookings = useBookingStore(state => state.bookings);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const djBookings = globalBookings.filter(b => b.vendors.dj !== "none");
+
   return (
     <article className="border border-[#E0D8C3] bg-white p-6 shadow-sm">
       <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-[#7C6A2E]">
@@ -25,22 +20,26 @@ const UpcomingEventList = () => {
       </h2>
 
       <div className="space-y-4">
-        {events.map((event, index) => (
-          <div
-            key={index}
-            className="border border-[#E0D8C3] p-4 hover:bg-[#FDF9F1]"
-          >
-            <p className="font-semibold text-gray-800">{event.title}</p>
-            <p className="text-xs text-gray-500">
-              {event.date} • {event.time}
-            </p>
-            <p className="text-xs text-gray-500">{event.venue}</p>
+        {isClient && djBookings.length === 0 ? (
+          <div className="p-4 text-center text-sm text-gray-500 italic">No upcoming performances found.</div>
+        ) : isClient ? (
+          djBookings.map((event) => (
+            <div
+              key={event.id}
+              className="border border-[#E0D8C3] p-4 hover:bg-[#FDF9F1]"
+            >
+              <p className="font-semibold text-gray-800">{event.clientName} - {event.eventType}</p>
+              <p className="text-xs text-gray-500">
+                {event.date}
+              </p>
+              <p className="text-xs text-gray-500">{event.guests} Guests</p>
 
-            <span className="mt-2 inline-block text-[10px] font-bold uppercase tracking-widest text-[#8C6A11]">
-              {event.status}
-            </span>
-          </div>
-        ))}
+              <span className="mt-2 inline-block text-[10px] font-bold uppercase tracking-widest text-[#8C6A11]">
+                {event.status}
+              </span>
+            </div>
+          ))
+        ) : null}
       </div>
     </article>
   );

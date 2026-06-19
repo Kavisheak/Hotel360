@@ -31,12 +31,12 @@ export default function PackageSelector({ selectedPackage, onSelectPackage }: Pa
   ];
 
   return (
-    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A67C52] font-bold flex items-center gap-1.5 mb-2">
-        <Package className="w-4 h-4 text-[#C9A84C]" /> Step 3: Select Baseline Framework
+    <div className="space-y-6">
+      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5 mb-2">
+        <Package className="w-4 h-4 text-[#A6955C]" /> STEP 3: SELECT BASELINE FRAMEWORK
       </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {pkgs.map((pkg) => {
           const isActive = selectedPackage === pkg.id;
           return (
@@ -44,26 +44,26 @@ export default function PackageSelector({ selectedPackage, onSelectPackage }: Pa
               key={pkg.id}
               onClick={() => onSelectPackage(pkg.id)}
               className={`
-                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm hover-lift
+                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm
                 ${isActive 
-                  ? "bg-[#2C1E14] text-white shadow-lg ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#F0E6D0]" 
-                  : "bg-white border border-[#D4C9A8] text-gray-900 hover:border-[#C9A84C]"
+                  ? "bg-white dark:bg-[#111] border-2 border-[#C69C6D] shadow-sm z-10" 
+                  : "bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 hover:border-[#A6955C]"
                 }
               `}
             >
-              <h4 className="font-serif text-lg mb-1">{pkg.name}</h4>
-              <span className={`text-xs font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-[#C9A84C]" : "text-[#A67C52]"}`}>
-                {pkg.base} base
+              <h4 className={`font-serif text-[17px] font-semibold mb-1 ${isActive ? "text-[#C69C6D]" : "text-[#1A1512] dark:text-white"}`}>{pkg.name}</h4>
+              <span className={`text-[10px] font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-[#C69C6D]" : "text-[#A6955C]"}`}>
+                {pkg.base} BASE
               </span>
-              <p className={`text-[10px] font-light ${isActive ? "text-gray-400" : "text-gray-500"}`}>
+              <p className={`text-[9px] uppercase tracking-widest font-bold ${isActive ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}>
                 {pkg.pax}
               </p>
             </div>
           );
         })}
       </div>
-      <p className="text-[10px] text-gray-500 italic mt-2">
-        * You can fully customize menus, florals, and entertainment within your client portal after holding the date.
+      <p className="text-[10px] text-gray-500 dark:text-gray-400 italic mt-3 pb-4">
+        * You can fully customize menu, florals, and entertainment within your client portal after holding the date.
       </p>
     </div>
   );
