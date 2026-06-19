@@ -94,7 +94,6 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   
                   <a 
                     href={`/customer/vendorProfile/${opt.id}`}
-                    target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className="text-[9px] uppercase tracking-widest text-[#D4AF37] hover:text-[#2C1E14] dark:text-white font-bold mt-2 flex items-center gap-1 transition-colors"

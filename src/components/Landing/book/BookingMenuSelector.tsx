@@ -3,6 +3,7 @@
 import React from "react";
 import { Utensils, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface BookingMenuSelectorProps {
   menu: string;
@@ -10,6 +11,7 @@ interface BookingMenuSelectorProps {
 }
 
 export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelectorProps) {
+  const cartMenu = useVendorCartStore((state) => state.menuSelection);
   
   const options = [
     { 
@@ -58,6 +60,15 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
               <p className={`text-xs font-light mb-4 flex-grow ${isSelected ? 'text-[#2C1E14] dark:text-gray-300' : 'text-gray-600 dark:text-gray-500'}`}>
                 {opt.desc}
               </p>
+              
+              {opt.id === "custom" && isSelected && (cartMenu.addedOptionalItems.length > 0 || cartMenu.removedDefaultItems.length > 0) && (
+                <div className="mb-4 bg-white/50 dark:bg-black/20 rounded-sm p-3 border border-[#C9A84C]/20 text-[10px] uppercase font-bold tracking-widest text-[#1A1512] dark:text-white">
+                  <div className="text-[#C9A84C] mb-1">Your Customizations:</div>
+                  {cartMenu.addedOptionalItems.length > 0 && <div>+ {cartMenu.addedOptionalItems.length} Premium Additions</div>}
+                  {cartMenu.removedDefaultItems.length > 0 && <div className="text-gray-500">- {cartMenu.removedDefaultItems.length} Standard Items Removed</div>}
+                </div>
+              )}
+
               <span className={`text-[10px] font-bold tracking-widest uppercase ${isSelected ? 'text-[#C9A84C]' : 'text-[#C9A84C]/70'}`}>
                 {opt.price}
               </span>
@@ -72,7 +83,6 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
         </p>
         <Link 
           href="/customer/menu" 
-          target="_blank"
           className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] hover:text-[#2C1E14] dark:text-white flex items-center gap-1 transition-colors"
         >
           Open Menu Builder <ArrowRight className="w-3 h-3" />

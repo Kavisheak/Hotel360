@@ -28,6 +28,7 @@ export default function BookPage() {
   
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
+  const setMenuTypeStore = useVendorCartStore((state) => state.setMenuType);
   const setStoreVendor = useVendorCartStore((state) => state.setVendor);
 
   const [vendors, setLocalVendors] = useState({ 
@@ -36,7 +37,14 @@ export default function BookPage() {
     videographer: cartVendors.videographer
   });
   
-  const [menu, setMenu] = useState("signature");
+  const [menu, setMenu] = useState(cartMenu.type !== "none" ? cartMenu.type : "signature");
+
+  const handleMenuChange = (newMenu: string) => {
+    setMenu(newMenu);
+    if (newMenu === "signature" || newMenu === "custom") {
+      setMenuTypeStore(newMenu);
+    }
+  };
 
   const setVendors = (newVendors: typeof vendors) => {
     setLocalVendors(newVendors);
@@ -200,7 +208,7 @@ export default function BookPage() {
             {/* Step 3: Food Menu Customization */}
             {currentStep === 3 && (
               <div className="animate-fadeIn">
-                <BookingMenuSelector menu={menu} onChange={setMenu} />
+                <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
               </div>
             )}
 
