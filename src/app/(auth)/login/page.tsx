@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { authAPI } from "@/lib/api";
 import { Mail, Lock, Eye, ArrowRight, Paintbrush, Briefcase, ShieldCheck, User, Phone, CheckCircle2, Tag, Headset } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -35,41 +36,51 @@ export default function AuthPage() {
     setLoginError("");
   };
 
-  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginError("");
 
-    if (email === "deco@gmail.com" && password === "deco123") {
-      localStorage.setItem("user", "decorator");
-      router.push("/decorator");
+    const { ok, data } = await authAPI.signin({ email, password });
+
+    if (!ok) {
+      setLoginError(data?.message || "Invalid email or password.");
       return;
     }
 
-    if (email === "manager@gmail.com" && password === "manager123") {
-      localStorage.setItem("user", "manager");
-      router.push("/hotel-manager");
-      return;
-    }
-
-    if (email === "admin@gmail.com" && password === "admin123") {
-      router.push("/super-admin");
-      return;
-    }
-
-    if (email === "customer@gmail.com" && password === "customer123") {
-      localStorage.setItem("user", "customer");
-      router.push("/");
-      return;
-    }
-
-    setLoginError("Invalid email or password.");
+    // Redirect based on role
+    const role = data.user.role;
+    localStorage.setItem("user", role);
+    
+    if      (role === "super_admin")   router.push("/super-admin");
+    else if (role === "manager")       router.push("/hotel-manager");
+    else if (role === "decorator")     router.push("/decorator");
+    else if (role === "videographer")  router.push("/videographer");
+    else if (role === "dj_artist")     router.push("/dj-artist");
+    else                               router.push("/customer/home");
   };
 
-  const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, registration logic here
+    
+    if (regPassword !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const { ok, data } = await authAPI.signup({
+      name: `${firstName} ${lastName}`.trim(),
+      email: regEmail,
+      phone: phone,
+      password: regPassword
+    });
+
+    if (!ok) {
+      alert(data?.message || "Failed to create account");
+      return;
+    }
+
     localStorage.setItem("user", "customer");
-    router.push("/");
+    router.push("/customer/home");
   };
 
   // Animation variants
