@@ -153,16 +153,33 @@ export default function MenuBuilderPage() {
       
       {/* Hero Section */}
       <section className="relative w-full pt-32 pb-16 bg-white dark:bg-[#111111] text-center border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20 transition-colors duration-300">
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Background Image */}
+        <div className="absolute inset-0 pointer-events-none z-0">
           <Image
             src="/food_menu_hero_bg.png"
-            alt="Food Menu Background"
+            alt="Food Menu Background Light"
             fill
-            className="object-cover opacity-50 dark:opacity-40"
+            className="object-cover opacity-100 dark:hidden"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-[#111111]/80"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#111111]/80 dark:to-[#111111]"></div>
+          <Image
+            src="/food_menu_hero_bg.png"
+            alt="Food Menu Background Dark"
+            fill
+            className="object-cover opacity-40 mix-blend-overlay hidden dark:block"
+            priority
+          />
+          {/* Horizontal gradient to wash out the center for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/95 to-transparent dark:via-[#111111]/95"></div>
+          {/* Vertical gradient to smoothly blend into the section below */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-[#FAF8F5] dark:from-[#111111]/80 dark:via-[#111111]/70 dark:to-[#0A0A0A]"></div>
+        </div>
+
+        {/* Subtle Decorative Background Lines */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+          <div className="absolute top-0 left-1/4 w-[1px] h-full bg-[#A67C52] dark:bg-white"></div>
+          <div className="absolute top-0 left-3/4 w-[1px] h-full bg-[#A67C52] dark:bg-white"></div>
+          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#A67C52] dark:bg-white"></div>
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-6">

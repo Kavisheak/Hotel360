@@ -41,7 +41,7 @@ export default function GuestCounter({ count, onChange, min, max }: GuestCounter
             step="10"
             value={count}
             onChange={handleSliderChange}
-            className="w-full h-1.5 bg-black rounded-sm appearance-none cursor-pointer accent-[#C69C6D]"
+            className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-sm appearance-none cursor-pointer accent-[#C69C6D]"
           />
           <div className="flex justify-between text-[9px] text-[#1A1512] dark:text-gray-400 mt-3 font-bold uppercase tracking-widest">
             <span>{min} MIN</span>

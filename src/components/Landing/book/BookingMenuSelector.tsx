@@ -48,14 +48,14 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
               `}
             >
               <div className="flex justify-between items-start mb-2">
-                <h4 className={`text-sm font-serif font-bold ${isSelected ? 'text-[#C9A84C]' : 'text-gray-200'}`}>
+                <h4 className={`text-sm font-serif font-bold ${isSelected ? 'text-[#C9A84C]' : 'text-[#1A1512] dark:text-gray-200'}`}>
                   {opt.title}
                 </h4>
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#C9A84C] bg-[#C9A84C]' : 'border-gray-500'}`}>
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#C9A84C] bg-[#C9A84C]' : 'border-gray-300 dark:border-gray-500'}`}>
                   {isSelected && <div className="w-1.5 h-1.5 bg-[#FDFBF7] dark:bg-[#111111] rounded-full"></div>}
                 </div>
               </div>
-              <p className={`text-xs font-light mb-4 flex-grow ${isSelected ? 'text-gray-300' : 'text-gray-600 dark:text-gray-500'}`}>
+              <p className={`text-xs font-light mb-4 flex-grow ${isSelected ? 'text-[#2C1E14] dark:text-gray-300' : 'text-gray-600 dark:text-gray-500'}`}>
                 {opt.desc}
               </p>
               <span className={`text-[10px] font-bold tracking-widest uppercase ${isSelected ? 'text-[#C9A84C]' : 'text-[#C9A84C]/70'}`}>
@@ -66,7 +66,7 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
         })}
       </div>
       
-      <div className="mt-4 p-4 bg-[#0A0A0A] border border-[#C9A84C]/20 rounded-sm flex items-center justify-between">
+      <div className="mt-4 p-4 bg-white dark:bg-[#0A0A0A] border border-[#C9A84C]/20 rounded-sm flex items-center justify-between shadow-sm">
         <p className="text-[11px] text-gray-600 dark:text-gray-400 font-light leading-relaxed max-w-[70%]">
           <strong className="text-[#2C1E14] dark:text-white">Note:</strong> You can select individual dishes, live action stations, and dietary requirements in detail through our interactive builder.
         </p>

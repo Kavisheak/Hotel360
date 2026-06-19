@@ -12,12 +12,19 @@ export default function BookHero() {
       <div className="absolute top-0 right-0 w-full md:w-2/3 h-full z-0">
         <Image
           src="/vendors_hero_bg_v3.png"
-          alt="Crystal Pavilion Venue"
+          alt="Crystal Pavilion Venue Light"
           fill
-          className="object-cover"
+          className="object-cover dark:hidden"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#0A0A0A] dark:via-[#0A0A0A]/80 pointer-events-none"></div>
+        <Image
+          src="/dark_hotel_booking_hero_bg.png"
+          alt="Dark Hotel Booking Lobby"
+          fill
+          className="object-cover hidden dark:block opacity-90"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#0A0A0A] dark:via-[#0A0A0A]/60 dark:to-transparent pointer-events-none"></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex flex-col justify-center">

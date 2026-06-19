@@ -52,6 +52,7 @@ export default function BookPage() {
       const preDecorator = searchParams.get("decorator");
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
+      const prePackage = searchParams.get("package");
 
       if (preDecorator || preDj || preVid) {
         setVendors({
@@ -59,6 +60,10 @@ export default function BookPage() {
           dj: preDj || cartVendors.dj,
           videographer: preVid || cartVendors.videographer
         });
+      }
+
+      if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
+        setSelectedPackage(prePackage);
       }
     }
   }, []);
