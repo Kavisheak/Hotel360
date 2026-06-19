@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Bell, HelpCircle, Search } from 'lucide-react';
+import { Bell, HelpCircle, Search, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 const ManagerHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -30,6 +31,15 @@ const ManagerHeader = () => {
             onBlur={() => setIsSearchFocused(false)}
           />
         </div>
+
+        {/* New Booking Button */}
+        <Link 
+          href="/hotel-manager/bookings/new" 
+          className="hidden sm:flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-4 py-2 rounded text-xs font-bold tracking-widest uppercase transition-colors shadow-sm"
+        >
+          <Plus size={16} />
+          New Booking
+        </Link>
 
         {/* Icons */}
         <button className="p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 hover:text-[#7C6A2E] transition-colors">

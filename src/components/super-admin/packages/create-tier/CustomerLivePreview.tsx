@@ -164,7 +164,7 @@ const CustomerLivePreview = ({
           Save New Tier
         </button>
         <Link
-          href="/super-admin/packages"
+          href="/hotel-manager/packages"
           className="w-full border border-gray-850 hover:bg-gray-50 text-gray-800 font-bold text-xs tracking-widest uppercase py-3.5 transition-colors block text-center"
         >
           Cancel Configuration

@@ -7,7 +7,7 @@ import TierConfigurations from './TierConfigurations';
 import SupplementalFees from './SupplementalFees';
 import GlobalParameters from './GlobalParameters';
 import { PackagePreview, PriceLockReminder } from './PackageSidePanels';
-import Sidebar from '@/components/super-admin/dashboard/Sidebar';
+import Sidebar from '@/components/hotel-manager/overview/Sidebar';
 import Footer from '@/components/super-admin/dashboard/Footer';
 
 const PackagesMain = () => {
