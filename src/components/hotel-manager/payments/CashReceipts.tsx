@@ -63,8 +63,11 @@ const CashReceipts = () => {
             const icon = i % 3 === 0 ? <User size={18} className="text-[#B08D2C]" /> :
                          i % 3 === 1 ? <Gem size={18} className="text-[#4258af]" /> :
                                        <Music size={18} className="text-gray-500" />;
-            const displayStatus = r.status === "Pending" ? "Pending Cash" : "Fully Paid";
-            const statusColor = r.status === "Pending" ? 'bg-[#F9DD76] text-[#7C6A2E]' : 'bg-green-100 text-green-700';
+            const isDeposit = r.status === "Pending";
+            const amountDue = isDeposit ? r.totalCost * 0.3 : r.totalCost * 0.7;
+            const amountLabel = isDeposit ? "30% DEPOSIT DUE" : "70% BALANCE DUE";
+            const displayStatus = isDeposit ? "Pending Deposit" : "Pending Balance";
+            const statusColor = isDeposit ? 'bg-[#F9DD76] text-[#7C6A2E]' : 'bg-blue-100 text-blue-700';
 
             return (
               <div key={r.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FDF9F1] transition-colors">
@@ -81,8 +84,8 @@ const CashReceipts = () => {
 
                 {/* Amount */}
                 <div className="text-left sm:text-right shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">TOTAL DUE</p>
-                  <p className="text-base font-serif font-bold text-gray-800">LKR {r.totalCost.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C]">{amountLabel}</p>
+                  <p className="text-base font-serif font-bold text-gray-800">LKR {amountDue.toLocaleString()}</p>
                 </div>
 
                 {/* Status */}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ClientInfo = () => (
+const ClientInfo = ({ booking }: { booking: any }) => (
   <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm h-full">
     <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-4">
       Client Information
@@ -8,23 +8,23 @@ const ClientInfo = () => (
 
     <div className="mb-4">
       <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Primary Contact</p>
-      <p className="text-base font-serif font-semibold text-gray-800">Eleanor Vance-Sterling</p>
+      <p className="text-base font-serif font-semibold text-gray-800">{booking.clientName}</p>
     </div>
 
     <div className="grid grid-cols-2 gap-4 mb-4">
       <div>
         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Email</p>
-        <p className="text-sm text-gray-700 break-all">e.vance@sterling-global.com</p>
+        <p className="text-sm text-gray-700 break-all">{booking.clientEmail || 'contact@example.com'}</p>
       </div>
       <div>
         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Phone</p>
-        <p className="text-sm text-gray-700">+1 (555) 902-1244</p>
+        <p className="text-sm text-gray-700">{booking.clientPhone || '+94 77 123 4567'}</p>
       </div>
     </div>
 
     <div>
-      <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Mailing Address</p>
-      <p className="text-sm text-gray-700">42nd Penthouse, Gold Coast Ave, NYC</p>
+      <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Guest Count</p>
+      <p className="text-sm text-gray-700">{booking.guests} Guests</p>
     </div>
   </div>
 );
