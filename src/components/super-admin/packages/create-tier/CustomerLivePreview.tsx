@@ -19,6 +19,7 @@ interface CustomerLivePreviewProps {
   inclusions: InclusionsState;
   badge: string;
   onSave: () => void;
+  isSubmitting?: boolean;
 }
 
 const CustomerLivePreview = ({
@@ -29,7 +30,8 @@ const CustomerLivePreview = ({
   features,
   inclusions,
   badge,
-  onSave
+  onSave,
+  isSubmitting
 }: CustomerLivePreviewProps) => {
   return (
     <div className="space-y-6">
@@ -159,9 +161,10 @@ const CustomerLivePreview = ({
       <div className="bg-[#FFFDF6] border border-[#E0D8C3] p-5 space-y-4">
         <button
           onClick={onSave}
-          className="w-full bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-xs tracking-widest uppercase py-3.5 transition-colors shadow-sm"
+          disabled={isSubmitting}
+          className="w-full bg-[#B08D2C] hover:bg-[#9B7A20] disabled:bg-gray-400 text-white font-bold text-xs tracking-widest uppercase py-3.5 transition-colors shadow-sm"
         >
-          Save New Tier
+          {isSubmitting ? 'Saving...' : 'Save New Tier'}
         </button>
         <Link
           href="/hotel-manager/packages"

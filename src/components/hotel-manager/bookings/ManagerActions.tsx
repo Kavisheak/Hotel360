@@ -2,14 +2,11 @@
 
 import React, { useState } from 'react';
 import { CheckCircle2, XCircle, Circle, Flag, Send } from 'lucide-react';
+import { bookingAPI } from '../../../lib/api';
 
-const statusHistory = [
-  { label: 'Pending Approval', date: 'Today, 09:42 AM', note: 'Review initiated by Venue Manager', active: true },
-  { label: 'Deposit Paid', date: 'Oct 12, 2023', note: null, active: false },
-  { label: 'Initial Inquiry', date: 'Oct 01, 2023', note: null, active: false },
-];
+// Hardcoded statusHistory removed.
 
-const ManagerActions = ({ booking }: { booking: any }) => {
+const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpdate?: () => void }) => {
   const [status, setStatus] = useState<'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED'>(
     booking.status ? booking.status.toUpperCase() : 'PENDING'
   );
@@ -17,23 +14,52 @@ const ManagerActions = ({ booking }: { booking: any }) => {
   const [rejectReason, setRejectReason] = useState('');
   const [rejectError, setRejectError] = useState('');
 
-  const handleApprove = () => {
-    setStatus('CONFIRMED');
-    setShowRejectForm(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleApprove = async () => {
+    setIsLoading(true);
+    const id = booking.bookingRef || booking._id || booking.id;
+    const res = await bookingAPI.updateBookingStatus(id, { status: 'Confirmed' });
+    setIsLoading(false);
+    if (res.ok) {
+      setStatus('CONFIRMED');
+      setShowRejectForm(false);
+      if (onStatusUpdate) onStatusUpdate();
+    } else {
+      alert(res.data?.message || 'Failed to approve booking.');
+    }
   };
 
-  const handleRejectSubmit = () => {
+  const handleRejectSubmit = async () => {
     if (rejectReason.trim().length < 10) {
       setRejectError('Please provide a detailed reason (min 10 chars).');
       return;
     }
     setRejectError('');
-    setStatus('REJECTED');
-    setShowRejectForm(false);
+    setIsLoading(true);
+    const id = booking.bookingRef || booking._id || booking.id;
+    const res = await bookingAPI.updateBookingStatus(id, { status: 'Rejected', rejectionReason: rejectReason });
+    setIsLoading(false);
+    if (res.ok) {
+      setStatus('REJECTED');
+      setShowRejectForm(false);
+      if (onStatusUpdate) onStatusUpdate();
+    } else {
+      alert(res.data?.message || 'Failed to reject booking.');
+    }
   };
 
-  const handleComplete = () => {
-    setStatus('COMPLETED');
+  const handleComplete = async () => {
+    setIsLoading(true);
+    const id = booking.bookingRef || booking._id || booking.id;
+    const res = await bookingAPI.updateBookingStatus(id, { status: 'Completed' });
+    setIsLoading(false);
+    if (res.ok) {
+      setStatus('COMPLETED');
+      if (onStatusUpdate) onStatusUpdate();
+    } else {
+      alert(res.data?.message || 'Failed to mark as completed.');
+    }
   };
 
   return (
@@ -48,9 +74,10 @@ const ManagerActions = ({ booking }: { booking: any }) => {
           <>
             <button
               onClick={handleApprove}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest mb-3 transition-all bg-[#B08D2C] hover:bg-[#9B7A20] text-white shadow-sm"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest mb-3 transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#B08D2C] hover:bg-[#9B7A20]'} text-white shadow-sm`}
             >
-              <CheckCircle2 size={16} /> Approve Booking
+              <CheckCircle2 size={16} /> {isLoading ? 'Processing...' : 'Approve Booking'}
             </button>
             <button
               onClick={() => setShowRejectForm(true)}
@@ -80,9 +107,10 @@ const ManagerActions = ({ booking }: { booking: any }) => {
               </button>
               <button 
                 onClick={handleRejectSubmit}
-                className="flex-1 flex items-center justify-center gap-1 py-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-700 shadow-sm"
+                disabled={isLoading}
+                className={`flex-1 flex items-center justify-center gap-1 py-2 ${isLoading ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'} text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm`}
               >
-                <Send size={12} /> Submit
+                <Send size={12} /> {isLoading ? '...' : 'Submit'}
               </button>
             </div>
           </div>
@@ -95,9 +123,10 @@ const ManagerActions = ({ booking }: { booking: any }) => {
             </div>
             <button
               onClick={handleComplete}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all bg-[#4E411B] hover:bg-[#342b12] text-white shadow-sm"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4E411B] hover:bg-[#342b12]'} text-white shadow-sm`}
             >
-              <Flag size={16} /> Mark as Completed
+              <Flag size={16} /> {isLoading ? 'Processing...' : 'Mark as Completed'}
             </button>
             <p className="text-[9px] text-center mt-2 text-gray-500 italic">Only mark completed after the event has successfully concluded.</p>
           </>
@@ -128,18 +157,26 @@ const ManagerActions = ({ booking }: { booking: any }) => {
           Status History
         </h4>
         <div className="space-y-4">
-          {statusHistory.map((s, i) => (
+          {(booking.statusHistory || []).slice().reverse().map((s: any, i: number) => (
             <div key={i} className="flex gap-3">
               <div className="mt-0.5 shrink-0">
-                {s.active
+                {i === 0
                   ? <Circle size={12} className="fill-[#B08D2C] text-[#B08D2C]" />
                   : <Circle size={12} className="text-gray-300 fill-gray-100" />
                 }
               </div>
               <div>
-                <p className={`text-xs font-semibold ${s.active ? 'text-gray-800' : 'text-gray-500'}`}>{s.label}</p>
-                <p className="text-[10px] text-gray-400">{s.date}</p>
+                <p className={`text-xs font-semibold ${i === 0 ? 'text-gray-800' : 'text-gray-500'}`}>
+                  {s.status === 'Pending' ? 'Pending Approval' : 
+                   s.status === 'Confirmed' ? 'Booking Confirmed' : 
+                   s.status === 'Completed' ? 'Event Completed' : 
+                   s.status === 'Rejected' ? 'Booking Rejected' : s.status}
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  {new Date(s.updatedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + new Date(s.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                </p>
                 {s.note && <p className="text-[10px] italic text-gray-400 mt-0.5">{s.note}</p>}
+                <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-1">By {s.updatedBy}</p>
               </div>
             </div>
           ))}
@@ -152,7 +189,7 @@ const ManagerActions = ({ booking }: { booking: any }) => {
           Internal Note
         </h4>
         <p className="text-sm italic text-gray-700 leading-relaxed" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          "Client requested extra white floor wrapping for the dance floor. Julian (Decorator) is currently sourcing the premium vinyl."
+          "{booking.internalNote || 'No internal note provided for this booking.'}"
         </p>
       </div>
     </div>

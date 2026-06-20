@@ -26,3 +26,25 @@ export const authAPI = {
   signout: ()          => apiFetch("/api/auth/signout", { method: "POST" }),
   getMe:   ()          => apiFetch("/api/auth/me"),
 };
+
+export const staffAPI = {
+  createVendor: (body: any) => apiFetch("/api/staff/create", { method: "POST", body: JSON.stringify(body) }),
+  getAllVendors: () => apiFetch("/api/staff"),
+  updateVendor: (id: string, body: any) => apiFetch(`/api/staff/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteVendor: (id: string) => apiFetch(`/api/staff/${id}`, { method: "DELETE" }),
+};
+
+export const packageAPI = {
+  createPackage: (body: any) => apiFetch("/api/packages/create", { method: "POST", body: JSON.stringify(body) }),
+  getAllPackages: () => apiFetch("/api/packages"),
+  updatePackage: (id: string, body: any) => apiFetch(`/api/packages/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deletePackage: (id: string) => apiFetch(`/api/packages/${id}`, { method: "DELETE" }),
+};
+
+export const bookingAPI = {
+  createBooking: (body: any) => apiFetch("/api/bookings/create", { method: "POST", body: JSON.stringify(body) }),
+  getAllBookings: () => apiFetch("/api/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/bookings/${id}`),
+  updateBookingStatus: (id: string, body: any) => apiFetch(`/api/bookings/${id}/status`, { method: "PUT", body: JSON.stringify(body) }),
+  assignArtisans: (id: string, body: any) => apiFetch(`/api/bookings/${id}/assign`, { method: "PUT", body: JSON.stringify(body) }),
+};

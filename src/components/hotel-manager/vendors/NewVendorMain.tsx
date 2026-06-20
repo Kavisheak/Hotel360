@@ -1,9 +1,9 @@
 'use client';
-
 import React, { useState } from 'react';
 import { ArrowLeft, User, Mail, Phone, Lock, Save, CheckCircle2, ShieldCheck, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { staffAPI } from '@/lib/api';
 
 const NewVendorMain = () => {
   const router = useRouter();
@@ -16,6 +16,7 @@ const NewVendorMain = () => {
     password: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<{name: string, email: string} | null>(null);
 
   const generatePassword = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
@@ -30,12 +31,23 @@ const NewVendorMain = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call to create staff account
-    setTimeout(() => {
-      alert(`Vendor account for ${formData.firstName} ${formData.lastName} created successfully! Credentials sent to ${formData.email}.`);
+    try {
+      const response = await staffAPI.createVendor(formData);
+      
+      if (response.ok) {
+        setSuccessDetails({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email
+        });
+      } else {
+        alert(`Error: ${response.data.message || 'Failed to create vendor'}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An unexpected error occurred. Please try again later.');
+    } finally {
       setIsSubmitting(false);
-      router.push('/hotel-manager/vendors');
-    }, 1500);
+    }
   };
 
   return (
@@ -226,6 +238,27 @@ const NewVendorMain = () => {
           </div>
         </div>
       </main>
+
+      {/* Premium Success Modal */}
+      {successDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <CheckCircle2 size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Vendor Created</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              Account for <span className="font-bold text-gray-800">{successDetails.name}</span> has been successfully provisioned. Temporary credentials have been dispatched to <span className="font-medium text-[#7C6A2E]">{successDetails.email}</span>.
+            </p>
+            <button 
+              onClick={() => router.push('/hotel-manager/vendors')}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Continue to Directory
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

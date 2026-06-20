@@ -4,7 +4,9 @@ import { Tier } from './packagesData';
 
 interface TierCardProps {
   tier: Tier;
+  index: number;
   onPriceChange: (id: string, val: number) => void;
+  onEdit: () => void;
 }
 
 const tierThemes: Record<string, {
@@ -85,10 +87,29 @@ const tierThemes: Record<string, {
   },
 };
 
-const TierCard = ({ tier, onPriceChange }: TierCardProps) => {
-  const theme = tierThemes[tier.id] ?? tierThemes.silver;
-  const isGold = tier.id === 'gold';
-  const isDiamond = tier.id === 'diamond';
+const TierCard = ({ tier, index, onPriceChange, onEdit }: TierCardProps) => {
+  let themeKey = 'silver';
+  if (tier.icon === 'crown') themeKey = 'gold';
+  else if (tier.icon === 'diamond') themeKey = 'diamond';
+
+  // Force dark theme if it's the middle card
+  if (index === 1) {
+    themeKey = 'diamond';
+  }
+
+  // Fallbacks based on label if icon is missing
+  if (!tier.icon && index !== 1) {
+    const labelLower = tier.label.toLowerCase();
+    if (labelLower.includes('gold') || labelLower.includes('royal')) themeKey = 'gold';
+    else if (labelLower.includes('diamond') || labelLower.includes('platinum')) themeKey = 'diamond';
+  }
+
+  const theme = tierThemes[themeKey];
+  const isGold = themeKey === 'gold';
+  const isDiamond = themeKey === 'diamond';
+
+  const isHighlighted = tier.badge === 'MOST POPULAR';
+  const isMiddle = index === 1;
 
   return (
     <div
@@ -96,15 +117,16 @@ const TierCard = ({ tier, onPriceChange }: TierCardProps) => {
         relative flex flex-col border-2 overflow-hidden
         transition-all duration-300 cursor-default p-6
         ${theme.bg} ${theme.border} ${theme.shadow}
-        ${isGold ? 'pt-10' : ''}
+        ${isMiddle ? 'py-10 scale-105 z-10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] border-[#C5A040]' : 'my-4 opacity-90 hover:opacity-100'}
+        ${isHighlighted && !isMiddle ? 'pt-10 border-[#C5A040]' : ''}
       `}
     >
-      {/* Most Popular Badge */}
-      {isGold && (
+      {/* Promotional Badge */}
+      {tier.badge && tier.badge !== 'NONE' && (
         <div className="absolute top-0 left-0 right-0">
           <div className="bg-[#7C6A2E] text-white text-[8px] font-bold tracking-[0.25em] uppercase py-2 text-center flex items-center justify-center gap-1.5 shadow-sm">
             <span>★</span>
-            <span>MOST POPULAR</span>
+            <span>{tier.badge}</span>
             <span>★</span>
           </div>
         </div>
@@ -118,7 +140,7 @@ const TierCard = ({ tier, onPriceChange }: TierCardProps) => {
             {tier.label}
           </span>
         </div>
-        <button className="text-gray-400 hover:text-[#7C6A2E] transition-colors">
+        <button onClick={onEdit} className="text-gray-400 hover:text-[#7C6A2E] transition-colors">
           <PencilLine size={14} className={isDiamond ? 'text-[#C5A040]/70 hover:text-[#C5A040]' : ''} />
         </button>
       </div>
@@ -126,7 +148,7 @@ const TierCard = ({ tier, onPriceChange }: TierCardProps) => {
       {/* Price */}
       <div className="mb-6">
         <div className={`text-5xl font-serif font-bold tracking-tight ${theme.priceColor}`}>
-          ${tier.price.toLocaleString()}
+          ${(tier.price || 0).toLocaleString()}
         </div>
         <div className={`text-[10px] mt-1 font-serif ${theme.guestColor}`}>
           Base Rate / {tier.guests} Guests

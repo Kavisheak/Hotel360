@@ -15,7 +15,7 @@ const SelectedPackage = ({ booking }: { booking: any }) => (
 
     <div className="flex items-start justify-between mb-2">
       <div>
-        <p className="text-xl font-serif font-semibold text-gray-800">{booking.package}</p>
+        <p className="text-xl font-serif font-semibold text-gray-800">{booking.packageName || booking.package || 'Custom Package'}</p>
         <p className="text-sm italic text-gray-500" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
           LKR {booking.totalCost?.toLocaleString() || 'N/A'} Total
         </p>
