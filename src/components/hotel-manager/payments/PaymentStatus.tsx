@@ -1,13 +1,49 @@
-import React from 'react';
+"use client";
 
-const bars = [
-  { label: 'Fully Paid',       pct: 72, color: 'bg-green-500' },
-  { label: 'Deposit Paid',     pct: 18, color: 'bg-[#B08D2C]' },
-  { label: 'Unpaid / Overdue', pct: 10, color: 'bg-red-400' },
-];
+import React, { useEffect, useState } from 'react';
+import { paymentAPI } from '../../../lib/api';
 
-const PaymentStatus = () => (
-  <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
+const PaymentStatus = () => {
+  const [bars, setBars] = useState([
+    { label: 'Fully Paid',       pct: 0, color: 'bg-green-500' },
+    { label: 'Deposit Paid',     pct: 0, color: 'bg-[#B08D2C]' },
+    { label: 'Unpaid / Overdue', pct: 0, color: 'bg-red-400' },
+  ]);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const res = await paymentAPI.getAllPayments();
+      if (res.ok) {
+        const payments = res.data.data;
+        let fullyPaid = 0;
+        let depositPaid = 0;
+        let unpaid = 0;
+
+        payments.forEach((p: any) => {
+          if (p.paymentStatus === "Paid" && p.paymentType === "Balance") {
+            fullyPaid += p.amount;
+          } else if (p.paymentStatus === "Paid" && p.paymentType === "Deposit") {
+            depositPaid += p.amount;
+          } else if (p.paymentStatus === "Pending") {
+            unpaid += p.amount;
+          }
+        });
+
+        const total = fullyPaid + depositPaid + unpaid;
+        if (total > 0) {
+          setBars([
+            { label: 'Fully Paid', pct: Math.round((fullyPaid / total) * 100), color: 'bg-green-500' },
+            { label: 'Deposit Paid', pct: Math.round((depositPaid / total) * 100), color: 'bg-[#B08D2C]' },
+            { label: 'Unpaid / Overdue', pct: Math.round((unpaid / total) * 100), color: 'bg-red-400' },
+          ]);
+        }
+      }
+    };
+    fetchStatus();
+  }, []);
+
+  return (
+    <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
     <h3 className="text-sm font-serif font-semibold text-gray-800 mb-5">Payment Status</h3>
 
     <div className="space-y-4 mb-5">
@@ -33,7 +69,8 @@ const PaymentStatus = () => (
         "Maintaining a 90% collection rate is the benchmark for Elite status."
       </p>
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default PaymentStatus;
