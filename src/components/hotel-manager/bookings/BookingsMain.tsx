@@ -10,17 +10,51 @@ import ManagerActions from './ManagerActions';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
+import { bookingAPI } from '../../../lib/api';
+
 const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
   const [isClient, setIsClient] = useState(false);
+  const [dbBooking, setDbBooking] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const bookings = useBookingStore(state => state.bookings);
   
+  const fetchBooking = async () => {
+    if (!bookingId) {
+      setDbBooking(bookings[0]);
+      setIsLoading(false);
+      return;
+    }
+    try {
+      const res = await bookingAPI.getBookingById(bookingId);
+      if (res.ok && res.data?.data) {
+        // Normalize the backend model to match what the frontend components expect
+        const backendData = res.data.data;
+        setDbBooking({
+          ...backendData,
+          clientEmail: backendData.email,
+          clientPhone: backendData.phone,
+          id: backendData.bookingRef || backendData._id
+        });
+      } else {
+        // Fallback to dummy store if not found in DB
+        const localBooking = bookings.find(b => b.id === bookingId);
+        setDbBooking(localBooking || null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch booking", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    fetchBooking();
+  }, [bookingId, bookings]);
 
-  if (!isClient) return null;
+  if (!isClient || isLoading) return <div className="min-h-screen bg-[#FDF9F1] flex items-center justify-center">Loading...</div>;
 
-  const booking = bookingId ? bookings.find(b => b.id === bookingId) : bookings[0];
+  const booking = dbBooking;
 
   if (!booking) {
     return (
@@ -57,7 +91,7 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
           </div>
 
           <div className="w-full lg:w-72 xl:w-80 shrink-0">
-            <ManagerActions booking={booking} />
+            <ManagerActions booking={booking} onStatusUpdate={fetchBooking} />
           </div>
         </div>
       </main>

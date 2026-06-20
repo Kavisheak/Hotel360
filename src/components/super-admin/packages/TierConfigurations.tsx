@@ -7,9 +7,10 @@ import TierCard from './TierCard';
 interface TierConfigurationsProps {
   tiers: Tier[];
   onPriceChange: (id: string, val: number) => void;
+  onEdit: (tier: Tier) => void;
 }
 
-const TierConfigurations = ({ tiers, onPriceChange }: TierConfigurationsProps) => {
+const TierConfigurations = ({ tiers, onPriceChange, onEdit }: TierConfigurationsProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-10 shadow-sm">
       {/* Section Header */}
@@ -24,7 +25,7 @@ const TierConfigurations = ({ tiers, onPriceChange }: TierConfigurationsProps) =
           </p>
         </div>
         <Link
-          href="/super-admin/packages/new"
+          href="/hotel-manager/packages/new"
           className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#B08D2C] transition-colors border border-[#E0D8C3] hover:border-[#B08D2C] px-4 py-2"
         >
           <Plus size={12} />
@@ -34,8 +35,8 @@ const TierConfigurations = ({ tiers, onPriceChange }: TierConfigurationsProps) =
 
       {/* Three Tier Cards — Gold is elevated */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-5 items-start">
-        {tiers.map(tier => (
-          <TierCard key={tier.id} tier={tier} onPriceChange={onPriceChange} />
+        {tiers.map((tier, index) => (
+          <TierCard key={tier.id} tier={tier} index={index} onPriceChange={onPriceChange} onEdit={() => onEdit(tier)} />
         ))}
       </div>
 

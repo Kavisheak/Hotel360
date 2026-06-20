@@ -1,20 +1,43 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useBookingStore } from '@/store/bookingStore';
 import Link from 'next/link';
 import { Search, Filter, CalendarDays, ChevronRight } from 'lucide-react';
+import { bookingAPI } from '@/lib/api';
 
 const BookingsListMain = () => {
   const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-  
-  const bookings = useBookingStore(state => state.bookings);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
+    fetchBookings();
   }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const res = await bookingAPI.getAllBookings();
+      if (res.ok && res.data?.data) {
+        // Map backend booking schema to frontend expected format
+        const mappedBookings = res.data.data.map((b: any) => ({
+          id: b._id,
+          clientName: b.clientName,
+          date: new Date(b.eventDate).toLocaleDateString(),
+          eventType: b.eventType,
+          status: b.status,
+          packageId: b.packageId,
+        }));
+        setBookings(mappedBookings);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredBookings = bookings.filter(b => {
     const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || b.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -90,7 +113,7 @@ const BookingsListMain = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E0D8C3]">
-                {!isClient ? (
+                {!isClient || isLoading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">Loading bookings...</td>
                   </tr>

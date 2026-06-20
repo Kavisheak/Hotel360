@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { packageAPI } from '@/lib/api';
 import Sidebar from '@/components/hotel-manager/overview/Sidebar';
 import PackagesHeader from '../PackagesHeader';
 import TierIdentity from './TierIdentity';
@@ -12,6 +14,9 @@ import PromotionalBadge from './PromotionalBadge';
 import CustomerLivePreview from './CustomerLivePreview';
 
 const CreateTierMain = () => {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   // States for interactive live preview
   const [tierName, setTierName] = useState('Platinum Elite');
   const [selectedIcon, setSelectedIcon] = useState('diamond');
@@ -50,8 +55,37 @@ const CreateTierMain = () => {
     setFeatures(features.filter(f => f !== feat));
   };
 
-  const handleSave = () => {
-    alert('Tier Configuration saved successfully.');
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    try {
+      const priceNum = parseInt(baseRate.replace(/,/g, ''), 10);
+      const guestsNum = parseInt(maxCapacity, 10);
+
+      const payload = {
+        name: tierName,
+        description,
+        price: isNaN(priceNum) ? 0 : priceNum,
+        maxGuests: isNaN(guestsNum) ? 1 : guestsNum,
+        baseGuests: parseInt(minCapacity, 10) || 0,
+        guestSurcharge: parseInt(guestSurcharge, 10) || 0,
+        icon: selectedIcon,
+        badge: badge,
+        features,
+        inclusions
+      };
+
+      const res = await packageAPI.createPackage(payload);
+      if (res.ok) {
+        setShowSuccessModal(true);
+      } else {
+        alert(`Error: ${res.data.message}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to create package.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -136,6 +170,7 @@ const CreateTierMain = () => {
                 inclusions={inclusions}
                 badge={badge}
                 onSave={handleSave}
+                isSubmitting={isSubmitting}
               />
 
             </div>
@@ -143,6 +178,27 @@ const CreateTierMain = () => {
 
         </div>
       </div>
+
+      {/* Premium Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <CheckCircle2 size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Package Created</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              The <span className="font-bold text-gray-800">{tierName}</span> package has been successfully configured and added to your portfolio. It is now instantly available for booking.
+            </p>
+            <button 
+              onClick={() => router.push('/hotel-manager/packages')}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Return to Packages
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

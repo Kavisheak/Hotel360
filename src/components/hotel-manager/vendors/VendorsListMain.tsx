@@ -4,12 +4,7 @@ import React, { useState } from 'react';
 import { Plus, Search, Filter, MoreVertical, Edit2, Trash2, Mail, Phone, Palette, Video, Music } from 'lucide-react';
 import Link from 'next/link';
 
-// Mock data for initial state
-const MOCK_VENDORS = [
-  { id: 'V001', name: 'Nayana Decorators', email: 'nayana@example.com', phone: '0771234567', role: 'decorator', status: 'Active', bookings: 12 },
-  { id: 'V002', name: 'Focus Studio', email: 'focus@example.com', phone: '0719876543', role: 'videographer', status: 'Active', bookings: 8 },
-  { id: 'V003', name: 'DJ Blast', email: 'blast@example.com', phone: '0723456789', role: 'dj_artist', status: 'Inactive', bookings: 3 },
-];
+import { staffAPI } from '@/lib/api';
 
 // Premium SVG Icons
 const DecoratorIcon = () => (
@@ -39,8 +34,75 @@ const roleConfig: Record<string, { label: string, icon: React.ReactNode, color: 
 const VendorsListMain = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [vendorToEdit, setVendorToEdit] = useState<any | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const filteredVendors = MOCK_VENDORS.filter(v => {
+  React.useEffect(() => {
+    fetchVendors();
+  }, []);
+
+  const fetchVendors = async () => {
+    setIsLoading(true);
+    try {
+      const response = await staffAPI.getAllVendors();
+      if (response.ok && response.data.data) {
+        setVendors(response.data.data);
+      } else {
+        console.error("Failed to load vendors", response.data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vendorToEdit) return;
+    setIsUpdating(true);
+    
+    try {
+      const response = await staffAPI.updateVendor(vendorToEdit._id, vendorToEdit);
+      if (response.ok) {
+        setVendors(prev => prev.map(v => v._id === vendorToEdit._id ? response.data.data : v));
+        setVendorToEdit(null);
+      } else {
+        alert(`Error: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to update vendor.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!vendorToDelete) return;
+    setIsDeleting(true);
+    
+    try {
+      const response = await staffAPI.deleteVendor(vendorToDelete);
+      if (response.ok) {
+        setVendors(prev => prev.filter(v => v._id !== vendorToDelete));
+        setVendorToDelete(null);
+      } else {
+        alert(`Error: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to delete vendor.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const filteredVendors = vendors.filter(v => {
     const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase()) || v.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || v.role === filterRole;
     return matchesSearch && matchesRole;
@@ -103,18 +165,25 @@ const VendorsListMain = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E0D8C3]">
-              {filteredVendors.map((vendor, idx) => {
+              {isLoading && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">
+                    Loading vendors...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && filteredVendors.map((vendor, idx) => {
                 const roleInfo = roleConfig[vendor.role] || { label: 'Unknown', icon: null, color: 'text-gray-700', bg: 'bg-gray-100' };
                 return (
-                  <tr key={vendor.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE] hover:bg-[#F2EADA] transition-colors'}>
+                  <tr key={vendor._id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE] hover:bg-[#F2EADA] transition-colors'}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-[#E0D8C3] flex items-center justify-center text-[#7C6A2E] font-bold font-serif">
-                          {vendor.name.charAt(0)}
+                          {vendor.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-bold text-gray-800">{vendor.name}</p>
-                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">{vendor.id}</p>
+                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">{vendor._id.substring(0, 8).toUpperCase()}</p>
                         </div>
                       </div>
                     </td>
@@ -134,25 +203,35 @@ const VendorsListMain = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800">
-                      {vendor.bookings} Events
+                      {vendor.bookings || 0} Events
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
-                        vendor.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                        vendor.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}>
-                        {vendor.status}
+                        {vendor.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-3">
-                        <button className="text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Edit Vendor"><Edit2 size={16} /></button>
-                        <button className="text-gray-400 hover:text-red-600 transition-colors" title="Remove"><Trash2 size={16} /></button>
+                        <button 
+                          onClick={() => setVendorToEdit(vendor)}
+                          className="text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Edit Vendor"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => setVendorToDelete(vendor._id)}
+                          className="text-gray-400 hover:text-red-600 transition-colors" title="Remove"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>
                 );
               })}
-              {filteredVendors.length === 0 && (
+              {!isLoading && filteredVendors.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">
                     No vendors found matching your criteria.
@@ -163,6 +242,130 @@ const VendorsListMain = () => {
           </table>
         </div>
       </div>
+
+      {/* Premium Delete Confirmation Modal */}
+      {vendorToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Trash2 size={28} className="text-red-500" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-gray-800 mb-2 tracking-wide">Remove Vendor?</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              Are you sure you want to permanently revoke this vendor's portal access and remove them from the directory? This action cannot be undone.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setVendorToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 bg-transparent border border-[#E0D8C3] text-gray-600 hover:bg-[#FAF6EE] px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isDeleting ? 'Removing...' : 'Confirm Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Premium Edit Modal */}
+      {vendorToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+            <div className="bg-[#FAF6EE] p-6 border-b border-[#E0D8C3] flex justify-between items-center">
+              <h3 className="text-sm font-bold tracking-widest uppercase text-[#7C6A2E] flex items-center gap-2">
+                <Edit2 size={16} /> Edit Vendor Profile
+              </h3>
+              <button onClick={() => setVendorToEdit(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            
+            <form onSubmit={handleUpdate} className="overflow-y-auto p-8 space-y-5">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Full Name</label>
+                <input 
+                  required
+                  type="text" 
+                  value={vendorToEdit.name}
+                  onChange={(e) => setVendorToEdit({...vendorToEdit, name: e.target.value})}
+                  className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Email Address</label>
+                  <input 
+                    required
+                    type="email" 
+                    value={vendorToEdit.email}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, email: e.target.value})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Contact Number</label>
+                  <input 
+                    required
+                    type="tel" 
+                    value={vendorToEdit.phone}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, phone: e.target.value})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Role Category</label>
+                  <select 
+                    value={vendorToEdit.role}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, role: e.target.value})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  >
+                    <option value="decorator">Decorator</option>
+                    <option value="videographer">Videographer</option>
+                    <option value="dj_artist">DJ Artist</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Account Status</label>
+                  <select 
+                    value={vendorToEdit.isActive ? 'true' : 'false'}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, isActive: e.target.value === 'true'})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  >
+                    <option value="true">Active (Access Granted)</option>
+                    <option value="false">Inactive (Access Revoked)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4 mt-2 border-t border-[#E0D8C3]">
+                <button 
+                  type="button"
+                  onClick={() => setVendorToEdit(null)}
+                  disabled={isUpdating}
+                  className="flex-1 bg-transparent border border-[#E0D8C3] text-gray-600 hover:bg-[#FAF6EE] px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex-1 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                >
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
