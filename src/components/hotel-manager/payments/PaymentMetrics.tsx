@@ -1,15 +1,55 @@
-import React from 'react';
-import { CalendarDays, Clock, TrendingUp } from 'lucide-react';
+"use client";
 
-const PaymentMetrics = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+import React, { useEffect, useState } from 'react';
+import { CalendarDays, Clock, TrendingUp } from 'lucide-react';
+import { paymentAPI } from '../../../lib/api';
+
+const PaymentMetrics = () => {
+  const [metrics, setMetrics] = useState({
+    monthlyRevenue: 0,
+    pendingCash: 0,
+    pendingCount: 0,
+    forecast: 0,
+  });
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      const res = await paymentAPI.getAllPayments();
+      if (res.ok) {
+        const payments = res.data.data;
+        let revenue = 0;
+        let pending = 0;
+        let pendingCount = 0;
+
+        payments.forEach((p: any) => {
+          if (p.paymentStatus === "Paid") {
+            revenue += p.amount;
+          } else if (p.paymentStatus === "Pending") {
+            pending += p.amount;
+            pendingCount++;
+          }
+        });
+
+        setMetrics({
+          monthlyRevenue: revenue,
+          pendingCash: pending,
+          pendingCount: pendingCount,
+          forecast: revenue > 0 ? revenue * 12 : 512000,
+        });
+      }
+    };
+    fetchMetrics();
+  }, []);
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
     {/* Monthly Revenue */}
     <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays size={18} className="text-[#B08D2C]" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Monthly Revenue</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Revenue</p>
       </div>
-      <p className="text-2xl font-serif font-semibold text-gray-800">$42,500.00</p>
+      <p className="text-2xl font-serif font-semibold text-gray-800">LKR {metrics.monthlyRevenue.toLocaleString()}</p>
       <p className="text-[10px] font-semibold text-green-600 mt-1.5 tracking-wide">+12% vs last month</p>
     </div>
 
@@ -19,8 +59,8 @@ const PaymentMetrics = () => (
         <Clock size={18} className="text-[#4258af]" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pending Cash</p>
       </div>
-      <p className="text-2xl font-serif font-semibold text-gray-800">$8,240.00</p>
-      <p className="text-[10px] font-semibold text-gray-400 mt-1.5 tracking-widest uppercase">14 Pending Deposits</p>
+      <p className="text-2xl font-serif font-semibold text-gray-800">LKR {metrics.pendingCash.toLocaleString()}</p>
+      <p className="text-[10px] font-semibold text-gray-400 mt-1.5 tracking-widest uppercase">{metrics.pendingCount} Pending Requests</p>
     </div>
 
     {/* Annual Forecast — dark gold card */}
@@ -32,7 +72,7 @@ const PaymentMetrics = () => (
         <TrendingUp size={18} className="text-[#F9DD76]" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-[#F9DD76]">Annual Forecast</p>
       </div>
-      <p className="text-2xl font-serif font-bold text-white relative z-10">$512,000.00</p>
+      <p className="text-2xl font-serif font-bold text-white relative z-10">LKR {metrics.forecast.toLocaleString()}</p>
       {/* Progress bar */}
       <div className="mt-4">
         <div className="w-full bg-white/20 rounded-full h-1.5">
@@ -42,6 +82,7 @@ const PaymentMetrics = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PaymentMetrics;

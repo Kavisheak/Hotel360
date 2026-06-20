@@ -47,4 +47,10 @@ export const bookingAPI = {
   getBookingById: (id: string) => apiFetch(`/api/bookings/${id}`),
   updateBookingStatus: (id: string, body: any) => apiFetch(`/api/bookings/${id}/status`, { method: "PUT", body: JSON.stringify(body) }),
   assignArtisans: (id: string, body: any) => apiFetch(`/api/bookings/${id}/assign`, { method: "PUT", body: JSON.stringify(body) }),
+  recordPayment: (id: string, body: any) => apiFetch(`/api/bookings/${id}/payment`, { method: "PUT", body: JSON.stringify(body) }),
+};
+
+export const paymentAPI = {
+  getAllPayments: () => apiFetch("/api/payments"),
+  confirmPayment: (id: string) => apiFetch(`/api/payments/${id}/confirm`, { method: "PUT" }),
 };
