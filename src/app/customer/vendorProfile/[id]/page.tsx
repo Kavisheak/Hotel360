@@ -14,6 +14,12 @@ export default function VendorProfilePage() {
   const [vendor, setVendor] = useState<Vendor | null>(null);
 
   useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user !== "customer" && user !== "decorator") {
+      router.push("/login");
+      return;
+    }
+
     if (id) {
       const foundVendor = VENDORS_DATA.find((v) => v.id === id);
       if (foundVendor) {

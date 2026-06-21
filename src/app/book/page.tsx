@@ -14,6 +14,7 @@ import BookingVendorSelector from "@/components/landing/book/BookingVendorSelect
 import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingStore } from "@/store/bookingStore";
@@ -25,6 +26,15 @@ export default function BookPage() {
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
   const [guestCount, setGuestCount] = useState<number>(380);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+  const [isGuest, setIsGuest] = useState(true);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user === "customer" || user === "decorator") {
+      setIsGuest(false);
+    }
+  }, []);
   
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
@@ -145,6 +155,10 @@ export default function BookPage() {
   };
 
   const handleNext = () => {
+    if (isGuest) {
+      setLoginModalOpen(true);
+      return;
+    }
     if (currentStep === 1 && selectedDate === 0) {
       setIsDateModalOpen(true);
       return;
@@ -286,6 +300,12 @@ export default function BookPage() {
       <DateRequiredModal 
         isOpen={isDateModalOpen} 
         onClose={() => setIsDateModalOpen(false)} 
+      />
+
+      <LoginRequiredModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+        message="Please log in to continue with your booking process." 
       />
     </div>
   );

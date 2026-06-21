@@ -4,18 +4,35 @@ import { useRouter } from "next/navigation";
 import { Star, Award, Info, ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useState } from "react";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface VendorCardsProps {
   filteredVendors: Vendor[];
   onClearFilters: () => void;
+  isGuest?: boolean;
 }
 
 export default function VendorCards({
   filteredVendors,
-  onClearFilters
+  onClearFilters,
+  isGuest = true
 }: VendorCardsProps) {
   const router = useRouter();
   const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
+  
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginModalMessage, setLoginModalMessage] = useState("");
+
+  const handleRestrictedAction = (message: string, action: () => void) => {
+    if (isGuest) {
+      setLoginModalMessage(message);
+      setLoginModalOpen(true);
+    } else {
+      action();
+    }
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-8">
       {filteredVendors.length === 0 ? (
@@ -62,13 +79,13 @@ export default function VendorCards({
                 {/* Quick Actions */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                   <button 
-                    onClick={() => toggleFavoriteVendor(vendor.id)} 
+                    onClick={() => handleRestrictedAction("Please log in to add vendors to your favorites list.", () => toggleFavoriteVendor(vendor.id))} 
                     className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isFavorite ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
                   </button>
                   <button 
-                    onClick={() => toggleCartVendor(vendor.id)} 
+                    onClick={() => handleRestrictedAction("Please log in to add vendors to your booking cart.", () => toggleCartVendor(vendor.id))} 
                     className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${inCart ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
                   >
                     <ShoppingCart className={`w-4 h-4 ${inCart ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
@@ -120,7 +137,7 @@ export default function VendorCards({
               {/* Footer Trigger Button */}
               <div className="px-6 pb-6 pt-2 bg-transparent">
                 <button 
-                  onClick={() => router.push(`/customer/vendorProfile/${vendor.id}`)}
+                  onClick={() => handleRestrictedAction("Please log in to view detailed vendor profiles and packages.", () => router.push(`/customer/vendorProfile/${vendor.id}`))}
                   className="btn-interactive w-full text-center border border-[#D4C9A8] dark:border-[#C9A84C] text-[#805D3A] dark:text-[#C9A84C] py-2.5 hover:bg-[#D4AF37] dark:hover:bg-[#C9A84C] hover:border-[#D4AF37] hover:text-white dark:hover:text-[#1A1A1A] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest flex items-center justify-center gap-2 group-hover:border-[#D4AF37] dark:group-hover:border-[#C9A84C]"
                 >
                   View Details & Packages
@@ -132,6 +149,12 @@ export default function VendorCards({
           })}
         </div>
       )}
+
+      <LoginRequiredModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+        message={loginModalMessage} 
+      />
     </section>
   );
 }
