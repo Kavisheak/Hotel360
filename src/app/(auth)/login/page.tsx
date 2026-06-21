@@ -56,7 +56,7 @@ export default function AuthPage() {
     else if (role === "decorator")     router.push("/decorator");
     else if (role === "videographer")  router.push("/videographer");
     else if (role === "dj_artist")     router.push("/dj-artist");
-    else                               router.push("/customer/home");
+    else                               router.push("/");
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -80,7 +80,7 @@ export default function AuthPage() {
     }
 
     localStorage.setItem("user", "customer");
-    router.push("/customer/home");
+    router.push("/");
   };
 
   // Animation variants

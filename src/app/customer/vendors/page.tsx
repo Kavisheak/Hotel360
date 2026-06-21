@@ -23,6 +23,15 @@ export default function VendorsPage() {
   const cartVendorsList = useVendorCartStore((state) => state.cartVendors) || [];
   const selectedCount = cartVendorsList.length;
 
+  const [isGuest, setIsGuest] = React.useState(true);
+
+  React.useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user === "customer" || user === "decorator") {
+      setIsGuest(false);
+    }
+  }, []);
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setRatingFilter(0);
@@ -62,6 +71,7 @@ export default function VendorsPage() {
         <VendorCards 
           filteredVendors={filteredVendors} 
           onClearFilters={handleClearFilters}
+          isGuest={isGuest}
         />
         
         <VendorsTrust />
@@ -70,7 +80,7 @@ export default function VendorsPage() {
       <Footer />
 
       {/* Floating Booking Cart Button */}
-      {selectedCount > 0 && (
+      {!isGuest && selectedCount > 0 && (
         <div className="fixed bottom-8 right-8 z-50">
           <button 
             onClick={() => router.push("/customer/saved")}
