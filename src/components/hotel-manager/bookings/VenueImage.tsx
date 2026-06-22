@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 
-const VenueImage = () => (
+const VenueImage = ({ booking }: { booking: any }) => (
   <div className="relative w-full h-56 lg:h-80 rounded-xl overflow-hidden mb-6 shadow-sm">
     <Image
       src="/crystal_pavilion_venue.png"

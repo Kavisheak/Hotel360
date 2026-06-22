@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, CalendarDays, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package
+  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -64,6 +64,7 @@ const ManagerSidebar = () => {
     { icon: <CalendarDays size={20} />,  label: 'CALENDAR',   href: '/hotel-manager/calendar' },
     { icon: <CreditCard size={20} />,    label: 'PAYMENTS',   href: '/hotel-manager/payments' },
     { icon: <Package size={20} />,       label: 'PACKAGES',   href: '/hotel-manager/packages' },
+    { icon: <Users size={20} />,         label: 'VENDORS',    href: '/hotel-manager/vendors' },
     { icon: <BarChart3 size={20} />,     label: 'REPORTS',    href: '/hotel-manager/reports' },
     { icon: <Settings size={20} />,      label: 'SETTINGS',   href: '/hotel-manager/settings' },
   ];

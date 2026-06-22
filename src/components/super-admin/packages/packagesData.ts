@@ -6,7 +6,16 @@ export interface Tier {
   badge?: string;
   price: number;
   guests: number;
+  baseGuests?: number;
+  guestSurcharge?: number;
+  icon?: string;
   features: { text: string; included: boolean }[];
+  inclusions?: {
+    valet: boolean;
+    bridal: boolean;
+    led: boolean;
+    catering: boolean;
+  };
   highlighted?: boolean;
 }
 
