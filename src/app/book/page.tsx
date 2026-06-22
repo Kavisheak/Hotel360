@@ -18,6 +18,7 @@ import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingStore } from "@/store/bookingStore";
+import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI } from "@/lib/api";
 
 export default function BookPage() {
@@ -44,14 +45,19 @@ export default function BookPage() {
   const setStoreVendor = useVendorCartStore((state) => state.setVendor);
 
   const [vendors, setLocalVendors] = useState({ 
-    decorator: cartVendors.decorator, 
-    dj: cartVendors.dj,
-    videographer: cartVendors.videographer
+    decorator: "none", 
+    decoratorPackage: "none",
+    dj: "none",
+    djPackage: "none",
+    videographer: "none",
+    videographerPackage: "none"
   });
   
-  const [menu, setMenu] = useState(cartMenu.type !== "none" ? cartMenu.type : "signature");
+  const [menu, setMenu] = useState<"signature" | "custom">(
+    (cartMenu.type === "signature" || cartMenu.type === "custom") ? cartMenu.type : "signature"
+  );
 
-  const handleMenuChange = (newMenu: string) => {
+  const handleMenuChange = (newMenu: "signature" | "custom") => {
     setMenu(newMenu);
     if (newMenu === "signature" || newMenu === "custom") {
       setMenuTypeStore(newMenu);
@@ -76,9 +82,10 @@ export default function BookPage() {
 
       if (preDecorator || preDj || preVid) {
         setVendors({
-          decorator: preDecorator || cartVendors.decorator,
-          dj: preDj || cartVendors.dj,
-          videographer: preVid || cartVendors.videographer
+          ...vendors,
+          decorator: preDecorator || "none",
+          dj: preDj || "none",
+          videographer: preVid || "none"
         });
       }
 
@@ -87,6 +94,11 @@ export default function BookPage() {
       }
     }
   }, []);
+
+  const { fetchUser } = useAuthStore();
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const getBasePrice = () => {
     if (selectedPackage === "silver") return 1800000;
@@ -99,14 +111,30 @@ export default function BookPage() {
     return 3500; // signature
   };
 
-  const getVendorCost = (vendorId: string) => {
-    if (vendorId === "none") return 0;
-    const v = VENDORS_DATA.find(v => v.id === vendorId);
-    if (!v) return 0;
+  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
+    const vendorId = vendors[category];
+    if (vendorId === "none" || vendorId === "custom_preference") return 0;
     
-    // Parse starting price "LKR 450,000" -> 450000
-    const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
-    return numericStr ? parseInt(numericStr, 10) : 0;
+    if (category === "decorator") {
+      const pkgName = vendors[`decoratorPackage`];
+      if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
+      
+      const v = VENDORS_DATA.find(v => v.id === vendorId);
+      if (!v) return 0;
+      
+      const pkg = v.packages.find(p => p.name === pkgName);
+      if (pkg) {
+        const numericStr = pkg.price.replace(/[^0-9]/g, "");
+        return numericStr ? parseInt(numericStr, 10) : 0;
+      }
+      return 0;
+    } else {
+      // For DJ and Videographer, use startingPrice since they don't have package selection
+      const v = VENDORS_DATA.find(v => v.id === vendorId);
+      if (!v) return 0;
+      const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
+      return numericStr ? parseInt(numericStr, 10) : 0;
+    }
   };
 
   const calculateDuration = () => {
@@ -126,7 +154,7 @@ export default function BookPage() {
   const foodCost = guestCount * getMenuPricePerGuest();
   const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
   
-  let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
+  let addonsCost = getVendorCost("decorator") + getVendorCost("dj") + getVendorCost("videographer");
 
   if (menu === "custom") {
     // Add cost of selected custom menu items * guest count
@@ -164,9 +192,21 @@ export default function BookPage() {
       menuType: menu,
       customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
       vendors: {
-        decoratorId: vendors.decorator !== "none" ? vendors.decorator : undefined,
-        djId: vendors.dj !== "none" ? vendors.dj : undefined,
-        videographerId: vendors.videographer !== "none" ? vendors.videographer : undefined
+        decorator: {
+          vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
+          status: vendors.decorator !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : ""
+        },
+        dj: {
+          vendorId: vendors.dj !== "none" ? vendors.dj : null,
+          status: vendors.dj !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.djPackage !== "none" ? vendors.djPackage : ""
+        },
+        videographer: {
+          vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
+          status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : ""
+        }
       }
     };
 
@@ -332,31 +372,6 @@ export default function BookPage() {
 
         </div>
 
-        {/* Bottom Call to Action */}
-        <section className="relative w-full py-24 bg-[#FAF6EE] dark:bg-[#0A0A0A] overflow-hidden border-t border-[#E8DFC9] dark:border-gray-800">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#0A0A0A] dark:via-[#0A0A0A]/80 z-10"></div>
-            <img 
-              src="/vendors_hero_bg_v3.png" 
-              alt="EASCC Venue" 
-              className="w-full h-full object-cover opacity-60 dark:opacity-30"
-            />
-          </div>
-          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-6">
-            <div className="text-[10px] tracking-[0.3em] uppercase font-bold text-[#A6955C]">
-              Reservations Open
-            </div>
-            <h2 className="text-4xl md:text-5xl font-serif text-[#1A1512] dark:text-white">
-              Begin the conversation.
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-light max-w-lg mx-auto">
-              A bespoke evening starts with a single date. View availability and compose your celebration in minutes.
-            </p>
-            <button className="px-8 py-3.5 bg-[#C69C6D] text-white text-[10px] uppercase font-bold tracking-widest hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md mt-4">
-              Reserve Your Date &rarr;
-            </button>
-          </div>
-        </section>
 
       </main>
 

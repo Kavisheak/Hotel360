@@ -14,7 +14,7 @@ interface FeedbackModalProps {
 export default function FeedbackModal({ isOpen, onClose, bookingId }: FeedbackModalProps) {
   const { bookings, submitFeedback } = useBookingStore();
   const booking = bookings.find(b => b.id === bookingId);
-  const vendors = booking?.vendors || { decorator: "none", dj: "none", videographer: "none" };
+  const vendors = booking?.vendors || {};
 
   const [ratings, setRatings] = useState<Record<string, number>>({
     overall: 0,
@@ -33,16 +33,16 @@ export default function FeedbackModal({ isOpen, onClose, bookingId }: FeedbackMo
       setRatings({
         overall: 0,
         food: 0,
-        ...(vendors.decorator !== "none" ? { decorator: 0 } : {}),
-        ...(vendors.dj !== "none" ? { dj: 0 } : {}),
-        ...(vendors.videographer !== "none" ? { videographer: 0 } : {}),
+        ...(vendors.decorator?.vendorId ? { decorator: 0 } : {}),
+        ...(vendors.dj?.vendorId ? { dj: 0 } : {}),
+        ...(vendors.videographer?.vendorId ? { videographer: 0 } : {}),
       });
       setComments({
         overall: "",
         food: "",
-        ...(vendors.decorator !== "none" ? { decorator: "" } : {}),
-        ...(vendors.dj !== "none" ? { dj: "" } : {}),
-        ...(vendors.videographer !== "none" ? { videographer: "" } : {}),
+        ...(vendors.decorator?.vendorId ? { decorator: "" } : {}),
+        ...(vendors.dj?.vendorId ? { dj: "" } : {}),
+        ...(vendors.videographer?.vendorId ? { videographer: "" } : {}),
       });
     }
   }, [isOpen, bookingId, vendors]);
@@ -171,9 +171,9 @@ export default function FeedbackModal({ isOpen, onClose, bookingId }: FeedbackMo
               <div className="bg-[#FAF6EE] dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-xl px-6 py-2 shadow-sm">
                 <RatingRow label="Overall Event Experience" category="overall" />
                 <RatingRow label="Food & Catering Services" category="food" />
-                {vendors.decorator !== "none" && <RatingRow label={`Decorator (${vendors.decorator})`} category="decorator" />}
-                {vendors.dj !== "none" && <RatingRow label={`DJ Artist (${vendors.dj})`} category="dj" />}
-                {vendors.videographer !== "none" && <RatingRow label={`Videography (${vendors.videographer})`} category="videographer" />}
+                {vendors.decorator?.vendorId && <RatingRow label={`Decorator`} category="decorator" />}
+                {vendors.dj?.vendorId && <RatingRow label={`DJ Artist`} category="dj" />}
+                {vendors.videographer?.vendorId && <RatingRow label={`Videography`} category="videographer" />}
               </div>
             </div>
 

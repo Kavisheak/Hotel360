@@ -18,7 +18,9 @@ export interface Feedback {
 
 export interface Booking {
   _id: string;
+  id?: string;
   bookingRef: string;
+  eventName?: string;
   clientName: string;
   email: string;
   phone: string;
@@ -35,9 +37,26 @@ export interface Booking {
   balanceAmount: number;
   packageId?: string;
   packageName: string;
+  package?: string;
   menuType: string;
   customMenuItems: string[];
   vendors: {
+    decorator?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    dj?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    videographer?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    // Legacy fields for backward compatibility during transition
     decoratorId?: string;
     videographerId?: string;
     djId?: string;
@@ -61,9 +80,13 @@ interface BookingState {
   error: string | null;
   fetchUserBookings: () => Promise<void>;
   addBookingLocally: (booking: Booking) => void;
+  addBooking: (booking: Booking) => void;
   getPendingBookings: () => Booking[];
   getConfirmedBookings: () => Booking[];
+  updateBookingStatus: (id: string, status: string) => void;
   submitFeedback: (id: string, feedback: Feedback) => void;
+  swapVendor: (bookingId: string, service: string, newVendorId: string) => Promise<void>;
+  vendorRespondBooking: (bookingId: string, service: string, status: "Accepted" | "Declined") => Promise<void>;
 }
 
 export const useBookingStore = create<BookingState>()(
@@ -95,6 +118,52 @@ export const useBookingStore = create<BookingState>()(
         set((state) => ({ bookings: [booking, ...state.bookings] })),
       getPendingBookings: () => get().bookings.filter(b => b.status === "Pending"),
       getConfirmedBookings: () => get().bookings.filter(b => b.status === "Confirmed"),
+      addBooking: (booking) => set((state) => ({ bookings: [booking, ...state.bookings] })),
+      updateBookingStatus: (id, status) => set((state) => ({
+        bookings: state.bookings.map((b) => ((b.id || b._id) === id ? { ...b, status: status as any } : b))
+      })),
+      swapVendor: async (bookingId, service, newVendorId) => {
+        try {
+          const { customerBookingAPI } = await import("@/lib/api");
+          const res = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId });
+          if (res.ok) {
+            set((state) => ({
+              bookings: state.bookings.map((b) =>
+                (b.id || b._id) === bookingId ? {
+                  ...b,
+                  vendors: {
+                    ...b.vendors,
+                    [service]: {
+                      vendorId: newVendorId,
+                      status: "Pending",
+                      packageName: (b.vendors?.[service as keyof typeof b.vendors] as any)?.packageName || ""
+                    }
+                  }
+                } : b
+              )
+            }));
+          }
+        } catch (error) {
+          console.error("Swap vendor error:", error);
+        }
+      },
+      vendorRespondBooking: async (bookingId, service, status) => {
+        // Just mock the state update for demonstration, as vendor routes require vendor auth token
+        set((state) => ({
+          bookings: state.bookings.map((b) =>
+            (b.id || b._id) === bookingId ? {
+              ...b,
+              vendors: {
+                ...b.vendors,
+                [service]: {
+                  ...(b.vendors?.[service as keyof typeof b.vendors] as any),
+                  status
+                }
+              }
+            } : b
+          )
+        }));
+      },
       submitFeedback: (id, feedback) =>
         set((state) => ({
           bookings: state.bookings.map((b) =>

@@ -69,14 +69,34 @@ const NewBookingMain = () => {
 
     const payload = {
       clientName: clientInfo.name || 'Walk-in Client',
-      clientEmail: clientInfo.email || 'pending@example.com',
-      clientPhone: clientInfo.phone || '0770000000',
+      email: clientInfo.email || 'N/A',
+      phone: clientInfo.phone || 'N/A',
+      eventType: selectedPkgData ? selectedPkgData.name : (packageType === 'silver' ? 'Classic Silver Package' : packageType === 'diamond' ? 'Luxury Diamond Gala' : 'Grand Gold Celebration'),
       packageId: packageType,
-      eventDate: selectedDate || new Date().toISOString().split('T')[0],
-      eventType: selectedPkgData ? selectedPkgData.name : 'Custom Event',
-      guestCount: parseInt(guests),
-      paymentStatus: finalStatus,
-      internalNote: `Timeslot: ${timeslot}. Vendor IDs: Dec:${vendors.decorator}, DJ:${vendors.dj}, Vid:${vendors.videographer}`
+      date: selectedDate || new Date().toISOString().split('T')[0],
+      timeslot: timeslot,
+      guests: parseInt(guests),
+      status: finalStatus,
+      totalCost,
+      vendors: {
+        decorator: {
+          vendorId: vendors.decorator || null,
+          status: vendors.decorator ? 'Pending' : 'NotRequired',
+          packageName: ''
+        },
+        dj: {
+          vendorId: vendors.dj || null,
+          status: vendors.dj ? 'Pending' : 'NotRequired',
+          packageName: ''
+        },
+        videographer: {
+          vendorId: vendors.videographer || null,
+          status: vendors.videographer ? 'Pending' : 'NotRequired',
+          packageName: ''
+        }
+      },
+      menuType: "signature",
+      createdAt: new Date().toISOString()
     };
 
     try {

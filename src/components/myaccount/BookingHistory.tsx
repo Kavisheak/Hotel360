@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
+import VendorSwapModal from "./VendorSwapModal";
 import { useBookingStore } from "@/store/bookingStore";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -17,6 +18,13 @@ export default function BookingHistory() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const { bookings, isLoading } = useBookingStore();
+  
+  const [swapModalState, setSwapModalState] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    service: "decorator" | "dj" | "videographer";
+    currentVendorId?: string;
+  }>({ isOpen: false, bookingId: "", service: "decorator" });
 
   useEffect(() => {
     setIsClient(true);
@@ -88,6 +96,46 @@ export default function BookingHistory() {
                         {booking.guests} guests
                       </span>
                     </div>
+
+                    {/* Vendors Status Row */}
+                    {booking.vendors && (
+                      <div className="mt-4 space-y-2">
+                        {["decorator", "dj", "videographer"].map((service) => {
+                          const vendor = booking.vendors[service as keyof typeof booking.vendors] as any;
+                          if (!vendor || typeof vendor !== 'object' || vendor.status === "NotRequired" || !vendor.vendorId) return null;
+                          
+                          const vStatus = vendor.status || "Pending";
+                          const isDeclined = vStatus === "Declined";
+                          
+                          return (
+                            <div key={service} className={`flex items-center justify-between text-[10px] p-2 rounded-sm border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10'}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="capitalize font-semibold text-gray-700 dark:text-gray-300">{service}:</span>
+                                <span className={`font-bold ${isDeclined ? 'text-red-600' : vStatus === 'Accepted' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  {vStatus}
+                                </span>
+                              </div>
+                              {isDeclined && (
+                                <button 
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    setSwapModalState({
+                                      isOpen: true,
+                                      bookingId: booking.id || booking._id,
+                                      service: service as "decorator" | "dj" | "videographer",
+                                      currentVendorId: typeof vendor === 'object' && vendor !== null ? vendor.vendorId || undefined : undefined
+                                    });
+                                  }}
+                                  className="text-[9px] uppercase tracking-widest font-bold text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded-sm transition-colors"
+                                >
+                                  Change Vendor
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Price & Action */}
@@ -96,9 +144,8 @@ export default function BookingHistory() {
                     <div className="flex items-center gap-3 mt-auto pt-4">
                       {statusKey === "completed" && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBookingId(booking._id || booking.id);
+                          onClick={() => {
+                            setSelectedBookingId(booking.id || (booking._id as string));
                             setIsFeedbackOpen(true);
                           }}
                           className="text-[9px] uppercase tracking-widest font-bold text-white bg-[#C69C6D] hover:bg-[#B58A59] px-3 py-1.5 rounded-sm transition-colors flex items-center gap-1.5 shadow-sm"
@@ -128,6 +175,16 @@ export default function BookingHistory() {
             setTimeout(() => setSelectedBookingId(null), 300); // allow animation to finish
           }}
           bookingId={selectedBookingId}
+        />
+      )}
+
+      {swapModalState.isOpen && (
+        <VendorSwapModal
+          isOpen={swapModalState.isOpen}
+          onClose={() => setSwapModalState({ ...swapModalState, isOpen: false })}
+          bookingId={swapModalState.bookingId}
+          serviceCategory={swapModalState.service}
+          currentVendorId={swapModalState.currentVendorId}
         />
       )}
     </div>

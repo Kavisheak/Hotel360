@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface BookingMenuSelectorProps {
-  menu: string;
-  onChange: (menu: string) => void;
+  menu: "signature" | "custom";
+  onChange: (menu: "signature" | "custom") => void;
 }
 
 export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelectorProps) {
@@ -40,7 +40,7 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
           return (
             <div 
               key={opt.id}
-              onClick={() => onChange(opt.id)}
+              onClick={() => onChange(opt.id as any)}
               className={`
                 p-5 border rounded-sm cursor-pointer transition-all flex flex-col hover-glow btn-interactive
                 ${isSelected 

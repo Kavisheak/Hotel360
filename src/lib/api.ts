@@ -60,4 +60,5 @@ export const customerBookingAPI = {
   createBooking: (body: any) => apiFetch("/api/customer/bookings", { method: "POST", body: JSON.stringify(body) }),
   getMyBookings: () => apiFetch("/api/customer/bookings"), // Using the new structured route
   getAvailability: () => apiFetch("/api/customer/bookings/availability"),
+  swapVendor: (bookingId: string, body: any) => apiFetch(`/api/customer/bookings/${bookingId}/swap-vendor`, { method: "PATCH", body: JSON.stringify(body) }),
 };
