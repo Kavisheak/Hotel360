@@ -28,13 +28,6 @@ export default function VirtualTourPage() {
       <main className="flex-grow pb-0">
         <div className="max-w-7xl mx-auto px-6 pt-12 pb-16 section-reveal">
         <div className="flex flex-col mb-8">
-          <Link 
-            href="/customer/home"
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#1A1512] dark:text-gray-400 dark:hover:text-white transition-colors mb-6 btn-interactive w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
           
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 stagger-1">
             <div>

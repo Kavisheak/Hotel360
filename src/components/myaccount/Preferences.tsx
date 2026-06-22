@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings, Globe, Clock, Palette, Save, Moon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Settings, Globe, Clock, Palette, Save, Moon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { accountAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 export default function Preferences() {
+  const { user, fetchUser } = useAuthStore();
   const [language, setLanguage] = useState("en");
   const [timezone, setTimezone] = useState("asia_colombo");
   const [dateFormat, setDateFormat] = useState("dd_mm_yyyy");
@@ -12,14 +15,29 @@ export default function Preferences() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user?.preferences) {
+      if (user.preferences.language) setLanguage(user.preferences.language);
+      if (user.preferences.timezone) setTimezone(user.preferences.timezone);
+      if (user.preferences.dateFormat) setDateFormat(user.preferences.dateFormat);
+      if (user.preferences.currency) setCurrency(user.preferences.currency);
+    }
+  }, [user]);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setIsLoading(true);
+    const prefs = { language, timezone, dateFormat, currency };
+    const { ok } = await accountAPI.updatePreferences(prefs);
+    setIsLoading(false);
+    
+    if (ok) {
+      setSaved(true);
+      fetchUser();
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
 
   return (
@@ -144,9 +162,10 @@ export default function Preferences() {
         <div className="pt-4 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2"
+            disabled={isLoading}
+            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2 disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" />
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Save Preferences
           </button>
           {saved && (
