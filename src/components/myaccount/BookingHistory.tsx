@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
-import { accountAPI } from "@/lib/api";
+import { useBookingStore } from "@/store/bookingStore";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Confirmed" },
@@ -16,19 +16,10 @@ export default function BookingHistory() {
   const [isClient, setIsClient] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { bookings, isLoading } = useBookingStore();
 
   useEffect(() => {
     setIsClient(true);
-    const fetchBookings = async () => {
-      const { ok, data } = await accountAPI.getMyBookings();
-      if (ok && data.bookings) {
-        setBookings(data.bookings);
-      }
-      setIsLoading(false);
-    };
-    fetchBookings();
   }, []);
 
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();

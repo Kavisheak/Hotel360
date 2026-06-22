@@ -55,3 +55,9 @@ export const accountAPI = {
   deletePaymentMethod: (id: string) => apiFetch(`/api/customer/account/payment-methods/${id}`, { method: "DELETE" }),
   getMyBookings: () => apiFetch("/api/customer/account/bookings"),
 };
+
+export const customerBookingAPI = {
+  createBooking: (body: any) => apiFetch("/api/customer/bookings", { method: "POST", body: JSON.stringify(body) }),
+  getMyBookings: () => apiFetch("/api/customer/bookings"), // Using the new structured route
+  getAvailability: () => apiFetch("/api/customer/bookings/availability"),
+};
