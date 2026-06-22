@@ -66,9 +66,21 @@ const NewBookingMain = () => {
       status: finalStatus,
       totalCost,
       vendors: {
-        decorator: vendors.decorator || 'none',
-        dj: vendors.dj || 'none',
-        videographer: vendors.videographer || 'none'
+        decorator: {
+          vendorId: vendors.decorator || null,
+          status: vendors.decorator ? 'Pending' : 'NotRequired',
+          packageName: ''
+        },
+        dj: {
+          vendorId: vendors.dj || null,
+          status: vendors.dj ? 'Pending' : 'NotRequired',
+          packageName: ''
+        },
+        videographer: {
+          vendorId: vendors.videographer || null,
+          status: vendors.videographer ? 'Pending' : 'NotRequired',
+          packageName: ''
+        }
       },
       menuType: "signature",
       createdAt: new Date().toISOString()

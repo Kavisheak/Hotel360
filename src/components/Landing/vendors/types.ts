@@ -6,6 +6,7 @@ export interface VendorPackage {
   name: string;
   price: string;
   features: string[];
+  image?: string;
 }
 
 export interface VendorReview {
@@ -51,17 +52,20 @@ export const VENDORS_DATA: Vendor[] = [
       {
         name: "Standard Ballroom Elegance",
         price: "LKR 450,000",
-        features: ["Premium floral arch backdrop", "Elegant bridal settee", "Custom walkway runner", "8 Table centerpiece designs", "Subtle fairy light draping"]
+        features: ["Premium floral arch backdrop", "Elegant bridal settee", "Custom walkway runner", "8 Table centerpiece designs", "Subtle fairy light draping"],
+        image: "/gold_package.png"
       },
       {
         name: "Grand Ballroom Signature",
         price: "LKR 850,000",
-        features: ["Immersive suspended overhead floral ceiling", "Custom mirrored walkway", "Premium stage backdrop & structure", "Full venue table styling", "12 Premium crystal candelabras", "Warm LED ambient uplighting package"]
+        features: ["Immersive suspended overhead floral ceiling", "Custom mirrored walkway", "Premium stage backdrop & structure", "Full venue table styling", "12 Premium crystal candelabras", "Warm LED ambient uplighting package"],
+        image: "/crystal_chandelier.png"
       },
       {
         name: "Bespoke Royal Grandeur",
         price: "LKR 1,500,000",
-        features: ["Unlimited consultation & sketch designs", "Full-scale custom structural build", "Imported white orchid & rose installations", "Curated lounge seating areas", "Custom dancefloor vinyl overlay", "Full stage, table, and foyer coordination"]
+        features: ["Unlimited consultation & sketch designs", "Full-scale custom structural build", "Imported white orchid & rose installations", "Curated lounge seating areas", "Custom dancefloor vinyl overlay", "Full stage, table, and foyer coordination"],
+        image: "/luxury_ballroom_bg.png"
       }
     ],
     reviews: [
@@ -95,12 +99,14 @@ export const VENDORS_DATA: Vendor[] = [
       {
         name: "Modern Glasshouse Suite",
         price: "LKR 320,000",
-        features: ["Geometric metallic arch frames", "Glass pillar centerpieces", "Corridor of 100 glass cylinders with floating candles", "Warm amber ambient wash", "Sleek velvet lounge backdrop"]
+        features: ["Geometric metallic arch frames", "Glass pillar centerpieces", "Corridor of 100 glass cylinders with floating candles", "Warm amber ambient wash", "Sleek velvet lounge backdrop"],
+        image: "/crystal_chandelier.png"
       },
       {
         name: "Crystal Extravaganza",
         price: "LKR 600,000",
-        features: ["Hanging crystal sphere installations", "Mirrored stage layout", "Custom glass block walkway with internal neon bars", "Full floral accentuation on structures", "Intelligent light show integration"]
+        features: ["Hanging crystal sphere installations", "Mirrored stage layout", "Custom glass block walkway with internal neon bars", "Full floral accentuation on structures", "Intelligent light show integration"],
+        image: "/virtual_tour_bg.png"
       }
     ],
     reviews: [
@@ -129,7 +135,8 @@ export const VENDORS_DATA: Vendor[] = [
       {
         name: "Imperial Poruwa Signature",
         price: "LKR 1,200,000",
-        features: ["Individually carved gold-leaf traditional poruwa", "Ornate brass oil lamps & lotus towers", "Fresh jasmine garlands (500m)", "Sitarist entryway backdrop design", "Royal red/maroon velvet drapery", "Luxury VIP stage carpeting"]
+        features: ["Individually carved gold-leaf traditional poruwa", "Ornate brass oil lamps & lotus towers", "Fresh jasmine garlands (500m)", "Sitarist entryway backdrop design", "Royal red/maroon velvet drapery", "Luxury VIP stage carpeting"],
+        image: "/luxury_ballroom_bg.png"
       }
     ],
     reviews: [

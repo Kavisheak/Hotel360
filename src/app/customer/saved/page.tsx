@@ -8,11 +8,13 @@ import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 export default function SavedVendorsPage() {
   const [activeTab, setActiveTab] = useState<"cart" | "favorites">("cart");
   const { cartVendors, favoriteVendors } = useVendorCartStore();
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const currentListIds = activeTab === "cart" ? cartVendors : favoriteVendors;
   
@@ -50,7 +52,7 @@ export default function SavedVendorsPage() {
         {/* Vendor Grid */}
         {filteredVendors.length > 0 ? (
           <div className="-mx-6">
-            <VendorCards filteredVendors={filteredVendors} onClearFilters={() => {}} />
+            <VendorCards filteredVendors={filteredVendors} onClearFilters={() => {}} isGuest={!user} />
           </div>
         ) : (
           <div className="bg-white dark:bg-[#111111] border border-[#D4C9A8] dark:border-[#C9A84C]/20 py-16 px-6 text-center space-y-4 rounded-sm shadow-md transition-colors duration-300">

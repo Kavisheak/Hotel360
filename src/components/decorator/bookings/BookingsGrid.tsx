@@ -14,7 +14,7 @@ const BookingsGrid = () => {
     setIsClient(true);
   }, []);
 
-  const decoratorBookings = globalBookings.filter(b => b.vendors.decorator !== "none");
+  const decoratorBookings = globalBookings.filter(b => b.vendors.decorator?.vendorId != null);
 
   return (
     <div>
@@ -66,8 +66,9 @@ const BookingsGrid = () => {
           decoratorBookings
             .filter(b => b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || b.eventType.toLowerCase().includes(searchTerm.toLowerCase()))
             .map((booking, idx) => {
-              const isPendingPrep = booking.status === 'Pending';
-              const displayStatus = isPendingPrep ? 'PENDING PREP' : 'READY FOR SETUP';
+              const decoratorVendor = booking.vendors.decorator;
+              const isPending = decoratorVendor?.status === 'Pending';
+              const displayStatus = isPending ? 'PENDING RESPONSE' : decoratorVendor?.status?.toUpperCase() || 'UNKNOWN';
               // Just alternate images for visual mock since we don't store an image per booking
               const imgUrl = idx % 2 === 0 
                 ? 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80' 
@@ -94,8 +95,10 @@ const BookingsGrid = () => {
                       {/* Badge & Event Code */}
                       <div className="flex items-center justify-between mb-3">
                         <span className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${
-                          isPendingPrep 
+                          isPending 
                             ? 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]' 
+                            : decoratorVendor?.status === 'Declined'
+                            ? 'bg-red-50 text-red-600 border border-red-200'
                             : 'bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]'
                         }`}>
                           {displayStatus}
@@ -128,13 +131,33 @@ const BookingsGrid = () => {
                       </p>
                     </div>
 
-                    {/* View Details Button */}
-                    <Link 
-                      href={`/decorator/bookings/${booking.id}`}
-                      className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase text-center block"
-                    >
-                      VIEW DETAILS
-                    </Link>
+                    {isPending ? (
+                      <div className="flex items-center gap-2 mt-4">
+                        <button 
+                          className="flex-1 border border-[#2C1E14] bg-[#2C1E14] text-white py-2 text-[10px] font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors"
+                          onClick={() => {
+                            useBookingStore.getState().vendorRespondBooking(booking.id || booking._id as string, "decorator", "Accepted");
+                          }}
+                        >
+                          Accept
+                        </button>
+                        <button 
+                          className="flex-1 border border-red-600 text-red-600 py-2 text-[10px] font-bold tracking-widest uppercase hover:bg-red-50 transition-colors"
+                          onClick={() => {
+                            useBookingStore.getState().vendorRespondBooking(booking.id || booking._id as string, "decorator", "Declined");
+                          }}
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    ) : (
+                      <Link 
+                        href={`/decorator/bookings/${booking.id}`}
+                        className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-[10px] font-bold tracking-widest transition-colors uppercase text-center block mt-4"
+                      >
+                        VIEW DETAILS
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

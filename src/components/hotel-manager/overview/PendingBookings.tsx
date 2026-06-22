@@ -64,7 +64,7 @@ const PendingBookings = () => {
                   Pending
                 </span>
                 <span className="bg-black/50 backdrop-blur-md text-white text-[10px] font-mono tracking-wider px-2 py-1 rounded">
-                  {row.id.split('-')[1] || row.id}
+                  {((row.id || row._id) as string).split('-')[1] || (row.id || row._id)}
                 </span>
               </div>
 
@@ -88,16 +88,15 @@ const PendingBookings = () => {
                   </span>
                 </div>
 
-                {/* Actions (Slide up on hover) */}
                 <div className="flex items-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                   <button 
-                    onClick={(e) => { e.stopPropagation(); updateBookingStatus(row.id, "Confirmed"); }}
+                    onClick={(e) => { e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Confirmed"); }}
                     className="flex-1 bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors"
                   >
                     Approve
                   </button>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); updateBookingStatus(row.id, "Rejected"); }}
+                    onClick={(e) => { e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Rejected"); }}
                     className="flex-1 bg-white/10 hover:bg-red-500/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors border border-white/20"
                   >
                     Reject

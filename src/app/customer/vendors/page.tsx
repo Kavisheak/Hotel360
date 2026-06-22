@@ -11,6 +11,7 @@ import { VENDORS_DATA, type Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 export default function VendorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,14 +24,7 @@ export default function VendorsPage() {
   const cartVendorsList = useVendorCartStore((state) => state.cartVendors) || [];
   const selectedCount = cartVendorsList.length;
 
-  const [isGuest, setIsGuest] = React.useState(true);
-
-  React.useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user === "customer" || user === "decorator") {
-      setIsGuest(false);
-    }
-  }, []);
+  const { user } = useAuthStore();
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -71,7 +65,7 @@ export default function VendorsPage() {
         <VendorCards 
           filteredVendors={filteredVendors} 
           onClearFilters={handleClearFilters}
-          isGuest={isGuest}
+          isGuest={!user}
         />
         
         <VendorsTrust />
@@ -80,7 +74,7 @@ export default function VendorsPage() {
       <Footer />
 
       {/* Floating Booking Cart Button */}
-      {!isGuest && selectedCount > 0 && (
+      {user && selectedCount > 0 && (
         <div className="fixed bottom-8 right-8 z-50">
           <button 
             onClick={() => router.push("/customer/saved")}
