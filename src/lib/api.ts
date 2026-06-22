@@ -56,30 +56,8 @@ export const accountAPI = {
   getMyBookings: () => apiFetch("/api/customer/account/bookings"),
 };
 
-export const staffAPI = {
-  createVendor: (body: any) => apiFetch("/api/staff/create", { method: "POST", body: JSON.stringify(body) }),
-  getAllVendors: () => apiFetch("/api/staff"),
-  updateVendor: (id: string, body: any) => apiFetch(`/api/staff/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deleteVendor: (id: string) => apiFetch(`/api/staff/${id}`, { method: "DELETE" }),
-};
-
-export const packageAPI = {
-  createPackage: (body: any) => apiFetch("/api/packages/create", { method: "POST", body: JSON.stringify(body) }),
-  getAllPackages: () => apiFetch("/api/packages"),
-  updatePackage: (id: string, body: any) => apiFetch(`/api/packages/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deletePackage: (id: string) => apiFetch(`/api/packages/${id}`, { method: "DELETE" }),
-};
-
-export const bookingAPI = {
-  createBooking: (body: any) => apiFetch("/api/bookings/create", { method: "POST", body: JSON.stringify(body) }),
-  getAllBookings: () => apiFetch("/api/bookings"),
-  getBookingById: (id: string) => apiFetch(`/api/bookings/${id}`),
-  updateBookingStatus: (id: string, body: any) => apiFetch(`/api/bookings/${id}/status`, { method: "PUT", body: JSON.stringify(body) }),
-  assignArtisans: (id: string, body: any) => apiFetch(`/api/bookings/${id}/assign`, { method: "PUT", body: JSON.stringify(body) }),
-  recordPayment: (id: string, body: any) => apiFetch(`/api/bookings/${id}/payment`, { method: "PUT", body: JSON.stringify(body) }),
-};
-
-export const paymentAPI = {
-  getAllPayments: () => apiFetch("/api/payments"),
-  confirmPayment: (id: string) => apiFetch(`/api/payments/${id}/confirm`, { method: "PUT" }),
+export const customerBookingAPI = {
+  createBooking: (body: any) => apiFetch("/api/customer/bookings", { method: "POST", body: JSON.stringify(body) }),
+  getMyBookings: () => apiFetch("/api/customer/bookings"), // Using the new structured route
+  getAvailability: () => apiFetch("/api/customer/bookings/availability"),
 };

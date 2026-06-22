@@ -61,11 +61,34 @@ export default function BookingMenuSelector({ menu, onChange }: BookingMenuSelec
                 {opt.desc}
               </p>
               
-              {opt.id === "custom" && isSelected && (cartMenu.addedOptionalItems.length > 0 || cartMenu.removedDefaultItems.length > 0) && (
+              {opt.id === "signature" && isSelected && (
+                <div className="mb-4 bg-white/50 dark:bg-black/20 rounded-sm p-3 border border-[#C9A84C]/20 text-[10px] font-bold tracking-widest text-[#1A1512] dark:text-white">
+                  <div className="text-[#C9A84C] mb-2 uppercase">Default Menu Includes:</div>
+                  <ul className="list-disc pl-4 space-y-1 font-light normal-case tracking-normal text-gray-700 dark:text-gray-300">
+                    <li>Welcome Drinks & Hors d'oeuvres</li>
+                    <li>Premium Basmati Rice / Fried Rice</li>
+                    <li>Signature Roast Chicken</li>
+                    <li>Spicy Fish Ambul Thiyal</li>
+                    <li>Wok-Fried Vegetable Chop Suey</li>
+                    <li>Crispy Potato Baduma</li>
+                    <li>Watalappam & Ice Cream Dessert</li>
+                  </ul>
+                </div>
+              )}
+              
+              {opt.id === "custom" && isSelected && (
                 <div className="mb-4 bg-white/50 dark:bg-black/20 rounded-sm p-3 border border-[#C9A84C]/20 text-[10px] uppercase font-bold tracking-widest text-[#1A1512] dark:text-white">
                   <div className="text-[#C9A84C] mb-1">Your Customizations:</div>
-                  {cartMenu.addedOptionalItems.length > 0 && <div>+ {cartMenu.addedOptionalItems.length} Premium Additions</div>}
-                  {cartMenu.removedDefaultItems.length > 0 && <div className="text-gray-500">- {cartMenu.removedDefaultItems.length} Standard Items Removed</div>}
+                  {cartMenu.addedOptionalItems.length > 0 ? (
+                    <ul className="list-disc pl-4 mt-2 space-y-1 normal-case tracking-normal font-light text-gray-700 dark:text-gray-300">
+                      {cartMenu.addedOptionalItems.map(item => (
+                        <li key={item.id}>{item.name} (+ LKR {item.price.toLocaleString()})</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-gray-500 normal-case font-light tracking-normal mt-1">No custom additions yet. Click the Menu Builder to add items.</div>
+                  )}
+                  {cartMenu.removedDefaultItems.length > 0 && <div className="text-gray-500 mt-2">- {cartMenu.removedDefaultItems.length} Standard Items Removed</div>}
                 </div>
               )}
 

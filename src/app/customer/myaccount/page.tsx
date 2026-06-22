@@ -15,6 +15,7 @@ import PaymentMethods from "@/components/myaccount/PaymentMethods";
 import Preferences from "@/components/myaccount/Preferences";
 import BookingHistory from "@/components/myaccount/BookingHistory";
 import { useAuthStore } from "@/store/authStore";
+import { useBookingStore } from "@/store/bookingStore";
 import { useRouter } from "next/navigation";
 
 const TAB_TITLES: Record<AccountTab, { title: string; subtitle: string }> = {
@@ -31,6 +32,7 @@ export default function MyAccountPage() {
   const currentSection = TAB_TITLES[activeTab];
   
   const { user, fetchUser, isLoading } = useAuthStore();
+  const fetchUserBookings = useBookingStore(state => state.fetchUserBookings);
   const router = useRouter();
 
   useEffect(() => {
@@ -40,8 +42,10 @@ export default function MyAccountPage() {
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
+    } else if (!isLoading && user) {
+      fetchUserBookings();
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user, router, fetchUserBookings]);
 
   if (isLoading || !user) {
     return (

@@ -7,7 +7,7 @@ import BookHero from "@/components/landing/book/BookHero";
 import CalendarPicker from "@/components/landing/book/CalendarPicker";
 import CostBreakdown from "@/components/landing/book/CostBreakdown";
 import TrustDivider from "@/components/landing/book/TrustDivider";
-import TimeslotSelector from "@/components/landing/book/TimeslotSelector";
+import TimeRangeSelector from "@/components/landing/book/TimeRangeSelector";
 import PackageSelector from "@/components/landing/book/PackageSelector";
 import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
@@ -18,11 +18,13 @@ import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingStore } from "@/store/bookingStore";
+import { customerBookingAPI } from "@/lib/api";
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<number>(0);
-  const [timeslot, setTimeslot] = useState<string>("evening");
+  const [startTime, setStartTime] = useState<string>("18:00");
+  const [endTime, setEndTime] = useState<string>("23:00");
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
   const [guestCount, setGuestCount] = useState<number>(380);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
@@ -107,9 +109,22 @@ export default function BookPage() {
     return numericStr ? parseInt(numericStr, 10) : 0;
   };
 
-  const basePrice = getBasePrice();
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return 0;
+    const [startH, startM] = startTime.split(":").map(Number);
+    const [endH, endM] = endTime.split(":").map(Number);
+    let hours = endH - startH;
+    let mins = endM - startM;
+    if (mins < 0) { hours -= 1; mins += 60; }
+    return hours + (mins / 60);
+  };
+
+  const durationHours = calculateDuration();
+
+  const basePrice = getBasePrice(); // Fixed Hall Price
+  const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
   const foodCost = guestCount * getMenuPricePerGuest();
-  const timeslotPremium = timeslot === "full" ? 500000 : 0;
+  const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
   
   let addonsCost = getVendorCost(vendors.decorator) + getVendorCost(vendors.dj) + getVendorCost(vendors.videographer);
 
@@ -119,7 +134,7 @@ export default function BookPage() {
     addonsCost += (customMenuCost * guestCount);
   }
 
-  const grandTotal = basePrice + foodCost + timeslotPremium + addonsCost;
+  const grandTotal = basePrice + extraHoursPremium + foodCost + timeslotPremium + addonsCost;
 
   const formatCurrency = (val: number) => {
     return "LKR " + val.toLocaleString();
@@ -128,30 +143,46 @@ export default function BookPage() {
   const addBooking = useBookingStore(state => state.addBooking);
   const clearCart = useVendorCartStore(state => state.clearCart);
 
-  const handleFinalizeBooking = (contactInfo: any) => {
+  const handleFinalizeBooking = async (contactInfo: any) => {
     const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
     
-    const dateString = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD";
+    // We send raw ISO date string to backend for accurate parsing
+    const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
-    addBooking({
-      id: "bk-" + Math.floor(1000 + Math.random() * 9000),
+    const bookingPayload = {
       clientName: `${contactInfo.firstName} ${contactInfo.lastName}`,
       email: contactInfo.email,
+      phone: contactInfo.phone,
+      alternativePhone: contactInfo.alternativePhone || "",
       eventType: eventTypeName,
       date: dateString,
+      timeslot: `${startTime} - ${endTime}`,
+      durationHours: durationHours,
       guests: guestCount,
-      status: "Pending",
-      totalCost: grandTotal,
-      vendors: {
-        decorator: vendors.decorator,
-        dj: vendors.dj,
-        videographer: vendors.videographer
-      },
+      packageId: selectedPackage,
+      paymentMethod: contactInfo.paymentMethod,
       menuType: menu,
-      createdAt: new Date().toISOString()
-    });
+      customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
+      vendors: {
+        decoratorId: vendors.decorator !== "none" ? vendors.decorator : undefined,
+        djId: vendors.dj !== "none" ? vendors.dj : undefined,
+        videographerId: vendors.videographer !== "none" ? vendors.videographer : undefined
+      }
+    };
 
-    clearCart();
+    try {
+      const res = await customerBookingAPI.createBooking(bookingPayload);
+      if (res.ok && res.data.success) {
+        clearCart();
+        return true; // Success
+      } else {
+        alert(res.data.message || "Failed to create booking");
+        return false;
+      }
+    } catch (error) {
+      alert("An error occurred while creating booking");
+      return false;
+    }
   };
 
   const handleNext = () => {
@@ -164,6 +195,18 @@ export default function BookPage() {
       return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 4));
+  };
+
+  const handleStepClick = (step: number) => {
+    if (isGuest) {
+      setLoginModalOpen(true);
+      return;
+    }
+    if (step > 1 && selectedDate === 0) {
+      setIsDateModalOpen(true);
+      return;
+    }
+    setCurrentStep(step);
   };
 
   const handleBack = () => {
@@ -186,7 +229,11 @@ export default function BookPage() {
             <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
               <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
               {[1, 2, 3, 4].map((step) => (
-                <div key={step} className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}>
+                <div 
+                  key={step} 
+                  onClick={() => handleStepClick(step)}
+                  className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}
+                >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
                     {step}
                   </div>
@@ -205,10 +252,16 @@ export default function BookPage() {
               <div className="space-y-8 animate-fadeIn">
                 <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                 <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <TimeslotSelector timeslot={timeslot} onSelectTimeslot={setTimeslot} />
+                <TimeRangeSelector 
+                  startTime={startTime} 
+                  endTime={endTime} 
+                  onChange={(start, end) => {
+                    setStartTime(start);
+                    setEndTime(end);
+                  }} 
+                />
                 <div className="h-px bg-[#D4C9A8] w-full"></div>
                 <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
               </div>
             )}
 
@@ -221,8 +274,10 @@ export default function BookPage() {
 
             {/* Step 3: Food Menu Customization */}
             {currentStep === 3 && (
-              <div className="animate-fadeIn">
+              <div className="space-y-8 animate-fadeIn">
                 <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
+                <div className="h-px bg-[#D4C9A8] w-full"></div>
+                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
               </div>
             )}
 
@@ -234,7 +289,16 @@ export default function BookPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-end pt-8">
+            <div className="flex items-center justify-between pt-8">
+              {currentStep > 1 ? (
+                <button 
+                  onClick={handleBack}
+                  className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
+                >
+                  &larr; Previous Step
+                </button>
+              ) : <div></div>}
+
               {currentStep < 4 && (
                 <button 
                   onClick={handleNext}
@@ -251,9 +315,10 @@ export default function BookPage() {
           <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
             <CostBreakdown 
               packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
-              selectedTimeslot={timeslot}
+              selectedTimeslot={`${startTime} - ${endTime}`}
               costBreakdown={{
                 basePrice,
+                extraHoursPremium,
                 foodCost,
                 guestCount,
                 timeslotPremium,
