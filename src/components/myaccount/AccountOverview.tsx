@@ -2,8 +2,11 @@
 
 import React from "react";
 import Image from "next/image";
-import { Mail, Phone, MapPin, Crown, CalendarDays, Shield } from "lucide-react";
+import { Mail, Phone, MapPin, Crown, CalendarDays, Shield, User, Pencil } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 import { USER_PROFILE } from "./types";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TIER_STYLES = {
   silver: { label: "Silver Member", bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-300" },
@@ -12,7 +15,20 @@ const TIER_STYLES = {
 };
 
 export default function AccountOverview() {
-  const user = USER_PROFILE;
+  const { user: authUser } = useAuthStore();
+  
+  // Merge backend data with dummy static properties for UI purposes
+  const user = {
+    ...USER_PROFILE,
+    firstName: authUser?.firstName || USER_PROFILE.firstName,
+    lastName: authUser?.lastName || USER_PROFILE.lastName,
+    email: authUser?.email || USER_PROFILE.email,
+    phone: authUser?.phone || USER_PROFILE.phone,
+    address: authUser?.address || "Address not set",
+    city: authUser?.city || "City not set",
+    memberSince: authUser?.createdAt ? new Date(authUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : USER_PROFILE.memberSince,
+  };
+
   const tier = TIER_STYLES[user.tier];
 
   return (
@@ -25,14 +41,23 @@ export default function AccountOverview() {
 
       {/* Avatar & Info */}
       <div className="px-6 pb-6 relative flex flex-col items-center text-center -mt-12 z-10">
-        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-[#111111] shadow-lg overflow-hidden bg-white dark:bg-[#1A1A1A] flex-shrink-0 mb-4 relative group">
-          <Image
-            src={user.avatar}
-            alt={`${user.firstName} ${user.lastName}`}
-            width={96}
-            height={96}
-            className="object-cover w-full h-full"
-          />
+        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-[#111111] shadow-lg overflow-hidden bg-white dark:bg-[#1A1A1A] flex-shrink-0 mb-4 relative group flex items-center justify-center">
+          {authUser?.avatar ? (
+            <Image
+              src={`${API_BASE}${authUser.avatar}`}
+              alt={`${user.firstName} ${user.lastName}`}
+              width={96}
+              height={96}
+              className="object-cover w-full h-full"
+              unoptimized
+            />
+          ) : (
+            <User className="w-12 h-12 text-gray-400" />
+          )}
+          {/* Pencil Edit Icon */}
+          <div className="absolute bottom-0 right-0 w-6 h-6 bg-[#FAF6EE] border border-[#E8DFC9] rounded-full flex items-center justify-center shadow-sm text-[#C9A84C] cursor-pointer hover:bg-white transition-colors">
+            <Pencil className="w-3 h-3" strokeWidth={2} />
+          </div>
         </div>
         
         <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white mb-2">

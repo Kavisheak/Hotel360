@@ -25,7 +25,7 @@ export default function MainNavbar() {
  { name: "Vendors", path: "/customer/vendors" },
  { name: "Food Menu", path: "/customer/food-menu" },
  { name: "Virtual Tour", path: "/customer/virtual-tour" },
- { name: "Book", path: "/book" },
+ { name: "Book Now", path: "/book" },
  ];
 
  return (
@@ -94,13 +94,6 @@ export default function MainNavbar() {
   Sign In
   </Link>
   )}
-
-  <Link
-  href="/book"
-  className="btn-interactive bg-[#C69C6D] text-white px-4 py-1.5 hover:bg-[#B58B5C] dark:hover:bg-[#B89238] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest"
-  >
-  Inquire
-  </Link>
   </div>
  </div>
  </header>

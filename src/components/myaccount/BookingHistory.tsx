@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
-import { CalendarDays, Users, Package, ArrowRight, Star } from "lucide-react";
-import { useBookingStore } from "@/store/bookingStore";
+import React, { useEffect, useState } from "react";
+import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
+import { accountAPI } from "@/lib/api";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Confirmed" },
@@ -13,13 +13,22 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 export default function BookingHistory() {
-  const [isClient, setIsClient] = React.useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = React.useState(false);
-  const [selectedBookingId, setSelectedBookingId] = React.useState<string | null>(null);
-  const bookings = useBookingStore(state => state.bookings);
+  const [isClient, setIsClient] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsClient(true);
+    const fetchBookings = async () => {
+      const { ok, data } = await accountAPI.getMyBookings();
+      if (ok && data.bookings) {
+        setBookings(data.bookings);
+      }
+      setIsLoading(false);
+    };
+    fetchBookings();
   }, []);
 
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
@@ -43,15 +52,17 @@ export default function BookingHistory() {
       </div>
 
       <div className="divide-y divide-[#D4C9A8] dark:divide-[#C9A84C]/20">
-        {isClient && bookings.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#C9A84C]" /></div>
+        ) : isClient && bookings.length === 0 ? (
           <div className="p-6 text-center text-sm text-gray-500 italic">No bookings found.</div>
         ) : isClient ? (
           bookings.map((booking, idx) => {
-            const statusKey = booking.status.toLowerCase();
+            const statusKey = booking.status ? booking.status.toLowerCase() : "pending";
             const status = STATUS_STYLES[statusKey] || STATUS_STYLES.pending;
             return (
               <div
-                key={booking.id}
+                key={booking._id || booking.id}
                 className={`p-5 hover:bg-[#F0E6D0]/50 dark:hover:bg-[#C9A84C]/5 transition-all duration-200 group cursor-pointer stagger-${idx + 1}`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -59,7 +70,7 @@ export default function BookingHistory() {
                     {/* Top row */}
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[8px] uppercase tracking-[0.15em] font-bold text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded-sm border border-gray-300 dark:border-gray-700">
-                        {booking.id}
+                        {booking._id ? booking._id.slice(-6) : booking.id}
                       </span>
                       <span className={`text-[8px] uppercase tracking-[0.15em] font-bold px-1.5 py-0.5 rounded-sm ${status.bg} ${status.text}`}>
                         {status.label}
@@ -68,18 +79,18 @@ export default function BookingHistory() {
 
                     {/* Event Name */}
                     <h5 className="text-sm font-semibold text-[#2C1E14] dark:text-white group-hover:text-[#C9A84C] transition-colors">
-                      {booking.eventType}
+                      {booking.eventType || booking.eventName || "Event"}
                     </h5>
 
                     {/* Details Row */}
                     <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-600 dark:text-gray-400 font-light">
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" />
-                        {booking.date}
+                        {new Date(booking.date).toLocaleDateString()}
                       </span>
                       <span className="flex items-center gap-1">
                         <Package className="w-3 h-3" />
-                        {booking.menuType} menu
+                        {booking.menuType || booking.package} menu
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
@@ -96,7 +107,7 @@ export default function BookingHistory() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedBookingId(booking.id);
+                            setSelectedBookingId(booking._id || booking.id);
                             setIsFeedbackOpen(true);
                           }}
                           className="text-[9px] uppercase tracking-widest font-bold text-white bg-[#C69C6D] hover:bg-[#B58A59] px-3 py-1.5 rounded-sm transition-colors flex items-center gap-1.5 shadow-sm"

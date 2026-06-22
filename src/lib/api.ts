@@ -6,8 +6,16 @@ interface ApiOptions extends RequestInit {
 
 const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
   try {
+    const defaultHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    
+    // If Content-Type is explicitly null/undefined in options, remove it so browser can set it
+    if (options.headers && 'Content-Type' in options.headers && !options.headers['Content-Type']) {
+      delete defaultHeaders["Content-Type"];
+      delete options.headers["Content-Type"];
+    }
+
     const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: { ...defaultHeaders, ...options.headers },
       credentials: "include", // REQUIRED: sends/receives HTTP-only cookies
       ...options,
     });
@@ -25,6 +33,27 @@ export const authAPI = {
   signin:  (body: any) => apiFetch("/api/auth/signin",  { method: "POST", body: JSON.stringify(body) }),
   signout: ()          => apiFetch("/api/auth/signout", { method: "POST" }),
   getMe:   ()          => apiFetch("/api/auth/me"),
+  updateProfile: (body: any) => apiFetch("/api/auth/me", { method: "PUT", body: JSON.stringify(body) }),
+  uploadAvatar: (formData: FormData) => apiFetch("/api/auth/me/avatar", {
+    method: "POST",
+    body: formData,
+    headers: {
+      // Content-Type must be undefined so browser sets it with the boundary automatically
+      "Content-Type": undefined as any
+    }
+  }),
+  deleteAvatar: () => apiFetch("/api/auth/me/avatar", { method: "DELETE" }),
+};
+
+export const accountAPI = {
+  changePassword: (body: any) => apiFetch("/api/customer/account/password", { method: "PUT", body: JSON.stringify(body) }),
+  toggle2FA: (enabled: boolean) => apiFetch("/api/customer/account/2fa", { method: "PUT", body: JSON.stringify({ enabled }) }),
+  updatePreferences: (body: any) => apiFetch("/api/customer/account/preferences", { method: "PUT", body: JSON.stringify(body) }),
+  updateNotifications: (body: any) => apiFetch("/api/customer/account/notifications", { method: "PUT", body: JSON.stringify(body) }),
+  getPaymentMethods: () => apiFetch("/api/customer/account/payment-methods"),
+  addPaymentMethod: (body: any) => apiFetch("/api/customer/account/payment-methods", { method: "POST", body: JSON.stringify(body) }),
+  deletePaymentMethod: (id: string) => apiFetch(`/api/customer/account/payment-methods/${id}`, { method: "DELETE" }),
+  getMyBookings: () => apiFetch("/api/customer/account/bookings"),
 };
 
 export const staffAPI = {

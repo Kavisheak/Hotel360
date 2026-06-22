@@ -5,6 +5,8 @@ import { User, Bell, CreditCard, Settings, CalendarDays, LogOut } from "lucide-r
 import { useRouter } from "next/navigation";
 
 export type AccountTab = "profile" | "security" | "preferences" | "notifications" | "billing" | "bookings";
+import { authAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 interface AccountSidebarProps {
   activeTab: AccountTab;
@@ -23,7 +25,9 @@ const TABS: { id: AccountTab; label: string; icon: React.ReactNode }[] = [
 export default function AccountSidebar({ activeTab, onTabChange }: AccountSidebarProps) {
   const router = useRouter();
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await authAPI.signout();
+    useAuthStore.getState().clearUser();
     localStorage.removeItem("user");
     router.push("/");
   };
