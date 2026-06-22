@@ -25,9 +25,9 @@ const PendingBookings = () => {
         <BookOpen size={18} className="text-[#B08D2C]" />
         Pending Bookings
       </h3>
-      <button className="bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-semibold tracking-widest uppercase px-4 py-2 rounded-md transition-colors whitespace-nowrap ml-4">
+      <a href="/hotel-manager/bookings" className="bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-semibold tracking-widest uppercase px-4 py-2 rounded-md transition-colors whitespace-nowrap ml-4">
         View All Queue
-      </button>
+      </a>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -89,14 +89,20 @@ const PendingBookings = () => {
                 </div>
 
                 <div className="flex items-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                  <a 
+                    href={`/hotel-manager/bookings/${row.id || row._id}`}
+                    className="flex-1 text-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors"
+                  >
+                    Review
+                  </a>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Confirmed"); }}
-                    className="flex-1 bg-[#B08D2C] hover:bg-[#9B7A20] text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Confirmed"); }}
+                    className="flex-1 bg-green-700 hover:bg-green-800 text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors"
                   >
                     Approve
                   </button>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Rejected"); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateBookingStatus((row.id || row._id) as string, "Rejected"); }}
                     className="flex-1 bg-white/10 hover:bg-red-500/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded transition-colors border border-white/20"
                   >
                     Reject

@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { ChevronRight, ArrowLeft, CalendarDays, Users, Package, Palette, Music, Video, Check, Search, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { VENDORS_DATA, Vendor } from '@/components/landing/vendors/types';
-import { useBookingStore } from '@/store/bookingStore';
+import { bookingAPI, packageAPI } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 const NewBookingMain = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -18,8 +19,19 @@ const NewBookingMain = () => {
   const [clientInfo, setClientInfo] = useState({ name: '', email: '', phone: '' });
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cashConfirmed, setCashConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [dbPackages, setDbPackages] = useState<any[]>([]);
+  const router = useRouter();
 
-  const addBooking = useBookingStore(state => state.addBooking);
+  React.useEffect(() => {
+    packageAPI.getAllPackages().then(res => {
+      if (res.ok && res.data?.data) {
+        setDbPackages(res.data.data);
+        if (res.data.data.length > 0) setPackageType(res.data.data[0]._id);
+      }
+    });
+  }, []);
 
   const decorators = VENDORS_DATA.filter(v => v.category === 'decorators');
   const djs = VENDORS_DATA.filter(v => v.category === 'djs');
@@ -40,7 +52,8 @@ const NewBookingMain = () => {
     return numericStr ? parseInt(numericStr, 10) : 0;
   };
 
-  const basePrice = packageType === 'silver' ? 1800000 : packageType === 'diamond' ? 5000000 : 3400000;
+  const selectedPkgData = dbPackages.find(p => p._id === packageType);
+  const basePrice = selectedPkgData ? selectedPkgData.price : 0;
   const foodCost = parseInt(guests) * 3500;
   const timeslotPremium = timeslot === 'full' ? 500000 : 0;
   const decCost = getVendorCost('decorator');
@@ -50,18 +63,18 @@ const NewBookingMain = () => {
   const depositAmount = totalCost * 0.3;
   const balanceAmount = totalCost * 0.7;
 
-  const submitBooking = () => {
-    const bookingId = "LG-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
-    
-    // If cash is collected, mark as DepositPaid automatically
-    const finalStatus = (paymentMethod === 'cash' && cashConfirmed) ? "DepositPaid" : "Pending";
+  const submitBooking = async () => {
+    setIsSubmitting(true);
+    const finalStatus = (paymentMethod === 'cash' && cashConfirmed) ? "DepositPaid" : "PENDING";
 
-    addBooking({
-      id: bookingId,
+    const payload = {
       clientName: clientInfo.name || 'Walk-in Client',
       email: clientInfo.email || 'N/A',
-      eventType: packageType === 'silver' ? 'Classic Silver Package' : packageType === 'diamond' ? 'Luxury Diamond Gala' : 'Grand Gold Celebration',
+      phone: clientInfo.phone || 'N/A',
+      eventType: selectedPkgData ? selectedPkgData.name : (packageType === 'silver' ? 'Classic Silver Package' : packageType === 'diamond' ? 'Luxury Diamond Gala' : 'Grand Gold Celebration'),
+      packageId: packageType,
       date: selectedDate || new Date().toISOString().split('T')[0],
+      timeslot: timeslot,
       guests: parseInt(guests),
       status: finalStatus,
       totalCost,
@@ -84,10 +97,21 @@ const NewBookingMain = () => {
       },
       menuType: "signature",
       createdAt: new Date().toISOString()
-    });
+    };
 
-    alert(`Booking ${bookingId} successfully created!`);
-    window.location.href = '/hotel-manager/bookings';
+    try {
+      const res = await bookingAPI.createBooking(payload);
+      if (res.ok) {
+        alert(`Booking successfully created!`);
+        router.push('/hotel-manager/bookings');
+      } else {
+        alert(`Error: ${res.data.message}`);
+      }
+    } catch (err) {
+      alert('Failed to create booking.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderVendorCard = (vendor: Vendor, category: string) => {
@@ -193,23 +217,27 @@ const NewBookingMain = () => {
               <div className="mt-8">
                 <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-4">Package Tier</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {['silver', 'gold', 'diamond'].map(pkg => (
-                    <div 
-                      key={pkg}
-                      onClick={() => setPackageType(pkg)}
-                      className={`border p-4 cursor-pointer transition-colors flex items-center gap-3 ${packageType === pkg ? 'border-[#B08D2C] bg-[#FDF9F1]' : 'border-[#E0D8C3] hover:border-[#B08D2C] bg-white'}`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${packageType === pkg ? 'border-[#B08D2C]' : 'border-gray-300'}`}>
-                        {packageType === pkg && <div className="w-2 h-2 rounded-full bg-[#B08D2C]" />}
+                  {dbPackages.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No packages available. Create one in the Package Settings.</p>
+                  ) : (
+                    dbPackages.map(pkg => (
+                      <div 
+                        key={pkg._id}
+                        onClick={() => setPackageType(pkg._id)}
+                        className={`border p-4 cursor-pointer transition-colors flex items-center gap-3 ${packageType === pkg._id ? 'border-[#B08D2C] bg-[#FDF9F1]' : 'border-[#E0D8C3] hover:border-[#B08D2C] bg-white'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${packageType === pkg._id ? 'border-[#B08D2C]' : 'border-gray-300'}`}>
+                          {packageType === pkg._id && <div className="w-2 h-2 rounded-full bg-[#B08D2C]" />}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-800 uppercase tracking-widest">{pkg.name}</p>
+                          <p className="text-[10px] text-gray-500 font-serif italic mt-0.5">
+                            {(pkg.price / 1000000).toFixed(1)}M LKR Base
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-800 uppercase tracking-widest">{pkg} Package</p>
-                        <p className="text-[10px] text-gray-500 font-serif italic mt-0.5">
-                          {pkg === 'silver' ? '1.8M LKR Base' : pkg === 'diamond' ? '5.0M LKR Base' : '3.4M LKR Base'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -385,7 +413,7 @@ const NewBookingMain = () => {
                   {/* Itemized List */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-600">Base {packageType} Package</span>
+                      <span className="text-xs text-gray-600">Base {selectedPkgData?.name || 'Package'}</span>
                       <span className="text-xs font-bold text-gray-900">LKR {basePrice.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -468,9 +496,10 @@ const NewBookingMain = () => {
           ) : (
             <button 
               onClick={submitBooking}
-              className="bg-green-700 hover:bg-green-800 text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded shadow-sm transition-colors"
+              disabled={isSubmitting}
+              className="bg-green-700 hover:bg-green-800 text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded shadow-sm transition-colors disabled:opacity-50"
             >
-              Finalize & Add Booking
+              {isSubmitting ? 'Finalizing...' : 'Finalize & Add Booking'}
             </button>
           )}
         </div>

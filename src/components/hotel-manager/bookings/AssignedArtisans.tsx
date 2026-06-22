@@ -21,7 +21,7 @@ const artisans = [
   },
 ];
 
-const AssignedArtisans = () => (
+const AssignedArtisans = ({ booking }: { booking: any }) => (
   <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm mt-6">
     <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-5">
       Assigned Artisans
