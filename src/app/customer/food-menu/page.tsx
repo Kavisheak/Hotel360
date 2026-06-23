@@ -4,8 +4,10 @@ import React from "react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useAuthStore } from "@/store/authStore";
 import { Plus, CheckCircle2, ChefHat, Info } from "lucide-react";
 import Image from "next/image";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 type MenuItem = {
   id: string;
@@ -143,8 +145,35 @@ export default function MenuBuilderPage() {
   const removedDefaultItems = menuSelection.removedDefaultItems || [];
   const addedOptionalItems = menuSelection.addedOptionalItems || [];
 
+  const [isGuest, setIsGuest] = React.useState(true);
+  const [loginModalOpen, setLoginModalOpen] = React.useState(false);
+  const [loginModalMessage, setLoginModalMessage] = React.useState("");
+
+  const { fetchUser, user } = useAuthStore();
+  
+  React.useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  React.useEffect(() => {
+    if (user && (user.role === "customer" || user.role === "decorator")) {
+      setIsGuest(false);
+    } else {
+      setIsGuest(true);
+    }
+  }, [user]);
+
   const calculateOptionalTotal = () => {
     return addedOptionalItems.reduce((sum, item) => sum + item.price, 0);
+  };
+
+  const handleRestrictedAction = (message: string, action: () => void) => {
+    if (isGuest) {
+      setLoginModalMessage(message);
+      setLoginModalOpen(true);
+    } else {
+      action();
+    }
   };
 
   return (
@@ -234,7 +263,7 @@ export default function MenuBuilderPage() {
                           </span>
                         </div>
                         <button 
-                          onClick={() => toggleDefaultItem(item.id)}
+                          onClick={() => handleRestrictedAction("Please log in to customize the default menu items.", () => toggleDefaultItem(item.id))}
                           className={`text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-sm border transition-all shrink-0 ml-4 ${
                             isRemoved 
                               ? 'border-gray-300 text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-[#333]' 
@@ -290,7 +319,7 @@ export default function MenuBuilderPage() {
                           </div>
                         </div>
                         <button 
-                          onClick={() => toggleOptionalItem({ id: item.id, name: item.name, price: item.price })}
+                          onClick={() => handleRestrictedAction("Please log in to add premium upgrades to your menu.", () => toggleOptionalItem({ id: item.id, name: item.name, price: item.price }))}
                           className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all shrink-0 ml-4 ${
                             isAdded 
                               ? 'bg-[#A67C52] border-[#A67C52] text-white' 
@@ -326,6 +355,12 @@ export default function MenuBuilderPage() {
       </main>
 
       <Footer />
+
+      <LoginRequiredModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+        message={loginModalMessage} 
+      />
     </div>
   );
 }

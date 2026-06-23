@@ -1,12 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import { Bell, Mail, MessageSquare, Smartphone, Save } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, Mail, MessageSquare, Smartphone, Save, Loader2 } from "lucide-react";
 import { NOTIFICATION_PREFS, type NotificationPref } from "./types";
+import { accountAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 export default function NotificationsSettings() {
+  const { user, fetchUser } = useAuthStore();
   const [prefs, setPrefs] = useState<NotificationPref[]>(NOTIFICATION_PREFS);
   const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.notifications && Array.isArray(user.notifications) && user.notifications.length > 0) {
+      setPrefs(user.notifications);
+    }
+  }, [user]);
 
   const toggle = (id: string, channel: "email" | "sms" | "push") => {
     setPrefs((prev) =>
@@ -15,13 +25,20 @@ export default function NotificationsSettings() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setIsLoading(true);
+    const { ok } = await accountAPI.updateNotifications(prefs);
+    setIsLoading(false);
+    
+    if (ok) {
+      setSaved(true);
+      fetchUser();
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 rounded-sm shadow-md dark:shadow-[#C9A84C]/5 hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20 bg-[#F0E6D0]/20 dark:bg-[#1A1A1A]/40">
         <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
@@ -87,9 +104,10 @@ export default function NotificationsSettings() {
         <div className="pt-5 mt-4 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2"
+            disabled={isLoading}
+            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2 disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" />
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Save Preferences
           </button>
           {saved && (

@@ -4,6 +4,8 @@ import Image from "next/image";
 import { PackageData } from "../data";
 import { useRouter } from "next/navigation";
 import { Check, Users } from "lucide-react";
+import React, { useState } from "react";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface Props {
   pkg: PackageData;
@@ -15,6 +17,7 @@ interface Props {
 export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: Props) {
   const router = useRouter();
   const isGold = pkg.name === "Gold";
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   return (
     <div className={`relative bg-[#FDFBF7] dark:bg-[#111111] flex flex-col h-full group hover-lift shadow-sm hover:shadow-xl transition-all duration-300 ${isGold ? 'border-2 border-[#D4C9A8] dark:border-[#C9A84C]' : 'border border-[#D4C9A8] dark:border-[#C9A84C]/30'} stagger-${index + 1}`}>
@@ -68,38 +71,30 @@ export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: 
 
         {/* Actions Section */}
         <div className="mt-auto">
-          {isGuest ? (
-            <div className="relative group/tooltip">
-              <button 
-                disabled
-                className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all cursor-not-allowed flex items-center justify-center gap-2 ${
-                  isGold 
-                    ? 'bg-[#F0E6D0] dark:bg-[#C9A84C]/10 text-gray-500 border border-[#D4C9A8] dark:border-[#C9A84C]/30' 
-                    : 'bg-[#FDFBF7] dark:bg-[#1A1A1A] text-gray-400 border border-[#D4C9A8] dark:border-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px]">lock</span>
-                Login to Select {pkg.name}
-              </button>
-              {/* Tooltip */}
-              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#FDFBF7] dark:bg-[#2C1E14] text-[#2C1E14] dark:text-[#F0E6D0] text-[10px] text-center p-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg border border-[#D4C9A8] dark:border-[#C9A84C]/30">
-                You must register or sign in to start a booking.
-              </div>
-            </div>
-          ) : (
-            <button 
-              onClick={() => router.push(`/book?pkg=${pkg.id}`)}
-              className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all btn-interactive ${
-                isGold 
-                  ? 'bg-[#805D3A] dark:bg-[#C9A84C] text-[#FDFBF7] dark:text-[#2C1E14] hover:bg-[#6A4B2D] dark:hover:bg-[#B89238]' 
-                  : 'bg-transparent text-[#2C1E14] dark:text-white border border-[#2C1E14] dark:border-[#C9A84C]/50 hover:bg-[#2C1E14] dark:hover:bg-[#C9A84C]/10 hover:text-white dark:hover:text-[#C9A84C]'
-              }`}
-            >
-              Select {pkg.name}
-            </button>
-          )}
+          <button 
+            onClick={() => {
+              if (isGuest) {
+                setShowLoginModal(true);
+              } else {
+                router.push(`/book?pkg=${pkg.id}`);
+              }
+            }}
+            className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all btn-interactive ${
+              isGold 
+                ? 'bg-[#805D3A] dark:bg-[#C9A84C] text-[#FDFBF7] dark:text-[#2C1E14] hover:bg-[#6A4B2D] dark:hover:bg-[#B89238]' 
+                : 'bg-transparent text-[#2C1E14] dark:text-white border border-[#2C1E14] dark:border-[#C9A84C]/50 hover:bg-[#2C1E14] dark:hover:bg-[#C9A84C]/10 hover:text-white dark:hover:text-[#C9A84C]'
+            }`}
+          >
+            Select {pkg.name}
+          </button>
         </div>
       </div>
+
+      <LoginRequiredModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+        message={`Please log in to select the ${pkg.name} Package and begin your booking.`} 
+      />
     </div>
   );
 }

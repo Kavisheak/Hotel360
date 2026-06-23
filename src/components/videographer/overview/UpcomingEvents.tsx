@@ -11,9 +11,12 @@ interface UpcomingEventProps {
   venue: string;
   details: string;
   progress: number;
+  isPending: boolean;
+  onAccept?: () => void;
+  onDecline?: () => void;
 }
 
-const UpcomingEvent = ({ date, month, status, title, venue, details, progress }: UpcomingEventProps) => {
+const UpcomingEvent = ({ date, month, status, title, venue, details, progress, isPending, onAccept, onDecline }: UpcomingEventProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm flex flex-col justify-between h-full">
       <div className="flex justify-between items-start mb-6">
@@ -41,6 +44,23 @@ const UpcomingEvent = ({ date, month, status, title, venue, details, progress }:
           />
         ))}
       </div>
+
+      {isPending && (
+        <div className="flex items-center gap-2 mt-6">
+          <button 
+            className="flex-1 bg-[#1A1A1A] text-white py-2 text-[10px] font-bold tracking-widest uppercase hover:bg-black transition-colors"
+            onClick={onAccept}
+          >
+            Accept
+          </button>
+          <button 
+            className="flex-1 border border-red-600 text-red-600 py-2 text-[10px] font-bold tracking-widest uppercase hover:bg-red-50 transition-colors"
+            onClick={onDecline}
+          >
+            Decline
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -53,7 +73,7 @@ const UpcomingEvents = () => {
     setIsClient(true);
   }, []);
 
-  const videoBookings = globalBookings.filter(b => b.vendors.videographer !== "none");
+  const videoBookings = globalBookings.filter(b => b.vendors.videographer?.vendorId != null);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -67,7 +87,8 @@ const UpcomingEvents = () => {
           const dateParts = new Date(booking.date);
           const day = isNaN(dateParts.getDate()) ? "22" : dateParts.getDate().toString();
           const month = isNaN(dateParts.getMonth()) ? "SEPT" : dateParts.toLocaleString('default', { month: 'short' }).toUpperCase();
-          const displayStatus = booking.status === "Pending" ? "BRIEFING SENT" : "ON SITE";
+          const videoStatus = booking.vendors.videographer?.status || "Pending";
+          const displayStatus = videoStatus === "Pending" ? "ACTION REQUIRED" : videoStatus.toUpperCase();
 
           return (
             <UpcomingEvent
@@ -79,6 +100,9 @@ const UpcomingEvents = () => {
               venue={booking.menuType + " Menu"}
               details={`${booking.guests} GUESTS`}
               progress={idx === 0 ? 1 : 2}
+              isPending={videoStatus === "Pending"}
+              onAccept={() => { useBookingStore.getState().vendorRespondBooking(booking.id || booking._id as string, "videographer", "Accepted"); }}
+              onDecline={() => { useBookingStore.getState().vendorRespondBooking(booking.id || booking._id as string, "videographer", "Declined"); }}
             />
           );
         })

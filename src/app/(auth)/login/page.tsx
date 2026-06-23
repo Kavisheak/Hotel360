@@ -4,13 +4,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { authAPI } from "@/lib/api";
-import { Mail, Lock, Eye, ArrowRight, Paintbrush, Briefcase, ShieldCheck, User, Phone, CheckCircle2, Tag, Headset } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "@/store/authStore";
+import { Mail, Lock, Eye, ArrowRight, Paintbrush, Briefcase, ShieldCheck, User, Phone, CheckCircle2, Tag, Headset, Loader2 } from "lucide-react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 export default function AuthPage() {
   const router = useRouter();
+  const { user, fetchUser, isLoading } = useAuthStore();
   const [isLogin, setIsLogin] = useState(true);
   
   // Login State
@@ -36,6 +38,29 @@ export default function AuthPage() {
     setLoginError("");
   };
 
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      if      (user.role === "super_admin")   router.replace("/super-admin");
+      else if (user.role === "manager")       router.replace("/hotel-manager");
+      else if (user.role === "decorator")     router.replace("/decorator");
+      else if (user.role === "videographer")  router.replace("/videographer");
+      else if (user.role === "dj_artist")     router.replace("/dj-artist");
+      else                                    router.replace("/");
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading || user) {
+    return (
+      <div className="bg-[#0A0A0A] min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C9A84C]" />
+      </div>
+    );
+  }
+
   const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginError("");
@@ -56,7 +81,7 @@ export default function AuthPage() {
     else if (role === "decorator")     router.push("/decorator");
     else if (role === "videographer")  router.push("/videographer");
     else if (role === "dj_artist")     router.push("/dj-artist");
-    else                               router.push("/customer/home");
+    else                               router.push("/");
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -68,7 +93,8 @@ export default function AuthPage() {
     }
 
     const { ok, data } = await authAPI.signup({
-      name: `${firstName} ${lastName}`.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       email: regEmail,
       phone: phone,
       password: regPassword
@@ -80,17 +106,17 @@ export default function AuthPage() {
     }
 
     localStorage.setItem("user", "customer");
-    router.push("/customer/home");
+    router.push("/");
   };
 
   // Animation variants
-  const leftSideVariants = {
+  const leftSideVariants: Variants = {
     initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } },
     exit: { opacity: 0, x: -20, transition: { duration: 0.3, ease: "easeIn" } }
   };
 
-  const rightSideVariants = {
+  const rightSideVariants: Variants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
     exit: { opacity: 0, y: 20, transition: { duration: 0.3, ease: "easeIn" } }

@@ -3,8 +3,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { user, fetchUser, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      if      (user.role === "super_admin")   router.replace("/super-admin");
+      else if (user.role === "manager")       router.replace("/hotel-manager");
+      else if (user.role === "decorator")     router.replace("/decorator");
+      else if (user.role === "videographer")  router.replace("/videographer");
+      else if (user.role === "dj_artist")     router.replace("/dj-artist");
+      else                                    router.replace("/");
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading || user) return null;
+
   return (
     <div className="min-h-screen bg-[#F0E6D0] flex flex-col">
       {/* ================= NAVBAR ================= */}

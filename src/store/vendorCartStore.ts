@@ -19,10 +19,8 @@ interface VendorCartState {
     removedDefaultItems: string[];
     addedOptionalItems: MenuItemSelection[];
   };
-  cartVendors: string[];
   favoriteVendors: string[];
   setVendor: (category: keyof VendorCartState["vendors"], id: string) => void;
-  toggleCartVendor: (id: string) => void;
   toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
   addMenuItem: (item: MenuItemSelection) => void;
@@ -46,7 +44,6 @@ export const useVendorCartStore = create<VendorCartState>()(
         removedDefaultItems: [],
         addedOptionalItems: [],
       },
-      cartVendors: [],
       favoriteVendors: [],
       setVendor: (category, id) =>
         set((state) => ({
@@ -55,15 +52,6 @@ export const useVendorCartStore = create<VendorCartState>()(
             [category]: id,
           },
         })),
-      toggleCartVendor: (id) =>
-        set((state) => {
-          const isSelected = state.cartVendors.includes(id);
-          return {
-            cartVendors: isSelected 
-              ? state.cartVendors.filter(vId => vId !== id)
-              : [...state.cartVendors, id]
-          };
-        }),
       toggleFavoriteVendor: (id) =>
         set((state) => {
           const isSelected = state.favoriteVendors.includes(id);
@@ -132,7 +120,6 @@ export const useVendorCartStore = create<VendorCartState>()(
             removedDefaultItems: [],
             addedOptionalItems: [],
           },
-          cartVendors: [],
         }),
     }),
     {

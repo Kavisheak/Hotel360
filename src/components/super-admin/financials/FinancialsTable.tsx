@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { MoreVertical, ChevronLeft, ChevronRight, FileOutput } from 'lucide-react';
 import { transactionsData } from './financeData';

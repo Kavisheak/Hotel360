@@ -2,22 +2,32 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Heart, ShoppingCart } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Heart, LogOut } from "lucide-react";
+import { authAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import SignOutModal from "./SignOutModal";
 
 export default function MainNavbar() {
  const pathname = usePathname();
+ const router = useRouter();
  
- // Mock logged-in state. In a real app, you would get this from auth context.
- const [isLoggedIn, setIsLoggedIn] = useState(false);
- const { cartVendors, favoriteVendors } = useVendorCartStore();
+ const { user, fetchUser, clearUser } = useAuthStore();
+ const isLoggedIn = !!user;
+ const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
- // You can toggle this manually or via some global state to simulate login
+ const handleSignOut = async () => {
+   await authAPI.signout();
+   clearUser();
+   setIsSignOutModalOpen(false);
+   router.push("/");
+ };
+ const { favoriteVendors } = useVendorCartStore();
+
  useEffect(() => {
- const user = localStorage.getItem("user");
- if (user) setIsLoggedIn(true);
- }, []);
+   fetchUser();
+ }, [fetchUser]);
 
  const navLinks = [
  { name: "Home", path: "/" },
@@ -25,7 +35,7 @@ export default function MainNavbar() {
  { name: "Vendors", path: "/customer/vendors" },
  { name: "Food Menu", path: "/customer/food-menu" },
  { name: "Virtual Tour", path: "/customer/virtual-tour" },
- { name: "Book", path: "/book" },
+ { name: "Book Now", path: "/book" },
  ];
 
  return (
@@ -70,22 +80,22 @@ export default function MainNavbar() {
   )}
   </Link>
 
-  <Link href="/customer/saved" className="relative group text-gray-600 dark:text-gray-300 hover:text-[#C9A84C] dark:hover:text-[#C9A84C] transition-colors mr-2">
-  <ShoppingCart className="w-5 h-5" />
-  {cartVendors?.length > 0 && (
-  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-  {cartVendors.length}
-  </span>
-  )}
-  </Link>
-
   {isLoggedIn ? (
-  <Link
-  href="/customer/myaccount"
-  className="text-xs uppercase tracking-widest font-semibold text-gray-600 dark:text-gray-300 hover:text-[#2C1E14] dark:hover:text-white transition-colors duration-200"
-  >
-  My Account
-  </Link>
+  <div className="flex items-center gap-4">
+    <Link
+    href="/customer/myaccount"
+    className="text-xs uppercase tracking-widest font-semibold text-gray-600 dark:text-gray-300 hover:text-[#2C1E14] dark:hover:text-white transition-colors duration-200"
+    >
+    My Account
+    </Link>
+    <button
+    onClick={() => setIsSignOutModalOpen(true)}
+    title="Sign Out"
+    className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
+    >
+    <LogOut className="w-5 h-5" />
+    </button>
+  </div>
   ) : (
   <Link
   href="/login"
@@ -94,15 +104,15 @@ export default function MainNavbar() {
   Sign In
   </Link>
   )}
-
-  <Link
-  href="/book"
-  className="btn-interactive bg-[#C69C6D] text-white px-4 py-1.5 hover:bg-[#B58B5C] dark:hover:bg-[#B89238] transition-all duration-300 text-[10px] uppercase font-bold tracking-widest"
-  >
-  Inquire
-  </Link>
   </div>
  </div>
+
+ {/* Sign Out Confirmation Modal */}
+ <SignOutModal 
+   isOpen={isSignOutModalOpen}
+   onClose={() => setIsSignOutModalOpen(false)}
+   onConfirm={handleSignOut}
+ />
  </header>
  );
 }

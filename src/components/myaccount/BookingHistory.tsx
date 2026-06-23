@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
-import { CalendarDays, Users, Package, ArrowRight, Star } from "lucide-react";
-import { useBookingStore } from "@/store/bookingStore";
+import React, { useEffect, useState } from "react";
+import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
+import VendorSwapModal from "./VendorSwapModal";
+import BookingDetailsModal from "./BookingDetailsModal";
+import { useBookingStore, type Booking } from "@/store/bookingStore";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Confirmed" },
@@ -13,19 +15,27 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 export default function BookingHistory() {
-  const [isClient, setIsClient] = React.useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = React.useState(false);
-  const [selectedBookingId, setSelectedBookingId] = React.useState<string | null>(null);
-  const bookings = useBookingStore(state => state.bookings);
+  const [isClient, setIsClient] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [detailsModalBooking, setDetailsModalBooking] = useState<Booking | null>(null);
+  const { bookings, isLoading } = useBookingStore();
+  
+  const [swapModalState, setSwapModalState] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    service: "decorator" | "dj" | "videographer";
+    currentVendorId?: string;
+  }>({ isOpen: false, bookingId: "", service: "decorator" });
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsClient(true);
   }, []);
 
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 rounded-sm shadow-md dark:shadow-[#C9A84C]/5 hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20 bg-[#F0E6D0]/20 dark:bg-[#1A1A1A]/40">
         <div className="flex items-center gap-3">
@@ -43,15 +53,17 @@ export default function BookingHistory() {
       </div>
 
       <div className="divide-y divide-[#D4C9A8] dark:divide-[#C9A84C]/20">
-        {isClient && bookings.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#C9A84C]" /></div>
+        ) : isClient && bookings.length === 0 ? (
           <div className="p-6 text-center text-sm text-gray-500 italic">No bookings found.</div>
         ) : isClient ? (
           bookings.map((booking, idx) => {
-            const statusKey = booking.status.toLowerCase();
+            const statusKey = booking.status ? booking.status.toLowerCase() : "pending";
             const status = STATUS_STYLES[statusKey] || STATUS_STYLES.pending;
             return (
               <div
-                key={booking.id}
+                key={booking._id || booking.id}
                 className={`p-5 hover:bg-[#F0E6D0]/50 dark:hover:bg-[#C9A84C]/5 transition-all duration-200 group cursor-pointer stagger-${idx + 1}`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -59,7 +71,7 @@ export default function BookingHistory() {
                     {/* Top row */}
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[8px] uppercase tracking-[0.15em] font-bold text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded-sm border border-gray-300 dark:border-gray-700">
-                        {booking.id}
+                        {booking._id ? booking._id.slice(-6) : booking.id}
                       </span>
                       <span className={`text-[8px] uppercase tracking-[0.15em] font-bold px-1.5 py-0.5 rounded-sm ${status.bg} ${status.text}`}>
                         {status.label}
@@ -68,24 +80,64 @@ export default function BookingHistory() {
 
                     {/* Event Name */}
                     <h5 className="text-sm font-semibold text-[#2C1E14] dark:text-white group-hover:text-[#C9A84C] transition-colors">
-                      {booking.eventType}
+                      {booking.eventType || booking.eventName || "Event"}
                     </h5>
 
                     {/* Details Row */}
                     <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-600 dark:text-gray-400 font-light">
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" />
-                        {booking.date}
+                        {new Date(booking.date).toLocaleDateString()}
                       </span>
                       <span className="flex items-center gap-1">
                         <Package className="w-3 h-3" />
-                        {booking.menuType} menu
+                        {booking.menuType || booking.package} menu
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {booking.guests} guests
                       </span>
                     </div>
+
+                    {/* Vendors Status Row */}
+                    {booking.vendors && (
+                      <div className="mt-4 space-y-2">
+                        {["decorator", "dj", "videographer"].map((service) => {
+                          const vendor = booking.vendors[service as keyof typeof booking.vendors] as any;
+                          if (!vendor || typeof vendor !== 'object' || vendor.status === "NotRequired" || !vendor.vendorId) return null;
+                          
+                          const vStatus = vendor.status || "Pending";
+                          const isDeclined = vStatus === "Declined";
+                          
+                          return (
+                            <div key={service} className={`flex items-center justify-between text-[10px] p-2 rounded-sm border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10'}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="capitalize font-semibold text-gray-700 dark:text-gray-300">{service}:</span>
+                                <span className={`font-bold ${isDeclined ? 'text-red-600' : vStatus === 'Accepted' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  {vStatus}
+                                </span>
+                              </div>
+                              {isDeclined && (
+                                <button 
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    setSwapModalState({
+                                      isOpen: true,
+                                      bookingId: booking.id || booking._id,
+                                      service: service as "decorator" | "dj" | "videographer",
+                                      currentVendorId: typeof vendor === 'object' && vendor !== null ? vendor.vendorId || undefined : undefined
+                                    });
+                                  }}
+                                  className="text-[9px] uppercase tracking-widest font-bold text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded-sm transition-colors"
+                                >
+                                  Change Vendor
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Price & Action */}
@@ -94,9 +146,8 @@ export default function BookingHistory() {
                     <div className="flex items-center gap-3 mt-auto pt-4">
                       {statusKey === "completed" && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBookingId(booking.id);
+                          onClick={() => {
+                            setSelectedBookingId(booking.id || (booking._id as string));
                             setIsFeedbackOpen(true);
                           }}
                           className="text-[9px] uppercase tracking-widest font-bold text-white bg-[#C69C6D] hover:bg-[#B58A59] px-3 py-1.5 rounded-sm transition-colors flex items-center gap-1.5 shadow-sm"
@@ -105,7 +156,10 @@ export default function BookingHistory() {
                           Leave Review
                         </button>
                       )}
-                      <button className="text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-white transition-colors btn-interactive flex items-center gap-1">
+                      <button 
+                        onClick={() => setDetailsModalBooking(booking)}
+                        className="text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-white transition-colors btn-interactive flex items-center gap-1"
+                      >
                         View Details
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </button>
@@ -128,6 +182,22 @@ export default function BookingHistory() {
           bookingId={selectedBookingId}
         />
       )}
+
+      {swapModalState.isOpen && (
+        <VendorSwapModal
+          isOpen={swapModalState.isOpen}
+          onClose={() => setSwapModalState({ ...swapModalState, isOpen: false })}
+          bookingId={swapModalState.bookingId}
+          serviceCategory={swapModalState.service}
+          currentVendorId={swapModalState.currentVendorId}
+        />
+      )}
+
+      <BookingDetailsModal 
+        isOpen={!!detailsModalBooking}
+        onClose={() => setDetailsModalBooking(null)}
+        booking={detailsModalBooking}
+      />
     </div>
   );
 }

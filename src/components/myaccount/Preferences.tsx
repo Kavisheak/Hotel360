@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings, Globe, Clock, Palette, Save, Moon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Settings, Globe, Clock, Palette, Save, Moon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { accountAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 export default function Preferences() {
+  const { user, fetchUser } = useAuthStore();
   const [language, setLanguage] = useState("en");
   const [timezone, setTimezone] = useState("asia_colombo");
   const [dateFormat, setDateFormat] = useState("dd_mm_yyyy");
@@ -12,18 +15,33 @@ export default function Preferences() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user?.preferences) {
+      if (user.preferences.language) setLanguage(user.preferences.language);
+      if (user.preferences.timezone) setTimezone(user.preferences.timezone);
+      if (user.preferences.dateFormat) setDateFormat(user.preferences.dateFormat);
+      if (user.preferences.currency) setCurrency(user.preferences.currency);
+    }
+  }, [user]);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setIsLoading(true);
+    const prefs = { language, timezone, dateFormat, currency };
+    const { ok } = await accountAPI.updatePreferences(prefs);
+    setIsLoading(false);
+    
+    if (ok) {
+      setSaved(true);
+      fetchUser();
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 rounded-sm shadow-md dark:shadow-[#C9A84C]/5 hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20 bg-[#F0E6D0]/20 dark:bg-[#1A1A1A]/40">
         <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
@@ -144,9 +162,10 @@ export default function Preferences() {
         <div className="pt-4 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2"
+            disabled={isLoading}
+            className="px-6 py-2.5 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#B89238] dark:hover:bg-white transition-colors btn-interactive flex items-center gap-2 disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" />
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Save Preferences
           </button>
           {saved && (

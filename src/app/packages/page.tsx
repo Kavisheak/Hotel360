@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useAuthStore } from "@/store/authStore";
 import { packagesData, PackageData } from "./data";
 import PackageCard from "./components/PackageCard";
 import PackageDetailsModal from "./components/PackageDetailsModal";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import CompareFrameworks from "./components/CompareFrameworks";
 import EstimateInvestment from "./components/EstimateInvestment";
-import PackagesFAQ from "./components/PackagesFAQ";
 import FooterSection from "@/components/landing/shared/Footer";
 import { CheckCircle2, UserCheck, Star } from "lucide-react";
 
@@ -16,12 +16,19 @@ export default function PackagesPage() {
   const [isGuest, setIsGuest] = useState(true);
   const [selectedDetailsPkg, setSelectedDetailsPkg] = useState<PackageData | null>(null);
 
+  const { fetchUser, user } = useAuthStore();
+  
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user === "customer" || user === "decorator") {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (user && (user.role === "customer" || user.role === "decorator")) {
       setIsGuest(false);
+    } else {
+      setIsGuest(true);
     }
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0A0A0A] flex flex-col font-sans text-[#2C1E14] dark:text-white transition-colors duration-300">
@@ -76,10 +83,7 @@ export default function PackagesPage() {
       {/* Projection Tool / Estimate Investment */}
       <EstimateInvestment />
 
-      {/* Client Support / FAQ */}
-      <PackagesFAQ />
 
-      {/* Features Strip */}
       <section className="w-full bg-[#F0E6D0] dark:bg-[#2C1E14] py-16 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-[#2C1E14] dark:text-white">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
