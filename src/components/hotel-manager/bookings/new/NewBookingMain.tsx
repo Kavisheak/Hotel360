@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { ChevronRight, ArrowLeft, CalendarDays, Users, Package, Palette, Music, Video, Check, Search, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { VENDORS_DATA, Vendor } from '@/components/landing/vendors/types';
+import { Vendor } from '@/components/landing/vendors/types';
+import { useVendorStore } from '@/store/vendorStore';
 import { bookingAPI, packageAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
@@ -24,18 +25,21 @@ const NewBookingMain = () => {
   const [dbPackages, setDbPackages] = useState<any[]>([]);
   const router = useRouter();
 
+  const { vendors: globalVendors, fetchVendors } = useVendorStore();
+
   React.useEffect(() => {
+    fetchVendors();
     packageAPI.getAllPackages().then(res => {
       if (res.ok && res.data?.data) {
         setDbPackages(res.data.data);
         if (res.data.data.length > 0) setPackageType(res.data.data[0]._id);
       }
     });
-  }, []);
+  }, [fetchVendors]);
 
-  const decorators = VENDORS_DATA.filter(v => v.category === 'decorators');
-  const djs = VENDORS_DATA.filter(v => v.category === 'djs');
-  const videographers = VENDORS_DATA.filter(v => v.category === 'others');
+  const decorators = globalVendors.filter(v => v.category === 'decorators');
+  const djs = globalVendors.filter(v => v.category === 'djs');
+  const videographers = globalVendors.filter(v => v.category === 'others');
 
   const handleVendorSelect = (category: string, vendorId: string) => {
     setVendors(prev => ({
@@ -46,7 +50,7 @@ const NewBookingMain = () => {
 
   const getVendorCost = (cat: string) => {
     if (!vendors[cat]) return 0;
-    const v = VENDORS_DATA.find(x => x.id === vendors[cat]);
+    const v = globalVendors.find(x => x.id === vendors[cat]);
     if (!v) return 0;
     const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
     return numericStr ? parseInt(numericStr, 10) : 0;
@@ -428,19 +432,19 @@ const NewBookingMain = () => {
                     )}
                     {decCost > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Decorator ({VENDORS_DATA.find(v=>v.id===vendors.decorator)?.name})</span>
+                        <span className="text-xs text-gray-600">Decorator ({globalVendors.find(v=>v.id===vendors.decorator)?.name})</span>
                         <span className="text-xs font-bold text-gray-900">LKR {decCost.toLocaleString()}</span>
                       </div>
                     )}
                     {vidCost > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Videography ({VENDORS_DATA.find(v=>v.id===vendors.videographer)?.name})</span>
+                        <span className="text-xs text-gray-600">Videography ({globalVendors.find(v=>v.id===vendors.videographer)?.name})</span>
                         <span className="text-xs font-bold text-gray-900">LKR {vidCost.toLocaleString()}</span>
                       </div>
                     )}
                     {djCost > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Entertainment ({VENDORS_DATA.find(v=>v.id===vendors.dj)?.name})</span>
+                        <span className="text-xs text-gray-600">Entertainment ({globalVendors.find(v=>v.id===vendors.dj)?.name})</span>
                         <span className="text-xs font-bold text-gray-900">LKR {djCost.toLocaleString()}</span>
                       </div>
                     )}

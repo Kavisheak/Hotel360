@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
-import { VENDORS_DATA, Vendor } from "@/components/landing/vendors/types";
-
+import { Vendor } from "@/components/landing/vendors/types";
+import { useVendorStore } from "@/store/vendorStore";
 interface VendorSwapModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +19,12 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const { vendors, fetchVendors } = useVendorStore();
+
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
 
   useEffect(() => {
     setMounted(true);
@@ -43,7 +49,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
   };
   
   const mappedCategory = categoryMap[serviceCategory] || "decorators";
-  const availableVendors = VENDORS_DATA.filter(v => v.category === mappedCategory && v.id !== currentVendorId);
+  const availableVendors = vendors.filter(v => v.category === mappedCategory && v.id !== currentVendorId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

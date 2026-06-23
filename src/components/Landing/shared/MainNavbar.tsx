@@ -2,17 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Heart, ShoppingCart } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Heart, LogOut } from "lucide-react";
+import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import SignOutModal from "./SignOutModal";
 
 export default function MainNavbar() {
  const pathname = usePathname();
+ const router = useRouter();
  
- const { user, fetchUser } = useAuthStore();
+ const { user, fetchUser, clearUser } = useAuthStore();
  const isLoggedIn = !!user;
- const { cartVendors, favoriteVendors } = useVendorCartStore();
+ const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+
+ const handleSignOut = async () => {
+   await authAPI.signout();
+   clearUser();
+   setIsSignOutModalOpen(false);
+   router.push("/");
+ };
+ const { favoriteVendors } = useVendorCartStore();
 
  useEffect(() => {
    fetchUser();
@@ -69,22 +80,22 @@ export default function MainNavbar() {
   )}
   </Link>
 
-  <Link href="/customer/saved" className="relative group text-gray-600 dark:text-gray-300 hover:text-[#C9A84C] dark:hover:text-[#C9A84C] transition-colors mr-2">
-  <ShoppingCart className="w-5 h-5" />
-  {cartVendors?.length > 0 && (
-  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-  {cartVendors.length}
-  </span>
-  )}
-  </Link>
-
   {isLoggedIn ? (
-  <Link
-  href="/customer/myaccount"
-  className="text-xs uppercase tracking-widest font-semibold text-gray-600 dark:text-gray-300 hover:text-[#2C1E14] dark:hover:text-white transition-colors duration-200"
-  >
-  My Account
-  </Link>
+  <div className="flex items-center gap-4">
+    <Link
+    href="/customer/myaccount"
+    className="text-xs uppercase tracking-widest font-semibold text-gray-600 dark:text-gray-300 hover:text-[#2C1E14] dark:hover:text-white transition-colors duration-200"
+    >
+    My Account
+    </Link>
+    <button
+    onClick={() => setIsSignOutModalOpen(true)}
+    title="Sign Out"
+    className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
+    >
+    <LogOut className="w-5 h-5" />
+    </button>
+  </div>
   ) : (
   <Link
   href="/login"
@@ -95,6 +106,13 @@ export default function MainNavbar() {
   )}
   </div>
  </div>
+
+ {/* Sign Out Confirmation Modal */}
+ <SignOutModal 
+   isOpen={isSignOutModalOpen}
+   onClose={() => setIsSignOutModalOpen(false)}
+   onConfirm={handleSignOut}
+ />
  </header>
  );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Award, Info, ArrowRight, Heart, ShoppingCart } from "lucide-react";
+import { Star, Award, Info, ArrowRight, Heart } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
@@ -19,7 +19,7 @@ export default function VendorCards({
   isGuest = true
 }: VendorCardsProps) {
   const router = useRouter();
-  const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
+  const { favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
   
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState("");
@@ -52,7 +52,6 @@ export default function VendorCards({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredVendors.map((vendor, index) => {
-            const inCart = cartVendors?.includes(vendor.id) || false;
             const isFavorite = favoriteVendors?.includes(vendor.id) || false;
             
             return (
@@ -83,12 +82,6 @@ export default function VendorCards({
                     className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isFavorite ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
-                  </button>
-                  <button 
-                    onClick={() => handleRestrictedAction("Please log in to add vendors to your booking cart.", () => toggleCartVendor(vendor.id))} 
-                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${inCart ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
-                  >
-                    <ShoppingCart className={`w-4 h-4 ${inCart ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
                   </button>
                 </div>
                 
