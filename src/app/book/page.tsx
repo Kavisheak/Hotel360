@@ -15,8 +15,8 @@ import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
-import { VENDORS_DATA } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useVendorStore } from "@/store/vendorStore";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI } from "@/lib/api";
@@ -34,6 +34,11 @@ export default function BookPage() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const { fetchUser, user } = useAuthStore();
+  const { vendors: globalVendors, fetchVendors } = useVendorStore();
+  
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
   
   useEffect(() => {
     fetchUser();
@@ -124,7 +129,7 @@ export default function BookPage() {
       const pkgName = vendors[`decoratorPackage`];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
       
-      const v = VENDORS_DATA.find(v => v.id === vendorId);
+      const v = globalVendors.find(v => v.id === vendorId);
       if (!v) return 0;
       
       const pkg = v.packages.find(p => p.name === pkgName);
@@ -135,7 +140,7 @@ export default function BookPage() {
       return 0;
     } else {
       // For DJ and Videographer, use startingPrice since they don't have package selection
-      const v = VENDORS_DATA.find(v => v.id === vendorId);
+      const v = globalVendors.find(v => v.id === vendorId);
       if (!v) return 0;
       const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
       return numericStr ? parseInt(numericStr, 10) : 0;

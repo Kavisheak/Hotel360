@@ -62,3 +62,8 @@ export const customerBookingAPI = {
   getAvailability: () => apiFetch("/api/customer/bookings/availability"),
   swapVendor: (bookingId: string, body: any) => apiFetch(`/api/customer/bookings/${bookingId}/swap-vendor`, { method: "PATCH", body: JSON.stringify(body) }),
 };
+
+export const vendorAPI = {
+  getVendors: () => apiFetch("/api/customer/vendors"),
+  getVendorById: (id: string) => apiFetch(`/api/customer/vendors/${id}`),
+};

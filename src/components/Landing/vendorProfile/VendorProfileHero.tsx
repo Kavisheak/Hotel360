@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, Star, Phone, Mail, Check, Heart, ShoppingCart } from "lucide-react";
+import { MapPin, Star, Phone, Mail, Check, Heart } from "lucide-react";
 import { Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
@@ -13,19 +13,9 @@ interface VendorProfileHeroProps {
 
 export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
   const router = useRouter();
-  const { cartVendors, favoriteVendors, toggleCartVendor, toggleFavoriteVendor } = useVendorCartStore();
-  const [added, setAdded] = useState(false);
+  const { favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
 
-  const inCart = cartVendors?.includes(vendor.id) || false;
   const isFavorite = favoriteVendors?.includes(vendor.id) || false;
-
-  const handleToggleCart = () => {
-    toggleCartVendor(vendor.id);
-    if (!inCart) {
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
-    }
-  };
 
   return (
     <div className="relative w-full min-h-[500px] bg-white dark:bg-[#0A0A0A] overflow-hidden border-b border-[#E8DFC9] dark:border-[#C9A84C]/20 transition-colors duration-300 pt-16 pb-20">
@@ -98,16 +88,10 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
             </button>
             <button 
-              onClick={handleToggleCart}
-              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm flex items-center justify-center gap-2 shadow-sm ${inCart ? "bg-red-900 text-white hover:bg-red-800" : added ? "bg-green-600 text-white" : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"}`}
-            >
-              {inCart ? "Remove from Cart" : added ? <><Check className="w-4 h-4"/> Added</> : <><ShoppingCart className="w-4 h-4"/> Add to Cart</>}
-            </button>
-            <button 
               onClick={() => router.push("/customer/saved")}
               className="bg-white dark:bg-transparent border border-[#E8DFC9] dark:border-[#C9A84C]/30 text-[#1A1512] dark:text-white px-8 py-3.5 text-xs uppercase font-bold tracking-widest hover:bg-gray-50 dark:hover:bg-white/5 transition-colors rounded-sm shadow-sm"
             >
-              View Cart
+              View Saved Vendors
             </button>
           </div>
         </div>

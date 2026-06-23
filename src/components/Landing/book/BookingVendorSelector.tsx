@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Palette, Music, Video, ShoppingCart, Heart } from "lucide-react";
-import { VENDORS_DATA } from "@/components/landing/vendors/types";
+import { Sparkles, Palette, Music, Video, Heart } from "lucide-react";
+import { type Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useVendorStore } from "@/store/vendorStore";
 
 interface VendorsState {
   decorator: string;
@@ -20,8 +21,14 @@ interface BookingVendorSelectorProps {
 }
 
 export default function BookingVendorSelector({ vendors, onChange }: BookingVendorSelectorProps) {
-  const [filterType, setFilterType] = useState<"all" | "cart" | "favorites">("all");
-  const { cartVendors, favoriteVendors } = useVendorCartStore();
+  const [filterType, setFilterType] = useState<"all" | "favorites">("all");
+  const { favoriteVendors } = useVendorCartStore();
+  
+  const { vendors: globalVendors, isLoading, fetchVendors } = useVendorStore();
+
+  React.useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
   
   const updateVendor = (category: "decorator" | "dj" | "videographer", value: string) => {
     onChange({ 
@@ -38,18 +45,17 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
     });
   };
 
-  const decorators = VENDORS_DATA.filter(v => v.category === "decorators");
-  const djs = VENDORS_DATA.filter(v => v.category === "djs");
-  const videographers = VENDORS_DATA.filter(v => v.category === "others");
+  const decorators = globalVendors.filter(v => v.category === "decorators");
+  const djs = globalVendors.filter(v => v.category === "djs");
+  const videographers = globalVendors.filter(v => v.category === "others");
 
   const renderCategory = (
     title: string, 
     icon: React.ReactNode, 
     categoryKey: "decorator" | "dj" | "videographer", 
-    vendorList: typeof VENDORS_DATA
+    vendorList: Vendor[]
   ) => {
     const displayedVendors = vendorList.filter((v) => {
-      if (filterType === "cart") return cartVendors?.includes(v.id);
       if (filterType === "favorites") return favoriteVendors?.includes(v.id);
       return true;
     });
@@ -247,19 +253,19 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         <Sparkles className="w-4 h-4 text-[#C9A84C]" /> Step 2: Preliminary Vendors
       </label>
 
-      <div className="flex items-center flex-wrap gap-2 mb-6 border-b border-[#C9A84C]/30 pb-4">
-        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-600 dark:text-gray-400 mr-2">Filter By:</span>
+      {isLoading ? (
+        <div className="py-12 flex justify-center items-center">
+          <div className="animate-spin w-6 h-6 border-2 border-[#C9A84C] border-t-transparent rounded-full"></div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center flex-wrap gap-2 mb-6 border-b border-[#C9A84C]/30 pb-4">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-600 dark:text-gray-400 mr-2">Filter By:</span>
         <button 
           onClick={() => setFilterType("all")}
           className={`px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "all" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
         >
           All
-        </button>
-        <button 
-          onClick={() => setFilterType("cart")}
-          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "cart" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
-        >
-          <ShoppingCart className="w-3 h-3" /> Cart
         </button>
         <button 
           onClick={() => setFilterType("favorites")}
@@ -269,15 +275,17 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         </button>
       </div>
 
-      <div className="space-y-8">
-        {renderCategory("Decorator", <Palette className="w-4 h-4 text-[#C9A84C]" />, "decorator", decorators)}
-        {renderCategory("DJ & Music", <Music className="w-4 h-4 text-[#C9A84C]" />, "dj", djs)}
-        {renderCategory("Cinematic Videography", <Video className="w-4 h-4 text-[#C9A84C]" />, "videographer", videographers)}
-      </div>
-      
-      <p className="text-[10px] text-gray-600 dark:text-gray-500 font-light mt-4 italic text-center">
-        View full portfolios and reviews in the dedicated Vendors portal.
-      </p>
+          <div className="space-y-8">
+            {renderCategory("Decorator", <Palette className="w-4 h-4 text-[#C9A84C]" />, "decorator", decorators)}
+            {renderCategory("DJ & Music", <Music className="w-4 h-4 text-[#C9A84C]" />, "dj", djs)}
+            {renderCategory("Cinematic Videography", <Video className="w-4 h-4 text-[#C9A84C]" />, "videographer", videographers)}
+          </div>
+          
+          <p className="text-[10px] text-gray-600 dark:text-gray-500 font-light mt-4 italic text-center">
+            View full portfolios and reviews in the dedicated Vendors portal.
+          </p>
+        </>
+      )}
     </div>
   );
 }
