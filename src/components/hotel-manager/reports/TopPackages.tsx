@@ -66,7 +66,7 @@ const TopPackages = () => {
           {packages.map((p, i) => (
             <tr key={i} className="border-b border-[#F2EADA] hover:bg-[#FDF9F1] transition-colors last:border-b-0">
               <td className="px-5 py-4 text-xs font-semibold text-gray-800 font-serif leading-tight pr-0">
-                {p.name.split(' ').map((word, idx) => (
+                {p.name.split(' ').map((word: string, idx: number) => (
                   <React.Fragment key={idx}>
                     {word}<br/>
                   </React.Fragment>

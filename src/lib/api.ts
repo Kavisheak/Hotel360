@@ -67,3 +67,23 @@ export const vendorAPI = {
   getVendors: () => apiFetch("/api/customer/vendors"),
   getVendorById: (id: string) => apiFetch(`/api/customer/vendors/${id}`),
 };
+
+export const staffAPI = {
+  createVendor: (body: any) => apiFetch("/api/staff/create", { method: "POST", body: JSON.stringify(body) }),
+  getVendors: () => apiFetch("/api/staff"),
+  updateVendor: (id: string, body: any) => apiFetch(`/api/staff/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteVendor: (id: string) => apiFetch(`/api/staff/${id}`, { method: "DELETE" }),
+};
+
+export const bookingAPI = {
+  getAllBookings: () => apiFetch("/api/manager/bookings"),
+  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/manager/bookings/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+};
+
+export const packageAPI = {
+  getAllPackages: () => apiFetch("/api/manager/packages"),
+};
+
+export const paymentAPI = {
+  getAllPayments: () => apiFetch("/api/manager/payments"),
+};

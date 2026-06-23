@@ -73,7 +73,7 @@ const FooterSection = () => {
  <li><Link href="/customer/vendors" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Vendors</Link></li>
  <li><Link href="/customer/virtual-tour" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Virtual Tour</Link></li>
  <li><Link href="/customer/book" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Reserve a Date</Link></li>
- <li><Link href="/customer" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Client Portal</Link></li>
+ <li><Link href="/customer/myaccount" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Client Portal</Link></li>
  </ul>
  </div>
 

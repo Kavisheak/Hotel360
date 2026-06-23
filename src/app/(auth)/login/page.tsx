@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { Mail, Lock, Eye, ArrowRight, Paintbrush, Briefcase, ShieldCheck, User, Phone, CheckCircle2, Tag, Headset, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -110,13 +110,13 @@ export default function AuthPage() {
   };
 
   // Animation variants
-  const leftSideVariants = {
+  const leftSideVariants: Variants = {
     initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } },
     exit: { opacity: 0, x: -20, transition: { duration: 0.3, ease: "easeIn" } }
   };
 
-  const rightSideVariants = {
+  const rightSideVariants: Variants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
     exit: { opacity: 0, y: 20, transition: { duration: 0.3, ease: "easeIn" } }
