@@ -8,6 +8,26 @@ import Footer from '../my_jobs/Footer';
 
 const PortfolioMain = () => {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchPortfolio();
+  }, []);
+
+  const fetchPortfolio = async () => {
+    try {
+      const { decoratorAPI } = await import('@/lib/api');
+      const res = await decoratorAPI.getPortfolioItems();
+      if (res.ok && res.data?.data) {
+        setPortfolioItems(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
@@ -22,7 +42,11 @@ const PortfolioMain = () => {
         />
 
         {/* Dynamic Gallery List */}
-        <PortfolioGallery activeCategory={activeCategory} />
+        {loading ? (
+          <div className="py-20 text-center text-[#7C6A2E] animate-pulse">Loading gallery...</div>
+        ) : (
+          <PortfolioGallery activeCategory={activeCategory} items={portfolioItems} />
+        )}
       </div>
       <Footer />
     </div>

@@ -1,11 +1,31 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import ScheduleHeader from './ScheduleHeader';
 import CalendarView from './CalendarView';
 import EventTimeline from './EventTimeline';
 import ResourceAllocation from './ResourceAllocation';
 import Footer from '../my_jobs/Footer';
+import { decoratorAPI } from '@/lib/api';
 
 const ScheduleMain = () => {
+  const [bookings, setBookings] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const res = await decoratorAPI.getAssignedBookings();
+      if (res.ok && res.data?.data) {
+        setBookings(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
@@ -14,10 +34,10 @@ const ScheduleMain = () => {
         {/* Calendar + Timeline: stack on mobile, side by side on lg */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 mt-6">
           <div className="lg:col-span-2">
-            <CalendarView />
+            <CalendarView bookings={bookings} />
           </div>
           <div className="lg:col-span-1">
-            <EventTimeline />
+            <EventTimeline bookings={bookings} />
           </div>
         </div>
 

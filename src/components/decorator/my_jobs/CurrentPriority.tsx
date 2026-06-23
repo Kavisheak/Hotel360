@@ -1,21 +1,34 @@
 import React from 'react';
-import { MapPin, Users } from 'lucide-react';
+import { MapPin, Users, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
-const CurrentPriority = () => {
+const CurrentPriority = ({ booking }: { booking: any }) => {
+  const dateObj = new Date(booking.date);
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+  const packageBadge = booking.vendors?.decorator?.packageName || booking.packageName || 'CUSTOM';
+  const progress = booking.vendors?.decorator?.progress || 0;
+
   return (
     <div className="bg-white border border-[#E0D8C3] flex overflow-hidden shadow-sm relative">
       <div className="bg-[#4A463B] text-white w-32 flex flex-col justify-center items-center py-8 shrink-0">
-        <span className="text-5xl font-bold font-serif mb-1 tracking-tight">04</span>
-        <span className="text-xs font-bold tracking-widest text-gray-300">JUNE</span>
+        <span className="text-5xl font-bold font-serif mb-1 tracking-tight">{day}</span>
+        <span className="text-xs font-bold tracking-widest text-gray-300">{month}</span>
       </div>
       
       <div className="p-8 flex-1">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-4xl font-serif text-gray-800 tracking-tight leading-none mb-4">
-            Farhan & Zainab's<br />Gala
+            {booking.clientName}'s<br />{booking.eventType}
           </h2>
           <div className="bg-[#F9DD76] px-4 py-2 border border-[#E0D8C3]">
-            <p className="text-[10px] font-bold tracking-widest text-[#7C6A2E] leading-tight text-center">GOLD<br/>PACKAGE</p>
+            <p className="text-[10px] font-bold tracking-widest text-[#7C6A2E] leading-tight text-center">
+              {packageBadge.split(' ').map((word: string, i: number) => (
+                <React.Fragment key={i}>
+                  {word}{i === 0 && <br/>}
+                </React.Fragment>
+              ))}
+            </p>
           </div>
         </div>
 
@@ -26,23 +39,37 @@ const CurrentPriority = () => {
           </div>
           <div className="flex items-center space-x-2">
             <Users size={14} className="text-[#A6955C]" />
-            <span>380 GUESTS</span>
+            <span>{booking.guests} GUESTS</span>
           </div>
         </div>
 
-        <div className="flex space-x-3 mb-8">
-          <span className="bg-[#F2EADA] text-[#7C6A2E] px-3 py-1 text-[10px] font-bold tracking-widest uppercase">FLORAL ARCHES</span>
-          <span className="bg-[#F2EADA] text-[#7C6A2E] px-3 py-1 text-[10px] font-bold tracking-widest uppercase">CRYSTAL LIGHTING</span>
-          <span className="bg-[#F2EADA] text-[#7C6A2E] px-3 py-1 text-[10px] font-bold tracking-widest uppercase">ELEVATED STAGE</span>
-        </div>
+        {booking.customMenuItems && booking.customMenuItems.length > 0 && (
+          <div className="flex space-x-3 mb-8 flex-wrap gap-y-2">
+            {booking.customMenuItems.slice(0, 3).map((item: string, idx: number) => (
+              <span key={idx} className="bg-[#F2EADA] text-[#7C6A2E] px-3 py-1 text-[10px] font-bold tracking-widest uppercase">{item}</span>
+            ))}
+          </div>
+        )}
 
         <div>
-          <div className="flex justify-between text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-2">
-            <span>SETUP PROGRESS</span>
-            <span className="text-[#7C6A2E]">65%</span>
-          </div>
-          <div className="w-full bg-[#E0D8C3] h-1">
-            <div className="bg-[#7C6A2E] h-1" style={{ width: '65%' }}></div>
+          <div className="flex justify-between items-end mb-2">
+            <div className="flex-1">
+              <div className="flex justify-between text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-2">
+                <span>SETUP PROGRESS</span>
+                <span className="text-[#7C6A2E] pr-6">{progress}%</span>
+              </div>
+              <div className="w-11/12 bg-[#E0D8C3] h-1">
+                <div className="bg-[#7C6A2E] h-1" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+            
+            <Link 
+              href={`/decorator/bookings/${booking._id}`}
+              className="flex items-center space-x-2 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#5E4F20] transition-colors"
+            >
+              <span>View Details</span>
+              <ArrowRight size={14} />
+            </Link>
           </div>
         </div>
       </div>

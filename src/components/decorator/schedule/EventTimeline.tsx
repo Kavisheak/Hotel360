@@ -1,15 +1,29 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 
-const EventTimeline = () => {
+interface EventTimelineProps {
+  bookings?: any[];
+}
+
+const EventTimeline = ({ bookings = [] }: EventTimelineProps) => {
+  // Get today's date formatted
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  
+  // For demonstration, let's just show up to 3 upcoming bookings 
+  const upcomingBookings = bookings
+    .filter(b => new Date(b.date) >= new Date(new Date().setHours(0,0,0,0)))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3);
+
   return (
-    <div className="bg-[#F2EBE1] border border-[#E0D8C3] flex flex-col">
+    <div className="bg-[#F2EBE1] border border-[#E0D8C3] flex flex-col h-full">
       {/* Date Header */}
       <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4 border-b border-[#E0D8C3]">
         <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold tracking-tight mb-1">
-          December 12, 2024
+          {dateStr}
         </h2>
-        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">3 EVENTS SCHEDULED</p>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">{upcomingBookings.length} EVENTS UPCOMING</p>
       </div>
 
       {/* Events */}
@@ -19,65 +33,32 @@ const EventTimeline = () => {
 
         <div className="space-y-6 relative">
 
-          {/* Event 1 */}
-          <div className="relative pl-8 sm:pl-10">
-            <div className="absolute left-[-6px] top-3.5 w-3 h-3 rounded-full bg-[#B08D2C] z-10 shrink-0" />
-            <div className="bg-white border border-[#E0D8C3] p-4 sm:p-5 shadow-sm">
-              <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                <span className="text-[11px] font-bold text-[#7C6A2E] tracking-wider">09:00 AM – 11:30 AM</span>
-                <span className="bg-[#EBE5D9] text-gray-600 px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase">SITE VISIT</span>
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1.5 font-serif">Rahman-Zahid Wedding</h3>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed font-serif">
-                Grand Ballroom, East Wing. Floor plan measurements and lighting check.
-              </p>
-              <div className="flex items-center space-x-1.5 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
-                <MapPin size={13} className="text-[#A6955C] shrink-0" />
-                <span>SATTAR ELITE MAIN HALL</span>
-              </div>
-            </div>
-          </div>
+          {upcomingBookings.length === 0 ? (
+            <div className="text-sm text-gray-500 italic py-8 text-center">No upcoming events scheduled.</div>
+          ) : (
+            upcomingBookings.map((b, idx) => {
+              const eventDate = new Date(b.date);
+              const timeStr = eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+              const colors = ['bg-[#B08D2C]', 'bg-[#F3CE5A]', 'bg-[#C4BCAB]'];
+              const dotColor = colors[idx % colors.length];
 
-          {/* Event 2 */}
-          <div className="relative pl-8 sm:pl-10">
-            <div className="absolute left-[-6px] top-3.5 w-3 h-3 rounded-full bg-[#F3CE5A] border-2 border-[#F2EBE1] z-10 shrink-0" />
-            <div className="bg-white border border-[#E0D8C3] p-4 sm:p-5 shadow-sm">
-              <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                <span className="text-[11px] font-bold text-[#7C6A2E] tracking-wider">02:00 PM – 05:00 PM</span>
-                <span className="bg-[#FDF9F1] text-[#7C6A2E] border border-[#E0D8C3] px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase">STAGE SETUP</span>
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1.5 font-serif">Corporate Gala Evening</h3>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed font-serif">
-                Floral installation and centerpieces for 45 VIP tables.
-              </p>
-              <div className="flex items-center space-x-3">
-                <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&h=64" alt="Staff" />
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&h=64" alt="Staff" />
+              return (
+                <div key={b._id} className="relative pl-8 sm:pl-10">
+                  <div className={`absolute left-[-6px] top-3.5 w-3 h-3 rounded-full ${dotColor} z-10 shrink-0 border-2 border-[#F2EBE1]`} />
+                  <div className="bg-white border border-[#E0D8C3] p-4 sm:p-5 shadow-sm">
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
+                      <span className="text-[11px] font-bold text-[#7C6A2E] tracking-wider">{eventDate.toLocaleDateString()} at {timeStr}</span>
+                      <span className="bg-[#EBE5D9] text-gray-600 px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase">{b.vendors?.decorator?.status || 'PENDING'}</span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1.5 font-serif">{b.clientName} - {b.eventType}</h3>
+                    <p className="text-sm text-gray-600 mb-4 leading-relaxed font-serif">
+                      {b.vendors?.decorator?.checklist?.filter((c:any) => !c.isCompleted).length || 0} tasks remaining for preparation.
+                    </p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">+3 STAFF</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Event 3 */}
-          <div className="relative pl-8 sm:pl-10">
-            <div className="absolute left-[-6px] top-3.5 w-3 h-3 rounded-full bg-[#C4BCAB] border-2 border-[#F2EBE1] z-10 shrink-0" />
-            <div className="border border-dashed border-[#C4BCAB] p-4 sm:p-5">
-              <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                <span className="text-[11px] font-bold text-gray-500 tracking-wider">06:30 PM</span>
-                <span className="bg-[#E0D8C3] text-gray-600 px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase">BRIEFING</span>
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-600 mb-1.5 font-serif">Inventory Review</h3>
-              <p className="text-sm text-gray-500 italic font-serif leading-relaxed">
-                Reviewing weekend stock for high-volume turnover.
-              </p>
-            </div>
-          </div>
+              );
+            })
+          )}
 
         </div>
       </div>

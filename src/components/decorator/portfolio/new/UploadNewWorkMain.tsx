@@ -23,6 +23,7 @@ interface MediaItem {
   id: string;
   src: string;
   isCover: boolean;
+  file?: File;
 }
 
 const UploadNewWorkMain = () => {
@@ -35,6 +36,7 @@ const UploadNewWorkMain = () => {
   const [eventDate, setEventDate] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('');
+  const [category, setCategory] = useState('installations');
 
   // Services checklist
   const [services, setServices] = useState({
@@ -57,27 +59,32 @@ const UploadNewWorkMain = () => {
       isCover: true
     }
   ]);
+  const [successDetails, setSuccessDetails] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   // Handle local image file uploads and base64 preview mapping
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newMediaItems: MediaItem[] = [];
     Array.from(files).forEach((file, idx) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setMediaList(prev => [
-          ...prev,
+          ...prev.filter(item => item.id !== 'default-cover'), // Remove placeholder if exists
           {
             id: `uploaded-${Date.now()}-${idx}`,
             src: reader.result as string,
-            isCover: false
+            isCover: prev.filter(i => i.id !== 'default-cover').length === 0 && idx === 0,
+            file: file
           }
         ]);
       };
       reader.readAsDataURL(file);
     });
+
+    // Clear input so same file can be selected again
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Trigger click on hidden native file selector
@@ -105,9 +112,50 @@ const UploadNewWorkMain = () => {
     })));
   };
 
-  // Save / Publish form details
-  const handlePublish = () => {
-    alert(`Success! "${projectTitle || 'Untitled Masterpiece'}" has been published to your elite portfolio.`);
+  const handlePublish = async () => {
+    try {
+      const { decoratorAPI } = await import('@/lib/api');
+      const formData = new FormData();
+      formData.append("title", projectTitle);
+      formData.append("eventType", eventType);
+      formData.append("eventDate", eventDate);
+      formData.append("description", description);
+      formData.append("venue", venue);
+      formData.append("category", category);
+      formData.append("isFeatured", String(isFeatured));
+      formData.append("isPrivate", String(isPrivate));
+      
+      const activeServices = Object.entries(services)
+        .filter(([_, isActive]) => isActive)
+        .map(([key]) => key);
+      formData.append("servicesProvided", JSON.stringify(activeServices));
+      
+      // Find which file is the cover
+      const coverItem = mediaList.find(m => m.isCover) || mediaList[0];
+      if (coverItem && coverItem.file) {
+        formData.append("coverImageName", coverItem.file.name);
+      }
+
+      mediaList.forEach(item => {
+        if (item.file) {
+          formData.append("media", item.file);
+        }
+      });
+
+      const res = await decoratorAPI.createPortfolioItem(formData);
+      if (res.ok) {
+        setSuccessDetails(`Success! "${projectTitle || 'Untitled Masterpiece'}" has been published to your elite portfolio.`);
+      } else {
+        setErrorDetails(res.data?.message || "Failed to communicate with the server. Please check your connection.");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setErrorDetails("Failed to publish portfolio. Ensure the backend is running and the route is correct.");
+    }
+  };
+
+  const handleContinue = () => {
+    setSuccessDetails(null);
     router.push('/decorator/portfolio');
   };
 
@@ -322,6 +370,21 @@ const UploadNewWorkMain = () => {
                     <option>Corporate Gala</option>
                     <option>Intimate Reception</option>
                     <option>Cultural Celebration</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                    Portfolio Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
+                  >
+                    <option value="tablescapes">GRAND TABLE-SCAPES</option>
+                    <option value="installations">FLORAL INSTALLATIONS</option>
+                    <option value="lighting">LIGHTING DESIGN</option>
+                    <option value="stages">STAGE SETUPS</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -549,6 +612,48 @@ const UploadNewWorkMain = () => {
           </section>
         </div>
       </div>
+
+      {/* Premium Success Modal */}
+      {successDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Check size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Published</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {successDetails}
+            </p>
+            <button 
+              onClick={handleContinue}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Continue to Portfolio
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Error Modal */}
+      {errorDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-red-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Info size={32} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-red-600 mb-2 tracking-wide">Upload Failed</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {errorDetails}
+            </p>
+            <button 
+              onClick={() => setErrorDetails(null)}
+              className="w-full bg-[#EBE5D9] hover:bg-[#E0D8C3] text-gray-700 px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FOOTER */}
       <Footer />
