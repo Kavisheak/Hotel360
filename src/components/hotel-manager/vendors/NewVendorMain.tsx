@@ -17,6 +17,7 @@ const NewVendorMain = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{name: string, email: string} | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   const generatePassword = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
@@ -40,11 +41,11 @@ const NewVendorMain = () => {
           email: formData.email
         });
       } else {
-        alert(`Error: ${response.data.message || 'Failed to create vendor'}`);
+        setErrorDetails(response.data.message || 'Failed to create vendor');
       }
     } catch (error) {
       console.error(error);
-      alert('An unexpected error occurred. Please try again later.');
+      setErrorDetails('An unexpected error occurred. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -255,6 +256,29 @@ const NewVendorMain = () => {
               className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
             >
               Continue to Directory
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Error Modal */}
+      {errorDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-red-200 shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="text-red-500 text-2xl font-bold">!</span>
+            </div>
+            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 tracking-wide">
+              Action Failed
+            </h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {errorDetails}
+            </p>
+            <button 
+              onClick={() => setErrorDetails(null)}
+              className="w-full bg-white border border-[#E0D8C3] hover:bg-gray-50 text-gray-800 px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Close & Try Again
             </button>
           </div>
         </div>

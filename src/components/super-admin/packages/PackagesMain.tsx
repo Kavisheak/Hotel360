@@ -24,6 +24,8 @@ const PackagesMain = () => {
   const [tierToEdit, setTierToEdit] = useState<Tier | null>(null);
   const [tierToDelete, setTierToDelete] = useState<Tier | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [successDetails, setSuccessDetails] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPackages();
@@ -75,7 +77,7 @@ const PackagesMain = () => {
       setShowSuccessModal(true);
     } catch (err) {
       console.error(err);
-      alert('Failed to publish updates.');
+      setErrorDetails('Failed to publish updates.');
     } finally {
       setIsPublishing(false);
     }
@@ -103,13 +105,13 @@ const PackagesMain = () => {
       if (res.ok) {
         setTiers(prev => prev.map(t => t.id === tierToEdit.id ? tierToEdit : t));
         setTierToEdit(null);
-        alert('Tier updated successfully!');
+        setSuccessDetails('Tier updated successfully!');
       } else {
-        alert(`Error: ${res.data.message}`);
+        setErrorDetails(`Error: ${res.data.message}`);
       }
     } catch (error) {
       console.error(error);
-      alert('Failed to update tier.');
+      setErrorDetails('Failed to update tier.');
     } finally {
       setIsUpdating(false);
     }
@@ -124,12 +126,13 @@ const PackagesMain = () => {
         setTiers(prev => prev.filter(t => t.id !== tierToDelete.id));
         setTierToDelete(null);
         setTierToEdit(null);
+        setSuccessDetails('Tier deleted successfully!');
       } else {
-        alert(`Error deleting: ${res.data.message}`);
+        setErrorDetails(`Error deleting: ${res.data.message}`);
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to delete tier.');
+      setErrorDetails('Failed to delete tier.');
     } finally {
       setIsUpdating(false);
     }
@@ -377,6 +380,50 @@ const PackagesMain = () => {
                 {isUpdating ? 'Deleting...' : 'Confirm Delete'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Success Modal (for CRUD operations) */}
+      {successDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <CheckCircle2 size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Success</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {successDetails}
+            </p>
+            <button 
+              onClick={() => setSuccessDetails(null)}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Error Modal */}
+      {errorDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-red-200 shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="text-red-500 text-2xl font-bold">!</span>
+            </div>
+            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 tracking-wide">
+              Action Failed
+            </h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {errorDetails}
+            </p>
+            <button 
+              onClick={() => setErrorDetails(null)}
+              className="w-full bg-white border border-[#E0D8C3] hover:bg-gray-50 text-gray-800 px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Close & Try Again
+            </button>
           </div>
         </div>
       )}

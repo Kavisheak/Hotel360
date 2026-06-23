@@ -34,9 +34,10 @@ const CategoryGallery = ({ categorySlug }: CategoryGalleryProps) => {
       {/* Uniform 3-col grid on lg, 2-col on sm, 1-col on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item) => (
-          <div 
+          <Link 
+            href={`/decorator/portfolio/item/${item.id}`}
             key={item.id} 
-            className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group"
+            className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
           >
             {/* Image Container with Absolute Badge */}
             <div className="relative aspect-[4/3] overflow-hidden">
@@ -66,13 +67,13 @@ const CategoryGallery = ({ categorySlug }: CategoryGalleryProps) => {
               {/* Bottom Info Row */}
               <div className="flex items-center justify-between pt-4 border-t border-[#F2EDE0] text-[9px] font-bold tracking-[0.15em] uppercase">
                 <span className="text-gray-400">{item.event}</span>
-                <button className="flex items-center space-x-1.5 text-[#7C6A2E] hover:text-[#B08D2C] transition-colors">
+                <div className="flex items-center space-x-1.5 text-[#7C6A2E] group-hover:text-[#B08D2C] transition-colors">
                   <span>{item.linkText}</span>
                   <ArrowRight size={10} className="transition-transform group-hover:translate-x-1" />
-                </button>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

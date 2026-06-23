@@ -3,23 +3,12 @@
 import React, { useState } from 'react';
 import { User, ChevronDown } from 'lucide-react';
 
-const PersonalProfile = () => {
-  const [formData, setFormData] = useState({
-    fullName: 'Julian Sattar',
-    email: 'julian.elite@sattar.com',
-    phone: '+1 (555) 000-0000',
-    experience: '12',
-    specialty: 'Floral Architecture & Design',
-    website: 'https://portfolio.sattar-elite.com',
-    instagram: '@julian_sattar_designs',
-    pinterest: 'pinterest.com/juliansattar',
-    bio: "Julian specializes in blending classic European floral techniques with modern minimalist architecture, creating timeless atmospheres for the world's most exclusive celebrations."
-  });
+interface PersonalProfileProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+const PersonalProfile = ({ formData, handleChange }: PersonalProfileProps) => {
 
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
@@ -99,18 +88,14 @@ const PersonalProfile = () => {
               DECORATOR SPECIALTY
             </label>
             <div className="relative">
-              <select
+              <input
+                type="text"
                 name="specialty"
                 value={formData.specialty}
                 onChange={handleChange}
-                className="w-full appearance-none bg-white border border-[#E0D8C3] px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
-              >
-                <option>Floral Architecture & Design</option>
-                <option>Lighting & Ambiance Curation</option>
-                <option>Stage & Backdrop Sculpting</option>
-                <option>Traditional Mehndi Theme Setup</option>
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                placeholder="e.g. Floral Architecture & Design"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
             </div>
           </div>
 

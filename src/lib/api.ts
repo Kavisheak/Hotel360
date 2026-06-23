@@ -6,13 +6,8 @@ interface ApiOptions extends RequestInit {
 
 const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
   try {
-    const defaultHeaders: Record<string, string> = { "Content-Type": "application/json" };
-    
-    // If Content-Type is explicitly null/undefined in options, remove it so browser can set it
-    if (options.headers && 'Content-Type' in options.headers && !options.headers['Content-Type']) {
-      delete defaultHeaders["Content-Type"];
-      delete options.headers["Content-Type"];
-    }
+    const isFormData = options.body instanceof FormData;
+    const defaultHeaders: any = isFormData ? {} : { "Content-Type": "application/json" };
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       headers: { ...defaultHeaders, ...options.headers },
@@ -33,57 +28,57 @@ export const authAPI = {
   signin:  (body: any) => apiFetch("/api/auth/signin",  { method: "POST", body: JSON.stringify(body) }),
   signout: ()          => apiFetch("/api/auth/signout", { method: "POST" }),
   getMe:   ()          => apiFetch("/api/auth/me"),
-  updateProfile: (body: any) => apiFetch("/api/auth/me", { method: "PUT", body: JSON.stringify(body) }),
-  uploadAvatar: (formData: FormData) => apiFetch("/api/auth/me/avatar", {
-    method: "POST",
-    body: formData,
-    headers: {
-      // Content-Type must be undefined so browser sets it with the boundary automatically
-      "Content-Type": undefined as any
-    }
-  }),
-  deleteAvatar: () => apiFetch("/api/auth/me/avatar", { method: "DELETE" }),
-};
-
-export const accountAPI = {
-  changePassword: (body: any) => apiFetch("/api/customer/account/password", { method: "PUT", body: JSON.stringify(body) }),
-  toggle2FA: (enabled: boolean) => apiFetch("/api/customer/account/2fa", { method: "PUT", body: JSON.stringify({ enabled }) }),
-  updatePreferences: (body: any) => apiFetch("/api/customer/account/preferences", { method: "PUT", body: JSON.stringify(body) }),
-  updateNotifications: (body: any) => apiFetch("/api/customer/account/notifications", { method: "PUT", body: JSON.stringify(body) }),
-  getPaymentMethods: () => apiFetch("/api/customer/account/payment-methods"),
-  addPaymentMethod: (body: any) => apiFetch("/api/customer/account/payment-methods", { method: "POST", body: JSON.stringify(body) }),
-  deletePaymentMethod: (id: string) => apiFetch(`/api/customer/account/payment-methods/${id}`, { method: "DELETE" }),
-  getMyBookings: () => apiFetch("/api/customer/account/bookings"),
-};
-
-export const customerBookingAPI = {
-  createBooking: (body: any) => apiFetch("/api/customer/bookings", { method: "POST", body: JSON.stringify(body) }),
-  getMyBookings: () => apiFetch("/api/customer/bookings"), // Using the new structured route
-  getAvailability: () => apiFetch("/api/customer/bookings/availability"),
-  swapVendor: (bookingId: string, body: any) => apiFetch(`/api/customer/bookings/${bookingId}/swap-vendor`, { method: "PATCH", body: JSON.stringify(body) }),
-};
-
-export const vendorAPI = {
-  getVendors: () => apiFetch("/api/customer/vendors"),
-  getVendorById: (id: string) => apiFetch(`/api/customer/vendors/${id}`),
+  changePassword: (body: any) => apiFetch("/api/auth/me/password", { method: "PUT", body: JSON.stringify(body) }),
+  revokeSessions: ()   => apiFetch("/api/auth/me/sessions/revoke", { method: "POST" }),
 };
 
 export const staffAPI = {
   createVendor: (body: any) => apiFetch("/api/staff/create", { method: "POST", body: JSON.stringify(body) }),
-  getVendors: () => apiFetch("/api/staff"),
+  getAllVendors: () => apiFetch("/api/staff"),
   updateVendor: (id: string, body: any) => apiFetch(`/api/staff/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteVendor: (id: string) => apiFetch(`/api/staff/${id}`, { method: "DELETE" }),
 };
 
-export const bookingAPI = {
-  getAllBookings: () => apiFetch("/api/manager/bookings"),
-  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/manager/bookings/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+export const packageAPI = {
+  createPackage: (body: any) => apiFetch("/api/packages/create", { method: "POST", body: JSON.stringify(body) }),
+  getAllPackages: () => apiFetch("/api/packages"),
+  updatePackage: (id: string, body: any) => apiFetch(`/api/packages/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deletePackage: (id: string) => apiFetch(`/api/packages/${id}`, { method: "DELETE" }),
 };
 
-export const packageAPI = {
-  getAllPackages: () => apiFetch("/api/manager/packages"),
+export const bookingAPI = {
+  createBooking: (body: any) => apiFetch("/api/bookings/create", { method: "POST", body: JSON.stringify(body) }),
+  getAllBookings: () => apiFetch("/api/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/bookings/${id}`),
+  updateBookingStatus: (id: string, body: any) => apiFetch(`/api/bookings/${id}/status`, { method: "PUT", body: JSON.stringify(body) }),
+  assignArtisans: (id: string, body: any) => apiFetch(`/api/bookings/${id}/assign`, { method: "PUT", body: JSON.stringify(body) }),
+  recordPayment: (id: string, body: any) => apiFetch(`/api/bookings/${id}/payment`, { method: "PUT", body: JSON.stringify(body) }),
 };
 
 export const paymentAPI = {
-  getAllPayments: () => apiFetch("/api/manager/payments"),
+  getAllPayments: () => apiFetch("/api/payments"),
+  confirmPayment: (id: string) => apiFetch(`/api/payments/${id}/confirm`, { method: "PUT" }),
 };
+
+export const decoratorAPI = {
+  getAssignedBookings: () => apiFetch("/api/decorator/bookings"),
+  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/decorator/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/decorator/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
+  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/decorator/bookings/${id}/upload`, {
+    method: "POST",
+    body: formData,
+  }),
+  getPortfolioItems: () => apiFetch("/api/decorator/portfolio"),
+  createPortfolioItem: (formData: FormData) => apiFetch("/api/decorator/portfolio", {
+    method: "POST",
+    body: formData,
+  }),
+  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/decorator/portfolio/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  getRatings: () => apiFetch("/api/decorator/ratings"),
+  updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
+};
+
+

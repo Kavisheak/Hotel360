@@ -1,14 +1,20 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 
-const RatingsStats = () => {
-  const distribution = [
-    { stars: 5, count: 126, percentage: 85 },
-    { stars: 4, count: 15, percentage: 10 },
-    { stars: 3, count: 4, percentage: 3 },
-    { stars: 2, count: 2, percentage: 1.5 },
-    { stars: 1, count: 1, percentage: 0.5 },
-  ];
+interface RatingsStatsProps {
+  stats: {
+    averageRating: number;
+    totalReviews: number;
+    distribution: Record<number, number>;
+  };
+}
+
+const RatingsStats = ({ stats }: RatingsStatsProps) => {
+  const distributionArray = [5, 4, 3, 2, 1].map(stars => ({
+    stars,
+    count: stats.distribution[stars] || 0,
+    percentage: stats.totalReviews > 0 ? ((stats.distribution[stars] || 0) / stats.totalReviews) * 100 : 0
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
@@ -20,7 +26,7 @@ const RatingsStats = () => {
         
         {/* Rating Score */}
         <h2 className="text-6xl font-serif text-[#7C6A2E] font-bold tracking-tight mb-2">
-          4.9
+          {stats.averageRating > 0 ? stats.averageRating : "0.0"}
         </h2>
 
         {/* 5 Stars */}
@@ -32,7 +38,7 @@ const RatingsStats = () => {
 
         {/* Total verified count */}
         <p className="text-xs text-gray-500 font-medium italic">
-          Based on 148 verified client reviews
+          Based on {stats.totalReviews} verified client reviews
         </p>
       </div>
 
@@ -43,7 +49,7 @@ const RatingsStats = () => {
         </h3>
 
         <div className="space-y-4">
-          {distribution.map((item) => (
+          {distributionArray.map((item) => (
             <div key={item.stars} className="flex items-center text-xs font-semibold text-gray-600">
               {/* Star Label */}
               <span className="w-12 shrink-0">{item.stars} Star</span>

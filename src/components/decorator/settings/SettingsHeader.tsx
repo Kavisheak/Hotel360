@@ -1,7 +1,12 @@
 import React from 'react';
 import { Bell, User } from 'lucide-react';
 
-const SettingsHeader = () => {
+interface SettingsHeaderProps {
+  onSave: () => void;
+  isSaving?: boolean;
+}
+
+const SettingsHeader = ({ onSave, isSaving = false }: SettingsHeaderProps) => {
   return (
     <div className="mb-8 mt-4">
       {/* Top Mini-Header */}
@@ -34,8 +39,12 @@ const SettingsHeader = () => {
         </div>
 
         {/* Save Changes Button */}
-        <button className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start sm:mt-1">
-          <span>SAVE CHANGES</span>
+        <button 
+          onClick={onSave}
+          disabled={isSaving}
+          className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start sm:mt-1 disabled:opacity-50"
+        >
+          <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
         </button>
       </div>
     </div>

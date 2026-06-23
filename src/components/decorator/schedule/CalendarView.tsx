@@ -1,21 +1,51 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const CalendarView = () => {
+interface CalendarViewProps {
+  bookings?: any[];
+}
+
+const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-  const dates: { date: number; currentMonth: boolean }[] = [];
-  for (let i = 26; i <= 30; i++) dates.push({ date: i, currentMonth: false });
-  for (let i = 1; i <= 31; i++) dates.push({ date: i, currentMonth: true });
-  for (let i = 1; i <= 4; i++) dates.push({ date: i, currentMonth: false });
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  
+  // Create a quick array of 35 days for demo purposes (like the static version)
+  // Let's just use the current month logic properly
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  
+  const dates: { date: number; currentMonth: boolean; fullDate: Date }[] = [];
+  
+  // Previous month padding
+  const prevDays = new Date(currentYear, currentMonth, 0).getDate();
+  for (let i = firstDay - 1; i >= 0; i--) {
+    dates.push({ date: prevDays - i, currentMonth: false, fullDate: new Date(currentYear, currentMonth - 1, prevDays - i) });
+  }
+  
+  // Current month
+  for (let i = 1; i <= daysInMonth; i++) {
+    dates.push({ date: i, currentMonth: true, fullDate: new Date(currentYear, currentMonth, i) });
+  }
+  
+  // Next month padding
+  let nextDay = 1;
+  while (dates.length < 35) {
+    dates.push({ date: nextDay, currentMonth: false, fullDate: new Date(currentYear, currentMonth + 1, nextDay) });
+    nextDay++;
+  }
 
-  const displayDates = dates.slice(0, 35);
+  const displayDates = dates;
 
   return (
     <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-sm flex flex-col w-full">
       {/* Calendar Header */}
       <div className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 border-b border-[#E0D8C3]">
-        <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold tracking-tight">December 2024</h2>
+        <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold tracking-tight">
+          {today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        </h2>
         <div className="flex space-x-3 text-gray-500">
           <button className="hover:text-gray-900 transition-colors p-1"><ChevronLeft size={20} /></button>
           <button className="hover:text-gray-900 transition-colors p-1"><ChevronRight size={20} /></button>
@@ -39,7 +69,15 @@ const CalendarView = () => {
       {/* Calendar dates grid */}
       <div className="grid grid-cols-7 bg-white flex-1">
         {displayDates.map((d, i) => {
-          const isSelected = d.date === 12 && d.currentMonth;
+          const isSelected = d.date === today.getDate() && d.currentMonth;
+          
+          // Find bookings for this exact day
+          const dayBookings = bookings.filter(b => {
+            const bDate = new Date(b.date);
+            return bDate.getDate() === d.date && 
+                   bDate.getMonth() === d.fullDate.getMonth() && 
+                   bDate.getFullYear() === d.fullDate.getFullYear();
+          });
 
           return (
             <div
@@ -54,26 +92,15 @@ const CalendarView = () => {
               </span>
 
               {/* Event indicators */}
-              {d.date === 5 && d.currentMonth && (
-                <div className="mt-auto space-y-0.5">
-                  <div className="h-0.5 sm:h-1 bg-[#4A463B] w-full rounded-full" />
-                  <div className="h-0.5 sm:h-1 bg-[#5A87C7] w-2/3 rounded-full" />
-                </div>
-              )}
-              {d.date === 12 && d.currentMonth && (
-                <div className="mt-auto">
-                  <div className="h-0.5 sm:h-1 bg-[#B08D2C] w-full mb-1 rounded-full" />
-                  <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase">SELECTED</span>
-                </div>
-              )}
-              {d.date === 14 && d.currentMonth && (
-                <div className="mt-auto">
-                  <div className="h-0.5 sm:h-1 bg-[#7C6A2E] w-full rounded-full" />
-                </div>
-              )}
-              {d.date === 20 && d.currentMonth && (
-                <div className="mt-auto">
-                  <div className="h-0.5 sm:h-1 bg-[#C75A5A] w-1/2 rounded-full" />
+              {dayBookings.length > 0 && d.currentMonth && (
+                <div className="mt-auto space-y-0.5 flex flex-col gap-1">
+                  {dayBookings.map((b, idx) => {
+                    const colors = ['bg-[#4A463B]', 'bg-[#5A87C7]', 'bg-[#C75A5A]'];
+                    return (
+                      <div key={idx} className={`h-0.5 sm:h-1 ${colors[idx % colors.length]} w-full rounded-full`} />
+                    );
+                  })}
+                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">TODAY</span>}
                 </div>
               )}
             </div>
