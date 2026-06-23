@@ -152,18 +152,18 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
       )}
 
       {/* Month Header and Navigation */}
-      <div className="flex items-center justify-between text-xs font-serif font-bold text-[#1A1512] dark:text-white px-2">
+      <div className="flex items-center justify-between text-sm font-serif font-bold text-[#1A1512] dark:text-white px-2">
         <button type="button" onClick={handlePrevMonth} className="text-gray-400 hover:text-[#1A1512] dark:hover:text-white p-1">
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm tracking-wide">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
+        <span className="text-base tracking-wide">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
         <button type="button" onClick={handleNextMonth} className="text-gray-400 hover:text-[#1A1512] dark:hover:text-white p-1">
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1.5 text-center text-xs">
+      <div className="grid grid-cols-7 gap-1.5 text-center text-sm">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => (
           <div key={idx} className="font-bold text-[9px] text-[#A6955C] uppercase tracking-widest py-2">
             {day}
@@ -199,7 +199,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
               onClick={() => onSelectDate(dayObj.timestamp)}
               className={`h-14 w-full flex flex-col justify-center items-center rounded-sm relative ${cellStyle}`}
             >
-              <span className={`font-semibold text-xs ${dayObj.status === 'available' ? 'text-[#1A1512] dark:text-white' : ''}`}>
+              <span className={`font-semibold text-sm ${dayObj.status === 'available' ? 'text-[#1A1512] dark:text-white' : ''}`}>
                 {dayObj.date}
               </span>
               

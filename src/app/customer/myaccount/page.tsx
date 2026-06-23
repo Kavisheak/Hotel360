@@ -47,16 +47,16 @@ export default function MyAccountPage() {
     }
   }, [isLoading, user, router, fetchUserBookings]);
 
-  if (isLoading || !user) {
+  if (!user) {
     return (
-      <div className="bg-[#FAF6EE] dark:bg-[#0A0A0A] min-h-screen flex items-center justify-center">
+      <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#C69C6D] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#FAF6EE] dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
+    <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
       <MainNavbar />
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-8 section-reveal">
@@ -172,24 +172,7 @@ export default function MyAccountPage() {
           </div>
         </div>
 
-        {/* Bottom Banner */}
-        <div className="mt-12 w-full rounded relative overflow-hidden shadow-sm">
-          <div className="absolute inset-0 z-0">
-            <Image src="/luxury_ballroom_bg.png" alt="Banner background" fill className="object-cover opacity-20" />
-            <div className="absolute inset-0 bg-[#FDFBF7]/90" />
-          </div>
-          <div className="relative z-10 py-12 px-6 flex flex-col items-center text-center border border-[#E8DFC9] rounded">
-            <h3 className="text-[22px] md:text-[26px] font-serif text-[#1A1512] mb-3">
-              Every detail matters. We're here to make your event extraordinary.
-            </h3>
-            <p className="text-[12px] text-gray-600 mb-8 max-w-lg tracking-wide">
-              From venue selection to final touches, our team ensures a seamless experience.
-            </p>
-            <button className="px-8 py-3.5 bg-[#C9A84C] text-white font-bold text-[10px] uppercase tracking-wider rounded hover:bg-[#B58A59] transition-colors flex items-center justify-center gap-2 shadow-sm">
-              Plan Your Event <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+
       </main>
 
       <Footer />

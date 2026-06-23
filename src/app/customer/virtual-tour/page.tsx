@@ -22,7 +22,7 @@ export default function VirtualTourPage() {
   }, [eventType, setArrangementStyle]);
 
   return (
-    <div className="bg-[#FAF6EE] dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
+    <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
       <MainNavbar />
       
       <main className="flex-grow pb-0">

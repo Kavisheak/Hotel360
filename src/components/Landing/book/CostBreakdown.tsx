@@ -34,7 +34,7 @@ export default function CostBreakdown({
 
       <h3 className="text-[22px] font-serif mb-10 text-[#1A1512] dark:text-white">Bespoke Statement</h3>
 
-      <div className="space-y-4 text-xs text-gray-600 dark:text-gray-400">
+      <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
         <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
           <span>{packageName} Base:</span>
           <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.basePrice)}</span>

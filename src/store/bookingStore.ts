@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { customerBookingAPI } from "@/lib/api";
 
 export interface Feedback {
   overall: number;
@@ -98,8 +99,6 @@ export const useBookingStore = create<BookingState>()(
       fetchUserBookings: async () => {
         set({ isLoading: true, error: null });
         try {
-          // Import here to avoid circular dependency issues if any
-          const { customerBookingAPI } = await import("@/lib/api");
           const res = await customerBookingAPI.getMyBookings();
           if (res.ok && res.data.success) {
             // Note: backend may return bookings inside data.data or data.bookings depending on controller
@@ -124,7 +123,6 @@ export const useBookingStore = create<BookingState>()(
       })),
       swapVendor: async (bookingId, service, newVendorId) => {
         try {
-          const { customerBookingAPI } = await import("@/lib/api");
           const res = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId });
           if (res.ok) {
             set((state) => ({

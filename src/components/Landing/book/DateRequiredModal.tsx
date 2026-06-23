@@ -39,7 +39,7 @@ export default function DateRequiredModal({ isOpen, onClose }: DateRequiredModal
           Date Selection Required
         </h3>
         
-        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
+        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
           To provide you with an accurate bespoke statement and ensure exclusivity, please select your preferred event date from the available days in the calendar before proceeding.
         </p>
 

@@ -88,7 +88,7 @@ export default function PaymentMethods() {
   };
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 rounded-sm shadow-md dark:shadow-[#C9A84C]/5 hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20 bg-[#F0E6D0]/20 dark:bg-[#1A1A1A]/40">
         <div className="flex items-center gap-3">

@@ -27,17 +27,25 @@ export default function BookPage() {
   const [startTime, setStartTime] = useState<string>("18:00");
   const [endTime, setEndTime] = useState<string>("23:00");
   const [selectedPackage, setSelectedPackage] = useState<string>("gold");
+  const [eventType, setEventType] = useState<string>("Wedding");
   const [guestCount, setGuestCount] = useState<number>(380);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(true);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
+  const { fetchUser, user } = useAuthStore();
+  
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user === "customer" || user === "decorator") {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (user && (user.role === "customer" || user.role === "decorator")) {
       setIsGuest(false);
+    } else {
+      setIsGuest(true);
     }
-  }, []);
+  }, [user]);
   
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
@@ -95,10 +103,7 @@ export default function BookPage() {
     }
   }, []);
 
-  const { fetchUser } = useAuthStore();
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+
 
   const getBasePrice = () => {
     if (selectedPackage === "silver") return 1800000;
@@ -174,7 +179,6 @@ export default function BookPage() {
   const handleFinalizeBooking = async (contactInfo: any) => {
     const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
     
-    // We send raw ISO date string to backend for accurate parsing
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
     const bookingPayload = {
@@ -182,7 +186,8 @@ export default function BookPage() {
       email: contactInfo.email,
       phone: contactInfo.phone,
       alternativePhone: contactInfo.alternativePhone || "",
-      eventType: eventTypeName,
+      eventType: eventType,
+      eventName: eventTypeName,
       date: dateString,
       timeslot: `${startTime} - ${endTime}`,
       durationHours: durationHours,
@@ -242,11 +247,9 @@ export default function BookPage() {
       setLoginModalOpen(true);
       return;
     }
-    if (step > 1 && selectedDate === 0) {
-      setIsDateModalOpen(true);
-      return;
+    if (step < currentStep) {
+      setCurrentStep(step);
     }
-    setCurrentStep(step);
   };
 
   const handleBack = () => {
@@ -274,10 +277,10 @@ export default function BookPage() {
                   onClick={() => handleStepClick(step)}
                   className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
                     {step}
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:block">
+                  <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
                     {step === 1 && "Event Details"}
                     {step === 2 && "Vendors"}
                     {step === 3 && "Menu"}
@@ -290,6 +293,22 @@ export default function BookPage() {
             {/* Step 1: Event Details */}
             {currentStep === 1 && (
               <div className="space-y-8 animate-fadeIn">
+                <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
+                  <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
+                  <select 
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="w-full bg-[#FDFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-3 rounded-sm text-base text-[#1A1512] dark:text-white outline-none focus:border-[#C9A84C]"
+                  >
+                    <option value="Wedding">Wedding</option>
+                    <option value="Birthday Party">Birthday Party</option>
+                    <option value="Corporate Meeting">Corporate Meeting</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Anniversary">Anniversary</option>
+                    <option value="Other">Other Event</option>
+                  </select>
+                </div>
+                <div className="h-px bg-[#D4C9A8] w-full"></div>
                 <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                 <div className="h-px bg-[#D4C9A8] w-full"></div>
                 <TimeRangeSelector 
@@ -333,7 +352,7 @@ export default function BookPage() {
               {currentStep > 1 ? (
                 <button 
                   onClick={handleBack}
-                  className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
+                  className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
                 >
                   &larr; Previous Step
                 </button>
@@ -342,7 +361,7 @@ export default function BookPage() {
               {currentStep < 4 && (
                 <button 
                   onClick={handleNext}
-                  className="px-8 py-3 bg-[#C69C6D] text-white text-[10px] uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
+                  className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
                 >
                   Next Step &rarr;
                 </button>

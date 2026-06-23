@@ -59,7 +59,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
     return (
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4 border-b border-[#C9A84C]/20 pb-2">
-          <h4 className="flex items-center gap-2 text-sm font-serif font-semibold text-[#2C1E14] dark:text-gray-200">
+          <h4 className="flex items-center gap-2 text-base font-serif font-semibold text-[#2C1E14] dark:text-gray-200">
             {icon} {title}
           </h4>
           {isSelectedCategory && (
@@ -84,7 +84,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   <img src={opt.image} alt={opt.name} className="w-full h-full object-cover opacity-80" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight text-[#2C1E14] dark:text-gray-200">
+                  <span className="text-sm font-bold leading-tight text-[#2C1E14] dark:text-gray-200">
                     {opt.name}
                   </span>
                   <span className="text-[9px] text-gray-600 dark:text-gray-500 mt-0.5 uppercase tracking-wider">
@@ -113,7 +113,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
               }}
               className="p-3 border border-[#C9A84C]/30 bg-white dark:bg-[#1A1A1A] rounded-sm cursor-pointer transition-all flex flex-col items-center text-center justify-center hover-glow btn-interactive hover:border-[#C9A84C]/80"
             >
-              <span className="text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
+              <span className="text-sm font-semibold mb-1 text-gray-600 dark:text-gray-400">
                 My Own Preference
               </span>
               <span className="text-[9px] text-[#C9A84C]/80 font-bold tracking-wider">
@@ -129,7 +129,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
             {vendors[categoryKey] === "custom_preference" ? (
               <div className="p-4 border border-[#C9A84C] bg-gradient-to-br from-[#D4AF37]/10 to-[#8C6D23]/10 shadow-[0_0_15px_rgba(212,175,55,0.2)] ring-1 ring-[#C9A84C] rounded-sm">
                 <div className="flex flex-col items-center text-center">
-                  <span className="text-sm font-bold text-[#C9A84C] mb-2">My Own Preference Selected</span>
+                  <span className="text-base font-bold text-[#C9A84C] mb-2">My Own Preference Selected</span>
                   <p className="text-[10px] text-gray-600 dark:text-gray-400 leading-relaxed max-w-md">
                     You have opted to use your own {title.toLowerCase()} or discuss a completely customized arrangement. No vendor fees have been added to your current estimate. We will reach out to coordinate logistics.
                   </p>
@@ -148,7 +148,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                             <img src={opt.image} alt={opt.name} className="w-full h-full object-cover opacity-80" />
                           </div>
                           <div className="flex flex-col text-left">
-                            <span className="text-sm font-bold text-[#C9A84C]">
+                            <span className="text-base font-bold text-[#C9A84C]">
                               {opt.name}
                             </span>
                             <span className="text-[10px] text-gray-600 dark:text-gray-400 mt-1">
@@ -164,7 +164,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                 {/* Selected Vendor Packages (ONLY FOR DECORATORS) */}
                 {categoryKey === "decorator" && (
                   <div className="p-4 border border-[#C9A84C]/20 bg-[#FDFBF7] dark:bg-[#1A1A1A] rounded-sm shadow-inner">
-                    <h5 className="text-xs uppercase tracking-widest font-bold text-[#8C6D23] dark:text-[#C9A84C] mb-4">
+                    <h5 className="text-sm uppercase tracking-widest font-bold text-[#8C6D23] dark:text-[#C9A84C] mb-4">
                       Select a Design / Package
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -189,7 +189,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                           <div className="p-4 flex flex-col justify-between flex-grow">
                             <div>
                               <div className="flex justify-between items-start mb-2">
-                                <span className={`text-xs font-bold ${isPkgSelected ? 'text-[#8C6D23] dark:text-[#D4AF37]' : 'text-[#2C1E14] dark:text-white'}`}>{pkg.name}</span>
+                                <span className={`text-sm font-bold ${isPkgSelected ? 'text-[#8C6D23] dark:text-[#D4AF37]' : 'text-[#2C1E14] dark:text-white'}`}>{pkg.name}</span>
                                 <span className="text-[10px] font-bold text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5 rounded-sm shrink-0 ml-2">{pkg.price}</span>
                               </div>
                               <ul className="text-[9.5px] text-gray-600 dark:text-gray-400 list-disc pl-4 space-y-1 mt-3">
@@ -217,7 +217,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                     >
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <span className={`text-xs font-bold ${vendors[`${categoryKey}Package` as keyof VendorsState] === "Custom Preferences" ? 'text-[#8C6D23] dark:text-[#D4AF37]' : 'text-[#2C1E14] dark:text-white'}`}>Custom Preferences</span>
+                          <span className={`text-sm font-bold ${vendors[`${categoryKey}Package` as keyof VendorsState] === "Custom Preferences" ? 'text-[#8C6D23] dark:text-[#D4AF37]' : 'text-[#2C1E14] dark:text-white'}`}>Custom Preferences</span>
                           <span className="text-[10px] font-bold text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5 rounded-sm">Discuss Later</span>
                         </div>
                         <p className="text-[9.5px] text-gray-600 dark:text-gray-400 mt-3 leading-relaxed">

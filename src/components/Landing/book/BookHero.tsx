@@ -39,7 +39,7 @@ export default function BookHero() {
             Compose Your <span className="italic text-[#A6955C] dark:text-[#C9A84C]">Historic Union</span>
           </h1>
           
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-light leading-relaxed text-reveal stagger-3 pt-2">
+          <p className="text-gray-600 dark:text-gray-400 text-base font-light leading-relaxed text-reveal stagger-3 pt-2">
             By holding only one wedding per day, EASCC guarantees absolute, uninterrupted focus on your celebration. Plan your date, hours, and guests details below to coordinate with our concierge.
           </p>
         </div>
