@@ -115,7 +115,7 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-white border border-[#E8DFC9] rounded shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-start gap-4 px-8 py-6 border-b border-[#E8DFC9]/60">
         <div className="mt-1">

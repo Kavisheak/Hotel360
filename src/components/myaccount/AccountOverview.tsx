@@ -32,7 +32,7 @@ export default function AccountOverview() {
   const tier = TIER_STYLES[user.tier];
 
   return (
-    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Cover Banner */}
       <div className="h-28 relative bg-[#FDFBF7] dark:bg-[#1A1A1A]">
         <Image src="/luxury_ballroom_bg.png" alt="Banner" fill className="object-cover opacity-60 dark:opacity-40" />

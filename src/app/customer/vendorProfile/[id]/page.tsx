@@ -7,18 +7,25 @@ import VendorsHeader from "@/components/landing/vendors/VendorsHeader";
 import VendorProfileHero from "@/components/landing/vendorProfile/VendorProfileHero";
 import VendorProfileStats from "@/components/landing/vendorProfile/VendorProfileStats";
 import VendorProfileContent from "@/components/landing/vendorProfile/VendorProfileContent";
+import { useAuthStore } from "@/store/authStore";
 
 export default function VendorProfilePage() {
   const { id } = useParams();
   const router = useRouter();
   const [vendor, setVendor] = useState<Vendor | null>(null);
 
+  const { fetchUser, user } = useAuthStore();
+
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user !== "customer" && user !== "decorator") {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (user && user.role !== "customer" && user.role !== "decorator") {
       router.push("/login");
       return;
     }
+    if (!user) return; // wait for fetchUser
 
     if (id) {
       const foundVendor = VENDORS_DATA.find((v) => v.id === id);

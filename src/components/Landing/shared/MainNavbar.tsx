@@ -4,20 +4,19 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, ShoppingCart } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
 export default function MainNavbar() {
  const pathname = usePathname();
  
- // Mock logged-in state. In a real app, you would get this from auth context.
- const [isLoggedIn, setIsLoggedIn] = useState(false);
+ const { user, fetchUser } = useAuthStore();
+ const isLoggedIn = !!user;
  const { cartVendors, favoriteVendors } = useVendorCartStore();
 
- // You can toggle this manually or via some global state to simulate login
  useEffect(() => {
- const user = localStorage.getItem("user");
- if (user) setIsLoggedIn(true);
- }, []);
+   fetchUser();
+ }, [fetchUser]);
 
  const navLinks = [
  { name: "Home", path: "/" },

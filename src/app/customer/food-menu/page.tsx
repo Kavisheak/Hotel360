@@ -4,6 +4,7 @@ import React from "react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useAuthStore } from "@/store/authStore";
 import { Plus, CheckCircle2, ChefHat, Info } from "lucide-react";
 import Image from "next/image";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
@@ -148,12 +149,19 @@ export default function MenuBuilderPage() {
   const [loginModalOpen, setLoginModalOpen] = React.useState(false);
   const [loginModalMessage, setLoginModalMessage] = React.useState("");
 
+  const { fetchUser, user } = useAuthStore();
+  
   React.useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user === "customer" || user === "decorator") {
+    fetchUser();
+  }, [fetchUser]);
+
+  React.useEffect(() => {
+    if (user && (user.role === "customer" || user.role === "decorator")) {
       setIsGuest(false);
+    } else {
+      setIsGuest(true);
     }
-  }, []);
+  }, [user]);
 
   const calculateOptionalTotal = () => {
     return addedOptionalItems.reduce((sum, item) => sum + item.price, 0);

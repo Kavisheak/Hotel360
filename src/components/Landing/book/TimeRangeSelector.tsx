@@ -64,7 +64,7 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
           <select 
             value={startTime} 
             onChange={(e) => onChange(e.target.value, endTime)}
-            className="w-full bg-[#FAF6EE] dark:bg-gray-900 p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800 outline-none focus:border-[#C69C6D] transition-colors text-sm text-[#1A1512] dark:text-white"
+            className="w-full bg-[#FAF6EE] dark:bg-gray-900 p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800 outline-none focus:border-[#C69C6D] transition-colors text-base text-[#1A1512] dark:text-white"
           >
             {timeOptions.map((t) => (
               <option key={`start-${t}`} value={t}>{t}</option>
@@ -77,7 +77,7 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
           <select 
             value={endTime} 
             onChange={(e) => onChange(startTime, e.target.value)}
-            className="w-full bg-[#FAF6EE] dark:bg-gray-900 p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800 outline-none focus:border-[#C69C6D] transition-colors text-sm text-[#1A1512] dark:text-white"
+            className="w-full bg-[#FAF6EE] dark:bg-gray-900 p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800 outline-none focus:border-[#C69C6D] transition-colors text-base text-[#1A1512] dark:text-white"
           >
             {timeOptions.map((t) => (
               <option key={`end-${t}`} value={t} disabled={t <= startTime}>{t}</option>
@@ -97,7 +97,7 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
             </div>
           </div>
           {durationHours < 6 && durationHours > 0 && (
-            <div className="text-xs text-amber-600 dark:text-amber-500">
+            <div className="text-sm text-amber-600 dark:text-amber-500">
               Note: Base price covers up to 6 hours.
             </div>
           )}

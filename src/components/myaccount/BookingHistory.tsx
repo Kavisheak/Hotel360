@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
 import VendorSwapModal from "./VendorSwapModal";
-import { useBookingStore } from "@/store/bookingStore";
+import BookingDetailsModal from "./BookingDetailsModal";
+import { useBookingStore, type Booking } from "@/store/bookingStore";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Confirmed" },
@@ -17,6 +18,7 @@ export default function BookingHistory() {
   const [isClient, setIsClient] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [detailsModalBooking, setDetailsModalBooking] = useState<Booking | null>(null);
   const { bookings, isLoading } = useBookingStore();
   
   const [swapModalState, setSwapModalState] = useState<{
@@ -33,7 +35,7 @@ export default function BookingHistory() {
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 rounded-sm shadow-md dark:shadow-[#C9A84C]/5 hover-glow transition-all duration-300 overflow-hidden">
+    <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Section Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20 bg-[#F0E6D0]/20 dark:bg-[#1A1A1A]/40">
         <div className="flex items-center gap-3">
@@ -154,7 +156,10 @@ export default function BookingHistory() {
                           Leave Review
                         </button>
                       )}
-                      <button className="text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-white transition-colors btn-interactive flex items-center gap-1">
+                      <button 
+                        onClick={() => setDetailsModalBooking(booking)}
+                        className="text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-white transition-colors btn-interactive flex items-center gap-1"
+                      >
                         View Details
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </button>
@@ -187,6 +192,12 @@ export default function BookingHistory() {
           currentVendorId={swapModalState.currentVendorId}
         />
       )}
+
+      <BookingDetailsModal 
+        isOpen={!!detailsModalBooking}
+        onClose={() => setDetailsModalBooking(null)}
+        booking={detailsModalBooking}
+      />
     </div>
   );
 }
