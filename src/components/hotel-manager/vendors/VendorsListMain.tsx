@@ -37,9 +37,10 @@ const VendorsListMain = () => {
   const [vendors, setVendors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [vendorToEdit, setVendorToEdit] = useState<any | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [successDetails, setSuccessDetails] = useState<string | null>(null);
 
   React.useEffect(() => {
     fetchVendors();
@@ -71,12 +72,13 @@ const VendorsListMain = () => {
       if (response.ok) {
         setVendors(prev => prev.map(v => v._id === vendorToEdit._id ? response.data.data : v));
         setVendorToEdit(null);
+        setSuccessDetails('Vendor profile updated successfully.');
       } else {
-        alert(`Error: ${response.data.message}`);
+        setErrorDetails(`Error: ${response.data.message}`);
       }
     } catch (error) {
       console.error(error);
-      alert('Failed to update vendor.');
+      setErrorDetails('Failed to update vendor.');
     } finally {
       setIsUpdating(false);
     }
@@ -91,12 +93,13 @@ const VendorsListMain = () => {
       if (response.ok) {
         setVendors(prev => prev.filter(v => v._id !== vendorToDelete));
         setVendorToDelete(null);
+        setSuccessDetails('Vendor removed successfully.');
       } else {
-        alert(`Error: ${response.data.message}`);
+        setErrorDetails(`Error: ${response.data.message}`);
       }
     } catch (error) {
       console.error(error);
-      alert('Failed to delete vendor.');
+      setErrorDetails('Failed to delete vendor.');
     } finally {
       setIsDeleting(false);
     }
@@ -363,6 +366,50 @@ const VendorsListMain = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Success Modal (for CRUD operations) */}
+      {successDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <svg className="w-8 h-8 text-[#7C6A2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Success</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {successDetails}
+            </p>
+            <button 
+              onClick={() => setSuccessDetails(null)}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Error Modal */}
+      {errorDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-red-200 shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="text-red-500 text-2xl font-bold">!</span>
+            </div>
+            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 tracking-wide">
+              Action Failed
+            </h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {errorDetails}
+            </p>
+            <button 
+              onClick={() => setErrorDetails(null)}
+              className="w-full bg-white border border-[#E0D8C3] hover:bg-gray-50 text-gray-800 px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Close & Try Again
+            </button>
           </div>
         </div>
       )}

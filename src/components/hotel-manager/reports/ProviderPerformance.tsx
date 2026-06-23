@@ -5,7 +5,7 @@ import { staffAPI } from '../../../lib/api';
 
 const ProviderPerformance = () => {
   const [providers, setProviders] = useState<any[]>([
-    { name: 'Loading...', rating: '-', score: 0, img: '' }
+    { name: 'Loading...', rating: '-', score: 0, img: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=64&h=64' }
   ]);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const ProviderPerformance = () => {
         }).sort((a: any, b: any) => b.score - a.score).slice(0, 3);
         
         setProviders(sorted.length > 0 ? sorted : [
-          { name: 'No Providers', rating: '-', score: 0, img: '' }
+          { name: 'No Providers', rating: '-', score: 0, img: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=64&h=64' }
         ]);
       }
     };

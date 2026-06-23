@@ -7,7 +7,8 @@ import {
   PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -15,7 +16,7 @@ interface NavItemProps {
   href: string;
   active?: boolean;
   isCollapsed?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: any) => void;
 }
 
 const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onClick }: NavItemProps) => (
@@ -45,6 +46,7 @@ const ManagerSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -69,10 +71,16 @@ const ManagerSidebar = () => {
     { icon: <Settings size={20} />,      label: 'SETTINGS',   href: '/hotel-manager/settings' },
   ];
 
-  const bottomItems = [
-    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '#' },
-    { icon: <LogOut size={20} />,     label: 'LOGOUT',  href: '/login' },
-  ];
+  const handleLogout = async (e: any) => {
+    if (e) e.preventDefault();
+    try {
+      await authAPI.signout();
+      router.push('/');
+    } catch (error) {
+      console.error("Logout failed:", error);
+      router.push('/');
+    }
+  };
 
   const close = () => setMobileOpen(false);
 
@@ -144,17 +152,20 @@ const ManagerSidebar = () => {
         </div>
         {/* Support & Logout */}
         <div className="space-y-1">
-          {bottomItems.map((item) => (
-            <NavItem
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={false}
-              isCollapsed={collapsed}
-              onClick={close}
-            />
-          ))}
+          <NavItem
+            icon={<HelpCircle size={20} />}
+            label="SUPPORT"
+            href="#"
+            isCollapsed={collapsed}
+            onClick={close}
+          />
+          <NavItem
+            icon={<LogOut size={20} />}
+            label="LOGOUT"
+            href="/login"
+            isCollapsed={collapsed}
+            onClick={(e) => { close(); handleLogout(e); }}
+          />
         </div>
       </div>
     </div>
