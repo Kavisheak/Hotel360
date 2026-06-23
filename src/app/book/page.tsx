@@ -13,6 +13,7 @@ import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
 import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
+import BookingHistory from "@/components/landing/book/BookingHistory";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
@@ -22,6 +23,7 @@ import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI } from "@/lib/api";
 
 export default function BookPage() {
+  const [activeTab, setActiveTab] = useState<"new" | "history">("new");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [startTime, setStartTime] = useState<string>("18:00");
@@ -271,10 +273,34 @@ export default function BookPage() {
         <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
           
           {/* Left Column: Booking Form Steps */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className={`${activeTab === "history" ? "lg:col-span-12" : "lg:col-span-8"} space-y-12 transition-all duration-500`}>
             
-            {/* Stepper Indicator */}
-            <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
+            {/* Tab Switcher */}
+            {!isGuest && (
+              <div className="flex border-b border-[#E8DFC9] dark:border-gray-800 mb-8 overflow-x-auto hide-scrollbar">
+                <button
+                  onClick={() => setActiveTab("new")}
+                  className={`pb-4 px-6 font-bold uppercase tracking-widest text-sm transition-colors relative whitespace-nowrap ${activeTab === "new" ? "text-[#C69C6D]" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                >
+                  New Booking
+                  {activeTab === "new" && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#C69C6D]" />}
+                </button>
+                <button
+                  onClick={() => setActiveTab("history")}
+                  className={`pb-4 px-6 font-bold uppercase tracking-widest text-sm transition-colors relative whitespace-nowrap ${activeTab === "history" ? "text-[#C69C6D]" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                >
+                  Booking History
+                  {activeTab === "history" && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#C69C6D]" />}
+                </button>
+              </div>
+            )}
+
+            {activeTab === "history" ? (
+              <BookingHistory />
+            ) : (
+              <>
+                {/* Stepper Indicator */}
+                <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
               <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
               {[1, 2, 3, 4].map((step) => (
                 <div 
@@ -372,27 +398,31 @@ export default function BookPage() {
                 </button>
               )}
             </div>
+            </>
+            )}
 
           </div>
 
           {/* Right Column: Sticky Cost Breakdown & Trust Flags */}
-          <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
-            <CostBreakdown 
-              packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
-              selectedTimeslot={`${startTime} - ${endTime}`}
-              costBreakdown={{
-                basePrice,
-                extraHoursPremium,
-                foodCost,
-                guestCount,
-                timeslotPremium,
-                addonsCost,
-                grandTotal
-              }}
-              formatCurrency={formatCurrency}
-            />
-            <TrustDivider />
-          </div>
+          {activeTab === "new" && (
+            <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
+              <CostBreakdown 
+                packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
+                selectedTimeslot={`${startTime} - ${endTime}`}
+                costBreakdown={{
+                  basePrice,
+                  extraHoursPremium,
+                  foodCost,
+                  guestCount,
+                  timeslotPremium,
+                  addonsCost,
+                  grandTotal
+                }}
+                formatCurrency={formatCurrency}
+              />
+              <TrustDivider />
+            </div>
+          )}
 
         </div>
 

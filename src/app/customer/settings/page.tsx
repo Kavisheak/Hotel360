@@ -32,7 +32,7 @@ export default function CustomerSettingsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <aside className="lg:col-span-1 space-y-4">
-            <AccountOverview user={{ name: "Farhan & Zainab", email: "couple@example.com" }} />
+            <AccountOverview />
 
             <div className="bg-white border border-[#E8DFC9] p-4 rounded-sm">
               <nav className="space-y-2">
@@ -52,7 +52,7 @@ export default function CustomerSettingsPage() {
           <main className="lg:col-span-3 space-y-6">
             {tab === "Overview" && (
               <div className="space-y-6">
-                <AccountOverview user={{ name: "Farhan & Zainab", email: "couple@example.com" }} />
+                <AccountOverview />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <ProfileSettings />
                   <SecuritySettings />
