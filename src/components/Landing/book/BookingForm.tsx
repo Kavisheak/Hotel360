@@ -65,7 +65,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
     
     if (success) {
       alert("Booking Confirmed & Payment Processed! The Concierge will contact you shortly.");
-      router.push("/customer/home");
+      router.push("/customer/myaccount?tab=bookings");
     }
   };
 

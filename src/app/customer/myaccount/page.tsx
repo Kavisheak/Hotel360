@@ -47,6 +47,16 @@ export default function MyAccountPage() {
     }
   }, [isLoading, user, router, fetchUserBookings]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get("tab") as AccountTab;
+      if (tabParam && Object.keys(TAB_TITLES).includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
   if (!user) {
     return (
       <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex items-center justify-center">
