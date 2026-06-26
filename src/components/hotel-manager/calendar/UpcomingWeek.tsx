@@ -1,41 +1,56 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import { Users, SlidersHorizontal } from 'lucide-react';
 import Image from 'next/image';
+import { bookingAPI } from '@/lib/api';
 
-const upcomingEvents = [
-  {
-    date: 'DEC 08',
-    time: '06:00 PM',
-    badge: 'Confirmed',
-    badgeColor: 'bg-[#B08D2C] text-white',
-    title: 'Johnson Wedding Reception',
-    guests: '250 GUESTS',
-    detail: 'FULL SERVICE CATERING',
-    img: null,
-  },
-  {
-    date: 'DEC 10',
-    time: '10:00 AM',
-    badge: 'Pending Deposit',
-    badgeColor: 'bg-[#F2EADA] text-[#7C6A2E] border border-[#E0D8C3]',
-    title: 'Tech Summit 2024',
-    guests: '100 GUESTS',
-    detail: null,
-    img: null,
-  },
-  {
-    date: 'DEC 12',
-    time: '07:00 PM',
-    badge: 'Confirmed',
-    badgeColor: 'bg-[#B08D2C] text-white',
-    title: 'Elite Annual Charity Gala',
-    guests: '400 GUESTS',
-    detail: null,
-    img: null,
-  },
-];
+const UpcomingWeek = () => {
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
 
-const UpcomingWeek = () => (
+  useEffect(() => {
+    bookingAPI.getAllBookings().then(res => {
+      if (res.ok && res.data?.data) {
+        const now = new Date();
+        const nextWeek = new Date(now);
+        nextWeek.setDate(now.getDate() + 14); // Look ahead 14 days for more density
+
+        const upcoming = res.data.data
+          .filter((b: any) => {
+            if (!b.date) return false;
+            const d = new Date(b.date);
+            return d >= now && d <= nextWeek;
+          })
+          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 5) // Show top 5
+          .map((b: any) => {
+            const d = new Date(b.date);
+            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
+            
+            let badge = 'Pending';
+            let badgeColor = 'bg-[#F2EADA] text-[#7C6A2E] border border-[#E0D8C3]';
+            if (b.status === 'Confirmed' || b.status === 'DepositPaid' || b.status === 'BalancePaid') {
+              badge = 'Confirmed';
+              badgeColor = 'bg-[#B08D2C] text-white';
+            }
+
+            return {
+              date: dateStr,
+              time: b.timeslot === 'morning' ? '10:00 AM' : b.timeslot === 'evening' ? '06:00 PM' : '02:00 PM',
+              badge,
+              badgeColor,
+              title: `${b.clientName.split(' ')[0]} - ${b.eventType}`,
+              guests: `${b.guests || 200} GUESTS`,
+              detail: b.packageId ? 'PACKAGE ASSIGNED' : null,
+            };
+          });
+
+        setUpcomingEvents(upcoming);
+      }
+    });
+  }, []);
+
+  return (
   <div className="bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
     {/* Panel header */}
     <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0D8C3] bg-[#FDF9F1]">
@@ -45,24 +60,28 @@ const UpcomingWeek = () => (
 
     {/* Event list */}
     <div className="flex-1 divide-y divide-[#F2EADA]">
-      {upcomingEvents.map((e, i) => (
-        <div key={i} className="p-4 hover:bg-[#FDF9F1] transition-colors cursor-pointer">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold text-gray-500">
-              {e.date} · {e.time}
-            </span>
-            <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${e.badgeColor}`}>
-              {e.badge}
-            </span>
+      {upcomingEvents.length === 0 ? (
+        <div className="p-8 text-center text-gray-400 text-sm italic font-serif">No events scheduled in the upcoming weeks.</div>
+      ) : (
+        upcomingEvents.map((e, i) => (
+          <div key={i} className="p-4 hover:bg-[#FDF9F1] transition-colors cursor-pointer">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold text-gray-500">
+                {e.date} · {e.time}
+              </span>
+              <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${e.badgeColor}`}>
+                {e.badge}
+              </span>
+            </div>
+            <p className="font-serif font-semibold text-gray-800 text-sm leading-snug mb-2">{e.title}</p>
+            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+              <Users size={11} />
+              <span>{e.guests}</span>
+              {e.detail && <><span className="text-gray-300">·</span><span>{e.detail}</span></>}
+            </div>
           </div>
-          <p className="font-serif font-semibold text-gray-800 text-sm leading-snug mb-2">{e.title}</p>
-          <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
-            <Users size={11} />
-            <span>{e.guests}</span>
-            {e.detail && <><span className="text-gray-300">·</span><span>{e.detail}</span></>}
-          </div>
-        </div>
-      ))}
+        ))
+      )}
 
       {/* Hall Maintenance card with image */}
       <div className="relative h-32 overflow-hidden cursor-pointer group">
@@ -89,6 +108,7 @@ const UpcomingWeek = () => (
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default UpcomingWeek;

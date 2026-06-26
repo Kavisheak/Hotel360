@@ -11,7 +11,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     booking.status ? booking.status.toUpperCase() : 'PENDING'
   );
   const [showRejectForm, setShowRejectForm] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  const [rejectReason, setRejectReason] = useState(booking.rejectionReason || '');
   const [rejectError, setRejectError] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);

@@ -11,6 +11,12 @@ const BookingsListMain = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(10);
+
+  // Reset pagination when search or filter changes
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [searchTerm, filterStatus]);
 
   useEffect(() => {
     setIsClient(true);
@@ -24,8 +30,10 @@ const BookingsListMain = () => {
         // Map backend booking schema to frontend expected format
         const mappedBookings = res.data.data.map((b: any) => ({
           id: b._id,
+          bookingRef: b.bookingRef || b._id,
           clientName: b.clientName,
-          date: new Date(b.eventDate).toLocaleDateString(),
+          date: new Date(b.date).toLocaleDateString(), // 'date' not 'eventDate'
+          createdAt: b.createdAt || new Date(0).toISOString(),
           eventType: b.eventType,
           status: b.status,
           packageId: b.packageId,
@@ -40,10 +48,12 @@ const BookingsListMain = () => {
   };
 
   const filteredBookings = bookings.filter(b => {
-    const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || b.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || b.bookingRef.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'All' || b.status === filterStatus;
     return matchesSearch && matchesStatus;
-  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const paginatedBookings = filteredBookings.slice(0, visibleCount);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -122,10 +132,10 @@ const BookingsListMain = () => {
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">No bookings found matching your criteria.</td>
                   </tr>
                 ) : (
-                  filteredBookings.map((b, idx) => (
+                  paginatedBookings.map((b, idx) => (
                     <tr key={b.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE] hover:bg-[#F2EADA] transition-colors'}>
                       <td className="px-6 py-4">
-                        <span className="font-mono text-xs text-gray-700 font-bold">{b.id}</span>
+                        <span className="font-mono text-xs text-gray-700 font-bold">{b.bookingRef}</span>
                       </td>
                       <td className="px-6 py-4 font-bold text-gray-800">
                         {b.clientName}
@@ -158,6 +168,18 @@ const BookingsListMain = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Load More Button */}
+          {filteredBookings.length > visibleCount && (
+            <div className="p-6 border-t border-[#E0D8C3] bg-white flex justify-center">
+              <button 
+                onClick={() => setVisibleCount(prev => prev + 10)}
+                className="px-6 py-2 border border-[#7C6A2E] text-[#7C6A2E] text-[10px] font-bold uppercase tracking-widest hover:bg-[#FAF6EE] transition-colors rounded-sm"
+              >
+                Load More Bookings
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

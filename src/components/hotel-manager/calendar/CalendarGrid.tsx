@@ -1,52 +1,88 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { bookingAPI } from '@/lib/api';
 
 const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-// December 2024 starts on Sunday
-// prev month tail: 26-30 Nov (5 days)
-// Dec 1-31
-// next month head: 1-4 Jan
-const buildDates = () => {
-  const dates: { date: number; currentMonth: boolean; events: { label: string; type: 'confirmed' | 'pending' | 'overdue' | 'today' | 'other' }[] }[] = [];
-  for (let i = 26; i <= 30; i++) dates.push({ date: i, currentMonth: false, events: [] });
-  for (let i = 1; i <= 31; i++) dates.push({ date: i, currentMonth: true, events: [] });
-  while (dates.length % 7 !== 0) dates.push({ date: dates.length - 35, currentMonth: false, events: [] });
+const CalendarGrid = ({ currentDate }: { currentDate: Date }) => {
+  const [bookings, setBookings] = useState<any[]>([]);
 
-  // Inject events
-  const eventMap: Record<number, { label: string; type: 'confirmed' | 'pending' | 'overdue' | 'today' | 'other' }[]> = {
-    6:  [{ label: 'WEDDING: SARAH & ALI', type: 'confirmed' }, { label: 'PENDING: CORPORATE', type: 'pending' }],
-    8:  [{ label: "TODAY'S EVENT", type: 'today' }],
-    9:  [{ label: 'OVERDUE PMT', type: 'overdue' }],
-    10: [{ label: 'CONFIRMED: GALA', type: 'confirmed' }],
-    // date 9 in grid is position 13 (5 from Nov + 9 = 14, 0-indexed 13)
-    14: [{ label: 'GRAND OPENING', type: 'confirmed' }],
-    20: [{ label: 'CHARITY BALL', type: 'confirmed' }],
-    22: [{ label: 'CORP DINNER', type: 'pending' }],
-    28: [{ label: 'NEW YEAR EVE GALA', type: 'confirmed' }],
+  useEffect(() => {
+    bookingAPI.getAllBookings().then(res => {
+      if (res.ok && res.data?.data) {
+        setBookings(res.data.data);
+      }
+    });
+  }, []);
+
+  const buildDates = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const dates: { date: number; currentMonth: boolean; events: { label: string; type: 'confirmed' | 'pending' | 'overdue' | 'today' | 'other' }[] }[] = [];
+    
+    // Previous month tail
+    for (let i = firstDay - 1; i >= 0; i--) {
+      dates.push({ date: daysInPrevMonth - i, currentMonth: false, events: [] });
+    }
+    
+    // Current month
+    for (let i = 1; i <= daysInMonth; i++) {
+      dates.push({ date: i, currentMonth: true, events: [] });
+    }
+    
+    // Next month head
+    while (dates.length % 7 !== 0) {
+      dates.push({ date: dates.length - (firstDay + daysInMonth) + 1, currentMonth: false, events: [] });
+    }
+
+    // Inject real events
+    const eventMap: Record<number, { label: string; type: 'confirmed' | 'pending' | 'overdue' | 'today' | 'other' }[]> = {};
+    
+    bookings.forEach(b => {
+      if (b.date) {
+        const d = new Date(b.date);
+        if (d.getMonth() === month && d.getFullYear() === year) {
+          const dateNum = d.getDate();
+          if (!eventMap[dateNum]) eventMap[dateNum] = [];
+          
+          let type: any = 'other';
+          if (b.status === 'Confirmed' || b.status === 'DepositPaid' || b.status === 'BalancePaid') type = 'confirmed';
+          if (b.status === 'Pending') type = 'pending';
+          
+          eventMap[dateNum].push({
+            label: `${b.clientName.split(' ')[0]} - ${b.eventType}`,
+            type
+          });
+        }
+      }
+    });
+
+    dates.forEach(d => {
+      if (d.currentMonth && eventMap[d.date]) {
+        d.events = eventMap[d.date];
+      }
+    });
+
+    return dates;
   };
 
-  dates.forEach(d => {
-    if (d.currentMonth && eventMap[d.date]) {
-      d.events = eventMap[d.date];
-    }
-  });
-
-  return dates.slice(0, 35);
-};
-
-const eventStyles = {
-  confirmed: 'bg-[#B08D2C] text-white',
-  pending:   'bg-[#CBD5E1] text-gray-700',
-  overdue:   'bg-red-100 text-red-600 border border-red-300',
-  today:     'bg-[#7C6A2E] text-white',
-  other:     'bg-[#F2EADA] text-gray-600',
-};
-
-const CalendarGrid = () => {
   const dates = buildDates();
-  const todayDate = 8; // December 8
+  const todayDate = new Date().getDate();
+  const isCurrentMonth = new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
+
+  const eventStyles = {
+    confirmed: 'bg-[#B08D2C] text-white',
+    pending:   'bg-[#CBD5E1] text-gray-700',
+    overdue:   'bg-red-100 text-red-600 border border-red-300',
+    today:     'bg-[#7C6A2E] text-white',
+    other:     'bg-[#F2EADA] text-gray-600',
+  };
 
   return (
     <div className="bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm">
@@ -66,7 +102,7 @@ const CalendarGrid = () => {
       {/* Date cells */}
       <div className="grid grid-cols-7">
         {dates.map((d, i) => {
-          const isToday = d.date === todayDate && d.currentMonth;
+          const isToday = d.date === todayDate && d.currentMonth && isCurrentMonth;
           return (
             <div
               key={i}
@@ -83,10 +119,10 @@ const CalendarGrid = () => {
               </span>
               {/* Event chips — hidden on very small screens */}
               <div className="hidden sm:flex flex-col gap-0.5 overflow-hidden">
-                {d.events.map((e, j) => (
+                {d.events.map((e: any, j: number) => (
                   <span
                     key={j}
-                    className={`text-[8px] font-bold uppercase tracking-wide px-1 py-0.5 rounded truncate leading-tight ${eventStyles[e.type]}`}
+                    className={`text-[8px] font-bold uppercase tracking-wide px-1 py-0.5 rounded truncate leading-tight ${(eventStyles as any)[e.type]}`}
                   >
                     {e.label}
                   </span>
@@ -95,7 +131,7 @@ const CalendarGrid = () => {
               {/* Dot indicators for mobile */}
               {d.events.length > 0 && (
                 <div className="sm:hidden flex gap-0.5 mt-auto">
-                  {d.events.slice(0, 3).map((e, j) => (
+                  {d.events.slice(0, 3).map((e: any, j: number) => (
                     <span key={j} className={`w-1.5 h-1.5 rounded-full ${
                       e.type === 'confirmed' ? 'bg-[#B08D2C]' :
                       e.type === 'pending' ? 'bg-gray-400' :
