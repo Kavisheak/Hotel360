@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useLayoutStore } from '@/store/useLayoutStore';
 import { 
   generateTheaterLayout, 
@@ -35,18 +35,19 @@ export const SeatingLayout = () => {
         pos = generateTheaterLayout(guestCount, spacing);
     }
 
-    // Update stats
-    const chairs = pos.filter(p => p.type === 'chair').length;
-    const tables = pos.filter(p => p.type === 'table').length;
+    return pos;
+  }, [guestCount, arrangementStyle, spacing]);
+
+  useEffect(() => {
+    const chairs = positions.filter(p => p.type === 'chair').length;
+    const tables = positions.filter(p => p.type === 'table').length;
     setHallStats({
       totalGuests: chairs,
       totalTables: tables,
       totalChairs: chairs,
       utilization: Math.min(100, Math.round((chairs / 500) * 100)),
     });
-
-    return pos;
-  }, [guestCount, arrangementStyle, spacing, setHallStats]);
+  }, [positions, setHallStats]);
 
   return (
     <group>
