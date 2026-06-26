@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarViewProps {
@@ -7,10 +9,19 @@ interface CalendarViewProps {
 
 const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
   
   // Create a quick array of 35 days for demo purposes (like the static version)
   // Let's just use the current month logic properly
@@ -44,11 +55,11 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
       {/* Calendar Header */}
       <div className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 border-b border-[#E0D8C3]">
         <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold tracking-tight">
-          {today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
         <div className="flex space-x-3 text-gray-500">
-          <button className="hover:text-gray-900 transition-colors p-1"><ChevronLeft size={20} /></button>
-          <button className="hover:text-gray-900 transition-colors p-1"><ChevronRight size={20} /></button>
+          <button onClick={handlePrevMonth} className="hover:text-gray-900 transition-colors p-1"><ChevronLeft size={20} /></button>
+          <button onClick={handleNextMonth} className="hover:text-gray-900 transition-colors p-1"><ChevronRight size={20} /></button>
         </div>
       </div>
 
@@ -69,7 +80,10 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
       {/* Calendar dates grid */}
       <div className="grid grid-cols-7 bg-white flex-1">
         {displayDates.map((d, i) => {
-          const isSelected = d.date === today.getDate() && d.currentMonth;
+          const isSelected = d.date === new Date().getDate() && 
+                             d.currentMonth && 
+                             currentMonth === new Date().getMonth() && 
+                             currentYear === new Date().getFullYear();
           
           // Find bookings for this exact day
           const dayBookings = bookings.filter(b => {
@@ -93,11 +107,13 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
 
               {/* Event indicators */}
               {dayBookings.length > 0 && d.currentMonth && (
-                <div className="mt-auto space-y-0.5 flex flex-col gap-1">
+                <div className="mt-auto flex flex-col gap-1">
                   {dayBookings.map((b, idx) => {
                     const colors = ['bg-[#4A463B]', 'bg-[#5A87C7]', 'bg-[#C75A5A]'];
                     return (
-                      <div key={idx} className={`h-0.5 sm:h-1 ${colors[idx % colors.length]} w-full rounded-full`} />
+                      <div key={idx} className={`${colors[idx % colors.length]} text-white text-[9px] px-1 py-0.5 rounded-sm truncate leading-none`} title={b.clientName}>
+                        {b.clientName}
+                      </div>
                     );
                   })}
                   {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">TODAY</span>}

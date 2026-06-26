@@ -1,9 +1,22 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { SectionTitle } from './SectionTitle';
 import { Clock } from 'lucide-react';
 
-const VenueConfiguration = () => (
-  <div className="mb-12">
+const VenueConfiguration = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleUpdate = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      alert("Venue configuration updated successfully!");
+    }, 1000);
+  };
+
+  return (
+    <div className="mb-12">
     <SectionTitle title="Venue Configuration" />
     <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -63,8 +76,12 @@ const VenueConfiguration = () => (
       </div>
       
       <div className="flex items-center gap-4">
-        <button className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors">
-          Update Venue
+        <button 
+          onClick={handleUpdate}
+          disabled={isSaving}
+          className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors disabled:opacity-50"
+        >
+          {isSaving ? "Updating..." : "Update Venue"}
         </button>
         <button className="bg-white hover:bg-gray-50 text-gray-600 border border-[#E0D8C3] text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors">
           Cancel
@@ -72,6 +89,7 @@ const VenueConfiguration = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default VenueConfiguration;

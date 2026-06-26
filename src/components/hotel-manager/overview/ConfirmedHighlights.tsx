@@ -2,19 +2,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, Users, Gem } from 'lucide-react';
-import { useBookingStore } from '@/store/bookingStore';
+import { bookingAPI } from '@/lib/api';
 
 const ConfirmedHighlights = () => {
   const [isClient, setIsClient] = useState(false);
-  const bookings = useBookingStore(state => state.bookings);
-
-  const confirmedBookings = React.useMemo(() => 
-    bookings.filter(b => b.status === "Confirmed"),
-    [bookings]
-  );
+  const [confirmedBookings, setConfirmedBookings] = useState<any[]>([]);
 
   useEffect(() => {
     setIsClient(true);
+    const fetchBookings = async () => {
+      const res = await bookingAPI.getAllBookings();
+      if (res.ok && res.data?.data) {
+        setConfirmedBookings(res.data.data.filter((b: any) => b.status === "Confirmed" || b.status === "DepositPaid" || b.status === "BalancePaid").slice(0, 3));
+      }
+    };
+    fetchBookings();
   }, []);
 
   return (
@@ -31,7 +33,7 @@ const ConfirmedHighlights = () => {
       ) : isClient ? (
         confirmedBookings.map((booking, i) => (
           <div
-            key={booking.id}
+            key={booking._id || booking.id || i}
             className="group bg-white border border-[#E0D8C3] rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-[#B08D2C] transition-all duration-300"
           >
             {/* Image */}
@@ -67,9 +69,9 @@ const ConfirmedHighlights = () => {
                 </div>
               </div>
 
-              <button className="w-full border border-[#B08D2C] text-[#7C6A2E] text-[10px] font-bold uppercase tracking-widest py-2 rounded-md group-hover:bg-[#B08D2C] group-hover:text-white transition-all duration-200">
+              <a href={`/hotel-manager/bookings/${booking.id || booking._id}`} className="block text-center w-full border border-[#B08D2C] text-[#7C6A2E] text-[10px] font-bold uppercase tracking-widest py-2 rounded-md group-hover:bg-[#B08D2C] group-hover:text-white transition-all duration-200">
                 Details
-              </button>
+              </a>
             </div>
           </div>
         ))

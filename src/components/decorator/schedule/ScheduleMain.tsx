@@ -41,7 +41,7 @@ const ScheduleMain = () => {
           </div>
         </div>
 
-        <ResourceAllocation />
+        <ResourceAllocation bookings={bookings} />
       </div>
       <Footer />
     </div>

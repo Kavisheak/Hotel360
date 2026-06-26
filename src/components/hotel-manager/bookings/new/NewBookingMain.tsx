@@ -21,6 +21,8 @@ const NewBookingMain = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cashConfirmed, setCashConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [previewVendor, setPreviewVendor] = useState<Vendor | null>(null);
   
   const [dbPackages, setDbPackages] = useState<any[]>([]);
   const router = useRouter();
@@ -68,20 +70,28 @@ const NewBookingMain = () => {
   const balanceAmount = totalCost * 0.7;
 
   const submitBooking = async () => {
+    if (!clientInfo.name || !clientInfo.email || !clientInfo.phone) {
+      setToast({ type: 'error', msg: 'Please fill in all client details before finalizing.' });
+      setTimeout(() => setToast(null), 4000);
+      return;
+    }
     setIsSubmitting(true);
-    const finalStatus = (paymentMethod === 'cash' && cashConfirmed) ? "DepositPaid" : "PENDING";
 
     const payload = {
-      clientName: clientInfo.name || 'Walk-in Client',
-      email: clientInfo.email || 'N/A',
-      phone: clientInfo.phone || 'N/A',
-      eventType: selectedPkgData ? selectedPkgData.name : (packageType === 'silver' ? 'Classic Silver Package' : packageType === 'diamond' ? 'Luxury Diamond Gala' : 'Grand Gold Celebration'),
+      clientName: clientInfo.name,
+      email: clientInfo.email,
+      phone: clientInfo.phone,
+      eventType: selectedPkgData?.name || 'Grand Event',
       packageId: packageType,
+      packageName: selectedPkgData?.name || 'Custom',
       date: selectedDate || new Date().toISOString().split('T')[0],
       timeslot: timeslot,
       guests: parseInt(guests),
-      status: finalStatus,
+      status: 'Pending',  // must match backend enum exactly
       totalCost,
+      depositAmount,
+      balanceAmount,
+      menuType: 'signature',
       vendors: {
         decorator: {
           vendorId: vendors.decorator || null,
@@ -99,20 +109,29 @@ const NewBookingMain = () => {
           packageName: ''
         }
       },
-      menuType: "signature",
-      createdAt: new Date().toISOString()
+      pricingBreakdown: {
+        packageCost: basePrice,
+        guestSurchargeCost: foodCost,
+        timeslotPremium,
+        decoratorCost: decCost,
+        videographerCost: vidCost,
+        djCost,
+        customMenuSurcharge: 0,
+      },
     };
 
     try {
       const res = await bookingAPI.createBooking(payload);
       if (res.ok) {
-        alert(`Booking successfully created!`);
-        router.push('/hotel-manager/bookings');
+        setToast({ type: 'success', msg: 'Booking created successfully! Redirecting...' });
+        setTimeout(() => router.push('/hotel-manager/bookings'), 1500);
       } else {
-        alert(`Error: ${res.data.message}`);
+        setToast({ type: 'error', msg: res.data?.message || 'Failed to create booking.' });
+        setTimeout(() => setToast(null), 4000);
       }
     } catch (err) {
-      alert('Failed to create booking.');
+      setToast({ type: 'error', msg: 'Network error. Please check your connection.' });
+      setTimeout(() => setToast(null), 4000);
     } finally {
       setIsSubmitting(false);
     }
@@ -137,17 +156,28 @@ const NewBookingMain = () => {
             {vendor.startingPrice}
           </div>
         </div>
-        <div className="p-4">
-          <p className="text-[9px] font-bold text-[#A6955C] tracking-widest uppercase mb-1">{vendor.categoryLabel}</p>
-          <h4 className="text-lg font-serif font-bold text-gray-900 mb-2">{vendor.name}</h4>
-          <p className="text-xs text-gray-500 line-clamp-2">{vendor.description}</p>
-          <div className="mt-3 flex flex-wrap gap-1">
-            {vendor.specialties.slice(0, 2).map((s, idx) => (
-              <span key={idx} className="bg-[#FDF9F1] border border-[#F2EADA] text-gray-600 text-[9px] px-2 py-0.5 rounded-sm">
-                {s}
-              </span>
-            ))}
+        <div className="p-4 flex flex-col justify-between flex-1">
+          <div>
+            <p className="text-[9px] font-bold text-[#A6955C] tracking-widest uppercase mb-1">{vendor.categoryLabel}</p>
+            <h4 className="text-lg font-serif font-bold text-gray-900 mb-2">{vendor.name}</h4>
+            <p className="text-xs text-gray-500 line-clamp-2">{vendor.description}</p>
+            <div className="mt-3 flex flex-wrap gap-1">
+              {vendor.specialties.slice(0, 2).map((s, idx) => (
+                <span key={idx} className="bg-[#FDF9F1] border border-[#F2EADA] text-gray-600 text-[9px] px-2 py-0.5 rounded-sm">
+                  {s}
+                </span>
+              ))}
+            </div>
           </div>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setPreviewVendor(vendor);
+            }}
+            className="mt-4 w-full py-2 border border-[#E0D8C3] text-[10px] font-bold tracking-widest uppercase text-[#7C6A2E] hover:bg-[#FAF6EE] transition-colors"
+          >
+            View Portfolio
+          </button>
         </div>
       </div>
     );
@@ -155,6 +185,14 @@ const NewBookingMain = () => {
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-6 py-3 text-sm font-semibold rounded shadow-lg transition-all ${
+          toast.type === 'success' ? 'bg-green-700 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
       {/* Header */}
       <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
         <div className="flex items-center gap-4 w-full">
@@ -384,6 +422,37 @@ const NewBookingMain = () => {
                     </div>
                   </div>
 
+                  {paymentMethod === 'card' && (
+                    <div className="bg-[#FAF6EE] p-5 border border-[#E0D8C3] space-y-4 animate-fadeIn">
+                      <p className="text-xs font-bold text-[#7C6A2E] tracking-widest uppercase mb-4 border-b border-[#E0D8C3] pb-2">Credit Card Details</p>
+                      <div>
+                        <label className="block text-[9px] font-bold text-gray-500 tracking-widest uppercase mb-1.5">Cardholder Name</label>
+                        <input type="text" placeholder="e.g. John Doe" className="w-full border border-[#E0D8C3] px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white rounded-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-gray-500 tracking-widest uppercase mb-1.5">Card Number</label>
+                        <div className="relative">
+                          <input type="text" placeholder="0000 0000 0000 0000" className="w-full border border-[#E0D8C3] px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white rounded-sm font-mono" maxLength={19} />
+                          <div className="absolute right-3 top-2.5 flex gap-1">
+                            <div className="w-6 h-4 bg-gray-200 rounded-sm"></div>
+                            <div className="w-6 h-4 bg-gray-200 rounded-sm"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-500 tracking-widest uppercase mb-1.5">Expiry Date</label>
+                          <input type="text" placeholder="MM/YY" className="w-full border border-[#E0D8C3] px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white rounded-sm font-mono" maxLength={5} />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-500 tracking-widest uppercase mb-1.5">CVV / CVC</label>
+                          <input type="text" placeholder="123" className="w-full border border-[#E0D8C3] px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white rounded-sm font-mono" maxLength={4} />
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-gray-400 italic mt-2 text-center">Your payment is processed securely via Stripe.</p>
+                    </div>
+                  )}
+
                   {paymentMethod === 'cash' && (
                     <div className="bg-[#FAF6EE] p-4 border border-[#E0D8C3] flex items-start gap-3">
                       <input 
@@ -509,6 +578,61 @@ const NewBookingMain = () => {
         </div>
 
       </main>
+
+      {/* Portfolio Preview Modal */}
+      {previewVendor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-[#FDF9F1] w-full max-w-5xl rounded shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-[#E0D8C3]">
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-[#7C6A2E]">{previewVendor.name} - Portfolio</h3>
+                <p className="text-sm text-gray-500 font-serif italic">{previewVendor.categoryLabel} Showcase</p>
+              </div>
+              <button onClick={() => setPreviewVendor(null)} className="p-2 bg-[#E0D8C3] hover:bg-[#D0C8B3] rounded-full transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+              <p className="text-gray-700 text-sm mb-6 leading-relaxed max-w-3xl">
+                {previewVendor.description}
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {previewVendor.portfolio && previewVendor.portfolio.length > 0 ? (
+                  previewVendor.portfolio.map((img, idx) => (
+                    <div key={idx} className="relative aspect-square overflow-hidden group border border-[#E0D8C3]">
+                      <img src={img} alt={`Portfolio ${idx+1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full py-12 text-center text-gray-500 italic">No portfolio images available for this artisan.</div>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-[#E0D8C3] bg-[#FAF6EE] flex justify-end">
+              <button 
+                onClick={() => {
+                  handleVendorSelect(
+                    previewVendor.category === 'decorators' ? 'decorator' : 
+                    previewVendor.category === 'djs' ? 'dj' : 'videographer', 
+                    previewVendor.id
+                  );
+                  setPreviewVendor(null);
+                }}
+                className="bg-[#7C6A2E] hover:bg-[#5E4F20] text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded shadow-sm transition-colors"
+              >
+                {vendors[
+                  previewVendor.category === 'decorators' ? 'decorator' : 
+                  previewVendor.category === 'djs' ? 'dj' : 'videographer'
+                ] === previewVendor.id ? 'Unselect Artisan' : 'Select This Artisan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,7 +6,8 @@ import {
   Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -46,6 +47,18 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.signout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      // Always redirect to the public landing page
+      router.push('/');
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -71,8 +84,7 @@ const Sidebar = () => {
   ];
 
   const bottomItems = [
-    { icon: <HelpCircle size={20} />,   label: 'SUPPORT',      href: '#' },
-    { icon: <LogOut size={20} />,       label: 'LOGOUT',       href: '/' },
+    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '#' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -140,6 +152,19 @@ const Sidebar = () => {
             onClick={close}
           />
         ))}
+        {/* Logout — calls signout API first to destroy session cookie */}
+        <button
+          onClick={() => { close(); handleLogout(); }}
+          title={collapsedState ? 'LOGOUT' : undefined}
+          className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${
+            collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+          }`}
+        >
+          <span><LogOut size={20} /></span>
+          {!collapsedState && (
+            <span className="text-sm font-bold tracking-wide">LOGOUT</span>
+          )}
+        </button>
       </div>
     </div>
   );
