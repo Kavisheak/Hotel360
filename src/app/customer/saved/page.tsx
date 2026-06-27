@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
-import Footer from "@/components/landing/shared/Footer";
-import VendorCards from "@/components/landing/vendors/VendorCards";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
+import Footer from "@/components/Landing/shared/Footer";
+import VendorCards from "@/components/Landing/vendors/VendorCards";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { Heart } from "lucide-react";

@@ -1,2 +1,2 @@
-import MainNavbar from '@/components/landing/shared/MainNavbar';
+import MainNavbar from '@/components/Landing/shared/MainNavbar';
 export default MainNavbar;

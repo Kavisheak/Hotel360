@@ -1,23 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { ChevronDown, Camera } from 'lucide-react';
 
-const ProfileSettings = () => {
-  const [formData, setFormData] = useState({
-    fullName: 'Julian Saint-Clair',
-    email: 'julian@aureumentertainment.com',
-    phone: '+1 (555) 014-2200',
-    bio:
-      'Julian crafts refined, high-energy sets for luxury weddings and private celebrations, blending deep house, disco, and classic anthems with seamless precision.',
-    specialty: 'Bespoke Weddings',
-  });
+interface ProfileSettingsProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+}
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target;
-    setFormData((previous) => ({ ...previous, [name]: value }));
-  };
+const ProfileSettings = ({ formData, handleChange }: ProfileSettingsProps) => {
 
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">

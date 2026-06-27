@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Vendor } from "@/components/landing/vendors/types";
+import { Vendor } from "@/components/Landing/vendors/types";
 import { vendorAPI } from "@/lib/api";
-import VendorsHeader from "@/components/landing/vendors/VendorsHeader";
-import VendorProfileHero from "@/components/landing/vendorProfile/VendorProfileHero";
-import VendorProfileStats from "@/components/landing/vendorProfile/VendorProfileStats";
-import VendorProfileContent from "@/components/landing/vendorProfile/VendorProfileContent";
+import VendorsHeader from "@/components/Landing/vendors/VendorsHeader";
+import VendorProfileHero from "@/components/Landing/vendorProfile/VendorProfileHero";
+import VendorProfileStats from "@/components/Landing/vendorProfile/VendorProfileStats";
+import VendorProfileContent from "@/components/Landing/vendorProfile/VendorProfileContent";
 import { useAuthStore } from "@/store/authStore";
 
 export default function VendorProfilePage() {

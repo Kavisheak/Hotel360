@@ -6,33 +6,27 @@ import {
   Star,
 } from "lucide-react";
 
-const stats = [
-  {
-    title: "TOTAL EVENTS",
-    value: "42",
-    icon: CalendarDays,
-  },
-  {
-    title: "UPCOMING EVENTS",
-    value: "16",
-    icon: Clock3,
-  },
-  {
-    title: "COMPLETED EVENTS",
-    value: "18",
-    icon: CheckCircle2,
-  },
-  {
-    title: "AVERAGE RATING",
-    value: "4.8",
-    icon: Star,
-  },
-];
+interface BookingsStatsProps {
+  bookings?: any[];
+}
 
-const BookingsStats = () => {
+const BookingsStats = ({ bookings = [] }: BookingsStatsProps) => {
+  const totalEvents = bookings.length;
+  const upcomingEvents = bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').length;
+  const completedEvents = bookings.filter(b => b.status === 'Completed').length;
+  // DJ rating comes from profile, or mock it for now since we don't have it in bookings
+  const avgRating = "4.9"; 
+
+  const dynamicStats = [
+    { title: "TOTAL EVENTS", value: totalEvents.toString(), icon: CalendarDays },
+    { title: "UPCOMING EVENTS", value: upcomingEvents.toString(), icon: Clock3 },
+    { title: "COMPLETED EVENTS", value: completedEvents.toString(), icon: CheckCircle2 },
+    { title: "AVERAGE RATING", value: avgRating, icon: Star },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-      {stats.map((item) => {
+      {dynamicStats.map((item) => {
         const Icon = item.icon;
 
         return (

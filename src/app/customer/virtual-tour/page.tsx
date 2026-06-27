@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, View, Cuboid } from "lucide-react";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
-import Footer from "@/components/landing/shared/Footer";
-import Tour360Viewer from "@/components/landing/virtual-tour/Tour360Viewer";
-import SpaceArrangement3D from "@/components/landing/virtual-tour/SpaceArrangement3D";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
+import Footer from "@/components/Landing/shared/Footer";
+import Tour360Viewer from "@/components/Landing/virtual-tour/Tour360Viewer";
+import SpaceArrangement3D from "@/components/Landing/virtual-tour/SpaceArrangement3D";
 import { useLayoutStore } from "@/store/useLayoutStore";
 
 export default function VirtualTourPage() {

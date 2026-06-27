@@ -5,7 +5,7 @@ import { PackageData } from "../data";
 import { useRouter } from "next/navigation";
 import { Check, Users } from "lucide-react";
 import React, { useState } from "react";
-import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
+import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
 
 interface Props {
   pkg: PackageData;

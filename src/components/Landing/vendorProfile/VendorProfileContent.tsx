@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Vendor } from "@/components/landing/vendors/types";
+import { Vendor } from "@/components/Landing/vendors/types";
 import Image from "next/image";
 import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones } from "lucide-react";
 

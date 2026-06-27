@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Sparkles, Palette, Music, Video, Heart } from "lucide-react";
-import { type Vendor } from "@/components/landing/vendors/types";
+import { type Vendor } from "@/components/Landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 

@@ -83,7 +83,7 @@ export const useVendorStore = create<VendorState>((set, get) => ({
             reviews: []
           },
           {
-            id: 'mock-dj-1',
+            id: '6a354e9f123d03e961d01dc2', // Matches the DB DJ ID
             name: 'DJ Elevate (Nawas)',
             category: 'djs',
             categoryLabel: 'Entertainment',

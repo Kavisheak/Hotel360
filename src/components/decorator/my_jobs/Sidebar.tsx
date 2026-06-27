@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock,
+  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, User,
   Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -48,6 +49,7 @@ const Sidebar = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { clearUser } = useAuthStore();
 
   const handleLogout = async () => {
     try {
@@ -55,7 +57,7 @@ const Sidebar = () => {
     } catch (e) {
       console.error(e);
     } finally {
-      // Always redirect to the public landing page
+      clearUser();
       router.push('/');
     }
   };
@@ -75,7 +77,8 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />,   label: 'MY JOBS',      href: '/decorator' },
+    { icon: <LayoutGrid size={20} />,   label: 'OVERVIEW',     href: '/decorator/overview' },
+    { icon: <User size={20} />,         label: 'MY JOBS',      href: '/decorator/my-jobs' },
     { icon: <Calendar size={20} />,     label: 'SCHEDULE',     href: '/decorator/schedule' },
     { icon: <FolderHeart size={20} />,  label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
     { icon: <BarChart3 size={20} />,    label: 'RATINGS',      href: '/decorator/ratings' },
@@ -128,8 +131,8 @@ const Sidebar = () => {
               label={item.label}
               href={item.href}
               active={
-                item.href === '/decorator'
-                  ? pathname === '/decorator'
+                item.href === '/decorator/overview'
+                  ? pathname === '/decorator' || pathname === '/decorator/overview'
                   : pathname === item.href || pathname?.startsWith(item.href + '/')
               }
               isCollapsed={collapsedState}

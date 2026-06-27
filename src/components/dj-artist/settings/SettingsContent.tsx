@@ -8,7 +8,7 @@ import SecuritySettings from './SecuritySettings';
 
 const SettingsContent = () => {
   return (
-    <main className="flex min-h-[calc(100vh-73px)] flex-col bg-[#FDF9F1]">
+    <main className="flex-1 flex flex-col bg-[#FDF9F1]">
       <div className="px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
         <Header />
 

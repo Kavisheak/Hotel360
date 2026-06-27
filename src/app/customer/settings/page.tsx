@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
 import AccountOverview from "@/components/myaccount/AccountOverview";
 import ProfileSettings from "@/components/myaccount/ProfileSettings";
 import SecuritySettings from "@/components/myaccount/SecuritySettings";
