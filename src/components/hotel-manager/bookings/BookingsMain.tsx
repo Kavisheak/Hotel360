@@ -33,7 +33,9 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
           ...backendData,
           clientEmail: backendData.email,
           clientPhone: backendData.phone,
-          id: backendData.bookingRef || backendData._id
+          id: backendData.bookingRef || backendData._id,
+          date: new Date(backendData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          packageName: backendData.packageId?.name || backendData.packageName || "Custom Package"
         });
       } else {
         // Fallback to dummy store if not found in DB
