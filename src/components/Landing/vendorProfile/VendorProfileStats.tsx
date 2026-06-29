@@ -1,5 +1,5 @@
 import React from "react";
-import { Vendor } from "@/components/landing/vendors/types";
+import { Vendor } from "@/components/Landing/vendors/types";
 import { ShieldCheck, Calendar, Settings, CalendarCheck } from "lucide-react";
 
 interface VendorProfileStatsProps {

@@ -11,6 +11,7 @@ const PendingBookings = () => {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
+  const [successDetails, setSuccessDetails] = useState<string | null>(null);
 
   const fetchPending = async () => {
     const res = await bookingAPI.getAllBookings();
@@ -29,7 +30,10 @@ const PendingBookings = () => {
     e.preventDefault();
     e.stopPropagation();
     const res = await bookingAPI.updateBookingStatus(id, { status: 'Confirmed' });
-    if (res.ok) fetchPending();
+    if (res.ok) {
+      setSuccessDetails(`Booking has been successfully approved!`);
+      fetchPending();
+    }
   };
 
   const handleRejectSubmit = async (id: string, e: React.MouseEvent) => {
@@ -172,6 +176,27 @@ const PendingBookings = () => {
         })
       ) : null}
     </div>
+
+    {/* Premium Success Modal */}
+    {successDetails && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <BookOpen size={32} className="text-[#7C6A2E]" />
+          </div>
+          <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Success</h3>
+          <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+            {successDetails}
+          </p>
+          <button 
+            onClick={() => setSuccessDetails(null)}
+            className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    )}
   </section>
   );
 };

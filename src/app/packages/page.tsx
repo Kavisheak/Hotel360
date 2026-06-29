@@ -6,10 +6,10 @@ import { useAuthStore } from "@/store/authStore";
 import { packagesData, PackageData } from "./data";
 import PackageCard from "./components/PackageCard";
 import PackageDetailsModal from "./components/PackageDetailsModal";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
 import CompareFrameworks from "./components/CompareFrameworks";
 import EstimateInvestment from "./components/EstimateInvestment";
-import FooterSection from "@/components/landing/shared/Footer";
+import FooterSection from "@/components/Landing/shared/Footer";
 import { CheckCircle2, UserCheck, Star } from "lucide-react";
 
 export default function PackagesPage() {

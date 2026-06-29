@@ -1,7 +1,12 @@
 import React from 'react';
-import { Bell, User } from 'lucide-react';
+import { Bell, User, Loader2 } from 'lucide-react';
 
-const Header = () => {
+interface HeaderProps {
+  onSave?: () => void;
+  isSaving?: boolean;
+}
+
+const Header = ({ onSave, isSaving = false }: HeaderProps) => {
   return (
     <div className="mb-8 mt-4">
       <div className="flex items-center justify-between border-b border-[#E0D8C3] pb-4 mb-6">
@@ -36,8 +41,13 @@ const Header = () => {
           </p>
         </div>
 
-        <button className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start sm:mt-1">
-          <span>SAVE CHANGES</span>
+        <button 
+          onClick={onSave}
+          disabled={isSaving}
+          className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start sm:mt-1 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {isSaving ? <Loader2 size={16} className="animate-spin" /> : null}
+          <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
         </button>
       </div>
     </div>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, ArrowLeft, CalendarDays, Users, Package, Palette, Music, Video, Check, Search, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { Vendor } from '@/components/landing/vendors/types';
+import { Vendor } from '@/components/Landing/vendors/types';
 import { useVendorStore } from '@/store/vendorStore';
 import { bookingAPI, packageAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';

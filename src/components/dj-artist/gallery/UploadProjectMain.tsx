@@ -16,17 +16,23 @@ import {
   Mic2,
   Volume2,
   Radio,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import Footer from '../overview/Footer';
+
+import { djAPI } from '@/lib/api';
 
 interface MediaItem {
   id: string;
   src: string;
   isCover: boolean;
   name: string;
+  file?: File;
+  isExisting?: boolean;
 }
 
-const UploadProjectMain = () => {
+const UploadProjectMain = ({ id }: { id?: string }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,14 +55,59 @@ const UploadProjectMain = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
-  const [mediaList, setMediaList] = useState<MediaItem[]>([
-    {
-      id: 'default-cover',
-      src: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80',
-      isCover: true,
-      name: 'Cover Shot',
-    },
-  ]);
+  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Fetch if editing
+  React.useEffect(() => {
+    if (id) {
+      const fetchItem = async () => {
+        try {
+          const res = await djAPI.getGalleryItems();
+          if (res.ok && res.data?.data) {
+            const item = res.data.data.find((i: any) => i._id === id);
+            if (item) {
+              setProjectTitle(item.title || '');
+              setEventType(item.eventType || 'Wedding Reception');
+              setEventDate(item.eventDate ? item.eventDate.substring(0, 10) : '');
+              setDescription(item.description || '');
+              setVenue(item.venue || '');
+              setGenre(item.category || 'Top 40 / Pop'); // using category as genre here
+
+              if (item.servicesProvided) {
+                const s = {
+                  liveSet: false, mixedPlaylist: false, mcHosting: false, lightShow: false, soundSystem: false
+                };
+                item.servicesProvided.forEach((srv: string) => {
+                  if (srv in s) (s as any)[srv] = true;
+                });
+                setServices(s);
+              }
+
+              setIsFeatured(item.isFeatured || false);
+              setIsPrivate(item.isPrivate || false);
+              
+              if (item.media && item.media.length > 0) {
+                const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+                setMediaList(item.media.map((m: any, idx: number) => ({
+                  id: `existing-${idx}`,
+                  src: `${API_BASE}${m.url}`,
+                  isCover: m.isCover || false,
+                  name: m.url.split('/').pop() || `existing-${idx}`,
+                  isExisting: true,
+                })));
+              }
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchItem();
+    }
+  }, [id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -66,7 +117,13 @@ const UploadProjectMain = () => {
       reader.onloadend = () => {
         setMediaList(prev => [
           ...prev,
-          { id: `uploaded-${Date.now()}-${idx}`, src: reader.result as string, isCover: false, name: file.name },
+          { 
+            id: `uploaded-${Date.now()}-${idx}`, 
+            src: reader.result as string, 
+            isCover: prev.length === 0 && idx === 0, 
+            name: file.name,
+            file: file 
+          },
         ]);
       };
       reader.readAsDataURL(file);
@@ -86,15 +143,97 @@ const UploadProjectMain = () => {
   const handleSetCover = (id: string) =>
     setMediaList(prev => prev.map(item => ({ ...item, isCover: item.id === id })));
 
-  const handlePublish = () => {
-    alert(`Success! "${projectTitle || 'Untitled Performance'}" has been published to your gallery.`);
-    router.push('/dj-artist/gallery');
+  const handlePublish = async () => {
+    if (!projectTitle) return alert("Please enter a project title.");
+    if (mediaList.length === 0) return alert("Please upload at least one media file.");
+
+    setIsSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', projectTitle);
+      formData.append('eventType', eventType);
+      formData.append('eventDate', eventDate);
+      formData.append('description', description);
+      formData.append('venue', venue);
+      formData.append('category', genre);
+      
+      const activeServices = Object.keys(services).filter(k => services[k as keyof typeof services]);
+      formData.append('servicesProvided', JSON.stringify(activeServices));
+      formData.append('isFeatured', String(isFeatured));
+      formData.append('isPrivate', String(isPrivate));
+
+      const coverItem = mediaList.find(m => m.isCover);
+      if (coverItem) formData.append('coverImageName', coverItem.name);
+
+      mediaList.forEach(m => {
+        if (m.isExisting) {
+          // Send existing URL (strip API_BASE if present)
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const relativeUrl = m.src.replace(API_BASE, '');
+          formData.append('existingMedia', relativeUrl);
+        } else if (m.file) {
+          formData.append('media', m.file);
+        }
+      });
+
+      let res;
+      if (id) {
+        res = await djAPI.updateGalleryItem(id, formData);
+      } else {
+        res = await djAPI.createGalleryItem(formData);
+      }
+
+      if (res.ok) {
+        setShowSuccessModal(true);
+      } else {
+        setErrorMsg(res.data?.message || 'Error saving project');
+      }
+    } catch (e) {
+      console.error(e);
+      setErrorMsg('Network error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => router.push('/dj-artist/gallery');
 
   return (
-    <div className="flex-grow overflow-y-auto bg-[#FDF9F1] flex flex-col justify-between">
+    <div className="flex-grow overflow-y-auto bg-[#FDF9F1] flex flex-col justify-between relative">
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white max-w-md w-full shadow-2xl flex flex-col items-center text-center p-8 border border-[#E0D8C3] scale-in-center">
+            <div className="w-16 h-16 rounded-full bg-[#F2EADA] flex items-center justify-center mb-6">
+              <CheckCircle size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-3xl font-serif font-bold text-gray-900 mb-2 italic">
+              Success!
+            </h3>
+            <p className="text-sm text-gray-500 leading-relaxed mb-8">
+              "{projectTitle || 'Untitled Performance'}" has been successfully {id ? 'updated' : 'published'} to your performance gallery.
+            </p>
+            <button
+              onClick={() => router.push('/dj-artist/gallery')}
+              className="w-full py-3.5 bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-[10px] tracking-[0.15em] uppercase shadow-md transition-colors"
+            >
+              View in Gallery
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ERROR MESSAGE TOAST */}
+      {errorMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#93000a] text-white px-6 py-4 shadow-xl flex items-center gap-3 max-w-sm animate-in slide-in-from-bottom-5">
+          <AlertCircle size={20} />
+          <span className="text-sm font-semibold tracking-wide flex-1">{errorMsg}</span>
+          <button onClick={() => setErrorMsg('')} className="p-1 hover:bg-black/20 transition-colors rounded-sm">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div>
         {/* HEADER ACTION BAR */}
         <header className="sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center px-6 sm:px-8 py-5 bg-[#FDF9F1]/95 backdrop-blur-md border-b border-[#E0D8C3] gap-4">
@@ -105,21 +244,23 @@ const UploadProjectMain = () => {
               <span className="text-[#7C6A2E]">Upload New Project</span>
             </nav>
             <h2 className="text-3xl font-serif text-gray-900 font-bold tracking-tight italic">
-              Add Performance Project
+              {id ? 'Edit Performance Project' : 'Add Performance Project'}
             </h2>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               onClick={handleCancel}
-              className="flex-1 md:flex-initial px-6 py-3 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase hover:bg-[#FAF6EE] transition-colors"
+              disabled={isSaving}
+              className="flex-1 md:flex-initial px-6 py-3 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase hover:bg-[#FAF6EE] transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handlePublish}
-              className="flex-1 md:flex-initial px-6 py-3 bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-[10px] tracking-[0.15em] uppercase shadow-sm active:scale-95 transition-all"
+              disabled={isSaving}
+              className="flex-1 md:flex-initial px-6 py-3 bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-[10px] tracking-[0.15em] uppercase shadow-sm active:scale-95 transition-all disabled:opacity-50"
             >
-              Publish to Gallery
+              {isSaving ? 'Saving...' : (id ? 'Save Changes' : 'Publish to Gallery')}
             </button>
           </div>
         </header>

@@ -1,48 +1,81 @@
 import React from 'react';
 
-const artisans = [
-  {
-    role: 'Decorator',
-    name: 'Julian Thorne',
-    action: 'View Portfolio',
-    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&h=100',
-  },
-  {
-    role: 'DJ / Sound',
-    name: 'The Groove Collective',
-    action: 'Equipment List',
-    img: 'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=100&h=100',
-  },
-  {
-    role: 'Videography',
-    name: 'Cinematic Elegance',
-    action: 'Sample Reel',
-    img: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=100&h=100',
-  },
-];
+const AssignedArtisans = ({ booking }: { booking: any }) => {
+  // Defensive check for vendors object
+  const vendors = booking?.vendors || {};
 
-const AssignedArtisans = ({ booking }: { booking: any }) => (
-  <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm mt-6">
-    <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-5">
-      Assigned Artisans
-    </h4>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      {artisans.map((a) => (
-        <div key={a.role} className="flex flex-col items-center text-center">
-          <img
-            src={a.img}
-            alt={a.name}
-            className="w-16 h-16 rounded-full object-cover border-2 border-[#E0D8C3] mb-3"
-          />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">{a.role}</p>
-          <p className="text-sm font-serif italic text-gray-700 mb-2">{a.name}</p>
-          <button className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] underline hover:text-[#7C6A2E] transition-colors">
-            {a.action}
-          </button>
+  // Safely extract populated vendor details
+  const extractVendor = (vendorObj: any, role: string) => {
+    if (!vendorObj || !vendorObj.vendorId) return null;
+    
+    // If it's populated, vendorId is an object with firstName, lastName, email, phone
+    // If it's not populated, vendorId is just a string (ID)
+    const user = typeof vendorObj.vendorId === 'object' ? vendorObj.vendorId : null;
+    
+    if (!user) return null;
+
+    return {
+      role,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown',
+      email: user.email,
+      phone: user.phone,
+      status: vendorObj.status || 'Pending',
+      packageName: vendorObj.packageName || 'Custom',
+      img: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100', // Default placeholder
+    };
+  };
+
+  const activeArtisans = [
+    extractVendor(vendors.decorator, 'Decorator'),
+    extractVendor(vendors.dj, 'DJ / Sound'),
+    extractVendor(vendors.videographer, 'Videography')
+  ].filter(Boolean); // Remove nulls
+
+  return (
+    <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm mt-6">
+      <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-5">
+        Assigned Artisans
+      </h4>
+      
+      {activeArtisans.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {activeArtisans.map((a: any, index: number) => (
+            <div key={index} className="flex flex-col items-center text-center p-3 border border-[#E0D8C3]/50 rounded-lg hover:shadow-md transition-shadow">
+              <img
+                src={a.img}
+                alt={a.name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-[#E0D8C3] mb-3"
+              />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">{a.role}</p>
+              <p className="text-sm font-serif italic text-gray-700 mb-1">{a.name}</p>
+              
+              <div className="text-[10px] text-gray-500 mb-2">
+                <p>{a.phone}</p>
+                <p className="truncate max-w-[150px]">{a.email}</p>
+              </div>
+
+              <div className="flex gap-2 items-center mt-auto">
+                <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm ${
+                  a.status === 'Accepted' || a.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                  a.status === 'Declined' ? 'bg-red-100 text-red-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {a.status}
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-[#B08D2C] bg-[#FDF9F1] border border-[#E0D8C3] px-2 py-1 rounded-sm">
+                  {a.packageName}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      ) : (
+        <div className="py-8 text-center bg-[#FDF9F1] border border-[#E0D8C3] rounded-lg">
+          <p className="text-sm text-gray-500 font-light italic">No artisans have been assigned to this booking yet.</p>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 export default AssignedArtisans;

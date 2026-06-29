@@ -17,7 +17,7 @@ const RatingsStats = () => {
         <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">
           OVERALL RATING
         </p>
-        
+
         {/* Rating Score */}
         <h2 className="text-6xl font-serif text-[#7C6A2E] font-bold tracking-tight mb-2">
           4.9

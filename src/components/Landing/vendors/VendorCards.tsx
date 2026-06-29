@@ -5,7 +5,7 @@ import { Star, Award, Info, ArrowRight, Heart, CalendarPlus } from "lucide-react
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
-import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
+import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
 
 interface VendorCardsProps {
   filteredVendors: Vendor[];

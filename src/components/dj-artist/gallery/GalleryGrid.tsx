@@ -1,96 +1,41 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, X, Search } from "lucide-react";
+import { Upload, X, Search, Edit3, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { djAPI } from "@/lib/api";
 
-interface GalleryItem {
-  id: number;
-  title: string;
-  category: string;
-  year: string;
-  image: string;
+const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena"];
+
+interface GalleryGridProps {
+  items: any[];
+  loading: boolean;
+  refresh: () => void;
 }
 
-const galleryData: GalleryItem[] = [
-  {
-    id: 1,
-    title: "Sterling-Vance Wedding Reception",
-    category: "Wedding Sets",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    title: "Neon Club Night — Ibiza",
-    category: "Club & Nightlife",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1571266028243-d2e1e5d4bded?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    title: "Harrison Corporate Gala",
-    category: "Corporate Events",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    title: "Rooftop Sunset Session",
-    category: "Private Parties",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    title: "Arena Festival Main Stage",
-    category: "Festivals",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 6,
-    title: "Montague Anniversary Gala",
-    category: "Wedding Sets",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 7,
-    title: "Underground Warehouse Rave",
-    category: "Club & Nightlife",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 8,
-    title: "Tech Summit After Party",
-    category: "Corporate Events",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 9,
-    title: "Priya & Rahul Wedding Bash",
-    category: "Wedding Sets",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=600&q=80",
-  },
-];
-
-const categories = ["All", "Wedding Sets", "Club & Nightlife", "Corporate Events", "Private Parties", "Festivals"];
-
-const GalleryGrid = () => {
+const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps) => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
+  const [previewItem, setPreviewItem] = useState<any | null>(null);
 
-  const filtered = galleryData.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+  const filtered = items.filter((item) => {
+    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
+    const itemTitle = item.title || "";
+    const matchesSearch = itemTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this gallery item?")) return;
+    try {
+      await djAPI.deleteGalleryItem(id);
+      setPreviewItem(null);
+      refresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div>
@@ -153,17 +98,34 @@ const GalleryGrid = () => {
 
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {filtered.map((item) => (
+        {loading ? (
+          <div className="col-span-full py-12 text-center text-sm text-[#7C6A2E] animate-pulse">
+            Loading performance gallery...
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-sm text-gray-500 font-light italic">
+            No projects found.
+          </div>
+        ) : filtered.map((item) => {
+          const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const imgUrl = coverMedia ? `${API_BASE}${coverMedia.url}` : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+          const year = new Date(item.eventDate || item.createdAt).getFullYear();
+
+          return (
           <div
-            key={item.id}
+            key={item._id}
             className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-            onClick={() => setPreviewItem(item)}
+            onClick={() => setPreviewItem({ ...item, imgUrl, year })}
           >
-            <div className="relative h-52 overflow-hidden">
+            <div className="relative h-52 overflow-hidden bg-gray-100">
               <img
-                src={item.image}
+                src={imgUrl}
                 alt={item.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+                }}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
@@ -173,12 +135,12 @@ const GalleryGrid = () => {
             </div>
             <div className="p-4">
               <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">
-                {item.category} · {item.year}
+                {item.category} · {year}
               </span>
               <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
       {/* Load More */}
@@ -198,11 +160,14 @@ const GalleryGrid = () => {
             className="bg-white max-w-2xl w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative h-72">
+            <div className="relative h-72 bg-gray-100">
               <img
-                src={previewItem.image}
+                src={previewItem.imgUrl}
                 alt={previewItem.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+                }}
               />
               <button
                 className="absolute top-3 right-3 bg-white p-1.5 shadow-sm hover:bg-gray-100 transition-colors"
@@ -217,14 +182,20 @@ const GalleryGrid = () => {
               </span>
               <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                A high-energy {previewItem.category.toLowerCase()} performance featuring seamless mixing, curated playlists, and an unforgettable atmosphere tailored to the occasion.
+                {previewItem.description || `A high-energy ${previewItem.category?.toLowerCase() || 'live'} performance featuring seamless mixing, curated playlists, and an unforgettable atmosphere tailored to the occasion.`}
               </p>
               <div className="flex gap-3 mt-5">
-                <button className="flex-1 bg-[#7C6A2E] hover:bg-[#685724] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md">
-                  VIEW FULL SET
+                <button 
+                  onClick={() => router.push(`/dj-artist/gallery/edit/${previewItem._id}`)}
+                  className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-[#7C6A2E] py-2.5 text-xs font-bold tracking-widest transition-colors uppercase flex items-center justify-center gap-2"
+                >
+                  <Edit3 size={14} /> EDIT
                 </button>
-                <button className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-700 py-2.5 text-xs font-bold tracking-widest transition-colors uppercase">
-                  SHARE PROJECT
+                <button 
+                  onClick={() => handleDelete(previewItem._id)}
+                  className="flex-1 bg-[#93000a] hover:bg-[#7a0008] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={14} /> DELETE
                 </button>
               </div>
             </div>

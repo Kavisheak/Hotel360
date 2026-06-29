@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -47,6 +48,7 @@ const ManagerSidebar = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { clearUser } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
@@ -75,9 +77,10 @@ const ManagerSidebar = () => {
     if (e) e.preventDefault();
     try {
       await authAPI.signout();
-      router.push('/');
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      clearUser();
       router.push('/');
     }
   };

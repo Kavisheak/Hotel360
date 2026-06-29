@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
-import Footer from "@/components/landing/shared/Footer";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
+import Footer from "@/components/Landing/shared/Footer";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { Plus, CheckCircle2, ChefHat, Info } from "lucide-react";
 import Image from "next/image";

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
-import { Vendor } from "@/components/landing/vendors/types";
+import { Vendor } from "@/components/Landing/vendors/types";
 import { useVendorStore } from "@/store/vendorStore";
 interface VendorSwapModalProps {
   isOpen: boolean;

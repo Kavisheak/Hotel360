@@ -45,7 +45,7 @@ const RecentFeedback = () => {
         <h3 className="text-2xl font-serif font-bold text-gray-900">
           Recent Feedback
         </h3>
-        
+
         {/* Sort trigger */}
         <button className="flex items-center space-x-1.5 text-[10px] font-bold tracking-widest text-[#7C6A2E] hover:text-[#9B7A20] uppercase transition-colors">
           <SlidersHorizontal size={12} />
@@ -56,8 +56,8 @@ const RecentFeedback = () => {
       {/* Review cards vertical layout */}
       <div className="space-y-6 mb-8">
         {reviewsData.map((review, idx) => (
-          <div 
-            key={idx} 
+          <div
+            key={idx}
             className="bg-white border border-[#E0D8C3] p-6 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between"
           >
             {/* Top row: Profile & Star Rating */}

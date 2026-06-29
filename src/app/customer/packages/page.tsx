@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import MainNavbar from "@/components/landing/shared/MainNavbar";
-import Footer from "@/components/landing/shared/Footer";
-import PackagesHero from "@/components/landing/packages/PackagesHero";
-import PackageCards from "@/components/landing/packages/PackageCards";
-import ComparisonMatrix from "@/components/landing/packages/ComparisonMatrix";
-import CostCalculator from "@/components/landing/packages/CostCalculator";
-import FAQAccordion from "@/components/landing/packages/FAQAccordion";
-import TrustSection from "@/components/landing/packages/TrustSection";
+import MainNavbar from "@/components/Landing/shared/MainNavbar";
+import Footer from "@/components/Landing/shared/Footer";
+import PackagesHero from "@/components/Landing/packages/PackagesHero";
+import PackageCards from "@/components/Landing/packages/PackageCards";
+import ComparisonMatrix from "@/components/Landing/packages/ComparisonMatrix";
+import CostCalculator from "@/components/Landing/packages/CostCalculator";
+import FAQAccordion from "@/components/Landing/packages/FAQAccordion";
+import TrustSection from "@/components/Landing/packages/TrustSection";
 
 export default function PackagesPage() {
   const [activePackage, setActivePackage] = useState<"silver" | "gold" | "diamond">("gold");
