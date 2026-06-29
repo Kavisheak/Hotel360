@@ -21,9 +21,6 @@ interface BookingVendorSelectorProps {
 }
 
 export default function BookingVendorSelector({ vendors, onChange }: BookingVendorSelectorProps) {
-  const [filterType, setFilterType] = useState<"all" | "favorites">("all");
-  const { favoriteVendors } = useVendorCartStore();
-  
   const { vendors: globalVendors, isLoading, fetchVendors } = useVendorStore();
 
   React.useEffect(() => {
@@ -55,10 +52,6 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
     categoryKey: "decorator" | "dj" | "videographer", 
     vendorList: Vendor[]
   ) => {
-    const displayedVendors = vendorList.filter((v) => {
-      if (filterType === "favorites") return favoriteVendors?.includes(v.id);
-      return true;
-    });
 
     const isSelectedCategory = vendors[categoryKey] !== "none";
 
@@ -79,55 +72,32 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         </div>
 
         {!isSelectedCategory ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {displayedVendors.map((opt) => (
-              <div 
-                key={opt.id}
-                onClick={() => updateVendor(categoryKey, opt.id)}
-                className="p-3 border border-[#C9A84C]/30 bg-white dark:bg-[#1A1A1A] rounded-sm cursor-pointer transition-all flex items-center gap-3 hover-glow btn-interactive hover:border-[#C9A84C]/80"
-              >
-                <div className="w-12 h-12 shrink-0 rounded-sm overflow-hidden bg-gray-100 dark:bg-[#0A0A0A] border border-[#C9A84C]/20">
-                  <img src={opt.image} alt={opt.name} className="w-full h-full object-cover opacity-80" />
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-sm font-bold leading-tight text-[#2C1E14] dark:text-gray-200">
-                    {opt.name}
-                  </span>
-                  <span className="text-[9px] text-gray-600 dark:text-gray-500 mt-0.5 uppercase tracking-wider">
-                    {opt.rating} ⭐ • <span className="text-[#C9A84C]/80">{opt.priceLevelLabel}</span>
-                  </span>
-                  <span className="text-[10px] text-[#C9A84C] font-bold mt-1">
-                    {opt.startingPrice}
-                  </span>
-                  
-                  <a 
-                    href={`/customer/vendorProfile/${opt.id}`}
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-[9px] uppercase tracking-widest text-[#D4AF37] hover:text-[#2C1E14] dark:text-white font-bold mt-2 flex items-center gap-1 transition-colors"
-                  >
-                    View Profile ↗
-                  </a>
-                </div>
-              </div>
-            ))}
-            
-            <div 
-              onClick={() => {
-                updateVendor(categoryKey, "custom_preference");
-                updatePackage(categoryKey, "Custom Preferences");
-              }}
-              className="p-3 border border-[#C9A84C]/30 bg-white dark:bg-[#1A1A1A] rounded-sm cursor-pointer transition-all flex flex-col items-center text-center justify-center hover-glow btn-interactive hover:border-[#C9A84C]/80"
-            >
-              <span className="text-sm font-semibold mb-1 text-gray-600 dark:text-gray-400">
-                My Own Preference
-              </span>
-              <span className="text-[9px] text-[#C9A84C]/80 font-bold tracking-wider">
-                LKR 0
-              </span>
-              <p className="text-[8px] text-gray-500 mt-2 px-2 uppercase tracking-widest leading-relaxed">
-                Bring your own team or discuss completely custom setups.
+          <div className="p-8 border border-dashed border-[#C9A84C]/40 bg-white/50 dark:bg-[#1A1A1A]/50 rounded-sm flex flex-col items-center justify-center text-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#FDFBF7] dark:bg-[#2A2312] flex items-center justify-center border border-[#C9A84C]/20 text-[#C9A84C]">
+              {icon}
+            </div>
+            <div>
+              <h5 className="text-sm font-bold text-[#2C1E14] dark:text-gray-200 mb-1">No {title} Selected</h5>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
+                You haven&apos;t added a {title.toLowerCase()} to your Event Plan yet. You can browse our curated list of partners or choose to bring your own.
               </p>
+            </div>
+            <div className="flex gap-4 mt-2">
+              <a 
+                href="/customer/vendors"
+                className="px-6 py-2 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] dark:hover:bg-white transition-colors rounded-sm"
+              >
+                Browse Vendors
+              </a>
+              <button 
+                onClick={() => {
+                  updateVendor(categoryKey, "custom_preference");
+                  updatePackage(categoryKey, "Custom Preferences");
+                }}
+                className="px-6 py-2 border border-[#C9A84C]/50 text-[#805D3A] dark:text-[#C9A84C] text-[10px] uppercase font-bold tracking-widest hover:bg-[#D4AF37]/10 transition-colors rounded-sm"
+              >
+                Use My Own
+              </button>
             </div>
           </div>
         ) : (
@@ -259,22 +229,6 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         </div>
       ) : (
         <>
-          <div className="flex items-center flex-wrap gap-2 mb-6 border-b border-[#C9A84C]/30 pb-4">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-600 dark:text-gray-400 mr-2">Filter By:</span>
-        <button 
-          onClick={() => setFilterType("all")}
-          className={`px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "all" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
-        >
-          All
-        </button>
-        <button 
-          onClick={() => setFilterType("favorites")}
-          className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest transition-all rounded-sm border ${filterType === "favorites" ? "bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black border-[#C9A84C] shadow-[0_0_10px_rgba(212,175,55,0.3)]" : "bg-transparent border-[#C9A84C]/30 text-gray-600 dark:text-gray-400 hover:text-[#2C1E14] dark:text-white hover:border-[#C9A84C]"}`}
-        >
-          <Heart className="w-3 h-3" /> Favorites
-        </button>
-      </div>
-
           <div className="space-y-8">
             {renderCategory("Decorator", <Palette className="w-4 h-4 text-[#C9A84C]" />, "decorator", decorators)}
             {renderCategory("DJ & Music", <Music className="w-4 h-4 text-[#C9A84C]" />, "dj", djs)}

@@ -84,11 +84,41 @@ export const decoratorAPI = {
   updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
 
+export const videographerAPI = {
+  getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
+  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
+  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
+    method: "POST",
+    body: formData,
+  }),
+  getPortfolioItems: () => apiFetch("/api/videographer/portfolio"),
+  createPortfolioItem: (formData: FormData) => apiFetch("/api/videographer/portfolio", {
+    method: "POST",
+    body: formData,
+  }),
+  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/videographer/portfolio/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  getRatings: () => apiFetch("/api/videographer/ratings"),
+  updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
+};
+
 export const accountAPI = {
   updateNotifications: (notifications: any) => apiFetch("/api/customer/account/notifications", { method: "PUT", body: JSON.stringify({ notifications }) }),
   getPaymentMethods: () => apiFetch("/api/customer/account/payment-methods"),
   addPaymentMethod: (body: any) => apiFetch("/api/customer/account/payment-methods", { method: "POST", body: JSON.stringify(body) }),
   deletePaymentMethod: (id: string) => apiFetch(`/api/customer/account/payment-methods/${id}`, { method: "DELETE" }),
+  updatePreferences: (prefs: any) => apiFetch("/api/customer/account/preferences", { method: "PUT", body: JSON.stringify(prefs) }),
+  changePassword: (body: any) => apiFetch("/api/auth/me/password", { method: "PUT", body: JSON.stringify(body) }),
+  toggle2FA: (enabled: boolean) => apiFetch("/api/customer/account/2fa", { method: "PUT", body: JSON.stringify({ enabled }) }),
+};
+
+export const vendorAPI = {
+  getVendors: () => apiFetch("/api/customer/vendors"),
+  getVendorById: (id: string) => apiFetch(`/api/customer/vendors/${id}`),
+  favoriteVendor: (vendorId: string) => apiFetch("/api/customer/vendors/favorite", { method: "POST", body: JSON.stringify({ vendorId }) }),
 };
 
 export const customerBookingAPI = {

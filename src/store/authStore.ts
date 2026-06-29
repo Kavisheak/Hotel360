@@ -15,7 +15,9 @@ export interface AuthUser {
   twoFactorEnabled?: boolean;
   preferences?: any;
   notifications?: any;
+  favoriteVendors?: string[];
   savedCards?: any[];
+  vendorProfile?: any;
   createdAt: string;
 }
 
@@ -39,6 +41,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     
     if (ok && data.user) {
       set({ user: data.user, isLoading: false });
+      
+      // Sync favorites with vendorCartStore
+      import("./vendorCartStore").then(({ useVendorCartStore }) => {
+        useVendorCartStore.getState().setFavoriteVendors(data.user.favoriteVendors || []);
+      });
     } else {
       set({ user: null, isLoading: false, error: data?.message || "Failed to fetch user" });
     }
@@ -48,5 +55,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     user: state.user ? { ...state.user, ...updatedFields } : null
   })),
 
-  clearUser: () => set({ user: null, error: null })
+  clearUser: () => {
+    set({ user: null, error: null });
+    import("./vendorCartStore").then(({ useVendorCartStore }) => {
+      useVendorCartStore.getState().clearCart();
+    });
+  }
 }));

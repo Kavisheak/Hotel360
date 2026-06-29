@@ -37,6 +37,7 @@ const VendorsListMain = () => {
   const [vendors, setVendors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [vendorToEdit, setVendorToEdit] = useState<any | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);

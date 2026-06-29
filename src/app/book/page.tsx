@@ -60,11 +60,11 @@ export default function BookPage() {
   const setStoreVendor = useVendorCartStore((state) => state.setVendor);
 
   const [vendors, setLocalVendors] = useState({ 
-    decorator: "none", 
+    decorator: cartVendors.decorator, 
     decoratorPackage: "none",
-    dj: "none",
+    dj: cartVendors.dj,
     djPackage: "none",
-    videographer: "none",
+    videographer: cartVendors.videographer,
     videographerPackage: "none"
   });
   
