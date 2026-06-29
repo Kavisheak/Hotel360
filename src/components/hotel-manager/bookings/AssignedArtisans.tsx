@@ -10,7 +10,19 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
     
     // If it's populated, vendorId is an object with firstName, lastName, email, phone
     // If it's not populated, vendorId is just a string (ID)
-    const user = typeof vendorObj.vendorId === 'object' ? vendorObj.vendorId : null;
+    let user = typeof vendorObj.vendorId === 'object' ? vendorObj.vendorId : null;
+    
+    // Fallback for mock string IDs from frontend cart
+    if (!user && typeof vendorObj.vendorId === 'string') {
+      const mockId = vendorObj.vendorId;
+      user = {
+        firstName: mockId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        lastName: '',
+        email: `${mockId}@example.com`,
+        phone: '+94 77 000 0000',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100'
+      };
+    }
     
     if (!user) return null;
 
