@@ -193,7 +193,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
               <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {galleryImages.map((src, idx) => (
+              {galleryImages.map((src: string, idx: number) => (
                 <div key={idx} className="aspect-[4/5] relative overflow-hidden group cursor-pointer border border-[#F2EDE0] shadow-sm">
                   <img 
                     src={src} 

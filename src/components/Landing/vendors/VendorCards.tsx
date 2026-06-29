@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Award, Info, ArrowRight, Heart } from "lucide-react";
+import { Star, Award, Info, ArrowRight, Heart, CalendarPlus } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
@@ -19,7 +19,7 @@ export default function VendorCards({
   isGuest = true
 }: VendorCardsProps) {
   const router = useRouter();
-  const { favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
+  const { favoriteVendors, toggleFavoriteVendor, toggleVendorInEventPlan, isVendorInEventPlan } = useVendorCartStore();
   
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState("");
@@ -53,6 +53,7 @@ export default function VendorCards({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredVendors.map((vendor, index) => {
             const isFavorite = favoriteVendors?.includes(vendor.id) || false;
+            const isInEventPlan = isVendorInEventPlan(vendor.id, vendor.category as any);
             
             return (
               <div 
@@ -78,8 +79,16 @@ export default function VendorCards({
                 {/* Quick Actions */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                   <button 
+                    onClick={() => handleRestrictedAction("Please log in to add vendors to your event plan.", () => toggleVendorInEventPlan(vendor.id, vendor.category as any))} 
+                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isInEventPlan ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
+                    title={isInEventPlan ? "Remove from Event Plan" : "Add to Event Plan"}
+                  >
+                    <CalendarPlus className={`w-4 h-4 ${isInEventPlan ? 'text-white dark:text-[#1A1A1A]' : ''}`} />
+                  </button>
+                  <button 
                     onClick={() => handleRestrictedAction("Please log in to add vendors to your favorites list.", () => toggleFavoriteVendor(vendor.id))} 
                     className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isFavorite ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
+                    title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
                   </button>

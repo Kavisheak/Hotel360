@@ -1,90 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
-import { Upload, X, Search, ChevronDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Upload, X, Search, ChevronDown, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { videographerAPI } from "@/lib/api";
 
 interface GalleryItem {
-  id: number;
+  id: string;
   title: string;
   category: string;
   year: string;
   image: string;
+  description: string;
 }
 
-const galleryData: GalleryItem[] = [
-  {
-    id: 1,
-    title: "Sterling-Vance Wedding",
-    category: "Wedding Videos",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    title: "Okafor Engagement Session",
-    category: "Engagement Sessions",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    title: "Harrison Corporate Gala",
-    category: "Event Highlights",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    title: "Montague Anniversary",
-    category: "Wedding Videos",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    title: "Bridal Pre-Shoot — Amara",
-    category: "Pre-Shoot Projects",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1464699908537-0954e50791ee?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 6,
-    title: "The Grand Wedding Film",
-    category: "Wedding Videos",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1582274032558-64e7c3e6b23e?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 7,
-    title: "Summer Garden Wedding",
-    category: "Wedding Videos",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1513278974582-3e1b4a4fa21e?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 8,
-    title: "Corporate Summit 2025",
-    category: "Event Highlights",
-    year: "2025",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 9,
-    title: "Priya & Rahul Engagement",
-    category: "Engagement Sessions",
-    year: "2026",
-    image: "https://images.unsplash.com/photo-1542833443-3f44b1fbf3cc?auto=format&fit=crop&w=600&q=80",
-  },
-];
-
-const categories = ["All", "Wedding Videos", "Pre-Shoot Projects", "Engagement Sessions", "Event Highlights"];
+const categories = ["All", "Wedding Videos", "Pre-Shoot Projects", "Engagement Sessions", "Event Highlights", "cinematography"];
 
 const GalleryGrid = () => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
+  const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const { ok, data } = await videographerAPI.getPortfolioItems();
+        if (ok && data.success) {
+          const items = data.data.map((item: any) => {
+            const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
+            const imageUrl = coverMedia?.url 
+              ? `http://localhost:5000${coverMedia.url}` 
+              : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
+
+            return {
+              id: item._id,
+              title: item.title || "Untitled Project",
+              category: item.category || "cinematography",
+              year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
+              image: imageUrl,
+              description: item.description || "A professionally captured project featuring cinematic storytelling.",
+            };
+          });
+          setGalleryData(items);
+        }
+      } catch (error) {
+        console.error("Failed to fetch portfolio:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPortfolio();
+  }, []);
 
   const filtered = galleryData.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.category === activeCategory;
@@ -150,40 +119,54 @@ const GalleryGrid = () => {
         </div>
       </div>
 
-      {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-            onClick={() => setPreviewItem(item)}
-          >
-            <div className="relative h-52 overflow-hidden">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
-                  PREVIEW
-                </span>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="animate-spin text-[#B08D2C]" size={32} />
+        </div>
+      ) : galleryData.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">
+          No portfolio items uploaded yet.
+        </div>
+      ) : (
+        <>
+          {/* Gallery Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                onClick={() => setPreviewItem(item)}
+              >
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
+                      PREVIEW
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
+                  <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
+                </div>
               </div>
-            </div>
-            <div className="p-4">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
-              <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Load More */}
-      <div className="flex justify-center my-8">
-        <button className="border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] px-8 py-3 text-xs font-bold tracking-widest transition-colors uppercase">
-          LOAD MORE PROJECTS
-        </button>
-      </div>
+          {/* Load More */}
+          {filtered.length > 0 && (
+            <div className="flex justify-center my-8">
+              <button className="border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] px-8 py-3 text-xs font-bold tracking-widest transition-colors uppercase">
+                LOAD MORE PROJECTS
+              </button>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Preview Modal */}
       {previewItem && (
@@ -212,7 +195,7 @@ const GalleryGrid = () => {
               <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{previewItem.category} · {previewItem.year}</span>
               <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                A professionally captured {previewItem.category.toLowerCase()} project featuring cinematic storytelling, high-resolution footage, and seamless editing.
+                {previewItem.description}
               </p>
               <div className="flex gap-3 mt-5">
                 <button className="flex-1 bg-[#7C6A2E] hover:bg-[#685724] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md">

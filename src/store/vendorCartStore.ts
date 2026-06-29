@@ -20,6 +20,7 @@ interface VendorCartState {
     addedOptionalItems: MenuItemSelection[];
   };
   favoriteVendors: string[];
+  setFavoriteVendors: (favorites: string[]) => void;
   setVendor: (category: keyof VendorCartState["vendors"], id: string) => void;
   toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
@@ -28,6 +29,8 @@ interface VendorCartState {
   toggleDefaultItem: (itemId: string) => void;
   toggleOptionalItem: (item: MenuItemSelection) => void;
   clearCart: () => void;
+  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "others") => void;
+  isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "others") => boolean;
 }
 
 export const useVendorCartStore = create<VendorCartState>()(
@@ -52,7 +55,8 @@ export const useVendorCartStore = create<VendorCartState>()(
             [category]: id,
           },
         })),
-      toggleFavoriteVendor: (id) =>
+      setFavoriteVendors: (favorites) => set({ favoriteVendors: favorites }),
+      toggleFavoriteVendor: (id) => {
         set((state) => {
           const isSelected = state.favoriteVendors.includes(id);
           return {
@@ -60,7 +64,18 @@ export const useVendorCartStore = create<VendorCartState>()(
               ? state.favoriteVendors.filter(vId => vId !== id)
               : [...state.favoriteVendors, id]
           };
-        }),
+        });
+
+        // Background sync if logged in
+        import("./authStore").then(({ useAuthStore }) => {
+          const user = useAuthStore.getState().user;
+          if (user) {
+            import("@/lib/api").then(({ vendorAPI }) => {
+              vendorAPI.favoriteVendor(id).catch(console.error);
+            });
+          }
+        });
+      },
       setMenuType: (type) =>
         set((state) => ({
           menuSelection: {
@@ -120,7 +135,32 @@ export const useVendorCartStore = create<VendorCartState>()(
             removedDefaultItems: [],
             addedOptionalItems: [],
           },
+          favoriteVendors: [],
         }),
+      toggleVendorInEventPlan: (id, category) => {
+        set((state) => {
+          let storeCategory: keyof VendorCartState["vendors"];
+          if (category === "decorators") storeCategory = "decorator";
+          else if (category === "djs") storeCategory = "dj";
+          else storeCategory = "videographer";
+
+          const isCurrentlySelected = state.vendors[storeCategory] === id;
+          return {
+            vendors: {
+              ...state.vendors,
+              [storeCategory]: isCurrentlySelected ? "none" : id
+            }
+          };
+        });
+      },
+      isVendorInEventPlan: (id, category) => {
+        let storeCategory: keyof VendorCartState["vendors"];
+        if (category === "decorators") storeCategory = "decorator";
+        else if (category === "djs") storeCategory = "dj";
+        else storeCategory = "videographer";
+
+        return useVendorCartStore.getState().vendors[storeCategory] === id;
+      },
     }),
     {
       name: "vendor-cart-storage-v2",

@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, Star, Phone, Mail, Check, Heart } from "lucide-react";
-import { Vendor } from "@/components/Landing/vendors/types";
+import { MapPin, Star, Phone, Mail, Check, Heart, CalendarPlus } from "lucide-react";
+import { Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface VendorProfileHeroProps {
@@ -13,9 +13,10 @@ interface VendorProfileHeroProps {
 
 export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
   const router = useRouter();
-  const { favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
+  const { favoriteVendors, toggleFavoriteVendor, toggleVendorInEventPlan, isVendorInEventPlan } = useVendorCartStore();
 
   const isFavorite = favoriteVendors?.includes(vendor.id) || false;
+  const isInEventPlan = isVendorInEventPlan(vendor.id, vendor.category as any);
 
   return (
     <div className="relative w-full min-h-[500px] bg-white dark:bg-[#0A0A0A] overflow-hidden border-b border-[#E8DFC9] dark:border-[#C9A84C]/20 transition-colors duration-300 pt-16 pb-20">
@@ -80,6 +81,12 @@ export default function VendorProfileHero({ vendor }: VendorProfileHeroProps) {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-4 pt-2">
+            <button 
+              onClick={() => toggleVendorInEventPlan(vendor.id, vendor.category as any)}
+              className={`px-8 py-3.5 text-xs uppercase font-bold tracking-widest transition-colors rounded-sm shadow-sm flex items-center gap-2 ${isInEventPlan ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1A1A] hover:bg-[#C69C6D] dark:hover:bg-gray-200'}`}
+            >
+              {isInEventPlan ? <><Check className="w-4 h-4" /> In Event Plan</> : <><CalendarPlus className="w-4 h-4" /> Add to Event Plan</>}
+            </button>
             <button 
               onClick={() => toggleFavoriteVendor(vendor.id)}
               className={`p-3.5 flex items-center justify-center transition-colors rounded-sm border ${isFavorite ? "border-red-500 text-red-500 bg-red-50 dark:bg-red-900/20" : "border-[#E8DFC9] dark:border-[#C9A84C]/30 text-gray-400 dark:text-gray-300 hover:border-[#C69C6D] hover:text-[#C69C6D]"} bg-white dark:bg-transparent shadow-sm`}
