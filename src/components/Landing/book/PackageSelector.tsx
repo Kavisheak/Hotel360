@@ -6,29 +6,44 @@ import { Package } from "lucide-react";
 interface PackageSelectorProps {
   selectedPackage: string;
   onSelectPackage: (p: string) => void;
+  dbPackages?: any[];
 }
 
-export default function PackageSelector({ selectedPackage, onSelectPackage }: PackageSelectorProps) {
-  const pkgs = [
-    {
-      id: "silver",
-      name: "Silver Essential",
-      base: "LKR 1.8M",
-      pax: "250 Guests included"
-    },
-    {
-      id: "gold",
-      name: "Gold Signature",
-      base: "LKR 3.4M",
-      pax: "380 Guests included"
-    },
-    {
-      id: "diamond",
-      name: "Diamond Elite",
-      base: "LKR 5.9M",
-      pax: "480 Guests included"
-    }
-  ];
+export default function PackageSelector({ selectedPackage, onSelectPackage, dbPackages }: PackageSelectorProps) {
+  const pkgs = dbPackages && dbPackages.length > 0
+    ? dbPackages.map((pkg: any) => {
+        const nameLower = pkg.name.toLowerCase();
+        let slug = "gold";
+        if (nameLower.includes("silver")) slug = "silver";
+        else if (nameLower.includes("diamond")) slug = "diamond";
+
+        return {
+          id: slug,
+          name: pkg.name,
+          base: `LKR ${pkg.price.toLocaleString()}`,
+          pax: `${pkg.maxGuests} Guests included`
+        };
+      })
+    : [
+        {
+          id: "silver",
+          name: "Silver Essential",
+          base: "LKR 1.8M",
+          pax: "250 Guests included"
+        },
+        {
+          id: "gold",
+          name: "Gold Signature",
+          base: "LKR 3.4M",
+          pax: "380 Guests included"
+        },
+        {
+          id: "diamond",
+          name: "Diamond Elite",
+          base: "LKR 5.9M",
+          pax: "480 Guests included"
+        }
+      ];
 
   return (
     <div className="space-y-6">

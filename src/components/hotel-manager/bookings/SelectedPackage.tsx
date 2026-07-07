@@ -20,8 +20,12 @@ const SelectedPackage = ({ booking }: { booking: any }) => (
           LKR {booking.totalCost?.toLocaleString() || 'N/A'} Total
         </p>
       </div>
-      <span className="bg-[#F9DD76] text-[#7C6A2E] text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-[#E0D8C3] whitespace-nowrap">
-        {booking.status === "DepositPaid" ? "DEPOSIT PAID" : booking.status === "BalancePaid" ? "FULLY PAID" : "PENDING CASH"}
+      <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded border whitespace-nowrap ${
+        booking.balanceAmount > 0 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+        booking.depositAmount > 0 ? 'bg-blue-50 border-blue-200 text-blue-700' :
+        'bg-[#F9DD76] border-[#E0D8C3] text-[#7C6A2E]'
+      }`}>
+        {booking.balanceAmount > 0 ? "FULLY PAID" : booking.depositAmount > 0 ? "ADVANCE PAID" : "PENDING PAYMENT"}
       </span>
     </div>
 

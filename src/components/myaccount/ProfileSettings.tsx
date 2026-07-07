@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { User, Save, Trash2, Loader2, X, Upload } from "lucide-react";
 import Image from "next/image";
 import Cropper from "react-easy-crop";
+import { validateEmail, validatePhone } from "@/lib/validation";
 import getCroppedImg from "@/utils/cropImage";
 import { useAuthStore } from "@/store/authStore";
 import { authAPI } from "@/lib/api";
@@ -34,6 +35,7 @@ export default function ProfileSettings() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -41,10 +43,31 @@ export default function ProfileSettings() {
   const handleChange = (field: string, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(profile.email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(profile.phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     setSaving(true);
     setSaved(false);
 
@@ -203,6 +226,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("email", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Phone Number</label>
@@ -212,6 +236,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("phone", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
           </div>
           <div className="md:col-span-2">
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Street Address</label>

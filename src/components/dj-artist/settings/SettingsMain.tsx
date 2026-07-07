@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import ProfileSettings from './ProfileSettings';
+import { validateEmail, validatePhone } from '@/lib/validation';
 import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import AvailabilitySettings from './AvailabilitySettings';
@@ -14,6 +15,7 @@ import { Check } from 'lucide-react';
 const SettingsMain = () => {
   const [formData, setFormData] = useState({
     fullName: '',
+    shopName: '',
     email: '',
     phone: '',
     bio: '',
@@ -21,12 +23,21 @@ const SettingsMain = () => {
     instagram: '',
     spotify: '',
     soundcloud: '',
+    startingPrice: '',
+    location: '',
+    eventsCompleted: '',
+    responseTime: '',
+    depositReq: '',
+    cancellation: '',
+    availableIslandWide: true,
   });
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
 
   useEffect(() => {
     fetchProfile();
@@ -36,17 +47,26 @@ const SettingsMain = () => {
     try {
       const res = await authAPI.getMe();
       if (res.ok && res.data?.user) {
-        const user = res.data.user;
-        setUserId(user.id);
+        const userData = res.data.user;
+        setUser(userData);
+        setUserId(userData.id);
         setFormData({
-          fullName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          bio: user.vendorProfile?.bio || '',
-          specialty: user.vendorProfile?.specialty || 'Bespoke Weddings',
-          instagram: user.vendorProfile?.instagram || '',
-          spotify: user.vendorProfile?.spotify || '',
-          soundcloud: user.vendorProfile?.soundcloud || '',
+          fullName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || '',
+          shopName: userData.shopName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          bio: userData.vendorProfile?.bio || '',
+          specialty: userData.vendorProfile?.specialty || 'Bespoke Weddings',
+          instagram: userData.vendorProfile?.instagram || '',
+          spotify: userData.vendorProfile?.spotify || '',
+          soundcloud: userData.vendorProfile?.soundcloud || '',
+          startingPrice: userData.vendorProfile?.startingPrice || '',
+          location: userData.vendorProfile?.location || '',
+          eventsCompleted: userData.vendorProfile?.eventsCompleted || '',
+          responseTime: userData.vendorProfile?.responseTime || '',
+          depositReq: userData.vendorProfile?.depositReq || '',
+          cancellation: userData.vendorProfile?.cancellation || '',
+          availableIslandWide: userData.vendorProfile?.availableIslandWide !== false,
         });
       }
     } catch (e) {
@@ -57,17 +77,47 @@ const SettingsMain = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target as any;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSave = async () => {
     if (!userId) return;
+
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      setToastType('error');
+      setToastMessage('Please fix the validation errors.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await djAPI.updateProfile({
         firstName: formData.fullName.split(' ')[0],
         lastName: formData.fullName.split(' ').slice(1).join(' '),
+        shopName: formData.shopName,
         email: formData.email,
         phone: formData.phone,
         bio: formData.bio,
@@ -75,6 +125,13 @@ const SettingsMain = () => {
         instagram: formData.instagram,
         spotify: formData.spotify,
         soundcloud: formData.soundcloud,
+        startingPrice: formData.startingPrice,
+        location: formData.location,
+        eventsCompleted: formData.eventsCompleted,
+        responseTime: formData.responseTime,
+        depositReq: formData.depositReq,
+        cancellation: formData.cancellation,
+        availableIslandWide: formData.availableIslandWide,
       });
       if (res.ok) {
         setToastType('success');
@@ -111,8 +168,8 @@ const SettingsMain = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)] gap-6 mb-6">
             <div className="space-y-6">
-              <ProfileSettings formData={formData} handleChange={handleChange} />
-              <AccountSettings formData={formData} handleChange={handleChange} />
+              <ProfileSettings formData={formData} handleChange={handleChange} user={user} setUser={setUser} errors={errors} />
+              <AccountSettings formData={formData} handleChange={handleChange} errors={errors} />
             </div>
 
             <div className="space-y-6">

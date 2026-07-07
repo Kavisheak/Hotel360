@@ -16,7 +16,7 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
     if (!user && typeof vendorObj.vendorId === 'string') {
       const mockId = vendorObj.vendorId;
       user = {
-        firstName: mockId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        firstName: mockId.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
         lastName: '',
         email: `${mockId}@example.com`,
         phone: '+94 77 000 0000',

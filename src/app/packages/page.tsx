@@ -4,17 +4,19 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
 import { packagesData, PackageData } from "./data";
+import { packageAPI } from "@/lib/api";
 import PackageCard from "./components/PackageCard";
 import PackageDetailsModal from "./components/PackageDetailsModal";
-import MainNavbar from "@/components/Landing/shared/MainNavbar";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
 import CompareFrameworks from "./components/CompareFrameworks";
 import EstimateInvestment from "./components/EstimateInvestment";
-import FooterSection from "@/components/Landing/shared/Footer";
+import FooterSection from "@/components/landing/shared/Footer";
 import { CheckCircle2, UserCheck, Star } from "lucide-react";
 
 export default function PackagesPage() {
   const [isGuest, setIsGuest] = useState(true);
   const [selectedDetailsPkg, setSelectedDetailsPkg] = useState<PackageData | null>(null);
+  const [packages, setPackages] = useState<PackageData[]>(packagesData); // fallback to hardcoded data initially
 
   const { fetchUser, user } = useAuthStore();
   
@@ -23,7 +25,45 @@ export default function PackagesPage() {
   }, [fetchUser]);
 
   useEffect(() => {
-    if (user && (user.role === "customer" || user.role === "decorator")) {
+    const fetchPackages = async () => {
+      try {
+        const res = await packageAPI.getAllPackages();
+        if (res.ok && res.data?.success && Array.isArray(res.data.data)) {
+          const apiPackages = res.data.data.map((pkg: any, index: number) => {
+            let priceLabel = `LKR ${pkg.price.toLocaleString()}`;
+
+            // Default images mapping by index
+            const images = [
+              "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=800",
+              "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800",
+              "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800"
+            ];
+            
+            return {
+              id: pkg._id,
+              name: pkg.name,
+              priceLabel: priceLabel,
+              priceValue: pkg.price,
+              guestsLabel: `UP TO ${pkg.maxGuests} GUESTS`,
+              description: pkg.description,
+              features: pkg.features && pkg.features.length ? pkg.features : ["Venue access", "Standard setup", "Event coordination"],
+              image: images[index % images.length],
+            };
+          });
+          if (apiPackages.length > 0) {
+            setPackages(apiPackages);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch packages from API:", error);
+      }
+    };
+    
+    fetchPackages();
+  }, []);
+
+  useEffect(() => {
+    if (user && (user.role.toLowerCase() === "customer" || user.role.toLowerCase() === "decorator")) {
       setIsGuest(false);
     } else {
       setIsGuest(true);
@@ -64,8 +104,8 @@ export default function PackagesPage() {
       {/* Packages Grid */}
       <section className="max-w-7xl mx-auto px-6 py-20 w-full -mt-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {packagesData.map((pkg, index) => (
-            <div key={pkg.id} className={pkg.name === "Gold" ? "lg:-mt-4" : ""}>
+          {packages.map((pkg, index) => (
+            <div key={pkg.id} className={index === 1 ? "lg:-mt-4" : ""}>
               <PackageCard 
                 pkg={pkg} 
                 isGuest={isGuest} 

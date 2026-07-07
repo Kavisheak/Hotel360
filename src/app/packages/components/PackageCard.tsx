@@ -5,7 +5,7 @@ import { PackageData } from "../data";
 import { useRouter } from "next/navigation";
 import { Check, Users } from "lucide-react";
 import React, { useState } from "react";
-import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface Props {
   pkg: PackageData;
@@ -16,7 +16,7 @@ interface Props {
 
 export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: Props) {
   const router = useRouter();
-  const isGold = pkg.name === "Gold";
+  const isGold = pkg.name.toLowerCase().includes("gold");
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   return (
@@ -46,7 +46,9 @@ export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: 
         
         {/* Title & Price */}
         <div className="mb-4">
-          <h3 className="text-2xl md:text-3xl font-serif text-[#2C1E14] dark:text-white mb-1">{pkg.name} Package</h3>
+          <h3 className="text-2xl md:text-3xl font-serif text-[#2C1E14] dark:text-white mb-1">
+            {pkg.name.toLowerCase().endsWith("package") ? pkg.name : `${pkg.name} Package`}
+          </h3>
           <p className="text-2xl md:text-3xl font-serif text-[#805D3A] dark:text-[#C9A84C]">{pkg.priceLabel}</p>
         </div>
 

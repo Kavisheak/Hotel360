@@ -49,7 +49,7 @@ export default function PackageDetailsModal({ isOpen, onClose, pkg }: Props) {
             <div className="text-right bg-white border border-[#D4C9A8] p-5 rounded-sm shadow-sm shrink-0">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Starting from</p>
               <p className="text-3xl font-serif text-[#C9A84C]">
-                LKR {(pkg.priceValue / 1000000).toFixed(2)}M
+                LKR {pkg.priceValue.toLocaleString()}
               </p>
             </div>
           </div>

@@ -124,20 +124,11 @@ export const useBookingStore = create<BookingState>()(
       swapVendor: async (bookingId, service, newVendorId) => {
         try {
           const res = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId });
-          if (res.ok) {
+          if (res.ok && res.data?.data) {
+            const updatedBooking = res.data.data;
             set((state) => ({
               bookings: state.bookings.map((b) =>
-                (b.id || b._id) === bookingId ? {
-                  ...b,
-                  vendors: {
-                    ...b.vendors,
-                    [service]: {
-                      vendorId: newVendorId,
-                      status: "Pending",
-                      packageName: (b.vendors?.[service as keyof typeof b.vendors] as any)?.packageName || ""
-                    }
-                  }
-                } : b
+                (b.id || b._id) === bookingId ? updatedBooking : b
               )
             }));
           }

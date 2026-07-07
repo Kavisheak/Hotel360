@@ -12,46 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { djAPI } from "@/lib/api";
 
-interface Booking {
-  _id: string;
-  bookingRef?: string;
-  status: "UPCOMING" | "CONFIRMED" | "COMPLETED";
-  title: string;
-  date: string;
-  location: string;
-  djPackage: string;
-  image: string;
-}
-
-const bookingsData: Booking[] = [
-  {
-    code: "#BK-8842",
-    status: "CONFIRMED",
-    title: "The Sterling-Vance Wedding",
-    date: "July 24, 2026 · 06:00 PM",
-    location: "Rosewood Estate",
-    djPackage: "Diamond DJ Package",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    code: "#BK-9012",
-    status: "UPCOMING",
-    title: "Corporate Annual Gala",
-    date: "August 02, 2026 · 07:00 PM",
-    location: "Grand Convention Hall",
-    djPackage: "Premium DJ Package",
-    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    code: "#BK-9104",
-    status: "COMPLETED",
-    title: "Birthday Celebration",
-    date: "June 14, 2026 · 08:00 PM",
-    location: "Ocean View Resort",
-    djPackage: "Gold DJ Package",
-    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=600&q=80",
-  },
-];
+// Removed unused Booking interface and bookingsData
 
 interface BookingsGridProps {
   bookings: any[];

@@ -9,7 +9,7 @@ const FooterSection = () => {
  
  {/* Footer Dark Mode Background Image */}
  <div className="absolute inset-0 z-0 hidden dark:block pointer-events-none">
- <Image src="/luxury_ballroom_bg.png" alt="Footer Dark Background" fill className="object-cover opacity-30" />
+ <Image src="/luxury_ballroom_bg.png" alt="Footer Dark Background" fill sizes="100vw" className="object-cover opacity-30" />
  <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/40 to-[#0A0A0A]"></div>
  </div>
 
@@ -17,12 +17,12 @@ const FooterSection = () => {
  <div className="w-full relative py-16 md:py-20 px-6 flex flex-col items-center text-center z-10">
  {/* Background Image Light */}
  <div className="absolute inset-0 z-0 dark:hidden">
- <Image src="/light_ballroom_bg.png" alt="CTA Background Light" fill className="object-cover opacity-40 mix-blend-overlay" />
+ <Image src="/light_ballroom_bg.png" alt="CTA Background Light" fill sizes="100vw" className="object-cover opacity-40 mix-blend-overlay" />
  <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white"></div>
  </div>
  {/* Background Image Dark */}
  <div className="absolute inset-0 z-0 hidden dark:block">
- <Image src="/luxury_ballroom_bg.png" alt="CTA Background Dark" fill className="object-cover opacity-20 mix-blend-overlay" />
+ <Image src="/luxury_ballroom_bg.png" alt="CTA Background Dark" fill sizes="100vw" className="object-cover opacity-20 mix-blend-overlay" />
  <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/80 via-[#0A0A0A]/60 to-[#0A0A0A]"></div>
  </div>
  

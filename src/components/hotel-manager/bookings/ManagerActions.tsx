@@ -15,6 +15,19 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
   const [rejectError, setRejectError] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false);
+
+  const handleRecordPayment = async (type: 'deposit' | 'balance') => {
+    setIsRecordingPayment(true);
+    const id = booking.bookingRef || booking._id || booking.id;
+    const res = await bookingAPI.recordPayment(id, { paymentType: type });
+    setIsRecordingPayment(false);
+    if (res.ok) {
+      if (onStatusUpdate) onStatusUpdate();
+    } else {
+      alert(res.data?.message || 'Failed to record payment.');
+    }
+  };
 
   const handleApprove = async () => {
     setIsLoading(true);
@@ -149,6 +162,67 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
             <p className="text-[10px] text-center italic text-gray-600">This event has been archived successfully.</p>
           </div>
         )}
+      </div>
+
+      {/* Payment Actions */}
+      <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-4">
+          Payment Status & Actions
+        </h4>
+        
+        <div className="space-y-3">
+          <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
+            <span className="text-gray-500">Method:</span>
+            <span className="font-bold text-gray-800 uppercase">{booking.paymentMethod || 'Manual'}</span>
+          </div>
+
+          <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
+            <span className="text-gray-500">Advance (30%):</span>
+            <span className={`font-bold ${booking.depositAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
+              {booking.depositAmount > 0 
+                ? `Paid: LKR ${booking.depositAmount.toLocaleString()}` 
+                : `Pending: LKR ${(booking.totalCost * 0.3).toLocaleString()}`
+              }
+            </span>
+          </div>
+
+          <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
+            <span className="text-gray-500">Balance (70%):</span>
+            <span className={`font-bold ${booking.balanceAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
+              {booking.balanceAmount > 0 
+                ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
+                : `Pending: LKR ${(booking.totalCost * 0.7).toLocaleString()}`
+              }
+            </span>
+          </div>
+
+          {/* Action Button */}
+          {!booking.depositAmount || booking.depositAmount === 0 ? (
+            <button
+              onClick={() => handleRecordPayment('deposit')}
+              disabled={isRecordingPayment}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${
+                isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+              } text-white shadow-sm`}
+            >
+              Record Advance Received
+            </button>
+          ) : (!booking.balanceAmount || booking.balanceAmount === 0) ? (
+            <button
+              onClick={() => handleRecordPayment('balance')}
+              disabled={isRecordingPayment}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${
+                isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+              } text-white shadow-sm`}
+            >
+              Record Balance Received
+            </button>
+          ) : (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-2.5 rounded-lg text-center text-[10px] font-bold uppercase tracking-widest">
+              Payment Fully Collected
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Status History */}

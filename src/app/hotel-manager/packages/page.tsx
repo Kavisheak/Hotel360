@@ -1,4 +1,4 @@
-import PackagesMain from '@/components/super-admin/packages/PackagesMain';
+import PackagesMain from '@/components/hotel-manager/packages/PackagesMain';
 
 export default function PackageSettingsPage() {
   return <PackagesMain />;

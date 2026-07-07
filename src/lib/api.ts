@@ -12,9 +12,20 @@ const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       headers: { ...defaultHeaders, ...options.headers },
       credentials: "include", // REQUIRED: sends/receives HTTP-only cookies
+      cache: options.cache || "no-store", // Prevent browser caching of API responses
       ...options,
     });
     
+    // Intercept 401 Unauthorized for expired or missing JWT tokens
+    if (res.status === 401 && endpoint !== "/api/auth/signin") {
+      import("../store/authStore").then(({ useAuthStore }) => {
+        useAuthStore.getState().clearUser();
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      });
+    }
+
     const data = await res.json();
     return { ok: res.ok, status: res.status, data };
   } catch (error: any) {
@@ -44,9 +55,11 @@ export const staffAPI = {
 
 export const packageAPI = {
   createPackage: (body: any) => apiFetch("/api/packages/create", { method: "POST", body: JSON.stringify(body) }),
-  getAllPackages: () => apiFetch("/api/packages"),
+  getAllPackages: () => apiFetch("/api/packages", { cache: "no-store" }),
   updatePackage: (id: string, body: any) => apiFetch(`/api/packages/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deletePackage: (id: string) => apiFetch(`/api/packages/${id}`, { method: "DELETE" }),
+  getSettings: () => apiFetch("/api/packages/settings", { cache: "no-store" }),
+  updateSettings: (body: any) => apiFetch("/api/packages/settings", { method: "PUT", body: JSON.stringify(body) }),
 };
 
 export const bookingAPI = {
@@ -64,6 +77,8 @@ export const paymentAPI = {
 };
 
 export const decoratorAPI = {
+  getOverview: () => apiFetch("/api/decorator/overview"),
+  getProfile: () => apiFetch("/api/decorator/profile"),
   getAssignedBookings: () => apiFetch("/api/decorator/bookings"),
   updateBookingStatus: (id: string, status: string) => apiFetch(`/api/decorator/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/decorator/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
@@ -85,6 +100,8 @@ export const decoratorAPI = {
 };
 
 export const videographerAPI = {
+  getOverview: () => apiFetch("/api/videographer/overview"),
+  getProfile: () => apiFetch("/api/videographer/profile"),
   getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
   updateBookingStatus: (id: string, status: string) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
@@ -103,6 +120,40 @@ export const videographerAPI = {
   }),
   getRatings: () => apiFetch("/api/videographer/ratings"),
   updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
+};
+
+export const djAPI = {
+  getOverview: () => apiFetch("/api/dj-artist/overview"),
+  getProfile: () => apiFetch("/api/dj-artist/profile"),
+  getAssignedBookings: () => apiFetch("/api/dj-artist/bookings"),
+  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/dj-artist/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/dj-artist/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
+  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/dj-artist/bookings/${id}/upload`, {
+    method: "POST",
+    body: formData,
+  }),
+  getPortfolioItems: () => apiFetch("/api/dj-artist/portfolio"),
+  createPortfolioItem: (formData: FormData) => apiFetch("/api/dj-artist/portfolio", {
+    method: "POST",
+    body: formData,
+  }),
+  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/dj-artist/portfolio/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  deletePortfolioItem: (id: string) => apiFetch(`/api/dj-artist/portfolio/${id}`, { method: "DELETE" }),
+  getGalleryItems: () => apiFetch("/api/dj-artist/gallery"),
+  createGalleryItem: (formData: FormData) => apiFetch("/api/dj-artist/gallery", {
+    method: "POST",
+    body: formData,
+  }),
+  updateGalleryItem: (id: string, formData: FormData) => apiFetch(`/api/dj-artist/gallery/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  deleteGalleryItem: (id: string) => apiFetch(`/api/dj-artist/gallery/${id}`, { method: "DELETE" }),
+  getRatings: () => apiFetch("/api/dj-artist/ratings"),
+  updateProfile: (body: any) => apiFetch("/api/dj-artist/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
 
 export const accountAPI = {

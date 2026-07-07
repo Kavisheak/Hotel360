@@ -22,14 +22,14 @@ const RecentFeedback = () => {
     const fetchReviews = async () => {
       try {
         const { ok, data } = await videographerAPI.getRatings();
-        if (ok && data.success) {
-          const mappedReviews = data.data.map((r: any) => ({
+        if (ok && data.success && data.data && Array.isArray(data.data.reviews)) {
+          const mappedReviews = data.data.reviews.map((r: any) => ({
             id: r._id,
-            name: r.user ? `${r.user.firstName} ${r.user.lastName}` : "Customer",
+            name: r.customerId ? `${r.customerId.firstName} ${r.customerId.lastName}`.trim() : "Customer",
             event: "Videography Service",
-            avatar: r.user?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
+            avatar: r.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
             rating: r.rating || 5,
-            comment: r.review ? `"${r.review}"` : '"No comment provided."',
+            comment: r.reviewText ? `"${r.reviewText}"` : '"No comment provided."',
             tags: ["Videography"]
           }));
           setReviewsData(mappedReviews);

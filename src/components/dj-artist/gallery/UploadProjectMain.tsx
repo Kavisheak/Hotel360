@@ -17,7 +17,8 @@ import {
   Volume2,
   Radio,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 import Footer from '../overview/Footer';
 
