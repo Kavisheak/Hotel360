@@ -1,4 +1,4 @@
-import CreateTierMain from '@/components/super-admin/packages/create-tier/CreateTierMain';
+import CreateTierMain from '@/components/hotel-manager/packages/create-tier/CreateTierMain';
 
 export default function CreateNewTierPage() {
   return <CreateTierMain />;

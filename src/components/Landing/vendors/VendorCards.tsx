@@ -5,7 +5,7 @@ import { Star, Award, Info, ArrowRight, Heart, CalendarPlus } from "lucide-react
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
-import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface VendorCardsProps {
   filteredVendors: Vendor[];
@@ -62,12 +62,10 @@ export default function VendorCards({
             >
               {/* Image Wrap & Category Tag Overlay */}
               <div className="relative h-56 w-full overflow-hidden bg-gray-200">
-                <Image
+                <img
                   src={vendor.image}
                   alt={vendor.name}
-                  fill
-                  sizes="(min-width: 1024px) 30vw, 50vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2C1E14]/50 via-transparent to-transparent pointer-events-none" />
                 
@@ -109,9 +107,18 @@ export default function VendorCards({
                     <span className="font-extrabold text-[#D4AF37] dark:text-[#C9A84C]">{vendor.startingPrice} starting</span>
                   </div>
 
-                  <h3 className="text-xl font-serif text-[#2C1E14] dark:text-white leading-tight">
-                    {vendor.name}
-                  </h3>
+                  <div className="flex items-center gap-3">
+                    {vendor.avatar && (
+                      <img 
+                        src={vendor.avatar} 
+                        alt={vendor.name} 
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#1A1A1A] shadow-md z-10"
+                      />
+                    )}
+                    <h3 className="text-xl font-serif text-[#2C1E14] dark:text-white leading-tight">
+                      {vendor.name}
+                    </h3>
+                  </div>
 
                   <p className="text-xs text-gray-700 dark:text-gray-400 font-light line-clamp-3 leading-relaxed">
                     {vendor.description}

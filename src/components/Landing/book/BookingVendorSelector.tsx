@@ -2,16 +2,19 @@
 
 import React, { useState } from "react";
 import { Sparkles, Palette, Music, Video, Heart } from "lucide-react";
-import { type Vendor } from "@/components/Landing/vendors/types";
+import { type Vendor } from "@/components/landing/vendors/types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
+import { useBookingFormStore } from "@/store/bookingFormStore";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface VendorsState {
-  decorator: string;
+  decorator: string | null;
   decoratorPackage: string;
-  dj: string;
+  dj: string | null;
   djPackage: string;
-  videographer: string;
+  videographer: string | null;
   videographerPackage: string;
 }
 
@@ -21,13 +24,16 @@ interface BookingVendorSelectorProps {
 }
 
 export default function BookingVendorSelector({ vendors, onChange }: BookingVendorSelectorProps) {
+  const router = useRouter();
   const { vendors: globalVendors, isLoading, fetchVendors } = useVendorStore();
+  const { clearForm } = useBookingFormStore();
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   React.useEffect(() => {
     fetchVendors();
   }, [fetchVendors]);
   
-  const updateVendor = (category: "decorator" | "dj" | "videographer", value: string) => {
+  const updateVendor = (category: "decorator" | "dj" | "videographer", value: string | null) => {
     onChange({ 
       ...vendors, 
       [category]: value,
@@ -44,7 +50,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
 
   const decorators = globalVendors.filter(v => v.category === "decorators");
   const djs = globalVendors.filter(v => v.category === "djs");
-  const videographers = globalVendors.filter(v => v.category === "others");
+  const videographers = globalVendors.filter(v => v.category === "videographers");
 
   const renderCategory = (
     title: string, 
@@ -53,7 +59,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
     vendorList: Vendor[]
   ) => {
 
-    const isSelectedCategory = vendors[categoryKey] !== "none";
+    const isSelectedCategory = vendors[categoryKey] !== null;
 
     return (
       <div className="mb-8">
@@ -63,7 +69,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
           </h4>
           {isSelectedCategory && (
             <button 
-              onClick={() => updateVendor(categoryKey, "none")}
+              onClick={() => updateVendor(categoryKey, null)}
               className="text-[10px] uppercase font-bold tracking-widest text-[#C9A84C] hover:text-[#A6955C] transition-colors underline"
             >
               Change Vendor
@@ -72,33 +78,86 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
         </div>
 
         {!isSelectedCategory ? (
-          <div className="p-8 border border-dashed border-[#C9A84C]/40 bg-white/50 dark:bg-[#1A1A1A]/50 rounded-sm flex flex-col items-center justify-center text-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#FDFBF7] dark:bg-[#2A2312] flex items-center justify-center border border-[#C9A84C]/20 text-[#C9A84C]">
-              {icon}
-            </div>
-            <div>
-              <h5 className="text-sm font-bold text-[#2C1E14] dark:text-gray-200 mb-1">No {title} Selected</h5>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
-                You haven&apos;t added a {title.toLowerCase()} to your Event Plan yet. You can browse our curated list of partners or choose to bring your own.
-              </p>
-            </div>
-            <div className="flex gap-4 mt-2">
-              <a 
-                href="/customer/vendors"
-                className="px-6 py-2 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] dark:hover:bg-white transition-colors rounded-sm"
-              >
-                Browse Vendors
-              </a>
+          <div className="space-y-4">
+            <h5 className="text-sm font-bold text-[#2C1E14] dark:text-gray-200 mb-3 border-b border-[#E8DFC9] dark:border-gray-800 pb-2 flex items-center justify-between">
+              <span>Select a {title}</span>
+              <span className="text-[10px] font-normal text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5 rounded-sm">Highly Recommended</span>
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {vendorList.slice(0, 3).map(v => (
+                <div 
+                  key={v.id}
+                  onClick={() => updateVendor(categoryKey, v.id)}
+                  className="relative cursor-pointer border border-[#E8DFC9] dark:border-[#333] hover:border-[#C9A84C] hover:shadow-md transition-all p-3 rounded-sm flex items-center gap-3 bg-white dark:bg-[#1A1A1A] group"
+                >
+                  <div className="w-12 h-12 shrink-0 rounded-sm overflow-hidden bg-gray-100 dark:bg-[#0A0A0A]">
+                    <img src={v.image} alt={v.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                  <div className="flex flex-col flex-grow text-left">
+                    <span className="text-sm font-bold text-[#2C1E14] dark:text-gray-200 group-hover:text-[#C9A84C] transition-colors">{v.name}</span>
+                    <span className="text-[10px] text-gray-500">{v.categoryLabel}</span>
+                  </div>
+                </div>
+              ))}
+              
               <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey);
+                }}
+                className="cursor-pointer border border-[#E8DFC9] dark:border-[#333] hover:border-[#C9A84C] hover:bg-[#FFF8E6] dark:hover:bg-[#2A2312]/50 transition-all p-3 rounded-sm flex items-center justify-center gap-2 bg-white dark:bg-[#1A1A1A]"
+              >
+                <div className="text-center">
+                  <span className="block text-sm font-bold text-[#2C1E14] dark:text-gray-200">
+                    {expandedCategory === categoryKey ? "Hide Options" : "Browse More"}
+                  </span>
+                  <span className="block text-[10px] text-gray-500 mt-0.5">
+                    {expandedCategory === categoryKey ? "Collapse list" : `View all ${title.toLowerCase()}s`}
+                  </span>
+                </div>
+              </button>
+              <div 
                 onClick={() => {
                   updateVendor(categoryKey, "custom_preference");
                   updatePackage(categoryKey, "Custom Preferences");
                 }}
-                className="px-6 py-2 border border-[#C9A84C]/50 text-[#805D3A] dark:text-[#C9A84C] text-[10px] uppercase font-bold tracking-widest hover:bg-[#D4AF37]/10 transition-colors rounded-sm"
+                className="cursor-pointer border border-dashed border-[#C9A84C]/50 hover:border-[#C9A84C] hover:bg-[#FFF8E6] dark:hover:bg-[#2A2312]/50 transition-all p-3 rounded-sm flex items-center justify-center gap-2 bg-[#FDFBF7] dark:bg-[#2A2312]"
               >
-                Use My Own
-              </button>
+                <div className="text-center">
+                  <span className="block text-sm font-bold text-[#805D3A] dark:text-[#C9A84C]">Use My Own</span>
+                  <span className="block text-[10px] text-gray-500 mt-0.5">Bring an outside vendor</span>
+                </div>
+              </div>
             </div>
+
+            <AnimatePresence>
+              {expandedCategory === categoryKey && vendorList.length > 3 && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
+                    {vendorList.slice(3).map(v => (
+                      <div 
+                        key={v.id}
+                        onClick={() => updateVendor(categoryKey, v.id)}
+                        className="relative cursor-pointer border border-[#E8DFC9] dark:border-[#333] hover:border-[#C9A84C] hover:shadow-md transition-all p-3 rounded-sm flex items-center gap-3 bg-white dark:bg-[#1A1A1A] group"
+                      >
+                        <div className="w-12 h-12 shrink-0 rounded-sm overflow-hidden bg-gray-100 dark:bg-[#0A0A0A]">
+                          <img src={v.image} alt={v.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        </div>
+                        <div className="flex flex-col flex-grow text-left">
+                          <span className="text-sm font-bold text-[#2C1E14] dark:text-gray-200 group-hover:text-[#C9A84C] transition-colors">{v.name}</span>
+                          <span className="text-[10px] text-gray-500">{v.categoryLabel}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         ) : (
           <div className="space-y-4">

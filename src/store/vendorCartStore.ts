@@ -8,11 +8,7 @@ export interface MenuItemSelection {
 }
 
 interface VendorCartState {
-  vendors: {
-    decorator: string;
-    dj: string;
-    videographer: string;
-  };
+  vendors: Record<"decorator" | "dj" | "videographer", string | null>;
   menuSelection: {
     type: "signature" | "custom" | "none";
     items: MenuItemSelection[]; // legacy
@@ -21,7 +17,7 @@ interface VendorCartState {
   };
   favoriteVendors: string[];
   setFavoriteVendors: (favorites: string[]) => void;
-  setVendor: (category: keyof VendorCartState["vendors"], id: string) => void;
+  setVendor: (category: keyof VendorCartState["vendors"], id: string | null) => void;
   toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
   addMenuItem: (item: MenuItemSelection) => void;
@@ -29,18 +25,18 @@ interface VendorCartState {
   toggleDefaultItem: (itemId: string) => void;
   toggleOptionalItem: (item: MenuItemSelection) => void;
   clearCart: () => void;
-  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "others") => void;
-  isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "others") => boolean;
+  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others") => void;
+  isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others") => boolean;
 }
 
 export const useVendorCartStore = create<VendorCartState>()(
   persist(
     (set) => ({
       vendors: {
-        decorator: "none",
-        dj: "none",
-        videographer: "none"
-      },
+        decorator: null,
+        dj: null,
+        videographer: null
+      } as Record<"decorator" | "dj" | "videographer", string | null>,
       menuSelection: {
         type: "none",
         items: [],
@@ -125,10 +121,10 @@ export const useVendorCartStore = create<VendorCartState>()(
       clearCart: () =>
         set({
           vendors: {
-            decorator: "none",
-            dj: "none",
-            videographer: "none"
-          },
+            decorator: null,
+            dj: null,
+            videographer: null
+          } as Record<"decorator" | "dj" | "videographer", string | null>,
           menuSelection: {
             type: "none",
             items: [],
@@ -148,12 +144,12 @@ export const useVendorCartStore = create<VendorCartState>()(
           return {
             vendors: {
               ...state.vendors,
-              [storeCategory]: isCurrentlySelected ? "none" : id
+              [storeCategory]: isCurrentlySelected ? null : id
             }
           };
         });
       },
-      isVendorInEventPlan: (id, category) => {
+      isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others"): boolean => {
         let storeCategory: keyof VendorCartState["vendors"];
         if (category === "decorators") storeCategory = "decorator";
         else if (category === "djs") storeCategory = "dj";
@@ -163,7 +159,7 @@ export const useVendorCartStore = create<VendorCartState>()(
       },
     }),
     {
-      name: "vendor-cart-storage-v2",
+      name: "vendor-cart",
     }
   )
 );

@@ -4,9 +4,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { validateEmail, validatePhone } from "@/lib/validation";
 import { Mail, Lock, Eye, ArrowRight, Paintbrush, Briefcase, ShieldCheck, User, Phone, CheckCircle2, Tag, Headset, Loader2 } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
@@ -31,6 +32,8 @@ export default function AuthPage() {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [errors, setErrors] = useState<{email?: string, phone?: string, regEmail?: string}>({});
+
   // Toggle mode
   const toggleMode = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -44,12 +47,13 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      if      (user.role === "super_admin")   router.replace("/super-admin");
-      else if (user.role === "manager")       router.replace("/hotel-manager");
-      else if (user.role === "decorator")     router.replace("/decorator");
-      else if (user.role === "videographer")  router.replace("/videographer");
-      else if (user.role === "dj_artist")     router.replace("/dj-artist");
-      else                                    router.replace("/");
+      const role = user.role.toLowerCase();
+      if      (role === "super_admin")   router.replace("/super-admin");
+      else if (role === "manager")       router.replace("/hotel-manager");
+      else if (role === "decorator")     router.replace("/decorator");
+      else if (role === "videographer")  router.replace("/videographer");
+      else if (role === "dj_artist")     router.replace("/dj-artist");
+      else                               router.replace("/");
     }
   }, [isLoading, user, router]);
 
@@ -64,6 +68,12 @@ export default function AuthPage() {
   const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginError("");
+    setErrors({});
+
+    if (!validateEmail(email)) {
+      setErrors({ email: "Please enter a valid email address." });
+      return;
+    }
 
     const { ok, data } = await authAPI.signin({ email, password });
 
@@ -71,6 +81,9 @@ export default function AuthPage() {
       setLoginError(data?.message || "Invalid email or password.");
       return;
     }
+
+    // Update global state now that we have a valid session
+    await fetchUser(true);
 
     // Redirect based on role
     const role = data.user.role;
@@ -86,7 +99,24 @@ export default function AuthPage() {
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrors({});
     
+    let hasError = false;
+    const newErrors: typeof errors = {};
+    
+    if (!validateEmail(regEmail)) {
+      newErrors.regEmail = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     if (regPassword !== confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -104,6 +134,9 @@ export default function AuthPage() {
       alert(data?.message || "Failed to create account");
       return;
     }
+
+    // Update global state now that we have a valid session
+    await fetchUser(true);
 
     localStorage.setItem("user", "customer");
     router.push("/");
@@ -238,9 +271,13 @@ export default function AuthPage() {
                       placeholder="customer@gmail.com"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2.5 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-xs"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (errors.email) setErrors({ ...errors, email: undefined });
+                      }}
                     />
                   </div>
+                  {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
                 </div>
 
                 {/* Password */}
@@ -407,9 +444,13 @@ export default function AuthPage() {
                       placeholder="youremail@gmail.com"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={regEmail}
-                      onChange={(e) => setRegEmail(e.target.value)}
+                      onChange={(e) => {
+                        setRegEmail(e.target.value);
+                        if (errors.regEmail) setErrors({ ...errors, regEmail: undefined });
+                      }}
                     />
                   </div>
+                  {errors.regEmail && <p className="text-red-500 text-[10px] mt-1">{errors.regEmail}</p>}
                 </div>
 
                 {/* Phone */}
@@ -432,12 +473,17 @@ export default function AuthPage() {
                     </div>
                     <input
                       type="tel"
+                      title="Please enter a valid Sri Lankan phone number (e.g., 0771234567 or 771234567)."
                       placeholder="Your mobile number"
                       className="w-full bg-white/5 border border-white/10 rounded-r-md py-2 pl-2 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (errors.phone) setErrors({ ...errors, phone: undefined });
+                      }}
                     />
                   </div>
+                  {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                 </div>
 
                 {/* Password */}

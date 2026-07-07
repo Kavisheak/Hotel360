@@ -6,6 +6,7 @@ import FeedbackModal from "./FeedbackModal";
 import VendorSwapModal from "./VendorSwapModal";
 import BookingDetailsModal from "./BookingDetailsModal";
 import { useBookingStore, type Booking } from "@/store/bookingStore";
+import { useVendorStore } from "@/store/vendorStore";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Confirmed" },
@@ -20,6 +21,11 @@ export default function BookingHistory() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [detailsModalBooking, setDetailsModalBooking] = useState<Booking | null>(null);
   const { bookings, isLoading } = useBookingStore();
+  const { vendors: globalVendors, fetchVendors } = useVendorStore();
+  
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
   
   const [swapModalState, setSwapModalState] = useState<{
     isOpen: boolean;
@@ -104,35 +110,83 @@ export default function BookingHistory() {
                       <div className="mt-4 space-y-2">
                         {["decorator", "dj", "videographer"].map((service) => {
                           const vendor = booking.vendors[service as keyof typeof booking.vendors] as any;
-                          if (!vendor || typeof vendor !== 'object' || vendor.status === "NotRequired" || !vendor.vendorId) return null;
                           
-                          const vStatus = vendor.status || "Pending";
-                          const isDeclined = vStatus === "Declined";
-                          
-                          return (
-                            <div key={service} className={`flex items-center justify-between text-[10px] p-2 rounded-sm border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10'}`}>
-                              <div className="flex items-center gap-2">
-                                <span className="capitalize font-semibold text-gray-700 dark:text-gray-300">{service}:</span>
-                                <span className={`font-bold ${isDeclined ? 'text-red-600' : vStatus === 'Accepted' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                  {vStatus}
-                                </span>
+                           // If vendor is not present or NotRequired, and booking status is NOT active (non-completed/non-cancelled), don't show it
+                           const hasVendor = vendor && typeof vendor === 'object' && vendor.vendorId && vendor.status !== "NotRequired";
+                           const canModifyVendors = booking && !["completed", "cancelled"].includes(booking.status.toLowerCase());
+                           
+                           if (!hasVendor && !canModifyVendors) return null;
+                           
+                           const resolvedVendor = globalVendors.find(v => v.userId === vendor?.vendorId || v.id === vendor?.vendorId);
+                           const vendorName = resolvedVendor ? resolvedVendor.name : "None (No vendor selected)";
+                           
+                           const vStatus = vendor?.status || "NotRequired";
+                           const isDeclined = vStatus === "Declined";
+                           
+                           return (
+                             <div key={service} className={`flex flex-col sm:flex-row sm:items-center justify-between text-[10px] p-2.5 rounded-sm border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-gray-50 border-gray-100 dark:bg-[#1C1C1C] dark:border-gray-800'} gap-2`}>
+                               <div className="flex flex-wrap items-center gap-2">
+                                 <span className="capitalize font-semibold text-gray-700 dark:text-gray-300">{service}:</span>
+                                 <span className="text-gray-600 dark:text-gray-400 font-medium">{vendorName}</span>
+                                 {hasVendor && (
+                                   <span className={`font-bold ${isDeclined ? 'text-red-600' : vStatus === 'Accepted' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                     ({vStatus})
+                                   </span>
+                                 )}
+                               </div>
+                               
+                               <div className="flex items-center gap-2 shrink-0">
+                                {canModifyVendors && (!hasVendor || ["pending", "declined", "rejected", "notrequired"].includes(vStatus.toLowerCase())) && (
+                                  <>
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setSwapModalState({
+                                          isOpen: true,
+                                          bookingId: booking.id || booking._id,
+                                          service: service as "decorator" | "dj" | "videographer",
+                                          currentVendorId: vendor?.vendorId || undefined
+                                        });
+                                      }}
+                                      className="text-[8px] tracking-wider uppercase font-bold text-white bg-[#C9A84C] hover:bg-[#B08D2C] px-2.5 py-1 rounded-sm transition-colors"
+                                    >
+                                      {hasVendor ? "Change" : "Add"}
+                                    </button>
+                                    
+                                    {hasVendor && (
+                                      <button 
+                                        onClick={async (e) => { 
+                                          e.stopPropagation(); 
+                                          if (confirm(`Are you sure you want to remove this ${service} vendor?`)) {
+                                            const { useBookingStore } = await import("@/store/bookingStore");
+                                            await useBookingStore.getState().swapVendor(booking.id || booking._id, service, "none");
+                                          }
+                                        }}
+                                        className="text-[8px] tracking-wider uppercase font-bold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-sm transition-colors"
+                                      >
+                                        Remove
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                                 
+                                 {!canModifyVendors && isDeclined && (
+                                   <button 
+                                     onClick={(e) => { 
+                                       e.stopPropagation(); 
+                                       setSwapModalState({
+                                         isOpen: true,
+                                         bookingId: booking.id || booking._id,
+                                         service: service as "decorator" | "dj" | "videographer",
+                                         currentVendorId: vendor?.vendorId || undefined
+                                       });
+                                     }}
+                                     className="text-[8px] tracking-wider uppercase font-bold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-sm transition-colors"
+                                   >
+                                     Change
+                                   </button>
+                                 )}
                               </div>
-                              {isDeclined && (
-                                <button 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    setSwapModalState({
-                                      isOpen: true,
-                                      bookingId: booking.id || booking._id,
-                                      service: service as "decorator" | "dj" | "videographer",
-                                      currentVendorId: typeof vendor === 'object' && vendor !== null ? vendor.vendorId || undefined : undefined
-                                    });
-                                  }}
-                                  className="text-[9px] uppercase tracking-widest font-bold text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded-sm transition-colors"
-                                >
-                                  Change Vendor
-                                </button>
-                              )}
                             </div>
                           );
                         })}

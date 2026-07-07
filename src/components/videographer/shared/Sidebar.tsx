@@ -147,7 +147,7 @@ const Sidebar = () => {
           title={collapsedState ? `${user?.firstName} ${user?.lastName} — Lead Videographer` : undefined}
         >
           <img
-            src={user?.avatar || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
+            src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
             alt="Profile"
             className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]"
           />

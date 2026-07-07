@@ -33,7 +33,11 @@ const PackagesMain = () => {
 
   const fetchPackages = async () => {
     try {
-      const res = await packageAPI.getAllPackages();
+      const [res, settingsRes] = await Promise.all([
+        packageAPI.getAllPackages(),
+        packageAPI.getSettings()
+      ]);
+
       if (res.ok && res.data.data && res.data.data.length > 0) {
         const backendTiers: Tier[] = res.data.data.map((pkg: any, idx: number) => {
           let badgeVal = pkg.badge && pkg.badge !== 'NONE' ? pkg.badge : undefined;
@@ -41,21 +45,34 @@ const PackagesMain = () => {
           return {
             id: pkg._id || String(idx),
             label: pkg.name || 'Unnamed Package',
+            description: pkg.description || '',
             price: typeof pkg.price === 'number' ? pkg.price : 0,
             guests: typeof pkg.maxGuests === 'number' ? pkg.maxGuests : 0,
             baseGuests: pkg.baseGuests || 0,
             guestSurcharge: pkg.guestSurcharge || 0,
             icon: pkg.icon || 'diamond',
-            features: Array.isArray(pkg.features) ? pkg.features.map((f: string) => ({ text: f, included: true })) : [],
-            inclusions: pkg.inclusions || { valet: false, bridal: false, led: false, catering: false },
             badge: badgeVal,
-            highlighted: badgeVal === 'MOST POPULAR'
+            features: pkg.features && Array.isArray(pkg.features) 
+              ? pkg.features.map((f: string) => ({ text: f, included: true }))
+              : [],
+            inclusions: pkg.inclusions || { valet: false, bridal: false, led: false, catering: false }
           };
         });
         setTiers(backendTiers);
       }
+
+      if (settingsRes.ok && settingsRes.data.data) {
+        const s = settingsRes.data.data;
+        if (s.fees && s.fees.length > 0) setFees(s.fees);
+        if (s.deposit !== undefined) setDeposit(s.deposit);
+        if (s.taxRate !== undefined) setTaxRate(s.taxRate);
+        if (s.currency) setCurrency(s.currency);
+        if (s.enforcement !== undefined) setEnforcement(s.enforcement);
+      }
     } catch (err) {
-      console.error('Failed to fetch packages:', err);
+      console.error(err);
+      setErrorDetails('Failed to load package configurations.');
+    } finally {
     }
   };
 
@@ -68,13 +85,45 @@ const PackagesMain = () => {
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      // Loop over tiers and push updates to backend if it's a real MongoDB ID
+      // Loop over tiers and push updates to backend
       for (const t of tiers) {
+        const payload = {
+          name: t.label,
+          description: t.description || `${t.label} package for up to ${t.guests} guests.`,
+          price: t.price,
+          maxGuests: t.guests,
+          baseGuests: t.baseGuests || 0,
+          guestSurcharge: t.guestSurcharge || 0,
+          icon: t.icon || 'diamond',
+          badge: t.badge || 'NONE',
+          features: t.features ? t.features.map(f => f.text) : [],
+          inclusions: t.inclusions || { valet: false, bridal: false, led: false, catering: false }
+        };
+
         if (t.id && t.id.length > 10) {
-          await packageAPI.updatePackage(t.id, { price: t.price });
+          // Existing package
+          const res = await packageAPI.updatePackage(t.id, payload);
+          if (!res.ok) throw new Error(res.data?.message || 'Failed to update package');
+        } else {
+          // New package (e.g. from initial hardcoded list)
+          const res = await packageAPI.createPackage(payload);
+          if (!res.ok) throw new Error(res.data?.message || 'Failed to create package');
         }
       }
+
+      // Publish global settings
+      const settingsPayload = {
+        fees,
+        deposit,
+        taxRate,
+        currency,
+        enforcement,
+      };
+      const settingsRes = await packageAPI.updateSettings(settingsPayload);
+      if (!settingsRes.ok) throw new Error(settingsRes.data?.message || 'Failed to update settings');
+
       setShowSuccessModal(true);
+      fetchPackages();
     } catch (err) {
       console.error(err);
       setErrorDetails('Failed to publish updates.');
@@ -91,23 +140,35 @@ const PackagesMain = () => {
     try {
       const payload = {
         name: tierToEdit.label,
+        description: tierToEdit.description || `${tierToEdit.label} package for up to ${tierToEdit.guests} guests.`,
         price: tierToEdit.price,
         maxGuests: tierToEdit.guests,
-        baseGuests: tierToEdit.baseGuests,
-        guestSurcharge: tierToEdit.guestSurcharge,
-        icon: tierToEdit.icon,
-        badge: tierToEdit.badge,
+        baseGuests: tierToEdit.baseGuests || 0,
+        guestSurcharge: tierToEdit.guestSurcharge || 0,
+        icon: tierToEdit.icon || 'diamond',
+        badge: tierToEdit.badge || 'NONE',
         features: tierToEdit.features.map(f => f.text),
-        inclusions: tierToEdit.inclusions
+        inclusions: tierToEdit.inclusions || { valet: false, bridal: false, led: false, catering: false }
       };
 
-      const res = await packageAPI.updatePackage(tierToEdit.id, payload);
-      if (res.ok) {
-        setTiers(prev => prev.map(t => t.id === tierToEdit.id ? tierToEdit : t));
-        setTierToEdit(null);
-        setSuccessDetails('Tier updated successfully!');
+      if (tierToEdit.id && tierToEdit.id.length > 10) {
+        const res = await packageAPI.updatePackage(tierToEdit.id, payload);
+        if (res.ok) {
+          setTiers(prev => prev.map(t => t.id === tierToEdit.id ? tierToEdit : t));
+          setTierToEdit(null);
+          setSuccessDetails('Tier updated successfully!');
+        } else {
+          setErrorDetails(`Error: ${res.data?.message}`);
+        }
       } else {
-        setErrorDetails(`Error: ${res.data.message}`);
+        const res = await packageAPI.createPackage(payload);
+        if (res.ok) {
+          setTierToEdit(null);
+          setSuccessDetails('Tier created successfully!');
+          fetchPackages();
+        } else {
+          setErrorDetails(`Error: ${res.data?.message}`);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -303,13 +364,13 @@ const PackagesMain = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Features (Comma Separated)</label>
+                <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Features (One per line)</label>
                 <textarea 
                   required
-                  rows={3}
-                  value={tierToEdit.features.map(f => f.text).join(', ')}
+                  rows={8}
+                  value={tierToEdit.features.map(f => f.text).join('\n')}
                   onChange={(e) => {
-                    const featArray = e.target.value.split(',').map(f => f.trim()).filter(f => f);
+                    const featArray = e.target.value.split('\n').map(f => f.trim()).filter(f => f);
                     setTierToEdit({
                       ...tierToEdit, 
                       features: featArray.map(f => ({ text: f, included: true }))

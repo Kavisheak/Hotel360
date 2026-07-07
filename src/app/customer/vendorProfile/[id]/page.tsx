@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Vendor } from "@/components/Landing/vendors/types";
+import { Vendor } from "@/components/landing/vendors/types";
 import { vendorAPI } from "@/lib/api";
-import VendorsHeader from "@/components/Landing/vendors/VendorsHeader";
-import VendorProfileHero from "@/components/Landing/vendorProfile/VendorProfileHero";
-import VendorProfileStats from "@/components/Landing/vendorProfile/VendorProfileStats";
-import VendorProfileContent from "@/components/Landing/vendorProfile/VendorProfileContent";
+import VendorsHeader from "@/components/landing/vendors/VendorsHeader";
+import VendorProfileHero from "@/components/landing/vendorProfile/VendorProfileHero";
+import VendorProfileStats from "@/components/landing/vendorProfile/VendorProfileStats";
+import VendorProfileContent from "@/components/landing/vendorProfile/VendorProfileContent";
 import { useAuthStore } from "@/store/authStore";
+import { useVendorStore } from "@/store/vendorStore";
 
 export default function VendorProfilePage() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function VendorProfilePage() {
   }, [fetchUser]);
 
   useEffect(() => {
-    if (user && user.role !== "customer" && user.role !== "decorator") {
+    if (user && user.role.toLowerCase() !== "customer" && user.role.toLowerCase() !== "decorator") {
       router.push("/login");
       return;
     }
@@ -36,10 +37,18 @@ export default function VendorProfilePage() {
           if (res.ok && res.data.success) {
             setVendor(res.data.data);
           } else {
-            router.push("/customer/vendors");
+            // Fallback to checking local mock vendors if API fails
+            await useVendorStore.getState().fetchVendors();
+            const localVendor = useVendorStore.getState().vendors.find(v => v.id === id);
+            if (localVendor) setVendor(localVendor);
+            else router.push("/customer/vendors");
           }
         } catch (error) {
-          router.push("/customer/vendors");
+          // Fallback to checking local mock vendors if API fails
+          await useVendorStore.getState().fetchVendors();
+          const localVendor = useVendorStore.getState().vendors.find(v => v.id === id);
+          if (localVendor) setVendor(localVendor);
+          else router.push("/customer/vendors");
         } finally {
           setIsLoading(false);
         }

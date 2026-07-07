@@ -1,39 +1,74 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import MainNavbar from "@/components/Landing/shared/MainNavbar";
-import Footer from "@/components/Landing/shared/Footer";
-import BookHero from "@/components/Landing/book/BookHero";
-import CalendarPicker from "@/components/Landing/book/CalendarPicker";
-import CostBreakdown from "@/components/Landing/book/CostBreakdown";
-import TrustDivider from "@/components/Landing/book/TrustDivider";
-import TimeRangeSelector from "@/components/Landing/book/TimeRangeSelector";
-import PackageSelector from "@/components/Landing/book/PackageSelector";
-import GuestCounter from "@/components/Landing/book/GuestCounter";
-import BookingVendorSelector from "@/components/Landing/book/BookingVendorSelector";
-import BookingMenuSelector from "@/components/Landing/book/BookingMenuSelector";
-import BookingForm from "@/components/Landing/book/BookingForm";
-import BookingHistory from "@/components/Landing/book/BookingHistory";
-import DateRequiredModal from "@/components/Landing/book/DateRequiredModal";
-import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
+import BookHero from "@/components/landing/book/BookHero";
+import CalendarPicker from "@/components/landing/book/CalendarPicker";
+import CostBreakdown from "@/components/landing/book/CostBreakdown";
+import TrustDivider from "@/components/landing/book/TrustDivider";
+import TimeRangeSelector from "@/components/landing/book/TimeRangeSelector";
+import PackageSelector from "@/components/landing/book/PackageSelector";
+import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
+import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
+import BookingForm from "@/components/landing/book/BookingForm";
+import BookingHistory from "@/components/landing/book/BookingHistory";
+import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAuthStore } from "@/store/authStore";
-import { customerBookingAPI } from "@/lib/api";
+import { useBookingFormStore } from "@/store/bookingFormStore";
+import { customerBookingAPI, packageAPI } from "@/lib/api";
 
 export default function BookPage() {
+  const {
+    currentStep,
+    selectedDate,
+    startTime,
+    endTime,
+    selectedPackage,
+    eventType,
+    guestCount,
+    setStep,
+    setSelectedDate,
+    setTime,
+    setSelectedPackage,
+    setEventType,
+    setGuestCount,
+    clearForm,
+    isDirty,
+  } = useBookingFormStore();
+
   const [activeTab, setActiveTab] = useState<"new" | "history">("new");
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState<number>(0);
-  const [startTime, setStartTime] = useState<string>("18:00");
-  const [endTime, setEndTime] = useState<string>("23:00");
-  const [selectedPackage, setSelectedPackage] = useState<string>("gold");
-  const [eventType, setEventType] = useState<string>("Wedding");
-  const [guestCount, setGuestCount] = useState<number>(380);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(true);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [dbPackages, setDbPackages] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDbPackages = async () => {
+      try {
+        const res = await packageAPI.getAllPackages();
+        if (res.ok && res.data?.success && Array.isArray(res.data.data)) {
+          setDbPackages(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch packages in book page:", err);
+      }
+    };
+    fetchDbPackages();
+  }, []);
+
+  useEffect(() => {
+    if (dbPackages.length > 0) {
+      const matchedPkg = dbPackages.find(p => p.name.toLowerCase().includes(selectedPackage.toLowerCase()));
+      if (matchedPkg) {
+        setGuestCount(matchedPkg.maxGuests || 380);
+      }
+    }
+  }, [selectedPackage, dbPackages, setGuestCount]);
 
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
@@ -47,19 +82,36 @@ export default function BookPage() {
   }, [fetchUser]);
 
   useEffect(() => {
-    if (user && (user.role === "customer" || user.role === "decorator")) {
+    if (user && (user.role.toLowerCase() === "customer" || user.role.toLowerCase() === "decorator")) {
       setIsGuest(false);
     } else {
       setIsGuest(true);
     }
   }, [user]);
+
+  // Clear the booking form if the user hard refreshes the page
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.performance) {
+      const navEntries = window.performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+      if (navEntries.length > 0 && navEntries[0].type === "reload") {
+        clearForm();
+      }
+    }
+  }, [clearForm]);
   
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
   const setMenuTypeStore = useVendorCartStore((state) => state.setMenuType);
   const setStoreVendor = useVendorCartStore((state) => state.setVendor);
 
-  const [vendors, setLocalVendors] = useState({ 
+  const [vendors, setLocalVendors] = useState<{
+    decorator: string | null;
+    decoratorPackage: string;
+    dj: string | null;
+    djPackage: string;
+    videographer: string | null;
+    videographerPackage: string;
+  }>({ 
     decorator: cartVendors.decorator, 
     decoratorPackage: "none",
     dj: cartVendors.dj,
@@ -67,6 +119,26 @@ export default function BookPage() {
     videographer: cartVendors.videographer,
     videographerPackage: "none"
   });
+
+  // Sync global vendor cart changes back into local state so that if a user 
+  // selects a vendor from the vendors page and returns, it updates instantly.
+  useEffect(() => {
+    const unsub = useVendorCartStore.subscribe((state) => {
+      const cv = state.vendors;
+      setLocalVendors(prev => {
+        if (cv.decorator === prev.decorator && cv.dj === prev.dj && cv.videographer === prev.videographer) {
+          return prev;
+        }
+        return {
+          ...prev,
+          decorator: cv.decorator,
+          dj: cv.dj,
+          videographer: cv.videographer
+        };
+      });
+    });
+    return unsub;
+  }, []);
   
   const [menu, setMenu] = useState<"signature" | "custom">(
     (cartMenu.type === "signature" || cartMenu.type === "custom") ? cartMenu.type : "signature"
@@ -113,6 +185,9 @@ export default function BookPage() {
 
 
   const getBasePrice = () => {
+    const matched = dbPackages.find(p => p.name.toLowerCase().includes(selectedPackage));
+    if (matched) return matched.price;
+
     if (selectedPackage === "silver") return 1800000;
     if (selectedPackage === "diamond") return 5000000;
     return 3400000;
@@ -125,7 +200,7 @@ export default function BookPage() {
 
   const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
     const vendorId = vendors[category];
-    if (vendorId === "none" || vendorId === "custom_preference") return 0;
+    if (vendorId === null || vendorId === "custom_preference") return 0;
     
     if (category === "decorator") {
       const pkgName = vendors[`decoratorPackage`];
@@ -184,6 +259,7 @@ export default function BookPage() {
   const clearCart = useVendorCartStore(state => state.clearCart);
 
   const handleFinalizeBooking = async (contactInfo: any) => {
+    const matchedPkg = dbPackages.find(p => p.name.toLowerCase().includes(selectedPackage));
     const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
     
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
@@ -199,24 +275,25 @@ export default function BookPage() {
       timeslot: `${startTime} - ${endTime}`,
       durationHours: durationHours,
       guests: guestCount,
-      packageId: selectedPackage,
+      packageId: matchedPkg ? matchedPkg._id : selectedPackage,
+      packageName: matchedPkg ? matchedPkg.name : selectedPackage,
       paymentMethod: contactInfo.paymentMethod,
       menuType: menu,
       customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
       vendors: {
         decorator: {
-          vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
-          status: vendors.decorator !== "none" ? "Pending" : "NotRequired",
+          vendorId: vendors.decorator !== null ? vendors.decorator : null,
+          status: vendors.decorator === "custom_preference" ? "NotRequired" : (vendors.decorator !== null ? "Pending" : "NotRequired"),
           packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : ""
         },
         dj: {
-          vendorId: vendors.dj !== "none" ? vendors.dj : null,
-          status: vendors.dj !== "none" ? "Pending" : "NotRequired",
+          vendorId: vendors.dj !== null ? vendors.dj : null,
+          status: vendors.dj === "custom_preference" ? "NotRequired" : (vendors.dj !== null ? "Pending" : "NotRequired"),
           packageName: vendors.djPackage !== "none" ? vendors.djPackage : ""
         },
         videographer: {
-          vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
-          status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
+          vendorId: vendors.videographer !== null ? vendors.videographer : null,
+          status: vendors.videographer === "custom_preference" ? "NotRequired" : (vendors.videographer !== null ? "Pending" : "NotRequired"),
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : ""
         }
       }
@@ -226,6 +303,7 @@ export default function BookPage() {
       const res = await customerBookingAPI.createBooking(bookingPayload);
       if (res.ok && res.data.success) {
         clearCart();
+        clearForm();
         return true; // Success
       } else {
         alert(res.data.message || "Failed to create booking");
@@ -246,7 +324,7 @@ export default function BookPage() {
       setIsDateModalOpen(true);
       return;
     }
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setStep(Math.min(currentStep + 1, 4));
   };
 
   const handleStepClick = (step: number) => {
@@ -255,12 +333,12 @@ export default function BookPage() {
       return;
     }
     if (step < currentStep) {
-      setCurrentStep(step);
+      setStep(step);
     }
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setStep(Math.max(currentStep - 1, 1));
   };
 
   return (
@@ -302,7 +380,7 @@ export default function BookPage() {
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
               <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
-              {[1, 2, 3, 4].map((step) => (
+              {[1, 2].map((step) => (
                 <div 
                   key={step} 
                   onClick={() => handleStepClick(step)}
@@ -312,10 +390,8 @@ export default function BookPage() {
                     {step}
                   </div>
                   <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
-                    {step === 1 && "Event Details"}
-                    {step === 2 && "Vendors"}
-                    {step === 3 && "Menu"}
-                    {step === 4 && "Checkout"}
+                    {step === 1 && "Event Details & Vendors"}
+                    {step === 2 && "Payment & Details"}
                   </span>
                 </div>
               ))}
@@ -345,34 +421,21 @@ export default function BookPage() {
                 <TimeRangeSelector 
                   startTime={startTime} 
                   endTime={endTime} 
-                  onChange={(start, end) => {
-                    setStartTime(start);
-                    setEndTime(end);
-                  }} 
+                  onChange={setTime} 
                 />
                 <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-              </div>
-            )}
-
-            {/* Step 2: Vendor Selection */}
-            {currentStep === 2 && (
-              <div className="animate-fadeIn">
+                <PackageSelector 
+                  selectedPackage={selectedPackage} 
+                  onSelectPackage={setSelectedPackage} 
+                  dbPackages={dbPackages}
+                />
+                <div className="h-px bg-[#D4C9A8] w-full"></div>
                 <BookingVendorSelector vendors={vendors} onChange={setVendors} />
               </div>
             )}
 
-            {/* Step 3: Food Menu Customization */}
-            {currentStep === 3 && (
-              <div className="space-y-8 animate-fadeIn">
-                <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
-              </div>
-            )}
-
-            {/* Step 4: Checkout */}
-            {currentStep === 4 && (
+            {/* Step 2: Checkout */}
+            {currentStep === 2 && (
               <div className="animate-fadeIn">
                 <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
               </div>
@@ -389,7 +452,7 @@ export default function BookPage() {
                 </button>
               ) : <div></div>}
 
-              {currentStep < 4 && (
+              {currentStep < 2 && (
                 <button 
                   onClick={handleNext}
                   className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"

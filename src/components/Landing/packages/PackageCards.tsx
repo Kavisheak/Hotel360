@@ -4,23 +4,26 @@ import { useRouter } from "next/navigation";
 import { SIGNATURE_PACKAGES } from "./types";
 
 interface PackageCardsProps {
-  activePackage: "silver" | "gold" | "diamond";
-  setActivePackage: (id: "silver" | "gold" | "diamond") => void;
+  activePackage: string;
+  setActivePackage: (id: any) => void;
+  packages?: any[];
 }
 
-export default function PackageCards({ activePackage, setActivePackage }: PackageCardsProps) {
+export default function PackageCards({ activePackage, setActivePackage, packages }: PackageCardsProps) {
   const router = useRouter();
+  const displayPackages = packages && packages.length > 0 ? packages : SIGNATURE_PACKAGES;
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-16 -mt-10 relative z-20 bg-white dark:bg-transparent">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-        {SIGNATURE_PACKAGES.map((pkg, index) => {
+        {displayPackages.map((pkg, index) => {
           const isActive = activePackage === pkg.id;
+          const displayGuests = pkg.guests.toLowerCase().includes("guest") ? pkg.guests : `${pkg.guests} Guests`;
           
           return (
             <div 
               key={pkg.id}
-              onClick={() => setActivePackage(pkg.id)}
+              onClick={() => setActivePackage(pkg.id as any)}
               className={`
                 relative bg-white dark:bg-[#111111] p-6 lg:p-8 cursor-pointer transition-all duration-500 card-entrance hover-glow stagger-${index + 1}
                 ${isActive 
@@ -41,7 +44,7 @@ export default function PackageCards({ activePackage, setActivePackage }: Packag
                   <span className="text-4xl font-serif text-[#2C1E14] dark:text-white leading-none">{pkg.price}</span>
                 </div>
                 <div className="flex justify-center items-center gap-2 text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
-                  <Users className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> {pkg.guests} Guests
+                  <Users className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> {displayGuests}
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-light min-h-[40px]">
                   {pkg.description}
@@ -49,7 +52,7 @@ export default function PackageCards({ activePackage, setActivePackage }: Packag
               </div>
 
               <div className="space-y-3 mb-8">
-                {pkg.features.map((feature, idx) => (
+                {pkg.features.map((feature: string, idx: number) => (
                   <div key={idx} className="flex items-start gap-3 text-xs text-gray-700 dark:text-gray-300 font-light">
                     <Check className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C] shrink-0 mt-0.5" />
                     <span className="leading-relaxed">{feature}</span>

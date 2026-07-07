@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, View, Cuboid } from "lucide-react";
-import MainNavbar from "@/components/Landing/shared/MainNavbar";
-import Footer from "@/components/Landing/shared/Footer";
-import Tour360Viewer from "@/components/Landing/virtual-tour/Tour360Viewer";
-import SpaceArrangement3D from "@/components/Landing/virtual-tour/SpaceArrangement3D";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
+import Tour360Viewer from "@/components/landing/virtual-tour/Tour360Viewer";
+import SpaceArrangement3D from "@/components/landing/virtual-tour/SpaceArrangement3D";
 import { useLayoutStore } from "@/store/useLayoutStore";
 
 export default function VirtualTourPage() {
@@ -32,7 +32,7 @@ export default function VirtualTourPage() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 stagger-1">
             <div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#1A1512] dark:text-white mb-2">Virtual Experience</h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm font-light">Explore our spaces and plan your perfect event layout.</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm font-light">Immerse yourself in our conference hall with panoramic views and interactive navigation.</p>
             </div>
             
             <div className="flex gap-4">
@@ -70,7 +70,7 @@ export default function VirtualTourPage() {
               <div className="w-8 h-8 rounded-full border border-[#C69C6D]/30 flex items-center justify-center text-[#C69C6D] shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
               </div>
-              <p className="text-xs text-[#1A1512] dark:text-gray-300 font-medium">Navigate through 10 unique locations inside our grand hall.</p>
+              <p className="text-xs text-[#1A1512] dark:text-gray-300 font-medium">Navigate through 6 panoramic locations inside the EASCC Conference Hall, Eravur. Drag to look around, click hotspots to move between areas.</p>
             </div>
             <div className="border border-[#D4C9A8] dark:border-[#C9A84C]/40 shadow-xl dark:shadow-[#C9A84C]/5 rounded-sm overflow-hidden hover-glow transition-all duration-300">
               <Tour360Viewer />

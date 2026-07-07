@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Filter, CalendarDays, ChevronRight } from 'lucide-react';
+import { Search, Filter, CalendarDays, ChevronRight, Plus } from 'lucide-react';
 import { bookingAPI } from '@/lib/api';
+import NewBookingMain from './new/NewBookingMain';
 
 const BookingsListMain = () => {
   const [isClient, setIsClient] = useState(false);
@@ -12,6 +13,7 @@ const BookingsListMain = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(10);
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
 
   // Reset pagination when search or filter changes
   useEffect(() => {
@@ -37,6 +39,8 @@ const BookingsListMain = () => {
           eventType: b.eventType,
           status: b.status,
           packageId: b.packageId,
+          depositAmount: b.depositAmount || 0,
+          balanceAmount: b.balanceAmount || 0,
         }));
         setBookings(mappedBookings);
       }
@@ -69,8 +73,14 @@ const BookingsListMain = () => {
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
-      <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
+      <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex justify-between items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
         <h2 className="font-serif italic text-[#7C6A2E] text-xl font-semibold tracking-wide">All Bookings</h2>
+        <button 
+          onClick={() => setIsNewBookingOpen(true)}
+          className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-4 py-2 rounded text-xs font-bold tracking-widest uppercase transition-colors shadow-sm"
+        >
+          <Plus size={14} /> New Booking
+        </button>
       </header>
 
       <main className="flex-1 px-4 lg:px-6 py-6 w-full max-w-[1400px] mx-auto">
@@ -182,6 +192,21 @@ const BookingsListMain = () => {
           )}
         </div>
       </main>
+
+      {/* New Booking Modal Popup */}
+      {isNewBookingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#FDF9F1] w-full max-w-6xl rounded shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-[#E0D8C3] animate-fadeIn">
+            <NewBookingMain 
+              onClose={() => setIsNewBookingOpen(false)}
+              onSuccess={() => {
+                setIsNewBookingOpen(false);
+                fetchBookings();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

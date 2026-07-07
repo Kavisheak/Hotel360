@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import MainNavbar from "@/components/Landing/shared/MainNavbar";
-import Footer from "@/components/Landing/shared/Footer";
-import VendorsHero from "@/components/Landing/vendors/VendorsHero";
-import VendorsFilters from "@/components/Landing/vendors/VendorsFilters";
-import VendorCards from "@/components/Landing/vendors/VendorCards";
-import VendorsTrust from "@/components/Landing/vendors/VendorsTrust";
-import { type Vendor } from "@/components/Landing/vendors/types";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
+import VendorsHero from "@/components/landing/vendors/VendorsHero";
+import VendorsFilters from "@/components/landing/vendors/VendorsFilters";
+import VendorCards from "@/components/landing/vendors/VendorCards";
+import VendorsTrust from "@/components/landing/vendors/VendorsTrust";
+import { type Vendor } from "@/components/landing/vendors/types";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useVendorStore } from "@/store/vendorStore";

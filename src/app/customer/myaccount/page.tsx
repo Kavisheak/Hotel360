@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft, Calendar, MoreVertical, Crown, Bell, Phone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import MainNavbar from "@/components/Landing/shared/MainNavbar";
-import Footer from "@/components/Landing/shared/Footer";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
 import AccountOverview from "@/components/myaccount/AccountOverview";
 import AccountSidebar, { type AccountTab } from "@/components/myaccount/AccountSidebar";
 import ProfileSettings from "@/components/myaccount/ProfileSettings";
@@ -109,7 +109,7 @@ export default function MyAccountPage() {
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="relative h-[110px] rounded overflow-hidden mb-4">
-                <Image src="/luxury_ballroom_bg.png" alt="Venue" fill className="object-cover" />
+                <Image src="/luxury_ballroom_bg.png" alt="Venue" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
               <h5 className="font-bold text-[14px] text-[#1A1512] mb-1">Grand Ballroom</h5>
               <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4 font-medium tracking-wide">
@@ -165,7 +165,7 @@ export default function MyAccountPage() {
             {/* Need assistance? */}
             <div className="bg-white border border-[#E8DFC9] rounded shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-6 text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-24 opacity-20 pointer-events-none">
-                <Image src="/luxury_ballroom_bg.png" alt="bg" fill className="object-cover" />
+                <Image src="/luxury_ballroom_bg.png" alt="bg" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
               </div>
               <div className="relative z-10">

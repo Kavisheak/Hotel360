@@ -184,10 +184,10 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
           } else if (dayObj.status === "reserved") {
             cellStyle = "bg-[#FFF0F0] dark:bg-[#2A1111] text-[#D94F4F] border border-[#FFD6D6] dark:border-red-900/50 cursor-not-allowed";
           } else if (dayObj.status === "pending") {
-            cellStyle = "bg-[#FFF8E6] dark:bg-[#2A1A00] text-[#D49B35] border border-[#FFE8B3] dark:border-orange-900/50 cursor-not-allowed";
+            cellStyle = "bg-[#FFF8E6] dark:bg-[#2A1A00] text-[#D49B35] border border-[#FFE8B3] dark:border-orange-900/50 hover:border-[#A6955C] cursor-pointer transition-colors";
           }
 
-          if (isSelected && dayObj.status === "available") {
+          if (isSelected && (dayObj.status === "available" || dayObj.status === "pending")) {
             cellStyle = "bg-[#FAF6EE] border-[#C69C6D] border-2 shadow-sm font-bold scale-[1.02] z-10 relative";
           }
 
@@ -195,11 +195,11 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
             <button
               key={dayObj.timestamp}
               type="button"
-              disabled={dayObj.status !== "available"}
+              disabled={dayObj.status !== "available" && dayObj.status !== "pending"}
               onClick={() => onSelectDate(dayObj.timestamp)}
               className={`h-14 w-full flex flex-col justify-center items-center rounded-sm relative ${cellStyle}`}
             >
-              <span className={`font-semibold text-sm ${dayObj.status === 'available' ? 'text-[#1A1512] dark:text-white' : ''}`}>
+              <span className={`font-semibold text-sm ${dayObj.status === 'available' || dayObj.status === 'pending' ? 'text-[#1A1512] dark:text-white' : ''}`}>
                 {dayObj.date}
               </span>
               
@@ -210,11 +210,11 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-[#D49B35]">PENDING</span>
               )}
               {dayObj.holidayName && (
-                <span className={`text-[7px] uppercase tracking-widest font-bold mt-0.5 max-w-full truncate px-1 text-center ${dayObj.status === "available" ? "text-green-600 dark:text-green-500" : "text-gray-500 opacity-70"}`} title={dayObj.holidayName}>
+                <span className={`text-[7px] uppercase tracking-widest font-bold mt-0.5 max-w-full truncate px-1 text-center ${dayObj.status === "available" || dayObj.status === "pending" ? "text-green-600 dark:text-green-500" : "text-gray-500 opacity-70"}`} title={dayObj.holidayName}>
                   {dayObj.holidayName}
                 </span>
               )}
-              {dayObj.status === "available" && isSelected && (
+              {(dayObj.status === "available" || dayObj.status === "pending") && isSelected && (
                 <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#C69C6D] rounded-full"></span>
               )}
             </button>

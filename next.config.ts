@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
+        port: "5000",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "",
       },
     ],
   },

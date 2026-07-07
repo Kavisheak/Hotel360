@@ -1,7 +1,7 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 
-const RatingsStats = () => {
+const RatingsStats = ({ stats, loading }: { stats?: any; loading?: boolean }) => {
   const distribution = [
     { stars: 5, count: 126, percentage: 85 },
     { stars: 4, count: 15, percentage: 10 },
