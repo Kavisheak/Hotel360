@@ -5,12 +5,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarViewProps {
   bookings?: any[];
+  selectedDate?: Date;
+  onSelectDate?: (date: Date) => void;
 }
 
-const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
+const CalendarView = ({ bookings = [], selectedDate = new Date(), onSelectDate }: CalendarViewProps) => {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(selectedDate));
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -23,25 +25,20 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
   
-  // Create a quick array of 35 days for demo purposes (like the static version)
-  // Let's just use the current month logic properly
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   
   const dates: { date: number; currentMonth: boolean; fullDate: Date }[] = [];
   
-  // Previous month padding
   const prevDays = new Date(currentYear, currentMonth, 0).getDate();
   for (let i = firstDay - 1; i >= 0; i--) {
     dates.push({ date: prevDays - i, currentMonth: false, fullDate: new Date(currentYear, currentMonth - 1, prevDays - i) });
   }
   
-  // Current month
   for (let i = 1; i <= daysInMonth; i++) {
     dates.push({ date: i, currentMonth: true, fullDate: new Date(currentYear, currentMonth, i) });
   }
   
-  // Next month padding
   let nextDay = 1;
   while (dates.length < 35) {
     dates.push({ date: nextDay, currentMonth: false, fullDate: new Date(currentYear, currentMonth + 1, nextDay) });
@@ -52,7 +49,6 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
 
   return (
     <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-sm flex flex-col w-full">
-      {/* Calendar Header */}
       <div className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 border-b border-[#E0D8C3]">
         <h2 className="text-xl sm:text-2xl font-serif text-gray-900 font-bold tracking-tight">
           {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -63,29 +59,22 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
         </div>
       </div>
 
-      {/* Day labels */}
       <div className="grid grid-cols-7 border-b border-[#E0D8C3]">
         {days.map((day) => (
           <div
             key={day}
             className="text-center py-3 text-[9px] sm:text-[10px] font-bold tracking-[0.1em] sm:tracking-[0.2em] text-gray-500 uppercase border-r border-[#E0D8C3] last:border-r-0"
           >
-            {/* Show short version on small screens */}
             <span className="sm:hidden">{day.charAt(0)}</span>
             <span className="hidden sm:inline">{day}</span>
           </div>
         ))}
       </div>
 
-      {/* Calendar dates grid */}
       <div className="grid grid-cols-7 bg-white flex-1">
         {displayDates.map((d, i) => {
-          const isSelected = d.date === new Date().getDate() && 
-                             d.currentMonth && 
-                             currentMonth === new Date().getMonth() && 
-                             currentYear === new Date().getFullYear();
+          const isSelected = d.currentMonth && d.date === selectedDate.getDate() && currentDate.getMonth() === selectedDate.getMonth() && currentDate.getFullYear() === selectedDate.getFullYear();
           
-          // Find bookings for this exact day
           const dayBookings = bookings.filter(b => {
             const bDate = new Date(b.date);
             return bDate.getDate() === d.date && 
@@ -96,27 +85,36 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
           return (
             <div
               key={i}
-              className={`min-h-[60px] sm:min-h-[90px] border-b border-r border-[#E0D8C3] p-1.5 sm:p-3 flex flex-col relative last:border-r-0 cursor-pointer
+              onClick={() => d.currentMonth && onSelectDate && onSelectDate(d.fullDate)}
+              className={`min-h-[60px] sm:min-h-[90px] border-b border-r border-[#E0D8C3] p-1.5 sm:p-3 flex flex-col relative last:border-r-0 
+                ${d.currentMonth ? 'cursor-pointer' : ''}
                 ${!d.currentMonth ? 'text-gray-300' : 'text-gray-700'}
-                ${isSelected ? 'bg-[#FCF6E3] ring-1 ring-inset ring-[#B08D2C]' : 'hover:bg-gray-50'}
+                ${isSelected ? 'bg-[#FCF6E3] ring-1 ring-inset ring-[#B08D2C]' : d.currentMonth ? 'hover:bg-gray-50' : ''}
               `}
             >
               <span className={`text-xs sm:text-sm font-medium ${isSelected ? 'text-[#B08D2C] font-bold' : ''}`}>
                 {d.date}
               </span>
 
-              {/* Event indicators */}
               {dayBookings.length > 0 && d.currentMonth && (
-                <div className="mt-auto flex flex-col gap-1">
+                <div className="mt-auto flex flex-col gap-1 w-full overflow-hidden">
                   {dayBookings.map((b, idx) => {
-                    const colors = ['bg-[#4A463B]', 'bg-[#5A87C7]', 'bg-[#C75A5A]'];
+                    const status = b.vendors?.decorator?.status?.toUpperCase();
+                    let color = "bg-[#7C6A2E]"; // pending
+                    if (status === 'COMPLETED') color = "bg-[#5A87C7]";
+                    else if (status === 'ACCEPTED' || status === 'CONFIRMED') color = "bg-[#B08D2C]";
+
                     return (
-                      <div key={idx} className={`${colors[idx % colors.length]} text-white text-[9px] px-1 py-0.5 rounded-sm truncate leading-none`} title={b.clientName}>
-                        {b.clientName}
+                      <div 
+                        key={idx} 
+                        className={`${color} text-white text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm truncate leading-none w-full`} 
+                        title={`${b.eventType} - ${b.clientName}`}
+                      >
+                        {b.eventType || b.clientName || "Event"}
                       </div>
                     );
                   })}
-                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">TODAY</span>}
+                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">SELECTED</span>}
                 </div>
               )}
             </div>

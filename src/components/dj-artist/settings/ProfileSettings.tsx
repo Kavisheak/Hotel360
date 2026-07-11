@@ -7,9 +7,48 @@ import { ChevronDown, Camera } from 'lucide-react';
 interface ProfileSettingsProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+<<<<<<< Updated upstream
 }
 
 const ProfileSettings = ({ formData, handleChange }: ProfileSettingsProps) => {
+=======
+  user: any;
+  setUser: (user: any) => void;
+  errors?: { email?: string, phone?: string };
+}
+
+const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }: ProfileSettingsProps) => {
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    setMessage('');
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("avatar", file);
+
+    try {
+      const { ok, data } = await authAPI.uploadAvatar(formDataUpload);
+      if (ok && data.avatar) {
+        setMessage('Profile photo updated successfully!');
+        setUser({ ...user, avatar: data.avatar });
+      } else {
+        setMessage(data.message || 'Failed to upload photo.');
+      }
+    } catch (error) {
+      setMessage('An error occurred during photo upload.');
+    } finally {
+      setIsUploadingPhoto(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+>>>>>>> Stashed changes
 
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
@@ -38,9 +77,25 @@ const ProfileSettings = ({ formData, handleChange }: ProfileSettingsProps) => {
             <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
               Manage how your brand is perceived by elite clients and booking partners.
             </p>
+<<<<<<< Updated upstream
             <button className="mt-4 border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1]">
               Replace Media
             </button>
+=======
+            <input
+              type="file"
+              accept="image/*"
+              id="dj-avatar-upload"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+            <label
+              htmlFor="dj-avatar-upload"
+              className="mt-4 inline-block border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1] cursor-pointer"
+            >
+              {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
+            </label>
+>>>>>>> Stashed changes
           </div>
         </div>
 
@@ -88,7 +143,11 @@ const ProfileSettings = ({ formData, handleChange }: ProfileSettingsProps) => {
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
             <input
+<<<<<<< Updated upstream
               type="text"
+=======
+              type="tel"
+>>>>>>> Stashed changes
               name="phone"
               value={formData.phone}
               onChange={handleChange}

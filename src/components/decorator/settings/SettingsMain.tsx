@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import SettingsHeader from './SettingsHeader';
 import PersonalProfile from './PersonalProfile';
 import AccountSecurity from './AccountSecurity';
-import NotificationPreferences from './NotificationPreferences';
 import Footer from '../my_jobs/Footer';
 import { authAPI, decoratorAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { Check } from 'lucide-react';
 
 const SettingsMain = () => {
@@ -81,6 +81,9 @@ const SettingsMain = () => {
       if (res.ok) {
         setToastType('success');
         setToastMessage("Settings successfully updated!");
+        if (res.data?.data) {
+          useAuthStore.getState().updateUser(res.data.data);
+        }
       } else {
         setToastType('error');
         setToastMessage("Failed to update settings.");
@@ -118,8 +121,6 @@ const SettingsMain = () => {
             <AccountSecurity />
           </div>
         </div>
-
-        <NotificationPreferences />
       </div>
       <Footer />
 

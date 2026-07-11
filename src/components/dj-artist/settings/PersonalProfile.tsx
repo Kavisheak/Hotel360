@@ -1,22 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-<<<<<<< Updated upstream
-import { User, ChevronDown } from 'lucide-react';
-=======
 import { User, ChevronDown, Camera } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
->>>>>>> Stashed changes
 
 interface PersonalProfileProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-<<<<<<< Updated upstream
-}
-
-const PersonalProfile = ({ formData, handleChange }: PersonalProfileProps) => {
-=======
   user: any;
   setUser: (user: any) => void;
   errors?: { email?: string, phone?: string };
@@ -54,7 +45,6 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
       setTimeout(() => setMessage(''), 3000);
     }
   };
->>>>>>> Stashed changes
 
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
@@ -63,12 +53,10 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
         <div className="flex items-center space-x-2 border-b border-[#E0D8C3] pb-3 mb-6">
           <User size={16} className="text-[#B08D2C]" />
           <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">
-            PERSONAL PROFILE
+            DJ PERSONAL PROFILE
           </h3>
         </div>
 
-<<<<<<< Updated upstream
-=======
         {message && (
           <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
             {message}
@@ -79,7 +67,7 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
             <img
               src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=112&h=112"}
-              alt="Decorator profile portrait"
+              alt="DJ profile portrait"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-end bg-black/25 px-2 py-1 text-white">
@@ -90,17 +78,17 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           <div className="flex-1">
             <h4 className="text-[28px] font-serif text-gray-900 mb-2">Profile Picture</h4>
             <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
-              Upload a high-quality logo or portrait to display on the client directory.
+              Upload a professional portrait or logo to show clients and planners in the portal.
             </p>
             <input
               type="file"
               accept="image/*"
-              id="decorator-avatar-upload"
+              id="dj-avatar-upload"
               className="hidden"
               onChange={handlePhotoChange}
             />
             <label
-              htmlFor="decorator-avatar-upload"
+              htmlFor="dj-avatar-upload"
               className="mt-4 inline-block border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1] cursor-pointer"
             >
               {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
@@ -108,9 +96,38 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           </div>
         </div>
 
->>>>>>> Stashed changes
         {/* Inputs Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+          {/* Stage Name / Business Name */}
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+              STAGE NAME / DISPLAY NAME
+            </label>
+            <input
+              type="text"
+              name="shopName"
+              value={formData.shopName || ''}
+              onChange={handleChange}
+              placeholder="e.g. DJ Julian Saint-Clair"
+              className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+            />
+          </div>
+
+          {/* Starting Price */}
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+              STARTING PRICE (e.g. LKR 150,000)
+            </label>
+            <input
+              type="text"
+              name="startingPrice"
+              value={formData.startingPrice || ''}
+              onChange={handleChange}
+              placeholder="e.g. LKR 150,000"
+              className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+            />
+          </div>
+
           {/* Full Name */}
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
@@ -137,26 +154,21 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
+            {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
           </div>
 
           {/* Phone Number */}
           <div>
-<<<<<<< Updated upstream
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-              PHONE NUMBER
-            </label>
-            <input
-              type="text"
-=======
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
             <input
               type="tel"
->>>>>>> Stashed changes
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              placeholder="+94 77 123 4567"
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
+            {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
           </div>
 
           {/* Years of Experience */}
@@ -174,35 +186,117 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           </div>
         </div>
 
-        {/* Full-width select fields */}
-        <div className="space-y-5 mb-6">
-          {/* Decorator Specialty */}
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-              DECORATOR SPECIALTY
-            </label>
-            <div className="relative">
+        {/* Additional Vendor Details */}
+        <div className="border-t border-gray-100 pt-5 mb-5">
+          <p className="text-[10px] font-bold tracking-[0.15em] text-[#7C6A2E] uppercase mb-4">
+            ADDITIONAL VENDOR DETAILS & POLICIES
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Studio Address / Location */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                STUDIO ADDRESS / LOCATION
+              </label>
               <input
                 type="text"
-                name="specialty"
-                value={formData.specialty}
+                name="location"
+                value={formData.location || ''}
                 onChange={handleChange}
-                placeholder="e.g. Floral Architecture & Design"
+                placeholder="e.g. Colombo, Sri Lanka"
                 className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
               />
             </div>
-          </div>
 
-          {/* Website / Portfolio */}
+            {/* Events Completed */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                EVENTS COMPLETED (e.g. 250+)
+              </label>
+              <input
+                type="text"
+                name="eventsCompleted"
+                value={formData.eventsCompleted || ''}
+                onChange={handleChange}
+                placeholder="e.g. 250+"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
+            </div>
+
+            {/* Response Time */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                RESPONSE TIME (e.g. ~2 Hours)
+              </label>
+              <input
+                type="text"
+                name="responseTime"
+                value={formData.responseTime || ''}
+                onChange={handleChange}
+                placeholder="e.g. ~2 Hours"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
+            </div>
+
+            {/* Deposit Required */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                DEPOSIT REQUIRED (e.g. 30%)
+              </label>
+              <input
+                type="text"
+                name="depositReq"
+                value={formData.depositReq || ''}
+                onChange={handleChange}
+                placeholder="e.g. 30%"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
+            </div>
+
+            {/* Cancellation Policy */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                CANCELLATION POLICY (e.g. 14 Days Notice)
+              </label>
+              <input
+                type="text"
+                name="cancellation"
+                value={formData.cancellation || ''}
+                onChange={handleChange}
+                placeholder="e.g. 14 Days Notice"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
+            </div>
+
+            {/* Island-wide Availability */}
+            <div className="flex items-center mt-6">
+              <input
+                type="checkbox"
+                id="availableIslandWide"
+                name="availableIslandWide"
+                checked={!!formData.availableIslandWide}
+                onChange={handleChange}
+                className="w-4 h-4 accent-[#B08D2C] cursor-pointer"
+              />
+              <label htmlFor="availableIslandWide" className="ml-2 text-xs font-bold text-gray-600 tracking-wider uppercase cursor-pointer">
+                AVAILABLE ISLAND-WIDE
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Full-width select fields */}
+        <div className="space-y-5 mb-6">
+          {/* DJ Specialty / Genre */}
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-              WEBSITE / PORTFOLIO URL
+              DJ SPECIALTY / GENRE
             </label>
             <input
               type="text"
-              name="website"
-              value={formData.website}
+              name="specialty"
+              value={formData.specialty}
               onChange={handleChange}
+              placeholder="e.g. Open-Format, Deep House & R&B Classics"
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
           </div>
@@ -211,10 +305,10 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
         {/* Social Media links section */}
         <div className="border-t border-gray-100 pt-5 mb-5">
           <p className="text-[10px] font-bold tracking-[0.15em] text-[#7C6A2E] uppercase mb-4">
-            SOCIAL MEDIA LINKS
+            SOCIAL MEDIA & STREAMING LINKS
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {/* Instagram */}
             <div>
               <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
@@ -223,22 +317,39 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
               <input
                 type="text"
                 name="instagram"
-                value={formData.instagram}
+                value={formData.instagram || ''}
                 onChange={handleChange}
+                placeholder="e.g. @dj_julian"
                 className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
               />
             </div>
 
-            {/* Pinterest */}
+            {/* Spotify */}
             <div>
               <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                PINTEREST PROFILE
+                SPOTIFY LINK
               </label>
               <input
                 type="text"
-                name="pinterest"
-                value={formData.pinterest}
+                name="spotify"
+                value={formData.spotify || ''}
                 onChange={handleChange}
+                placeholder="e.g. spotify.com/artist/..."
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
+            </div>
+
+            {/* Soundcloud */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
+                SOUNDCLOUD PROFILE
+              </label>
+              <input
+                type="text"
+                name="soundcloud"
+                value={formData.soundcloud || ''}
+                onChange={handleChange}
+                placeholder="e.g. soundcloud.com/..."
                 className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
               />
             </div>

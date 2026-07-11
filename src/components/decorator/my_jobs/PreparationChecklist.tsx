@@ -32,6 +32,16 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    const updatedChecklist = booking.vendors?.decorator?.checklist;
+    if (updatedChecklist && updatedChecklist.length > 0) {
+      setTasks(updatedChecklist.map((c: any, i: number) => ({ id: i, text: c.task, completed: c.isCompleted })));
+    } else {
+      setTasks(defaultTasks);
+    }
+    setUploaded(booking.vendors?.decorator?.completionPhotos?.length > 0);
+  }, [booking._id, booking.vendors?.decorator?.checklist, booking.vendors?.decorator?.completionPhotos]);
+
   const toggleTask = async (id: number) => {
     const newTasks = tasks.map((t: any) => t.id === id ? { ...t, completed: !t.completed } : t);
     setTasks(newTasks);

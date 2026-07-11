@@ -10,6 +10,7 @@ interface Review {
   tags: string[];
 }
 
+<<<<<<< Updated upstream
 const reviewsData: Review[] = [
   {
     name: 'Eleanor Sterling',
@@ -46,6 +47,33 @@ const reviewsData: Review[] = [
 ];
 
 const RecentFeedback = () => {
+=======
+const RecentFeedback = ({ reviews, loading }: { reviews: any[]; loading: boolean }) => {
+  const [reviewsData, setReviewsData] = useState<Review[]>([]);
+
+  useEffect(() => {
+    if (reviews && Array.isArray(reviews)) {
+      const mappedReviews = reviews.map((r: any) => ({
+        id: r._id,
+        name: r.customerId ? `${r.customerId.firstName} ${r.customerId.lastName}`.trim() : "Customer",
+        event: "Videography Service",
+        avatar: r.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
+        rating: r.rating || 5,
+        comment: r.reviewText ? `"${r.reviewText}"` : '"No comment provided."',
+        tags: ["Videography"]
+      }));
+      setReviewsData(mappedReviews);
+    }
+  }, [reviews]);
+
+  const getAvatarUrl = (avatarUrl: string) => {
+    if (!avatarUrl) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120";
+    if (avatarUrl.startsWith('http')) return avatarUrl;
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    return `${base}${avatarUrl}`;
+  };
+
+>>>>>>> Stashed changes
   return (
     <div>
       {/* List Header */}
@@ -60,6 +88,7 @@ const RecentFeedback = () => {
         </button>
       </div>
 
+<<<<<<< Updated upstream
       {/* Review cards */}
       <div className="space-y-6 mb-8">
         {reviewsData.map((review, idx) => (
@@ -82,6 +111,68 @@ const RecentFeedback = () => {
                   <p className="text-[9px] font-bold tracking-wider text-[#A6955C] mt-0.5 uppercase">
                     {review.event}
                   </p>
+=======
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="animate-spin text-[#B08D2C]" size={32} />
+        </div>
+      ) : reviewsData.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">
+          No feedback received yet.
+        </div>
+      ) : (
+        <>
+          {/* Review cards */}
+          <div className="space-y-6 mb-8">
+            {reviewsData.map((review) => (
+              <div
+                key={review.id}
+                className="bg-white border border-[#E0D8C3] p-6 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between"
+              >
+                {/* Top row: Profile & Star Rating */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                  <div className="flex items-center space-x-3.5">
+                    <img
+                      src={getAvatarUrl(review.avatar)}
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover border border-[#E0D8C3]"
+                    />
+                    <div>
+                      <h4 className="text-base font-serif font-bold text-gray-900 leading-tight">
+                        {review.name}
+                      </h4>
+                      <p className="text-[9px] font-bold tracking-wider text-[#A6955C] mt-0.5 uppercase">
+                        {review.event}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-0.5 shrink-0 self-start sm:self-auto">
+                    {Array.from({ length: review.rating }).map((_, i) => (
+                      <Star key={`filled-${i}`} size={14} className="text-[#B08D2C] fill-[#B08D2C]" />
+                    ))}
+                    {Array.from({ length: 5 - review.rating }).map((_, i) => (
+                      <Star key={`empty-${i}`} size={14} className="text-[#E0D8C3]" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comment Section */}
+                <p className="text-xs sm:text-sm font-sans text-gray-600 leading-relaxed mb-5 font-medium pl-1">
+                  {review.comment}
+                </p>
+
+                {/* Bottom tags */}
+                <div className="flex flex-wrap gap-2">
+                  {review.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[9px] font-bold tracking-wider border border-[#E0D8C3] bg-[#FAF6EE] text-[#7C6A2E] px-3 py-1 rounded-sm uppercase"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+>>>>>>> Stashed changes
                 </div>
               </div>
 

@@ -133,12 +133,13 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
 
         {/* Client details & Visuals */}
         <DetailMiddle 
-          clientName={booking.clientName} 
-          clientSubtitle={booking.eventType} 
-          phone={booking.phone} 
-          email={booking.email} 
+          clientName={booking.clientName || (booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : "Valued Client")} 
+          clientSubtitle={booking.eventType || 'Event'} 
+          phone={booking.phone || booking.contactNumber || (booking.customerId ? booking.customerId.phone : "N/A")} 
+          email={booking.email || booking.clientEmail || (booking.customerId ? booking.customerId.email : "N/A")} 
+          clientAvatar={booking.customerId?.avatar}
           inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
-          inspirationCaption={`"${booking.menuType} package."`} 
+          inspirationCaption={`"${booking.menuType || 'Custom'} package."`} 
         />
 
         {/* Package components checklist & tasks */}

@@ -1,14 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+<<<<<<< Updated upstream
 import Header from './Header';
 import ProfileSettings from './ProfileSettings';
 import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import AvailabilitySettings from './AvailabilitySettings';
 import SecuritySettings from './SecuritySettings';
+=======
+import SettingsHeader from './SettingsHeader';
+import PersonalProfile from './PersonalProfile';
+import AccountSecurity from './AccountSecurity';
+>>>>>>> Stashed changes
 import Footer from '../overview/Footer';
+import { validateEmail, validatePhone } from '@/lib/validation';
 import { authAPI, djAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { Check } from 'lucide-react';
 
 const SettingsMain = () => {
@@ -16,8 +24,9 @@ const SettingsMain = () => {
     fullName: '',
     email: '',
     phone: '',
-    bio: '',
+    experience: '',
     specialty: '',
+    bio: '',
     instagram: '',
     spotify: '',
     soundcloud: '',
@@ -39,6 +48,7 @@ const SettingsMain = () => {
         const user = res.data.user;
         setUserId(user.id);
         setFormData({
+<<<<<<< Updated upstream
           fullName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '',
           email: user.email || '',
           phone: user.phone || '',
@@ -47,6 +57,25 @@ const SettingsMain = () => {
           instagram: user.vendorProfile?.instagram || '',
           spotify: user.vendorProfile?.spotify || '',
           soundcloud: user.vendorProfile?.soundcloud || '',
+=======
+          fullName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || '',
+          shopName: userData.shopName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          experience: userData.vendorProfile?.experience || '',
+          specialty: userData.vendorProfile?.specialty || '',
+          bio: userData.vendorProfile?.bio || '',
+          instagram: userData.vendorProfile?.instagram || '',
+          spotify: userData.vendorProfile?.spotify || '',
+          soundcloud: userData.vendorProfile?.soundcloud || '',
+          startingPrice: userData.vendorProfile?.startingPrice || '',
+          location: userData.vendorProfile?.location || '',
+          eventsCompleted: userData.vendorProfile?.eventsCompleted || '',
+          responseTime: userData.vendorProfile?.responseTime || '',
+          depositReq: userData.vendorProfile?.depositReq || '',
+          cancellation: userData.vendorProfile?.cancellation || '',
+          availableIslandWide: userData.vendorProfile?.availableIslandWide !== false,
+>>>>>>> Stashed changes
         });
       }
     } catch (e) {
@@ -56,9 +85,22 @@ const SettingsMain = () => {
     }
   };
 
+<<<<<<< Updated upstream
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+=======
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target as any;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+>>>>>>> Stashed changes
   };
 
   const handleSave = async () => {
@@ -70,8 +112,9 @@ const SettingsMain = () => {
         lastName: formData.fullName.split(' ').slice(1).join(' '),
         email: formData.email,
         phone: formData.phone,
-        bio: formData.bio,
+        experience: formData.experience,
         specialty: formData.specialty,
+        bio: formData.bio,
         instagram: formData.instagram,
         spotify: formData.spotify,
         soundcloud: formData.soundcloud,
@@ -79,6 +122,9 @@ const SettingsMain = () => {
       if (res.ok) {
         setToastType('success');
         setToastMessage("Settings successfully updated!");
+        if (res.data?.data) {
+          useAuthStore.getState().updateUser(res.data.data);
+        }
       } else {
         setToastType('error');
         setToastMessage("Failed to update settings.");
@@ -105,10 +151,10 @@ const SettingsMain = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
-      <main className="flex-1 flex flex-col bg-[#FDF9F1]">
-        <div className="px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
-          <Header onSave={handleSave} isSaving={saving} />
+      <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+        <SettingsHeader onSave={handleSave} isSaving={saving} />
 
+<<<<<<< Updated upstream
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)] gap-6 mb-6">
             <div className="space-y-6">
               <ProfileSettings formData={formData} handleChange={handleChange} />
@@ -120,9 +166,17 @@ const SettingsMain = () => {
               <NotificationSettings />
               <SecuritySettings />
             </div>
+=======
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <PersonalProfile formData={formData} handleChange={handleChange} user={user} setUser={setUser} errors={errors} />
+          </div>
+          <div>
+            <AccountSecurity />
+>>>>>>> Stashed changes
           </div>
         </div>
-      </main>
+      </div>
       <Footer />
 
       {/* Premium Toast Popup */}

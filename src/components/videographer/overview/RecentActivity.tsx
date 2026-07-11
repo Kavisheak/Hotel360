@@ -40,6 +40,35 @@ function statusClass(status: string) {
 }
 
 export default function RecentActivity() {
+<<<<<<< Updated upstream
+=======
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const { ok, data } = await videographerAPI.getAssignedBookings();
+        if (ok && data.success) {
+          const mapped = data.data.slice(0, 4).map((b: any) => ({
+            title: (`${b.eventType} for ${b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client")}`).toUpperCase(),
+            status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
+            note: b.vendors?.videographer?.packageName || "Custom Package",
+            date: new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
+            icon: <Calendar size={16} />,
+          }));
+          setActivities(mapped);
+        }
+      } catch (error) {
+        console.error("Error fetching activity:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchActivity();
+  }, []);
+
+>>>>>>> Stashed changes
   return (
     <article className="border border-[#E0D8C3] bg-[#FDF9F1] p-6 shadow-sm">
       <h2 className="mb-2 text-[28px] font-serif text-gray-800">Recent Activity</h2>

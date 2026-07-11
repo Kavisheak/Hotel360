@@ -1,7 +1,12 @@
 "use client";
 
+<<<<<<< Updated upstream
 import React, { useState } from "react";
 import { Upload, X, Search, ChevronDown } from "lucide-react";
+=======
+import React, { useState, useEffect } from "react";
+import { Upload, X, Search, ChevronDown, Loader2, Edit3, Trash2 } from "lucide-react";
+>>>>>>> Stashed changes
 import { useRouter } from "next/navigation";
 
 interface GalleryItem {
@@ -85,6 +90,60 @@ const GalleryGrid = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
+<<<<<<< Updated upstream
+=======
+  const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleDelete = async (itemId: string) => {
+    if (confirm("Are you sure you want to delete this project?")) {
+      try {
+        const res = await videographerAPI.deletePortfolioItem(itemId);
+        if (res.ok && res.data?.success) {
+          setGalleryData(prev => prev.filter(item => item.id !== itemId));
+          setPreviewItem(null);
+        } else {
+          alert(res.data?.message || "Failed to delete portfolio item");
+        }
+      } catch (error) {
+        console.error("Error deleting item:", error);
+        alert("Failed to delete portfolio item due to network error.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const { ok, data } = await videographerAPI.getPortfolioItems();
+        if (ok && data.success) {
+          const items = data.data.map((item: any) => {
+            const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+            const imageUrl = coverMedia?.url 
+              ? (coverMedia.url.startsWith('http') ? coverMedia.url : `${apiBase}${coverMedia.url}`)
+              : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
+
+            return {
+              id: item._id,
+              title: item.title || "Untitled Project",
+              category: item.category || "cinematography",
+              year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
+              image: imageUrl,
+              description: item.description || "A professionally captured project featuring cinematic storytelling.",
+            };
+          });
+          setGalleryData(items);
+        }
+      } catch (error) {
+        console.error("Failed to fetch portfolio:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPortfolio();
+  }, []);
+>>>>>>> Stashed changes
 
   const filtered = galleryData.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.category === activeCategory;
@@ -215,11 +274,17 @@ const GalleryGrid = () => {
                 A professionally captured {previewItem.category.toLowerCase()} project featuring cinematic storytelling, high-resolution footage, and seamless editing.
               </p>
               <div className="flex gap-3 mt-5">
-                <button className="flex-1 bg-[#7C6A2E] hover:bg-[#685724] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md">
-                  DOWNLOAD REEL
+                <button 
+                  onClick={() => router.push(`/videographer/gallery/edit/${previewItem.id}`)}
+                  className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-[#7C6A2E] py-2.5 text-xs font-bold tracking-widest transition-colors uppercase flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Edit3 size={14} /> EDIT
                 </button>
-                <button className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-700 py-2.5 text-xs font-bold tracking-widest transition-colors uppercase">
-                  SHARE PROJECT
+                <button 
+                  onClick={() => handleDelete(previewItem.id)}
+                  className="flex-1 bg-[#93000a] hover:bg-[#7a0008] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Trash2 size={14} /> DELETE
                 </button>
               </div>
             </div>

@@ -75,7 +75,41 @@ const BookingsGrid = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
+<<<<<<< Updated upstream
   const filteredBookings = bookingsData.filter(
+=======
+  useEffect(() => {
+    const fetchBookings = async () => {
+      setIsLoading(true);
+      try {
+        const { ok, data } = await videographerAPI.getAssignedBookings();
+        if (ok && data.success) {
+          const mappedBookings = data.data.map((b: any) => ({
+            _id: b._id,
+            code: b.bookingRef || `#VG-${Math.floor(Math.random() * 9000)}`,
+            status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
+            title: `${b.eventType} for ${b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client")}`,
+            eventName: b.eventType,
+            customer: b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client"),
+            date: new Date(b.date).toLocaleDateString() + " · " + (b.timeslot || "10:00 AM"),
+            location: b.location || "Venue TBD",
+            videoPackage: b.vendors?.videographer?.packageName || "Custom Package",
+            image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80",
+          }));
+          setBookings(mappedBookings);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  const filteredBookings = bookings.filter(
+>>>>>>> Stashed changes
     (booking) =>
       booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.location.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -52,6 +52,7 @@ const CalendarView = () => {
                 {d.date}
               </span>
 
+<<<<<<< Updated upstream
               {d.date === 5 && d.currentMonth && (
                 <div className="mt-auto space-y-0.5">
                   <div className="h-0.5 sm:h-1 bg-[#4A463B] w-full rounded-full" />
@@ -72,6 +73,26 @@ const CalendarView = () => {
               {d.date === 22 && d.currentMonth && (
                 <div className="mt-auto">
                   <div className="h-0.5 sm:h-1 bg-[#C75A5A] w-1/2 rounded-full" />
+=======
+              {dayBookings.length > 0 && (
+                <div className="mt-auto flex flex-col gap-1 w-full overflow-hidden">
+                  {dayBookings.map((b, idx) => {
+                     const status = b.vendors?.videographer?.status?.toUpperCase();
+                     let color = "bg-[#7C6A2E]"; // pending
+                     if (status === 'COMPLETED') color = "bg-[#5A87C7]";
+                     else if (status === 'ACCEPTED' || status === 'CONFIRMED') color = "bg-[#B08D2C]";
+                     return (
+                       <div 
+                         key={idx} 
+                         className={`${color} text-white text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm truncate leading-none w-full`}
+                         title={`${b.eventType} - ${b.clientName}`}
+                       >
+                         {b.eventType || "Event"}
+                       </div>
+                     );
+                  })}
+                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">SELECTED</span>}
+>>>>>>> Stashed changes
                 </div>
               )}
             </div>

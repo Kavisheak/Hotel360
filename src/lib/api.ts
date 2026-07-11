@@ -148,11 +148,39 @@ export const decoratorAPI = {
       body: formData,
     }),
   getRatings: () => apiFetch("/api/decorator/ratings"),
+<<<<<<< Updated upstream
   updateProfile: (body: any) =>
     apiFetch("/api/decorator/profile", {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+=======
+  updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
+};
+
+export const videographerAPI = {
+  getOverview: () => apiFetch("/api/videographer/overview"),
+  getProfile: () => apiFetch("/api/videographer/profile"),
+  getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
+  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
+  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
+    method: "POST",
+    body: formData,
+  }),
+  getPortfolioItems: () => apiFetch("/api/videographer/portfolio"),
+  createPortfolioItem: (formData: FormData) => apiFetch("/api/videographer/portfolio", {
+    method: "POST",
+    body: formData,
+  }),
+  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/videographer/portfolio/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  deletePortfolioItem: (id: string) => apiFetch(`/api/videographer/portfolio/${id}`, { method: "DELETE" }),
+  getRatings: () => apiFetch("/api/videographer/ratings"),
+  updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
+>>>>>>> Stashed changes
 };
 
 export const djAPI = {
