@@ -4,9 +4,10 @@ import { Shield } from 'lucide-react';
 interface AccountSettingsProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  errors?: {email?: string, phone?: string};
 }
 
-const AccountSettings = ({ formData, handleChange }: AccountSettingsProps) => {
+const AccountSettings = ({ formData, handleChange, errors = {} }: AccountSettingsProps) => {
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm">
       <div className="flex items-center space-x-2 border-b border-[#E0D8C3] pb-3 mb-6">
@@ -39,6 +40,7 @@ const AccountSettings = ({ formData, handleChange }: AccountSettingsProps) => {
             onChange={handleChange}
             className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
           />
+          {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
         </div>
       </div>
     </article>

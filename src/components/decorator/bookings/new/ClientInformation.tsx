@@ -1,7 +1,22 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { User } from 'lucide-react';
+import { validateEmail, validatePhone } from '@/lib/validation';
 
 const ClientInformation = () => {
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+
+  const handleBlur = (field: 'email' | 'phone') => {
+    if (field === 'email') {
+      if (email && !validateEmail(email)) setErrors(prev => ({ ...prev, email: "Please enter a valid email address." }));
+    }
+    if (field === 'phone') {
+      if (phone && !validatePhone(phone)) setErrors(prev => ({ ...prev, phone: "Please enter a valid Sri Lankan phone number." }));
+    }
+  };
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm">
       {/* Header */}
@@ -32,10 +47,17 @@ const ClientInformation = () => {
             PHONE NUMBER
           </label>
           <input
-            type="text"
-            placeholder="+1 (555) 000-0000"
+            type="tel"
+            placeholder="0771234567"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+            }}
+            onBlur={() => handleBlur('phone')}
             className="w-full px-4 py-3 text-sm border border-[#E0D8C3] bg-white text-gray-700 placeholder-gray-300 focus:outline-none focus:border-[#B08D2C]"
           />
+          {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
         </div>
       </div>
 
@@ -47,8 +69,15 @@ const ClientInformation = () => {
         <input
           type="email"
           placeholder="client@example.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errors.email) setErrors(prev => ({ ...prev, email: undefined }));
+          }}
+          onBlur={() => handleBlur('email')}
           className="w-full px-4 py-3 text-sm border border-[#E0D8C3] bg-white text-gray-700 placeholder-gray-300 focus:outline-none focus:border-[#B08D2C]"
         />
+        {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
       </div>
     </div>
   );

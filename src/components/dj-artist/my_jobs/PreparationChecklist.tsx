@@ -106,7 +106,7 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
   return (
     <div className="bg-[#FDF9F1] border border-[#E0D8C3] p-6 shadow-sm">
       <div className="space-y-4 mb-8">
-        {tasks.map(task => (
+        {tasks.map((task: any) => (
           <ChecklistItem 
             key={task.id} 
             text={task.text} 

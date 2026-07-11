@@ -4,12 +4,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { validateEmail, validatePhone } from "@/lib/validation";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { user, fetchUser, isLoading } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+    // Proceed with registration
+  };
 
   useEffect(() => {
     fetchUser();
@@ -17,12 +43,13 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      if      (user.role === "super_admin")   router.replace("/super-admin");
-      else if (user.role === "manager")       router.replace("/hotel-manager");
-      else if (user.role === "decorator")     router.replace("/decorator");
-      else if (user.role === "videographer")  router.replace("/videographer");
-      else if (user.role === "dj_artist")     router.replace("/dj-artist");
-      else                                    router.replace("/");
+      const role = user.role.toLowerCase();
+      if      (role === "super_admin")   router.replace("/super-admin");
+      else if (role === "manager")       router.replace("/hotel-manager");
+      else if (role === "decorator")     router.replace("/decorator");
+      else if (role === "videographer")  router.replace("/videographer");
+      else if (role === "dj_artist")     router.replace("/dj-artist");
+      else                               router.replace("/");
     }
   }, [isLoading, user, router]);
 
@@ -95,7 +122,7 @@ export default function RegisterPage() {
         </div>
 
         {/* RIGHT FORM */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-16">
+        <div className="w-[600px] flex-shrink-0 flex flex-col justify-center px-12 pb-16">
           <div className="w-full max-w-[540px] text-reveal stagger-2">
             {/* Heading */}
             <h2 className="text-[56px] leading-none font-semibold text-[#A67C52]">
@@ -107,7 +134,7 @@ export default function RegisterPage() {
             </p>
 
             {/* FORM */}
-            <form className="mt-14 space-y-8">
+            <form onSubmit={handleSubmit} className="mt-14 space-y-8">
               {/* Names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
@@ -144,8 +171,14 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors({ ...errors, email: undefined });
+                  }}
                   className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
+                {errors.email && <p className="text-red-500 text-[14px] mt-2">{errors.email}</p>}
               </div>
 
               {/* Phone */}
@@ -156,9 +189,15 @@ export default function RegisterPage() {
 
                 <input
                   type="tel"
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="0771234567"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (errors.phone) setErrors({ ...errors, phone: undefined });
+                  }}
                   className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
+                {errors.phone && <p className="text-red-500 text-[14px] mt-2">{errors.phone}</p>}
               </div>
 
               {/* Password */}

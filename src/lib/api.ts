@@ -148,13 +148,6 @@ export const decoratorAPI = {
       body: formData,
     }),
   getRatings: () => apiFetch("/api/decorator/ratings"),
-<<<<<<< Updated upstream
-  updateProfile: (body: any) =>
-    apiFetch("/api/decorator/profile", {
-      method: "PUT",
-      body: JSON.stringify(body),
-    }),
-=======
   updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
 
@@ -180,7 +173,6 @@ export const videographerAPI = {
   deletePortfolioItem: (id: string) => apiFetch(`/api/videographer/portfolio/${id}`, { method: "DELETE" }),
   getRatings: () => apiFetch("/api/videographer/ratings"),
   updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
->>>>>>> Stashed changes
 };
 
 export const djAPI = {

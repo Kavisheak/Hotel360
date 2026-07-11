@@ -17,14 +17,14 @@ export const packagesData: PackageData[] = [
     name: "Silver",
     priceLabel: "LKR 1.8M",
     priceValue: 1800000,
-    guestsLabel: "UP TO 200 GUESTS",
-    description: "An intimate option of refined essentials, curated for those who appreciate understated elegance.",
+    guestsLabel: "Up to 250 guests",
+    description: "An intimate ceremony of refined essentials, curated for those who appreciate understated elegance.",
     features: [
-      "Exclusive 4-Hour Ballroom Access",
-      "Gourmet Classic Buffet (3 main courses)",
+      "Exclusive 6-hour Ballroom Access",
+      "Gourmet Classic Buffet (5 main courses)",
       "Traditional welcome drink presentation",
       "Elegant stage backdrop & high-end bridal settee",
-      "Standard House PA & Ambient Warm Lighting",
+      "Standard House PA & Ambient Wash Lighting",
       "Dedicated On-Day Event Coordinator",
       "Bridal preparation & changing room",
       "Complimentary standard tablescapes"
@@ -36,16 +36,16 @@ export const packagesData: PackageData[] = [
     name: "Gold",
     priceLabel: "LKR 3.4M",
     priceValue: 3400000,
-    guestsLabel: "UP TO 350 GUESTS",
-    description: "Our most chosen offering — celebrated for its balance of luxury, creative and attention to detail.",
+    guestsLabel: "Up to 380 guests",
+    description: "Our most chosen offering — celebrated for its balance of luxury curation and extensive visual grandeur.",
     features: [
-      "Exclusive 8-Hour Ballroom & Terrace Access",
-      "Signature Premium Buffet (5 main courses)",
-      "Crafted premium mocktail on arrival",
-      "Suspended visual florals & custom aisle runway",
-      "Synchronized intelligent LED Lighting rig",
+      "Exclusive 6-hour Ballroom & Terrace Access",
+      "Signature Premium Buffet (7 main courses)",
+      "Crafted premium mocktails on arrival",
+      "Suspended visual florals & customized runway design",
+      "Synchronized Intelligent LED lighting rigs",
       "Full rehearsal coordination & dedicated concierge",
-      "Dedicated Bridal Car, Luxury Suite for the Couple",
+      "Dedicated Day-Use Luxury Suite for the Couple",
       "Floral table centerpieces & customized linens"
     ],
     image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800"
@@ -53,10 +53,10 @@ export const packagesData: PackageData[] = [
   {
     id: "pkg_diamond",
     name: "Diamond",
-    priceLabel: "LKR 5.0M",
-    priceValue: 5000000,
-    guestsLabel: "UP TO 450 GUESTS",
-    description: "A no-detail-left-out experience for those who want nothing but the highest standard of celebration.",
+    priceLabel: "LKR 5.9M",
+    priceValue: 5900000,
+    guestsLabel: "Up to 480 guests",
+    description: "A no-restraint affair — the entire venue is yours alone, designed with the highest tier of bespoke details.",
     features: [
       "Exclusive Full-Day Ballroom, Foyer & Garden Access",
       "Grand Culinary Buffet & Live carving station",
@@ -64,7 +64,7 @@ export const packagesData: PackageData[] = [
       "Imported floral architectural installs & custom vinyl dancefloor",
       "Club-spec sound system with dynamic synchronized lasers",
       "Dedicated Personal Liaison & full-scope coordinator support",
-      "Overnight stay in Exclusive Luxury Suite + Couple Breakfast",
+      "Overnight stay in Executive Luxury Suite + Couple Breakfast",
       "Opulent floral designs & custom-engraved stationery"
     ],
     image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800"

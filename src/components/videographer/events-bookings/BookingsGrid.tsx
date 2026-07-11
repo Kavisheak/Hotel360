@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   ChevronDown,
@@ -11,10 +11,12 @@ import {
   Video,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { videographerAPI } from "@/lib/api";
 
 interface Booking {
+  _id?: string;
   code: string;
-  status: "UPCOMING" | "CONFIRMED" | "COMPLETED";
+  status: "UPCOMING" | "CONFIRMED" | "COMPLETED" | "PENDING";
   title: string;
   eventName: string;
   customer: string;
@@ -74,10 +76,9 @@ const bookingsData: Booking[] = [
 const BookingsGrid = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>(bookingsData);
+  const [isLoading, setIsLoading] = useState(false);
 
-<<<<<<< Updated upstream
-  const filteredBookings = bookingsData.filter(
-=======
   useEffect(() => {
     const fetchBookings = async () => {
       setIsLoading(true);
@@ -109,7 +110,6 @@ const BookingsGrid = () => {
   }, []);
 
   const filteredBookings = bookings.filter(
->>>>>>> Stashed changes
     (booking) =>
       booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,84 +166,91 @@ const BookingsGrid = () => {
       </div>
 
       {/* Booking Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {filteredBookings.map((booking) => (
-          <div
-            key={booking.code}
-            className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300"
-          >
-            {/* Image */}
-            <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden group">
-              <img
-                src={booking.image}
-                alt={booking.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+      {isLoading ? (
+        <div className="text-center py-12 text-sm text-[#7C6A2E] animate-pulse">
+          Loading assigned bookings...
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {filteredBookings.map((booking) => (
+            <div
+              key={booking.code}
+              className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300"
+            >
+              {/* Image */}
+              <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden group">
+                <img
+                  src={booking.image}
+                  alt={booking.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
 
-              <div className="absolute inset-0 bg-black/5" />
-            </div>
+                <div className="absolute inset-0 bg-black/5" />
+              </div>
 
-            {/* Content */}
-            <div className="flex-1 p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${booking.status === "CONFIRMED"
-                        ? "bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]"
-                        : booking.status === "COMPLETED"
+              {/* Content */}
+              <div className="flex-1 p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${
+                        booking.status === "CONFIRMED"
+                          ? "bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]"
+                          : booking.status === "COMPLETED"
                           ? "bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]"
                           : "bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]"
                       }`}
+                    >
+                      {booking.status}
+                    </span>
+
+                    <span className="text-[10px] font-bold text-gray-400 tracking-wider">
+                      {booking.code}
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-1">
+                    {booking.title}
+                  </h3>
+
+                  <p className="text-xs text-gray-500 mb-3 font-serif italic">{booking.eventName}</p>
+
+                  <div className="space-y-1.5 mb-4 text-xs text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={13} className="text-[#A6955C]" />
+                      <span>{booking.date}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <MapPin size={13} className="text-[#A6955C]" />
+                      <span>{booking.location}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4">
+                    {booking.videoPackage}
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => router.push(`/videographer/events-bookings/${booking.code.replace('#', '')}`)}
+                    className="flex-1 border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase"
                   >
-                    {booking.status}
-                  </span>
-
-                  <span className="text-[10px] font-bold text-gray-400 tracking-wider">
-                    {booking.code}
-                  </span>
+                    VIEW DETAILS
+                  </button>
+                  <button
+                    className="flex items-center justify-center gap-1.5 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-600 px-4 py-2 text-xs font-bold tracking-widest transition-colors uppercase"
+                  >
+                    <Video size={12} />
+                    CONTACT
+                  </button>
                 </div>
-
-                <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-1">
-                  {booking.title}
-                </h3>
-
-                <p className="text-xs text-gray-500 mb-3 font-serif italic">{booking.eventName}</p>
-
-                <div className="space-y-1.5 mb-4 text-xs text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={13} className="text-[#A6955C]" />
-                    <span>{booking.date}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <MapPin size={13} className="text-[#A6955C]" />
-                    <span>{booking.location}</span>
-                  </div>
-                </div>
-
-                <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4">
-                  {booking.videoPackage}
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => router.push(`/videographer/events-bookings/${booking.code.replace('#', '')}`)}
-                  className="flex-1 border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase"
-                >
-                  VIEW DETAILS
-                </button>
-                <button
-                  className="flex items-center justify-center gap-1.5 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-600 px-4 py-2 text-xs font-bold tracking-widest transition-colors uppercase"
-                >
-                  <Video size={12} />
-                  CONTACT
-                </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex justify-center items-center space-x-2 my-12">

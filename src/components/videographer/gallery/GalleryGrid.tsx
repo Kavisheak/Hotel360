@@ -1,23 +1,20 @@
 "use client";
 
-<<<<<<< Updated upstream
-import React, { useState } from "react";
-import { Upload, X, Search, ChevronDown } from "lucide-react";
-=======
 import React, { useState, useEffect } from "react";
 import { Upload, X, Search, ChevronDown, Loader2, Edit3, Trash2 } from "lucide-react";
->>>>>>> Stashed changes
 import { useRouter } from "next/navigation";
+import { videographerAPI } from "@/lib/api";
 
 interface GalleryItem {
-  id: number;
+  id: string | number;
   title: string;
   category: string;
   year: string;
   image: string;
+  description?: string;
 }
 
-const galleryData: GalleryItem[] = [
+const mockGalleryData: GalleryItem[] = [
   {
     id: 1,
     title: "Sterling-Vance Wedding",
@@ -90,15 +87,13 @@ const GalleryGrid = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
-<<<<<<< Updated upstream
-=======
   const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleDelete = async (itemId: string) => {
+  const handleDelete = async (itemId: string | number) => {
     if (confirm("Are you sure you want to delete this project?")) {
       try {
-        const res = await videographerAPI.deletePortfolioItem(itemId);
+        const res = await videographerAPI.deletePortfolioItem(itemId.toString());
         if (res.ok && res.data?.success) {
           setGalleryData(prev => prev.filter(item => item.id !== itemId));
           setPreviewItem(null);
@@ -137,13 +132,14 @@ const GalleryGrid = () => {
         }
       } catch (error) {
         console.error("Failed to fetch portfolio:", error);
+        // Fall back to mock data if fetch fails
+        setGalleryData(mockGalleryData);
       } finally {
         setIsLoading(false);
       }
     };
     fetchPortfolio();
   }, []);
->>>>>>> Stashed changes
 
   const filtered = galleryData.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.category === activeCategory;
@@ -209,33 +205,40 @@ const GalleryGrid = () => {
         </div>
       </div>
 
-      {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-            onClick={() => setPreviewItem(item)}
-          >
-            <div className="relative h-52 overflow-hidden">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
-                  PREVIEW
-                </span>
+      {/* Gallery Grid / Loader */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-[#7C6A2E]">
+          <Loader2 className="w-8 h-8 animate-spin mb-4" />
+          <p className="text-xs font-bold tracking-wider uppercase">Loading Gallery Projects...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+              onClick={() => setPreviewItem(item)}
+            >
+              <div className="relative h-52 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
+                    PREVIEW
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
+                <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
               </div>
             </div>
-            <div className="p-4">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
-              <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Load More */}
       <div className="flex justify-center my-8">
@@ -271,7 +274,7 @@ const GalleryGrid = () => {
               <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{previewItem.category} · {previewItem.year}</span>
               <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                A professionally captured {previewItem.category.toLowerCase()} project featuring cinematic storytelling, high-resolution footage, and seamless editing.
+                {previewItem.description || `A professionally captured ${previewItem.category.toLowerCase()} project featuring cinematic storytelling.`}
               </p>
               <div className="flex gap-3 mt-5">
                 <button 

@@ -128,20 +128,66 @@ export default function BookingHistory() {
   };
 
   const renderVendorRow = (bookingId: string, serviceKey: string, vendorData: any, icon: any, label: string, categoryMatcher: string) => {
-    if (!vendorData || !vendorData.vendorId || vendorData.vendorId === "none") {
+    const bookingObj = bookings.find(b => b._id === bookingId);
+    const canModifyVendors = bookingObj && !["completed", "cancelled"].includes(bookingObj.status.toLowerCase());
+    const isSwappingThis = swappingService?.bookingId === bookingId && swappingService?.service === serviceKey;
+    const hasVendor = vendorData && typeof vendorData === 'object' && vendorData.vendorId && vendorData.vendorId !== "none";
+
+    const availableReplacements = vendors.filter(v => v.category === categoryMatcher && (!hasVendor || (v.id !== vendorData.vendorId && v.userId !== vendorData.vendorId)));
+
+    if (!hasVendor) {
       return (
-        <div className="flex items-center justify-between text-sm py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
-          <div className="flex items-center gap-2">{icon} {label}</div>
-          <span className="text-xs font-medium text-gray-400">Not Required</span>
+        <div className="flex flex-col text-sm py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">{icon} {label}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-400">Not Required</span>
+              {canModifyVendors && !isSwappingThis && (
+                <button 
+                  onClick={() => setSwappingService({ bookingId, service: serviceKey })}
+                  className="text-[10px] uppercase font-bold tracking-wider text-[#C9A84C] hover:text-[#B08D2C]"
+                >
+                  Add Vendor
+                </button>
+              )}
+            </div>
+          </div>
+          {isSwappingThis && (
+            <div className="mt-3 pl-6 bg-gray-50 dark:bg-[#1A1A1A] p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800">
+              <p className="text-[10px] uppercase font-bold text-[#A6955C] mb-2">Select Vendor</p>
+              <select 
+                value={selectedNewVendor}
+                onChange={(e) => setSelectedNewVendor(e.target.value)}
+                className="w-full text-xs p-1.5 border border-[#D4C9A8] dark:border-gray-700 bg-white dark:bg-[#111111] mb-2 text-[#1A1512] dark:text-white"
+              >
+                <option value="">-- Choose Vendor --</option>
+                {availableReplacements.map(rv => (
+                  <option key={rv.id} value={rv.id}>{rv.name} ({rv.priceLevelLabel})</option>
+                ))}
+              </select>
+              <div className="flex justify-end gap-2">
+                <button 
+                  onClick={() => setSwappingService(null)}
+                  className="text-[10px] uppercase font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => handleSwapSubmit(bookingId, serviceKey)}
+                  disabled={isSwapping}
+                  className="text-[10px] uppercase font-bold text-white bg-[#C69C6D] hover:bg-[#B58B5C] px-2 py-1 rounded-sm disabled:opacity-50"
+                >
+                  {isSwapping ? "Adding..." : "Add Vendor"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
 
-    const vDetails = vendors.find(v => v.id === vendorData.vendorId);
+    const vDetails = vendors.find(v => v.userId === vendorData.vendorId || v.id === vendorData.vendorId);
     const isPendingOrDeclined = vendorData.status.toLowerCase() === "pending" || vendorData.status.toLowerCase() === "declined";
-    const isSwappingThis = swappingService?.bookingId === bookingId && swappingService?.service === serviceKey;
-
-    const availableReplacements = vendors.filter(v => v.category === categoryMatcher && v.id !== vendorData.vendorId);
 
     return (
       <div className="flex flex-col text-sm py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
@@ -154,33 +200,69 @@ export default function BookingHistory() {
           </span>
         </div>
         
-        {vDetails && (
-          <div className="pl-6 space-y-1">
-            <p className="text-xs font-medium text-[#C69C6D]">{vDetails.name}</p>
-            <div className="flex items-center gap-4 text-[10px] text-gray-500">
-              <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {vDetails.id}@eascc.com</span>
-              <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> +94 77 000 0000</span>
-            </div>
+        <div className="pl-6 space-y-1">
+          <p className="text-xs font-medium text-[#C69C6D]">{vDetails ? vDetails.name : "Assigned Vendor"}</p>
+          <div className="flex items-center gap-4 text-[10px] text-gray-500">
+            <span className="flex items-center gap-1">
+              <Mail className="w-3 h-3" /> {vDetails?.contactEmail || (vDetails ? `${vDetails.id}@eascc.com` : "contact@eascc.com")}
+            </span>
+            <span className="flex items-center gap-1">
+              <Phone className="w-3 h-3" /> {vDetails?.contactPhone || "+94 77 000 0000"}
+            </span>
+          </div>
+          
+          <div className="flex gap-2 mt-2">
+            <button 
+              onClick={() => alert(`A design change request has been sent to ${vDetails ? vDetails.name : "the vendor"}. They will contact you shortly.`)}
+              className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#A6955C] hover:text-[#C69C6D] transition-colors"
+            >
+              <MessageSquare className="w-3 h-3" /> Request Change
+            </button>
             
-            <div className="flex gap-2 mt-2">
-              <button 
-                onClick={() => alert(`A design change request has been sent to ${vDetails.name}. They will contact you shortly.`)}
-                className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#A6955C] hover:text-[#C69C6D] transition-colors"
-              >
-                <MessageSquare className="w-3 h-3" /> Request Change
-              </button>
-              
-              {isPendingOrDeclined && !isSwappingThis && (
+            {canModifyVendors && (isPendingOrDeclined || vendorData.status.toLowerCase() === "rejected") && !isSwappingThis && (
+              <>
                 <button 
                   onClick={() => setSwappingService({ bookingId, service: serviceKey })}
-                  className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-red-500 hover:text-red-400 transition-colors ml-auto"
+                  className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#C9A84C] hover:text-[#B08D2C] transition-colors ml-auto"
                 >
-                  <RefreshCw className="w-3 h-3" /> Change Vendor
+                  <RefreshCw className="w-3 h-3" /> Change
                 </button>
-              )}
-            </div>
+                <button 
+                  onClick={async () => {
+                    if (confirm(`Are you sure you want to remove this ${serviceKey} vendor?`)) {
+                      setIsSwapping(true);
+                      try {
+                        const { ok, data } = await customerBookingAPI.swapVendor(bookingId, { service: serviceKey, newVendorId: "none" });
+                        if (ok && data.success) {
+                          alert("Vendor removed successfully!");
+                          await fetchBookings();
+                        } else {
+                          alert(data.message || "Failed to remove vendor");
+                        }
+                      } catch (e) {
+                        alert("Error removing vendor");
+                      } finally {
+                        setIsSwapping(false);
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-red-500 hover:text-red-400 transition-colors"
+                >
+                  Remove
+                </button>
+              </>
+            )}
+            
+            {!canModifyVendors && isPendingOrDeclined && !isSwappingThis && (
+              <button 
+                onClick={() => setSwappingService({ bookingId, service: serviceKey })}
+                className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-red-500 hover:text-red-400 transition-colors ml-auto"
+              >
+                <RefreshCw className="w-3 h-3" /> Change Vendor
+              </button>
+            )}
           </div>
-        )}
+        </div>
 
         {isSwappingThis && (
           <div className="mt-3 pl-6 bg-gray-50 dark:bg-[#1A1A1A] p-3 rounded-sm border border-[#E8DFC9] dark:border-gray-800">

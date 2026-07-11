@@ -35,7 +35,7 @@ export default function AccountOverview() {
     <div className="bg-white dark:bg-[#111111] border border-[#C9A84C]/30 rounded-lg shadow-[0_4px_20px_rgba(201,168,76,0.15)] hover:shadow-[0_8px_30px_rgba(201,168,76,0.25)] hover:border-[#C9A84C]/60 transition-all duration-300 overflow-hidden">
       {/* Cover Banner */}
       <div className="h-28 relative bg-[#FDFBF7] dark:bg-[#1A1A1A]">
-        <Image src="/luxury_ballroom_bg.png" alt="Banner" fill className="object-cover opacity-60 dark:opacity-40" />
+        <Image src="/luxury_ballroom_bg.png" alt="Banner" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover opacity-60 dark:opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
       </div>
 

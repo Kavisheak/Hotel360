@@ -1,22 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-<<<<<<< Updated upstream
-import { User, ChevronDown } from 'lucide-react';
-=======
 import { User, ChevronDown, Camera } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
->>>>>>> Stashed changes
 
 interface PersonalProfileProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-<<<<<<< Updated upstream
-}
-
-const PersonalProfile = ({ formData, handleChange }: PersonalProfileProps) => {
-=======
   user: any;
   setUser: (user: any) => void;
   errors?: { email?: string, phone?: string };
@@ -54,7 +45,6 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
       setTimeout(() => setMessage(''), 3000);
     }
   };
->>>>>>> Stashed changes
 
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
@@ -67,8 +57,6 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           </h3>
         </div>
 
-<<<<<<< Updated upstream
-=======
         {message && (
           <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
             {message}
@@ -108,7 +96,6 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
           </div>
         </div>
 
->>>>>>> Stashed changes
         {/* Inputs Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           {/* Full Name */}
@@ -141,17 +128,11 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
 
           {/* Phone Number */}
           <div>
-<<<<<<< Updated upstream
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
               PHONE NUMBER
             </label>
             <input
-              type="text"
-=======
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
-            <input
               type="tel"
->>>>>>> Stashed changes
               name="phone"
               value={formData.phone}
               onChange={handleChange}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { SectionTitle } from './SectionTitle';
 import { useAuthStore } from '@/store/authStore';
 import { authAPI } from '@/lib/api';
+import { validatePhone } from '@/lib/validation';
 
 const PersonalProfile = () => {
   const { user, fetchUser, updateUser } = useAuthStore();
@@ -15,6 +16,7 @@ const PersonalProfile = () => {
     language: 'English (UK)'
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -36,9 +38,15 @@ const PersonalProfile = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (e.target.name === 'phone' && error) setError('');
   };
 
   const handleSave = async () => {
+    if (!validatePhone(formData.phone)) {
+      setError('Please enter a valid Sri Lankan phone number.');
+      return;
+    }
+    setError('');
     setIsSaving(true);
     const res = await authAPI.updateProfile({
       firstName: formData.firstName,
@@ -80,7 +88,8 @@ const PersonalProfile = () => {
           </div>
           <div>
             <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
-            <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+            {error && <p className="text-red-500 text-[10px] mt-1">{error}</p>}
           </div>
           <div className="md:col-span-2">
             <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Language Preference</label>

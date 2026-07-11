@@ -26,11 +26,20 @@ export interface Vendor {
   priceLevelLabel: string;
   startingPrice: string;
   image: string;
+  avatar?: string;
   specialties: string[];
   description: string;
   portfolio: string[];
   packages: VendorPackage[];
   reviews: VendorReview[];
+  location?: string;
+  eventsCompleted?: string;
+  responseTime?: string;
+  depositReq?: string;
+  cancellation?: string;
+  availableIslandWide?: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 

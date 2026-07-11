@@ -1,11 +1,11 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Award, Info, ArrowRight, Heart } from "lucide-react";
+import { Star, Award, Info, ArrowRight, Heart, CalendarPlus } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
-import LoginRequiredModal from "@/components/Landing/shared/LoginRequiredModal";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface VendorCardsProps {
   filteredVendors: Vendor[];
@@ -19,7 +19,7 @@ export default function VendorCards({
   isGuest = true
 }: VendorCardsProps) {
   const router = useRouter();
-  const { favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
+  const { favoriteVendors, toggleFavoriteVendor, toggleVendorInEventPlan, isVendorInEventPlan } = useVendorCartStore();
   
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState("");
@@ -53,6 +53,7 @@ export default function VendorCards({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredVendors.map((vendor, index) => {
             const isFavorite = favoriteVendors?.includes(vendor.id) || false;
+            const isInEventPlan = isVendorInEventPlan(vendor.id, vendor.category as any);
             
             return (
               <div 
@@ -61,12 +62,10 @@ export default function VendorCards({
             >
               {/* Image Wrap & Category Tag Overlay */}
               <div className="relative h-56 w-full overflow-hidden bg-gray-200">
-                <Image
+                <img
                   src={vendor.image}
                   alt={vendor.name}
-                  fill
-                  sizes="(min-width: 1024px) 30vw, 50vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2C1E14]/50 via-transparent to-transparent pointer-events-none" />
                 
@@ -78,8 +77,16 @@ export default function VendorCards({
                 {/* Quick Actions */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                   <button 
+                    onClick={() => handleRestrictedAction("Please log in to add vendors to your event plan.", () => toggleVendorInEventPlan(vendor.id, vendor.category as any))} 
+                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isInEventPlan ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
+                    title={isInEventPlan ? "Remove from Event Plan" : "Add to Event Plan"}
+                  >
+                    <CalendarPlus className={`w-4 h-4 ${isInEventPlan ? 'text-white dark:text-[#1A1A1A]' : ''}`} />
+                  </button>
+                  <button 
                     onClick={() => handleRestrictedAction("Please log in to add vendors to your favorites list.", () => toggleFavoriteVendor(vendor.id))} 
                     className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isFavorite ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
+                    title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white dark:fill-[#1A1A1A]' : ''}`} />
                   </button>
@@ -100,9 +107,18 @@ export default function VendorCards({
                     <span className="font-extrabold text-[#D4AF37] dark:text-[#C9A84C]">{vendor.startingPrice} starting</span>
                   </div>
 
-                  <h3 className="text-xl font-serif text-[#2C1E14] dark:text-white leading-tight">
-                    {vendor.name}
-                  </h3>
+                  <div className="flex items-center gap-3">
+                    {vendor.avatar && (
+                      <img 
+                        src={vendor.avatar} 
+                        alt={vendor.name} 
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#1A1A1A] shadow-md z-10"
+                      />
+                    )}
+                    <h3 className="text-xl font-serif text-[#2C1E14] dark:text-white leading-tight">
+                      {vendor.name}
+                    </h3>
+                  </div>
 
                   <p className="text-xs text-gray-700 dark:text-gray-400 font-light line-clamp-3 leading-relaxed">
                     {vendor.description}

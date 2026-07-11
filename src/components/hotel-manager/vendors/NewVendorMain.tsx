@@ -4,12 +4,14 @@ import { ArrowLeft, User, Mail, Phone, Lock, Save, CheckCircle2, ShieldCheck, Ta
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { staffAPI } from '@/lib/api';
+import { validateEmail, validatePhone } from '@/lib/validation';
 
 const NewVendorMain = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    shopName: '',
     email: '',
     phone: '',
     role: 'decorator',
@@ -18,6 +20,7 @@ const NewVendorMain = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{name: string, email: string} | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
 
   const generatePassword = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
@@ -30,6 +33,26 @@ const NewVendorMain = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      setErrorDetails('Please fix the validation errors.');
+      setTimeout(() => setErrorDetails(null), 3000);
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -77,85 +100,119 @@ const NewVendorMain = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-white border border-[#E0D8C3] shadow-sm overflow-hidden">
               <div className="bg-[#FAF6EE] p-6 border-b border-[#E0D8C3]">
-                <h3 className="text-sm font-bold tracking-widest uppercase text-[#7C6A2E] flex items-center gap-2">
-                  <User size={16} /> Vendor Profile Details
+                <h3 className="text-sm font-bold tracking-widest uppercase text-[#7C6A2E] flex items-center gap-2 font-serif">
+                  <User size={16} /> Partner Registration Form
                 </h3>
               </div>
               
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="p-8 space-y-8 divide-y divide-[#E0D8C3]">
+                {/* Subsection 1: Business Details */}
+                <div className="space-y-6">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#7C6A2E] flex items-center gap-2">
+                    <Tag size={14} /> 1. Business Profile Details
+                  </h4>
+                  
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">First Name</label>
+                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Shop Name / Business Name</label>
                     <input 
                       required
                       type="text" 
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      value={formData.shopName}
+                      onChange={(e) => setFormData({...formData, shopName: e.target.value})}
+                      placeholder="e.g. Gilded Floral & Co."
                       className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Last Name</label>
-                    <input 
-                      required
-                      type="text" 
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-1">
-                      <Mail size={12}/> Email Address
-                    </label>
-                    <input 
-                      required
-                      type="email" 
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-1">
-                      <Phone size={12}/> Contact Number
-                    </label>
-                    <div className="flex">
-                      <span className="bg-[#FAF6EE] border border-[#E0D8C3] border-r-0 px-3 py-2.5 text-gray-500 text-sm flex items-center">
-                        +94
-                      </span>
-                      <input 
-                        required
-                        type="tel" 
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
-                      />
+                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-3">Service Category</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { id: 'decorator', label: 'Decorator' },
+                        { id: 'videographer', label: 'Videography' },
+                        { id: 'dj_artist', label: 'DJ / Music' }
+                      ].map(role => (
+                        <div 
+                          key={role.id}
+                          onClick={() => setFormData({...formData, role: role.id})}
+                          className={`border p-3 cursor-pointer text-center transition-colors ${formData.role === role.id ? 'border-[#B08D2C] bg-[#FDF9F1] ring-1 ring-[#B08D2C]' : 'border-[#E0D8C3] hover:border-[#B08D2C] bg-white'}`}
+                        >
+                          <p className={`text-xs font-bold uppercase tracking-widest ${formData.role === role.id ? 'text-[#7C6A2E]' : 'text-gray-600'}`}>
+                            {role.label}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-3">Service Category</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[
-                      { id: 'decorator', label: 'Decorator' },
-                      { id: 'videographer', label: 'Videography' },
-                      { id: 'dj_artist', label: 'DJ / Music' }
-                    ].map(role => (
-                      <div 
-                        key={role.id}
-                        onClick={() => setFormData({...formData, role: role.id})}
-                        className={`border p-3 cursor-pointer text-center transition-colors ${formData.role === role.id ? 'border-[#B08D2C] bg-[#FDF9F1] ring-1 ring-[#B08D2C]' : 'border-[#E0D8C3] hover:border-[#B08D2C] bg-white'}`}
-                      >
-                        <p className={`text-xs font-bold uppercase tracking-widest ${formData.role === role.id ? 'text-[#7C6A2E]' : 'text-gray-600'}`}>
-                          {role.label}
-                        </p>
+                {/* Subsection 2: Owner Details */}
+                <div className="space-y-6 pt-8">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#7C6A2E] flex items-center gap-2">
+                    <User size={14} /> 2. Owner &amp; Representative Contact
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">First Name</label>
+                      <input 
+                        required
+                        type="text" 
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Last Name</label>
+                      <input 
+                        required
+                        type="text" 
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-1">
+                        <Mail size={12}/> Email Address
+                      </label>
+                      <input 
+                        required
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => {
+                          setFormData({...formData, email: e.target.value});
+                          if (errors.email) setErrors({ ...errors, email: undefined });
+                        }}
+                        className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
+                      />
+                      {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2 flex items-center gap-1">
+                        <Phone size={12}/> Contact Number
+                      </label>
+                      <div className="flex">
+                        <span className="bg-[#FAF6EE] border border-[#E0D8C3] border-r-0 px-3 py-2.5 text-gray-500 text-sm flex items-center">
+                          +94
+                        </span>
+                        <input 
+                          required
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            setFormData({...formData, phone: e.target.value});
+                            if (errors.phone) setErrors({ ...errors, phone: undefined });
+                          }}
+                          className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
+                        />
+                        {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               </div>

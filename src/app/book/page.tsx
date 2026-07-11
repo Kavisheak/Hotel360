@@ -9,10 +9,7 @@ import CostBreakdown from "@/components/Landing/book/CostBreakdown";
 import TrustDivider from "@/components/Landing/book/TrustDivider";
 import TimeRangeSelector from "@/components/Landing/book/TimeRangeSelector";
 import PackageSelector from "@/components/Landing/book/PackageSelector";
-<<<<<<< Updated upstream
 import GuestCounter from "@/components/Landing/book/GuestCounter";
-=======
->>>>>>> Stashed changes
 import BookingVendorSelector from "@/components/Landing/book/BookingVendorSelector";
 import BookingMenuSelector from "@/components/Landing/book/BookingMenuSelector";
 import BookingForm from "@/components/Landing/book/BookingForm";

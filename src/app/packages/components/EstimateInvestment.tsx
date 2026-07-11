@@ -80,21 +80,21 @@ export default function EstimateInvestment() {
               Estimated Total (Gold Basis)
             </p>
             <p className="text-4xl md:text-5xl font-serif text-[#C9A84C] mb-8">
-              LKR {(totalCost / 1000000).toFixed(2)}M
+              LKR {totalCost.toLocaleString()}
             </p>
 
             <div className="space-y-3 text-sm text-gray-200 dark:text-gray-300 font-light border-t border-[#F0E6D0]/20 dark:border-white/10 pt-6">
               <div className="flex justify-between">
                 <span>Base Package</span>
-                <span>LKR {(baseGoldPrice / 1000000).toFixed(2)}M</span>
+                <span>LKR {baseGoldPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span>Food & Catering ({guests} pax)</span>
-                <span>LKR {(foodTotal / 1000000).toFixed(2)}M</span>
+                <span>LKR {foodTotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-[#D4BD6E] dark:text-[#C9A84C]">
                 <span>Time Slot Premium</span>
-                <span>+ LKR {(timeSlotPremium / 1000000).toFixed(2)}M</span>
+                <span>+ LKR {timeSlotPremium.toLocaleString()}</span>
               </div>
             </div>
           </div>

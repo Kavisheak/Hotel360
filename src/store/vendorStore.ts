@@ -16,6 +16,7 @@ export interface VendorReview {
 
 export interface Vendor {
   id: string;
+  userId?: string;
   name: string;
   category: "decorators" | "djs" | "videographers" | "others";
   categoryLabel: string;
@@ -25,18 +26,27 @@ export interface Vendor {
   priceLevelLabel: string;
   startingPrice: string;
   image: string;
+  avatar?: string;
   specialties: string[];
   description: string;
   portfolio: string[];
   packages: VendorPackage[];
   reviews: VendorReview[];
+  location?: string;
+  eventsCompleted?: string;
+  responseTime?: string;
+  depositReq?: string;
+  cancellation?: string;
+  availableIslandWide?: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 interface VendorState {
   vendors: Vendor[];
   isLoading: boolean;
   error: string | null;
-  fetchVendors: () => Promise<void>;
+  fetchVendors: (force?: boolean) => Promise<void>;
 }
 
 // Ensure the API url is fetched from environment
@@ -47,9 +57,9 @@ export const useVendorStore = create<VendorState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchVendors: async () => {
-    // Only fetch if we don't already have vendors to avoid redundant calls
-    if (get().vendors.length > 0) return;
+  fetchVendors: async (force = true) => {
+    // Only fetch if we don't already have vendors, unless forced (which is the default)
+    if (get().vendors.length > 0 && !force) return;
 
     set({ isLoading: true, error: null });
     try {
@@ -72,6 +82,7 @@ export const useVendorStore = create<VendorState>((set, get) => ({
             priceLevelLabel: 'Luxury',
             startingPrice: 'LKR 850,000',
             image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80',
+            avatar: '',
             specialties: ['Floral Architecture', 'Ambient Lighting', 'Custom Stages'],
             description: 'Renowned for breathtaking floral installations and atmospheric lighting that transforms spaces into magical realms. We focus on bespoke, high-end luxury concepts.',
             portfolio: [
@@ -93,6 +104,7 @@ export const useVendorStore = create<VendorState>((set, get) => ({
             priceLevelLabel: 'Premium',
             startingPrice: 'LKR 150,000',
             image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+            avatar: '',
             specialties: ['Premium Sound', 'Live Mixing', 'Dancefloor Lighting'],
             description: 'Bringing the ultimate energy to your event with curated playlists and seamless live mixing. State of the art sound system included.',
             portfolio: [
@@ -112,6 +124,7 @@ export const useVendorStore = create<VendorState>((set, get) => ({
             priceLevelLabel: 'Elite',
             startingPrice: 'LKR 450,000',
             image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+            avatar: '',
             specialties: ['Drone Footage', '4K Cinematic Edit', 'Same-Day Edit'],
             description: 'Award-winning visual storytelling. We capture the raw emotion and grand scale of your luxury events with cinematic precision.',
             portfolio: [

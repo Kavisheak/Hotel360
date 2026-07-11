@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Vendor } from "@/components/Landing/vendors/types";
+import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
 import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones } from "lucide-react";
 
@@ -66,32 +66,34 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
                 </div>
               </section>
 
-              <section className="space-y-6">
-                <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">Location</h3>
-                <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-6 rounded-sm shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-[#FAF6EE] dark:bg-black rounded-sm shrink-0 border border-[#E8DFC9]/50 dark:border-white/5">
-                      <MapPin className="w-5 h-5 text-[#C69C6D]" />
+              {vendor.location && (
+                <section className="space-y-6">
+                  <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">Location</h3>
+                  <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-6 rounded-sm shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-[#FAF6EE] dark:bg-black rounded-sm shrink-0 border border-[#E8DFC9]/50 dark:border-white/5">
+                        <MapPin className="w-5 h-5 text-[#C69C6D]" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#1A1512] dark:text-white">Main Studio</h4>
+                        <p className="text-gray-500 text-sm mt-1">
+                          {vendor.location}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-2">Visits by appointment only.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-[#1A1512] dark:text-white">Main Studio</h4>
-                      <p className="text-gray-500 text-sm mt-1">
-                        {((vendor as any).location) || "75/1 Barnes Place, Colombo 07, Sri Lanka"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">Visits by appointment only.</p>
-                    </div>
+                    <button className="shrink-0 px-6 py-2 border border-[#E8DFC9] dark:border-white/10 text-[#C69C6D] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                      Get Directions
+                    </button>
                   </div>
-                  <button className="shrink-0 px-6 py-2 border border-[#E8DFC9] dark:border-white/10 text-[#C69C6D] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    Get Directions
-                  </button>
-                </div>
-                {/* Embedded Map Dummy */}
-                <div className="w-full h-[300px] bg-[#FAF6EE]/50 dark:bg-[#111315] rounded-sm relative overflow-hidden flex flex-col items-center justify-center border border-[#E8DFC9] dark:border-white/10">
-                  <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')]"></div>
-                  <MapPin className="w-10 h-10 text-[#C69C6D] relative z-10 drop-shadow-md mb-2" />
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-gray-400 relative z-10">Map View</span>
-                </div>
-              </section>
+                  {/* Embedded Map Dummy */}
+                  <div className="w-full h-[300px] bg-[#FAF6EE]/50 dark:bg-[#111315] rounded-sm relative overflow-hidden flex flex-col items-center justify-center border border-[#E8DFC9] dark:border-white/10">
+                    <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')]"></div>
+                    <MapPin className="w-10 h-10 text-[#C69C6D] relative z-10 drop-shadow-md mb-2" />
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-gray-400 relative z-10">Map View</span>
+                  </div>
+                </section>
+              )}
             </div>
           )}
 
@@ -254,18 +256,24 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
                   <span className="text-gray-500">Category</span>
                   <span className="font-semibold text-[#1A1512] dark:text-white">{vendor.categoryLabel}</span>
                 </li>
-                <li className="flex justify-between border-b border-[#E8DFC9] dark:border-white/10 pb-3">
-                  <span className="text-gray-500">Response Time</span>
-                  <span className="font-semibold text-[#1A1512] dark:text-white">~24 Hours</span>
-                </li>
-                <li className="flex justify-between border-b border-[#E8DFC9] dark:border-white/10 pb-3">
-                  <span className="text-gray-500">Deposit Req.</span>
-                  <span className="font-semibold text-[#1A1512] dark:text-white">50%</span>
-                </li>
-                <li className="flex justify-between pb-1">
-                  <span className="text-gray-500">Cancellation</span>
-                  <span className="font-semibold text-[#1A1512] dark:text-white">Flexible</span>
-                </li>
+                {vendor.responseTime && (
+                  <li className="flex justify-between border-b border-[#E8DFC9] dark:border-white/10 pb-3">
+                    <span className="text-gray-500">Response Time</span>
+                    <span className="font-semibold text-[#1A1512] dark:text-white">{vendor.responseTime}</span>
+                  </li>
+                )}
+                {vendor.depositReq && (
+                  <li className="flex justify-between border-b border-[#E8DFC9] dark:border-white/10 pb-3">
+                    <span className="text-gray-500">Deposit Req.</span>
+                    <span className="font-semibold text-[#1A1512] dark:text-white">{vendor.depositReq}</span>
+                  </li>
+                )}
+                {vendor.cancellation && (
+                  <li className="flex justify-between pb-1">
+                    <span className="text-gray-500">Cancellation</span>
+                    <span className="font-semibold text-[#1A1512] dark:text-white">{vendor.cancellation}</span>
+                  </li>
+                )}
               </ul>
             </div>
             
@@ -284,13 +292,17 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
               <Star className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
               <span className="text-sm text-gray-600 dark:text-gray-400">{vendor.reviewsCount} Reviews</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
-              <span className="text-sm text-gray-600 dark:text-gray-400">{((vendor as any).eventsCompleted) || "120+"} Events Completed</span>
-            </div>
+            {vendor.eventsCompleted && (
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
+                <span className="text-sm text-gray-600 dark:text-gray-400">{vendor.eventsCompleted} Events Completed</span>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <Truck className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Available Island-wide</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {vendor.availableIslandWide !== false ? "Available Island-wide" : "Available Locally Only"}
+              </span>
             </div>
           </div>
         </div>

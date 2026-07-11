@@ -15,32 +15,57 @@ export interface AuthUser {
   twoFactorEnabled?: boolean;
   preferences?: any;
   notifications?: any;
+  favoriteVendors?: string[];
   savedCards?: any[];
+  vendorProfile?: any;
   createdAt: string;
 }
 
 interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
+  hasFetched: boolean;
+  isFetching: boolean;
   error: string | null;
-  fetchUser: () => Promise<void>;
+  fetchUser: (force?: boolean) => Promise<void>;
   updateUser: (user: Partial<AuthUser>) => void;
   clearUser: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
+  hasFetched: false,
+  isFetching: false,
   error: null,
 
-  fetchUser: async () => {
-    set({ isLoading: true, error: null });
-    const { ok, data } = await authAPI.getMe();
+  fetchUser: async (force = false) => {
+    const state = get();
+    if (state.hasFetched && !force) return;
     
-    if (ok && data.user) {
-      set({ user: data.user, isLoading: false });
-    } else {
-      set({ user: null, isLoading: false, error: data?.message || "Failed to fetch user" });
+    // Prevent duplicate concurrent requests using isFetching
+    if (state.isFetching) return;
+
+    set({ isFetching: true });
+    if (!state.user) {
+      set({ isLoading: true, error: null });
+    }
+
+    try {
+      const { ok, data } = await authAPI.getMe();
+      
+      if (ok && data.user) {
+        set({ user: data.user, isLoading: false, hasFetched: true, isFetching: false });
+        
+        // Sync favorites with vendorCartStore
+        import("./vendorCartStore").then(({ useVendorCartStore }) => {
+          useVendorCartStore.getState().setFavoriteVendors(data.user.favoriteVendors || []);
+        });
+      } else {
+        set({ user: null, isLoading: false, hasFetched: true, isFetching: false, error: data?.message || "Failed to fetch user" });
+      }
+    } catch (error: any) {
+      set({ isLoading: false, hasFetched: true, isFetching: false, error: error.message || "Failed to fetch user" });
     }
   },
 
@@ -48,5 +73,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     user: state.user ? { ...state.user, ...updatedFields } : null
   })),
 
-  clearUser: () => set({ user: null, error: null })
+  clearUser: () => {
+    set({ user: null, error: null, hasFetched: false, isFetching: false });
+    import("./vendorCartStore").then(({ useVendorCartStore }) => {
+      useVendorCartStore.getState().clearCart();
+    });
+  }
 }));

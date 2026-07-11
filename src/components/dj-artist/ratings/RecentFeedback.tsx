@@ -37,7 +37,8 @@ const reviewsData: Review[] = [
   }
 ];
 
-const RecentFeedback = () => {
+const RecentFeedback = ({ reviews, loading }: { reviews?: any[]; loading?: boolean }) => {
+  const displayReviews = reviews && reviews.length > 0 ? reviews : reviewsData;
   return (
     <div>
       {/* List Header */}
@@ -55,55 +56,64 @@ const RecentFeedback = () => {
 
       {/* Review cards vertical layout */}
       <div className="space-y-6 mb-8">
-        {reviewsData.map((review, idx) => (
-          <div
-            key={idx}
-            className="bg-white border border-[#E0D8C3] p-6 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between"
-          >
-            {/* Top row: Profile & Star Rating */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="flex items-center space-x-3.5">
-                <img
-                  src={review.avatar}
-                  alt={review.name}
-                  className="w-12 h-12 rounded-full object-cover border border-[#E0D8C3]"
-                />
-                <div>
-                  <h4 className="text-base font-serif font-bold text-gray-900 leading-tight">
-                    {review.name}
-                  </h4>
-                  <p className="text-[9px] font-bold tracking-wider text-[#A6955C] mt-0.5 uppercase">
-                    {review.event}
-                  </p>
+        {displayReviews.map((review, idx) => {
+          const isReal = !!review.customerId;
+          const name = isReal ? `${review.customerId?.firstName} ${review.customerId?.lastName}`.trim() : review.name;
+          const avatar = isReal ? review.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120" : review.avatar;
+          const comment = isReal ? (review.reviewText ? `“${review.reviewText}”` : '"No comment provided."') : review.comment;
+          const event = isReal ? (review.bookingId?.eventType || "Music Service") : review.event;
+          const tags = isReal ? (review.tags || ["DJ Artist"]) : (review.tags || []);
+          
+          return (
+            <div
+              key={idx}
+              className="bg-white border border-[#E0D8C3] p-6 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between"
+            >
+              {/* Top row: Profile & Star Rating */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex items-center space-x-3.5">
+                  <img
+                    src={avatar}
+                    alt={name}
+                    className="w-12 h-12 rounded-full object-cover border border-[#E0D8C3]"
+                  />
+                  <div>
+                    <h4 className="text-base font-serif font-bold text-gray-900 leading-tight">
+                      {name}
+                    </h4>
+                    <p className="text-[9px] font-bold tracking-wider text-[#A6955C] mt-0.5 uppercase">
+                      {event}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Star rating alignment */}
+                <div className="flex space-x-0.5 shrink-0 self-start sm:self-auto">
+                  {Array.from({ length: review.rating }).map((_, i) => (
+                    <Star key={i} size={14} className="text-[#B08D2C] fill-[#B08D2C]" />
+                  ))}
                 </div>
               </div>
 
-              {/* Star rating alignment */}
-              <div className="flex space-x-0.5 shrink-0 self-start sm:self-auto">
-                {Array.from({ length: review.rating }).map((_, i) => (
-                  <Star key={i} size={14} className="text-[#B08D2C] fill-[#B08D2C]" />
+              {/* Comment Section */}
+              <p className="text-xs sm:text-sm font-sans text-gray-600 leading-relaxed mb-5 font-medium pl-1">
+                {comment}
+              </p>
+
+              {/* Bottom tags */}
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag: string) => (
+                  <span
+                    key={tag}
+                    className="text-[9px] font-bold tracking-wider border border-[#E0D8C3] bg-[#FAF6EE] text-[#7C6A2E] px-3 py-1 rounded-sm uppercase"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
-
-            {/* Comment Section */}
-            <p className="text-xs sm:text-sm font-sans text-gray-600 leading-relaxed mb-5 font-medium pl-1">
-              {review.comment}
-            </p>
-
-            {/* Bottom tags */}
-            <div className="flex flex-wrap gap-2">
-              {review.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[9px] font-bold tracking-wider border border-[#E0D8C3] bg-[#FAF6EE] text-[#7C6A2E] px-3 py-1 rounded-sm uppercase"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Load More Reviews Button */}

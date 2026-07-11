@@ -1,17 +1,12 @@
 "use client";
 
-import React from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
 import { ChevronDown, Camera } from 'lucide-react';
+import { authAPI } from '@/lib/api';
 
 interface ProfileSettingsProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
-<<<<<<< Updated upstream
-}
-
-const ProfileSettings = ({ formData, handleChange }: ProfileSettingsProps) => {
-=======
   user: any;
   setUser: (user: any) => void;
   errors?: { email?: string, phone?: string };
@@ -48,7 +43,6 @@ const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }:
       setTimeout(() => setMessage(''), 3000);
     }
   };
->>>>>>> Stashed changes
 
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
@@ -58,14 +52,18 @@ const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }:
           <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">PROFILE ARTISTRY</h3>
         </div>
 
+        {message && (
+          <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            {message}
+          </div>
+        )}
+
         <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 mb-6 md:flex-row md:items-center">
           <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
-            <Image
-              src="/images/05.png"
+            <img
+              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE}${user.avatar}`) : "/images/05.png"}
               alt="DJ profile portrait"
-              fill
-              sizes="112px"
-              className="object-cover"
+              className="w-full h-full object-cover animate-fadeIn"
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-end bg-black/25 px-2 py-1 text-white">
               <Camera size={12} />
@@ -77,11 +75,6 @@ const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }:
             <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
               Manage how your brand is perceived by elite clients and booking partners.
             </p>
-<<<<<<< Updated upstream
-            <button className="mt-4 border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1]">
-              Replace Media
-            </button>
-=======
             <input
               type="file"
               accept="image/*"
@@ -95,7 +88,6 @@ const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }:
             >
               {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
             </label>
->>>>>>> Stashed changes
           </div>
         </div>
 
@@ -143,11 +135,7 @@ const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }:
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
             <input
-<<<<<<< Updated upstream
-              type="text"
-=======
               type="tel"
->>>>>>> Stashed changes
               name="phone"
               value={formData.phone}
               onChange={handleChange}

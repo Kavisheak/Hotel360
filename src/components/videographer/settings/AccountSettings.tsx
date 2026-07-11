@@ -1,9 +1,3 @@
-<<<<<<< Updated upstream
-import React from 'react';
-import { Shield } from 'lucide-react';
-
-const AccountSettings = () => {
-=======
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -62,7 +56,6 @@ const AccountSettings = () => {
     }
   };
 
->>>>>>> Stashed changes
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm">
       <div className="flex items-center space-x-2 border-b border-[#E0D8C3] pb-3 mb-6">
@@ -105,15 +98,6 @@ const AccountSettings = () => {
           <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Booking Email</label>
           <input
             type="email"
-<<<<<<< Updated upstream
-            defaultValue="a.malik@framestory.co"
-            className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-          />
-        </div>
-
-        <button className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase">
-          Save Account Updates
-=======
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -131,7 +115,6 @@ const AccountSettings = () => {
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {isSaving ? 'Saving Updates...' : 'Save Account Updates'}
->>>>>>> Stashed changes
         </button>
       </div>
     </article>

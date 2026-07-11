@@ -16,7 +16,7 @@ const BookingsHeader = ({ booking }: { booking: any }) => (
     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
       <div>
         <h2 className="text-2xl lg:text-3xl font-serif font-semibold text-gray-800 leading-tight">
-          {booking.eventType || 'Wedding'}
+          {booking.eventName || booking.eventType || 'Wedding'}
         </h2>
         <p className="text-sm italic text-[#A6955C] mt-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
           {booking.clientName}

@@ -5,6 +5,7 @@ import { Plus, Search, Filter, MoreVertical, Edit2, Trash2, Mail, Phone, Palette
 import Link from 'next/link';
 
 import { staffAPI } from '@/lib/api';
+import { validateEmail, validatePhone } from '@/lib/validation';
 
 // Premium SVG Icons
 const DecoratorIcon = () => (
@@ -37,10 +38,12 @@ const VendorsListMain = () => {
   const [vendors, setVendors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [vendorToEdit, setVendorToEdit] = useState<any | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
 
   React.useEffect(() => {
     fetchVendors();
@@ -65,6 +68,25 @@ const VendorsListMain = () => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vendorToEdit) return;
+
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(vendorToEdit.email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(vendorToEdit.phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsUpdating(true);
     
     try {
@@ -289,14 +311,37 @@ const VendorsListMain = () => {
             
             <form onSubmit={handleUpdate} className="overflow-y-auto p-8 space-y-5">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Full Name</label>
+                <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Shop Name / Business Name</label>
                 <input 
                   required
                   type="text" 
-                  value={vendorToEdit.name}
-                  onChange={(e) => setVendorToEdit({...vendorToEdit, name: e.target.value})}
+                  value={vendorToEdit.shopName || ''}
+                  onChange={(e) => setVendorToEdit({...vendorToEdit, shopName: e.target.value})}
                   className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">First Name (Contact)</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={vendorToEdit.firstName || ''}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, firstName: e.target.value})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Last Name (Contact)</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={vendorToEdit.lastName || ''}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, lastName: e.target.value})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -304,21 +349,29 @@ const VendorsListMain = () => {
                   <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Email Address</label>
                   <input 
                     required
-                    type="email" 
+                    type="email"
                     value={vendorToEdit.email}
-                    onChange={(e) => setVendorToEdit({...vendorToEdit, email: e.target.value})}
+                    onChange={(e) => {
+                      setVendorToEdit({...vendorToEdit, email: e.target.value});
+                      if (errors.email) setErrors({ ...errors, email: undefined });
+                    }}
                     className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
                   />
+                  {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Contact Number</label>
                   <input 
                     required
-                    type="tel" 
+                    type="tel"
                     value={vendorToEdit.phone}
-                    onChange={(e) => setVendorToEdit({...vendorToEdit, phone: e.target.value})}
+                    onChange={(e) => {
+                      setVendorToEdit({...vendorToEdit, phone: e.target.value});
+                      if (errors.phone) setErrors({ ...errors, phone: undefined });
+                    }}
                     className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
                   />
+                  {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                 </div>
               </div>
 

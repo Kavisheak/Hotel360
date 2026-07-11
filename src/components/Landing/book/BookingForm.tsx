@@ -5,6 +5,7 @@ import { User, CreditCard, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { validateEmail, validatePhone } from "@/lib/validation";
 
 interface BookingFormProps {
   selectedDate: number;
@@ -44,6 +45,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState<{email?: string, phone?: string, alternativePhone?: string}>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +56,28 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
     
     if (formData.paymentMethod === "Card" && (!paymentDetails.cardNumber || !paymentDetails.expiry || !paymentDetails.cvv)) {
       alert("Please enter payment details to secure your booking.");
+      return;
+    }
+
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+    if (formData.alternativePhone && !validatePhone(formData.alternativePhone)) {
+      newErrors.alternativePhone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
 
@@ -108,33 +132,45 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
               <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Email Address</label>
               <input 
                 required
-                type="email" 
+                type="email"
                 className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.email}
-                onChange={e => setFormData({...formData, email: e.target.value})}
+                onChange={e => {
+                  setFormData({...formData, email: e.target.value});
+                  if (errors.email) setErrors({ ...errors, email: undefined });
+                }}
               />
+              {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Phone Number</label>
               <input 
                 required
-                type="tel" 
+                type="tel"
                 className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
                 value={formData.phone}
-                onChange={e => setFormData({...formData, phone: e.target.value})}
+                onChange={e => {
+                  setFormData({...formData, phone: e.target.value});
+                  if (errors.phone) setErrors({ ...errors, phone: undefined });
+                }}
               />
+              {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
             </div>
           </div>
 
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Alternative Phone Number (Optional)</label>
             <input 
-              type="tel" 
+              type="tel"
               placeholder="+94 77 000 0000"
               className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm input-glow"
               value={formData.alternativePhone}
-              onChange={e => setFormData({...formData, alternativePhone: e.target.value})}
+              onChange={e => {
+                setFormData({...formData, alternativePhone: e.target.value});
+                if (errors.alternativePhone) setErrors({ ...errors, alternativePhone: undefined });
+              }}
             />
+            {errors.alternativePhone && <p className="text-red-500 text-[10px] mt-1">{errors.alternativePhone}</p>}
           </div>
 
           <div>

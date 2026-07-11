@@ -1,18 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-<<<<<<< Updated upstream
-import Header from './Header';
-import ProfileSettings from './ProfileSettings';
-import AccountSettings from './AccountSettings';
-import NotificationSettings from './NotificationSettings';
-import AvailabilitySettings from './AvailabilitySettings';
-import SecuritySettings from './SecuritySettings';
-=======
 import SettingsHeader from './SettingsHeader';
 import PersonalProfile from './PersonalProfile';
 import AccountSecurity from './AccountSecurity';
->>>>>>> Stashed changes
 import Footer from '../overview/Footer';
 import { validateEmail, validatePhone } from '@/lib/validation';
 import { authAPI, djAPI } from '@/lib/api';
@@ -20,8 +11,11 @@ import { useAuthStore } from '@/store/authStore';
 import { Check } from 'lucide-react';
 
 const SettingsMain = () => {
+  const { user, updateUser } = useAuthStore();
+  
   const [formData, setFormData] = useState({
     fullName: '',
+    shopName: '',
     email: '',
     phone: '',
     experience: '',
@@ -30,12 +24,25 @@ const SettingsMain = () => {
     instagram: '',
     spotify: '',
     soundcloud: '',
+    startingPrice: '',
+    location: '',
+    eventsCompleted: '',
+    responseTime: '',
+    depositReq: '',
+    cancellation: '',
+    availableIslandWide: true,
   });
+  
+  const [errors, setErrors] = useState<{ email?: string; phone?: string }>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+  const setUser = (updatedUser: any) => {
+    updateUser(updatedUser);
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -45,19 +52,9 @@ const SettingsMain = () => {
     try {
       const res = await authAPI.getMe();
       if (res.ok && res.data?.user) {
-        const user = res.data.user;
-        setUserId(user.id);
+        const userData = res.data.user;
+        setUserId(userData.id);
         setFormData({
-<<<<<<< Updated upstream
-          fullName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          bio: user.vendorProfile?.bio || '',
-          specialty: user.vendorProfile?.specialty || 'Bespoke Weddings',
-          instagram: user.vendorProfile?.instagram || '',
-          spotify: user.vendorProfile?.spotify || '',
-          soundcloud: user.vendorProfile?.soundcloud || '',
-=======
           fullName: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || '',
           shopName: userData.shopName || '',
           email: userData.email || '',
@@ -75,7 +72,6 @@ const SettingsMain = () => {
           depositReq: userData.vendorProfile?.depositReq || '',
           cancellation: userData.vendorProfile?.cancellation || '',
           availableIslandWide: userData.vendorProfile?.availableIslandWide !== false,
->>>>>>> Stashed changes
         });
       }
     } catch (e) {
@@ -85,11 +81,6 @@ const SettingsMain = () => {
     }
   };
 
-<<<<<<< Updated upstream
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-=======
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as any;
     const checked = (e.target as HTMLInputElement).checked;
@@ -100,16 +91,30 @@ const SettingsMain = () => {
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
->>>>>>> Stashed changes
   };
 
   const handleSave = async () => {
     if (!userId) return;
+
+    // Validate email & phone
+    const emailErr = validateEmail(formData.email);
+    const phoneErr = validatePhone(formData.phone);
+    if (emailErr || phoneErr) {
+      setErrors({
+        email: emailErr || undefined,
+        phone: phoneErr || undefined
+      });
+      setToastType('error');
+      setToastMessage("Please resolve validation errors.");
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await djAPI.updateProfile({
-        firstName: formData.fullName.split(' ')[0],
-        lastName: formData.fullName.split(' ').slice(1).join(' '),
+        firstName: formData.fullName.split(' ')[0] || '',
+        lastName: formData.fullName.split(' ').slice(1).join(' ') || '',
+        shopName: formData.shopName,
         email: formData.email,
         phone: formData.phone,
         experience: formData.experience,
@@ -118,7 +123,15 @@ const SettingsMain = () => {
         instagram: formData.instagram,
         spotify: formData.spotify,
         soundcloud: formData.soundcloud,
+        startingPrice: formData.startingPrice,
+        location: formData.location,
+        eventsCompleted: formData.eventsCompleted,
+        responseTime: formData.responseTime,
+        depositReq: formData.depositReq,
+        cancellation: formData.cancellation,
+        availableIslandWide: formData.availableIslandWide,
       });
+
       if (res.ok) {
         setToastType('success');
         setToastMessage("Settings successfully updated!");
@@ -127,7 +140,7 @@ const SettingsMain = () => {
         }
       } else {
         setToastType('error');
-        setToastMessage("Failed to update settings.");
+        setToastMessage(res.data.message || "Failed to update settings.");
       }
     } catch (e) {
       console.error(e);
@@ -154,26 +167,18 @@ const SettingsMain = () => {
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
         <SettingsHeader onSave={handleSave} isSaving={saving} />
 
-<<<<<<< Updated upstream
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)] gap-6 mb-6">
-            <div className="space-y-6">
-              <ProfileSettings formData={formData} handleChange={handleChange} />
-              <AccountSettings formData={formData} handleChange={handleChange} />
-            </div>
-
-            <div className="space-y-6">
-              <AvailabilitySettings />
-              <NotificationSettings />
-              <SecuritySettings />
-            </div>
-=======
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
-            <PersonalProfile formData={formData} handleChange={handleChange} user={user} setUser={setUser} errors={errors} />
+            <PersonalProfile 
+              formData={formData} 
+              handleChange={handleChange} 
+              user={user} 
+              setUser={setUser} 
+              errors={errors} 
+            />
           </div>
           <div>
             <AccountSecurity />
->>>>>>> Stashed changes
           </div>
         </div>
       </div>

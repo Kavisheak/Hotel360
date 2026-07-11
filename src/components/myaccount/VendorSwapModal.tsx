@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
-import { Vendor } from "@/components/Landing/vendors/types";
+import { Vendor } from "@/components/landing/vendors/types";
 import { useVendorStore } from "@/store/vendorStore";
 interface VendorSwapModalProps {
   isOpen: boolean;
@@ -49,7 +49,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
   };
   
   const mappedCategory = categoryMap[serviceCategory] || "decorators";
-  const availableVendors = vendors.filter(v => v.category === mappedCategory && v.id !== currentVendorId);
+  const availableVendors = vendors.filter(v => v.category === mappedCategory && v.id !== currentVendorId && v.userId !== currentVendorId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +73,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
           {/* Header */}
           <div className="px-8 py-6 border-b border-[#E8DFC9] dark:border-gray-800 bg-[#FDFBF7] dark:bg-[#111111] flex items-center justify-between shrink-0">
             <div>
-              <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white capitalize">Replace {serviceCategory}</h3>
+              <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white capitalize">Select {serviceCategory}</h3>
               <p className="text-[10px] uppercase tracking-widest text-[#C69C6D] font-bold mt-1.5">Booking #{bookingId.split('-')[1] || bookingId}</p>
             </div>
             <button 
@@ -83,12 +83,12 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
               <X className="w-5 h-5" />
             </button>
           </div>
-
+ 
           {/* Form Content */}
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             <div className="p-8 overflow-y-auto flex-1">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-serif italic">
-                The previously assigned vendor was unavailable. Please select a new vendor from our curated list below. Price differences will be applied to your final invoice.
+                Choose a vendor from our curated list below. Any price differences will be reflected in your booking total.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
