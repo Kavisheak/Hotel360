@@ -11,20 +11,27 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const djVendor = booking?.vendors?.dj;
   
   const defaultTasks = [
-    { text: 'Confirm equipment load-in time with venue', isCompleted: true },
-    { text: 'Test sound system & subwoofers on-site', isCompleted: false },
-    { text: 'Prepare timeline & setlist for event planner', isCompleted: false },
-    { text: 'Set up lighting rig & DMX controller', isCompleted: false },
-    { text: 'Coordinate with MC / event host for cues', isCompleted: false },
+    { task: 'Confirm equipment load-in time with venue', isCompleted: true },
+    { task: 'Test sound system & subwoofers on-site', isCompleted: false },
+    { task: 'Prepare timeline & setlist for event planner', isCompleted: false },
+    { task: 'Set up lighting rig & DMX controller', isCompleted: false },
+    { task: 'Coordinate with MC / event host for cues', isCompleted: false },
   ];
 
   const initialChecklist = djVendor?.checklist?.length > 0 ? djVendor.checklist : defaultTasks;
-  const [checklist, setChecklist] = useState(initialChecklist);
+  const [checklist, setChecklist] = useState<any[]>(initialChecklist);
   const [newTask, setNewTask] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
   const [uploaded, setUploaded] = useState(djVendor?.completionPhotos?.length > 0);
+
+  React.useEffect(() => {
+    const dj = booking?.vendors?.dj;
+    const updatedChecklist = dj?.checklist?.length > 0 ? dj.checklist : defaultTasks;
+    setChecklist(updatedChecklist);
+    setUploaded(dj?.completionPhotos?.length > 0);
+  }, [booking?._id, booking?.vendors?.dj]);
 
   const saveChecklist = async (newList: any[]) => {
     setIsUpdating(true);

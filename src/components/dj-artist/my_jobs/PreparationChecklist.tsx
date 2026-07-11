@@ -12,11 +12,11 @@ interface PreparationChecklistProps {
 
 const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps) => {
   const defaultTasks = [
-    { id: 1, text: "Floral Inventory Verification", completed: false },
-    { id: 2, text: "Backdrop Structure Assembly", completed: false },
-    { id: 3, text: "Crystal Chandelier Testing", completed: false },
-    { id: 4, text: "Linen Ironing & Placement", completed: false },
-    { id: 5, text: "Spotlight Color Calibration", completed: false },
+    { id: 1, text: "Sound System Setup & Soundcheck", completed: false },
+    { id: 2, text: "Playlist & Request List Review", completed: false },
+    { id: 3, text: "Backup Console & Media Verification", completed: false },
+    { id: 4, text: "DJ Booth & Lighting Rig Setup", completed: false },
+    { id: 5, text: "Wireless Microphone Range Test", completed: false },
   ];
 
   const vendorChecklist = booking.vendors?.dj?.checklist;
@@ -31,6 +31,16 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const updatedChecklist = booking.vendors?.dj?.checklist;
+    if (updatedChecklist && updatedChecklist.length > 0) {
+      setTasks(updatedChecklist.map((c: any, i: number) => ({ id: i, text: c.task, completed: c.isCompleted })));
+    } else {
+      setTasks(defaultTasks);
+    }
+    setUploaded(booking.vendors?.dj?.completionPhotos?.length > 0);
+  }, [booking._id, booking.vendors?.dj?.checklist, booking.vendors?.dj?.completionPhotos]);
 
   const toggleTask = async (id: number) => {
     const newTasks = tasks.map((t: any) => t.id === id ? { ...t, completed: !t.completed } : t);

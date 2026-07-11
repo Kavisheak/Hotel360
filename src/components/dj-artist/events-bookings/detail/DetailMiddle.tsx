@@ -6,11 +6,25 @@ interface DetailMiddleProps {
   clientSubtitle: string;
   phone: string;
   email: string;
+  clientAvatar?: string;
   venueImage: string;
   venueCaption: string;
 }
 
-const DetailMiddle = ({ clientName, clientSubtitle, phone, email, venueImage, venueCaption }: DetailMiddleProps) => {
+const DetailMiddle = ({
+  clientName,
+  clientSubtitle,
+  phone,
+  email,
+  clientAvatar,
+  venueImage,
+  venueCaption,
+}: DetailMiddleProps) => {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const avatarUrl = clientAvatar
+    ? (clientAvatar.startsWith('http') ? clientAvatar : `${API_BASE}${clientAvatar}`)
+    : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120";
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       {/* Client Profile */}
@@ -19,7 +33,7 @@ const DetailMiddle = ({ clientName, clientSubtitle, phone, email, venueImage, ve
           <h3 className="text-xl font-serif font-bold text-gray-900 mb-6 pb-2 border-b border-gray-100">Client Profile</h3>
           <div className="flex items-center space-x-4 mb-6">
             <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120"
+              src={avatarUrl}
               alt={clientName}
               className="w-16 h-16 rounded-full object-cover border border-[#E0D8C3]"
             />

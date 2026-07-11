@@ -63,10 +63,11 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
           venue="Venue TBD"
         />
         <DetailMiddle
-          clientName={booking.clientName || 'Valued Client'}
+          clientName={booking.clientName || (booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : "Valued Client")}
           clientSubtitle={booking.eventType || 'Event'}
-          phone={booking.contactNumber || 'N/A'}
-          email={booking.clientEmail || 'N/A'}
+          phone={booking.phone || booking.contactNumber || (booking.customerId ? booking.customerId.phone : "N/A")}
+          email={booking.email || booking.clientEmail || (booking.customerId ? booking.customerId.email : "N/A")}
+          clientAvatar={booking.customerId?.avatar}
           venueImage="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80"
           venueCaption={`"Event Venue — ${djPackageName}"`}
         />

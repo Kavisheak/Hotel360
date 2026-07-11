@@ -44,7 +44,7 @@ const PerformanceMain = () => {
           </div>
         </div>
 
-        <ResourceAllocation />
+        <ResourceAllocation bookings={bookings} />
       </div>
 
       <Footer />

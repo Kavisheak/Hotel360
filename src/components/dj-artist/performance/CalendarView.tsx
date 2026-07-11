@@ -5,12 +5,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarViewProps {
   bookings?: any[];
+  selectedDate?: Date;
+  onSelectDate?: (date: Date) => void;
 }
 
-const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
+const CalendarView = ({ bookings = [], selectedDate = new Date(), onSelectDate }: CalendarViewProps) => {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(selectedDate));
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -71,10 +73,7 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
 
       <div className="grid grid-cols-7 bg-white flex-1">
         {displayDates.map((d, i) => {
-          const isSelected = d.date === new Date().getDate() && 
-                             d.currentMonth && 
-                             currentMonth === new Date().getMonth() && 
-                             currentYear === new Date().getFullYear();
+          const isSelected = d.currentMonth && d.date === selectedDate.getDate() && currentDate.getMonth() === selectedDate.getMonth() && currentDate.getFullYear() === selectedDate.getFullYear();
           
           const dayBookings = bookings.filter(b => {
             const bDate = new Date(b.date);
@@ -86,9 +85,11 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
           return (
             <div
               key={i}
-              className={`min-h-[60px] sm:min-h-[90px] border-b border-r border-[#E0D8C3] p-1.5 sm:p-3 flex flex-col relative last:border-r-0 cursor-pointer
+              onClick={() => d.currentMonth && onSelectDate && onSelectDate(d.fullDate)}
+              className={`min-h-[60px] sm:min-h-[90px] border-b border-r border-[#E0D8C3] p-1.5 sm:p-3 flex flex-col relative last:border-r-0 
+                ${d.currentMonth ? 'cursor-pointer' : ''}
                 ${!d.currentMonth ? 'text-gray-300' : 'text-gray-700'}
-                ${isSelected ? 'bg-[#FCF6E3] ring-1 ring-inset ring-[#B08D2C]' : 'hover:bg-gray-50'}
+                ${isSelected ? 'bg-[#FCF6E3] ring-1 ring-inset ring-[#B08D2C]' : d.currentMonth ? 'hover:bg-gray-50' : ''}
               `}
             >
               <span className={`text-xs sm:text-sm font-medium ${isSelected ? 'text-[#B08D2C] font-bold' : ''}`}>
@@ -96,16 +97,24 @@ const CalendarView = ({ bookings = [] }: CalendarViewProps) => {
               </span>
 
               {dayBookings.length > 0 && d.currentMonth && (
-                <div className="mt-auto flex flex-col gap-1">
+                <div className="mt-auto flex flex-col gap-1 w-full overflow-hidden">
                   {dayBookings.map((b, idx) => {
-                    const colors = ['bg-[#4A463B]', 'bg-[#5A87C7]', 'bg-[#C75A5A]'];
+                    const status = b.vendors?.dj?.status?.toUpperCase();
+                    let color = "bg-[#7C6A2E]"; // pending
+                    if (status === 'COMPLETED') color = "bg-[#5A87C7]";
+                    else if (status === 'ACCEPTED' || status === 'CONFIRMED') color = "bg-[#B08D2C]";
+
                     return (
-                      <div key={idx} className={`${colors[idx % colors.length]} text-white text-[9px] px-1 py-0.5 rounded-sm truncate leading-none`} title={b.clientName || b.eventType}>
-                        {b.clientName || b.eventType}
+                      <div 
+                        key={idx} 
+                        className={`${color} text-white text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm truncate leading-none w-full`} 
+                        title={`${b.eventType} - ${b.clientName}`}
+                      >
+                        {b.eventType || b.clientName || "Event"}
                       </div>
                     );
                   })}
-                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">TODAY</span>}
+                  {isSelected && <span className="hidden sm:inline text-[7px] font-bold tracking-widest text-[#B08D2C] uppercase mt-1">SELECTED</span>}
                 </div>
               )}
             </div>
