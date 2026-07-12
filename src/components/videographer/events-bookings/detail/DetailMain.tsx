@@ -96,6 +96,10 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
         {/* Breadcrumb & Action Header */}
         <DetailHeader />
+<<<<<<< Updated upstream
+=======
+        <DetailBanner code={getBookingRef(booking)} status={vgStatus} confirmedDate={new Date(booking.createdAt).toLocaleDateString()} videoPackage={vgPackageName} phone={getClientPhone(booking)} />
+>>>>>>> Stashed changes
 
         {/* Hero Banner */}
         <DetailBanner
