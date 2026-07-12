@@ -7,10 +7,11 @@ import EventTimeline from './EventTimeline';
 import ResourceAllocation from './ResourceAllocation';
 import Footer from '../my_jobs/Footer';
 import { decoratorAPI } from '@/lib/api';
+import { normalizeCalendarDate } from '@/lib/vendorUtils';
 
 const ScheduleMain = () => {
   const [bookings, setBookings] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(normalizeCalendarDate(new Date()));
 
   useEffect(() => {
     fetchBookings();
@@ -38,7 +39,8 @@ const ScheduleMain = () => {
             <CalendarView 
               bookings={bookings} 
               selectedDate={selectedDate} 
-              onSelectDate={setSelectedDate} 
+              onSelectDate={(date) => setSelectedDate(normalizeCalendarDate(date))}
+              vendorKey="decorator"
             />
           </div>
           <div className="lg:col-span-1">

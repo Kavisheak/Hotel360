@@ -28,11 +28,21 @@ export default function StatCards() {
         if (bookingsRes.ok && bookingsRes.data.success) {
           const bookings = bookingsRes.data.data;
           total = bookings.length;
-          bookings.forEach((b: any) => {
-            const status = b.vendors?.videographer?.status?.toUpperCase();
-            if (status === 'COMPLETED') completed++;
-            else if (status === 'ACCEPTED' || status === 'CONFIRMED' || status === 'PENDING') upcoming++;
-          });
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            bookings.forEach((b: any) => {
+              const status = b.vendors?.videographer?.status;
+              const eventDate = new Date(b.date);
+              
+              if (status === 'Completed') {
+                completed++;
+              } else if (status !== 'Declined' && status !== 'NotRequired') {
+                if (eventDate >= today) {
+                  upcoming++;
+                }
+              }
+            });
         }
 
         let avgRating = 0;

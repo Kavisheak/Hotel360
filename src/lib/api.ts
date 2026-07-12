@@ -121,6 +121,7 @@ export const decoratorAPI = {
   getOverview: () => apiFetch("/api/decorator/overview"),
   getProfile: () => apiFetch("/api/decorator/overview/profile"),
   getAssignedBookings: () => apiFetch("/api/decorator/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/decorator/bookings/${id}`),
   updateBookingStatus: (id: string, status: string) =>
     apiFetch(`/api/decorator/bookings/${id}/status`, {
       method: "PATCH",
@@ -147,6 +148,8 @@ export const decoratorAPI = {
       method: "PUT",
       body: formData,
     }),
+  deletePortfolioItem: (id: string) =>
+    apiFetch(`/api/decorator/portfolio/${id}`, { method: "DELETE" }),
   getRatings: () => apiFetch("/api/decorator/ratings"),
   updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
@@ -155,6 +158,7 @@ export const videographerAPI = {
   getOverview: () => apiFetch("/api/videographer/overview"),
   getProfile: () => apiFetch("/api/videographer/profile"),
   getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/videographer/bookings/${id}`),
   updateBookingStatus: (id: string, status: string) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
   uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
@@ -178,6 +182,7 @@ export const videographerAPI = {
 export const djAPI = {
   getOverview: () => apiFetch("/api/dj-artist/overview"),
   getAssignedBookings: () => apiFetch("/api/dj-artist/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/dj-artist/bookings/${id}`),
   updateBookingStatus: (id: string, status: string) =>
     apiFetch(`/api/dj-artist/bookings/${id}/status`, {
       method: "PUT",

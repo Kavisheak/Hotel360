@@ -58,19 +58,21 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    
     const files = Array.from(e.target.files);
     setPhotoFiles(files);
-    setUploaded(true);
-    
     const formData = new FormData();
     files.forEach(f => formData.append('photos', f));
-    
+
     setIsUpdating(true);
     try {
-      await djAPI.uploadCompletionPhotos(booking._id, formData);
-      setSuccessDetails("Photos uploaded successfully.");
-      onRefresh();
+      const res = await djAPI.uploadCompletionPhotos(booking._id, formData);
+      if (res.ok) {
+        setUploaded(true);
+        setSuccessDetails("Photos uploaded successfully.");
+        onRefresh();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to upload photos.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to upload photos.");
@@ -85,16 +87,16 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
       setErrorDetails("Please complete all checklist items before marking the job as complete.");
       return;
     }
-    if (!uploaded) {
-      setErrorDetails("Please upload completion photos before marking the job as complete.");
-      return;
-    }
-    
+
     setIsUpdating(true);
     try {
-      await djAPI.updateBookingStatus(booking._id, "Completed");
-      setSuccessDetails("Job marked as complete. The Concierge team has been notified.");
-      onRefresh();
+      const res = await djAPI.updateBookingStatus(booking._id, "Completed");
+      if (res.ok) {
+        setSuccessDetails("Job marked as complete. The manager has been notified.");
+        onRefresh();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to mark as complete.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to mark as complete.");

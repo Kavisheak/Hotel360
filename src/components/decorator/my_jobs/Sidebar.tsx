@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, User,
+  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, User, BookOpen,
   Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import Link from 'next/link';
@@ -77,6 +77,7 @@ const Sidebar = () => {
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/decorator/overview' },
     { icon: <User size={20} />, label: 'MY JOBS', href: '/decorator/my-jobs' },
+    { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/decorator/bookings' },
     { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/decorator/schedule' },
     { icon: <FolderHeart size={20} />, label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
     { icon: <BarChart3 size={20} />, label: 'RATINGS', href: '/decorator/ratings' },

@@ -39,7 +39,7 @@ const HistoryTable = ({ events, reviews }: HistoryTableProps) => {
           </thead>
           <tbody>
             {events.map((event, idx) => {
-              const review = reviews.find(r => r.bookingId === event._id);
+              const review = reviews.find(r => r.bookingId?._id?.toString() === event._id?.toString());
               const rating = review ? review.rating : 0;
               const packageBadge = event.vendors?.decorator?.packageName || event.packageName || 'CUSTOM';
               return (
@@ -81,7 +81,7 @@ const HistoryTable = ({ events, reviews }: HistoryTableProps) => {
       {/* Mobile Card View */}
       <div className="md:hidden bg-white divide-y divide-[#E0D8C3]">
         {events.map((event, idx) => {
-          const review = reviews.find(r => r.bookingId === event._id);
+          const review = reviews.find(r => r.bookingId?._id?.toString() === event._id?.toString());
           const rating = review ? review.rating : 0;
           const packageBadge = event.vendors?.decorator?.packageName || event.packageName || 'CUSTOM';
           return (

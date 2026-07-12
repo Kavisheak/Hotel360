@@ -133,7 +133,7 @@ const GalleryGrid = () => {
       } catch (error) {
         console.error("Failed to fetch portfolio:", error);
         // Fall back to mock data if fetch fails
-        setGalleryData(mockGalleryData);
+        setGalleryData([]);
       } finally {
         setIsLoading(false);
       }

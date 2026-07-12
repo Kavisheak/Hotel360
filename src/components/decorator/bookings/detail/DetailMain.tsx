@@ -7,6 +7,12 @@ import DetailSummary from './DetailSummary';
 import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../my_jobs/Footer';
+import {
+  getClientFullName,
+  getClientPhone,
+  getClientEmail,
+  VENUE_NAME,
+} from '@/lib/vendorUtils';
 
 const DetailMain = ({ bookingId }: { bookingId: string }) => {
   const [booking, setBooking] = useState<any>(null);
@@ -21,10 +27,9 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
   const fetchBooking = async () => {
     try {
       const { decoratorAPI } = await import('@/lib/api');
-      const res = await decoratorAPI.getAssignedBookings();
+      const res = await decoratorAPI.getBookingById(bookingId);
       if (res.ok && res.data?.data) {
-        const found = res.data.data.find((b: any) => b._id === bookingId);
-        setBooking(found);
+        setBooking(res.data.data);
       }
     } catch (e) {
       console.error(e);
@@ -128,18 +133,18 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
           date={new Date(booking.date).toLocaleDateString()} 
           guests={`${booking.guests} Guests`} 
           window={booking.timeslot || "08:00 AM - 02:00 PM"} 
-          venue="Grand Majestic Hall" 
+          venue={VENUE_NAME} 
         />
 
         {/* Client details & Visuals */}
         <DetailMiddle 
-          clientName={booking.clientName || (booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : "Valued Client")} 
+          clientName={getClientFullName(booking)} 
           clientSubtitle={booking.eventType || 'Event'} 
-          phone={booking.phone || booking.contactNumber || (booking.customerId ? booking.customerId.phone : "N/A")} 
-          email={booking.email || booking.clientEmail || (booking.customerId ? booking.customerId.email : "N/A")} 
+          phone={getClientPhone(booking)} 
+          email={getClientEmail(booking)} 
           clientAvatar={booking.customerId?.avatar}
           inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
-          inspirationCaption={`"${booking.menuType || 'Custom'} package."`} 
+          inspirationCaption={`${booking.menuType || 'Custom'} package at ${VENUE_NAME}.`}
         />
 
         {/* Package components checklist & tasks */}

@@ -11,7 +11,7 @@ const ResourceAllocation = ({ bookings = [] }: ResourceAllocationProps) => {
     const eventDate = new Date(b.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return (status === 'PENDING' || status === 'ACCEPTED' || status === 'CONFIRMED') && eventDate >= today;
+    return (status === 'PENDING' || status === 'ACCEPTED') && eventDate >= today;
   }).length;
   const alertShoots = bookings.filter(b => {
     const status = b.vendors?.videographer?.status?.toUpperCase();

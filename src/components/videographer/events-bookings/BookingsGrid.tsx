@@ -1,279 +1,168 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Search,
-  ChevronDown,
-  Calendar,
-  MapPin,
-  ChevronLeft,
-  ChevronRight,
-  Video,
-} from "lucide-react";
+import { Search, ChevronDown, Calendar, MapPin, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { videographerAPI } from "@/lib/api";
-
-interface Booking {
-  _id?: string;
-  code: string;
-  status: "UPCOMING" | "CONFIRMED" | "COMPLETED" | "PENDING";
-  title: string;
-  eventName: string;
-  customer: string;
-  date: string;
-  location: string;
-  videoPackage: string;
-  image: string;
-}
-
-const bookingsData: Booking[] = [
-  {
-    code: "#VG-2241",
-    status: "CONFIRMED",
-    title: "The Sterling-Vance Wedding",
-    eventName: "Wedding Ceremony & Reception",
-    customer: "Eleanor Sterling",
-    date: "July 24, 2026 · 10:00 AM",
-    location: "Rosewood Estate, London",
-    videoPackage: "Cinematic Wedding Package",
-    image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    code: "#VG-2298",
-    status: "UPCOMING",
-    title: "Okafor Engagement Session",
-    eventName: "Pre-Wedding Engagement Shoot",
-    customer: "Amara Okafor",
-    date: "August 05, 2026 · 05:00 PM",
-    location: "Hyde Park Gardens, London",
-    videoPackage: "Engagement Session Package",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    code: "#VG-2354",
-    status: "COMPLETED",
-    title: "Harrison Corporate Gala",
-    eventName: "Annual Corporate Event",
-    customer: "James Harrison",
-    date: "June 14, 2026 · 06:30 PM",
-    location: "Claridge's Hotel, Mayfair",
-    videoPackage: "Corporate Event Package",
-    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    code: "#VG-2381",
-    status: "UPCOMING",
-    title: "Montague Anniversary Gala",
-    eventName: "25th Wedding Anniversary",
-    customer: "Richard Montague",
-    date: "September 12, 2026 · 03:00 PM",
-    location: "The Savoy, London",
-    videoPackage: "Premium Documentary Package",
-    image: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80",
-  },
-];
+import {
+  getClientDisplayName,
+  getVendorStatus,
+  getBookingRef,
+  formatTimeslot,
+  getPackageName,
+  VENUE_NAME,
+  getApiImageUrl,
+} from "@/lib/vendorUtils";
 
 const BookingsGrid = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [bookings, setBookings] = useState<Booking[]>(bookingsData);
-  const [isLoading, setIsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortFilter, setSortFilter] = useState("Earliest Date");
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const loadBookings = () => {
+    videographerAPI.getAssignedBookings().then(({ ok, data }) => {
+      if (ok && data?.data) setBookings(data.data);
+      setIsLoading(false);
+    });
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      setIsLoading(true);
-      try {
-        const { ok, data } = await videographerAPI.getAssignedBookings();
-        if (ok && data.success) {
-          const mappedBookings = data.data.map((b: any) => ({
-            _id: b._id,
-            code: b.bookingRef || `#VG-${Math.floor(Math.random() * 9000)}`,
-            status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
-            title: `${b.eventType} for ${b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client")}`,
-            eventName: b.eventType,
-            customer: b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client"),
-            date: new Date(b.date).toLocaleDateString() + " · " + (b.timeslot || "10:00 AM"),
-            location: b.location || "Venue TBD",
-            videoPackage: b.vendors?.videographer?.packageName || "Custom Package",
-            image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80",
-          }));
-          setBookings(mappedBookings);
-        }
-      } catch (error) {
-        console.error("Failed to fetch bookings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBookings();
+    loadBookings();
   }, []);
 
-  const filteredBookings = bookings.filter(
-    (booking) =>
-      booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.customer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleStatusUpdate = async (bookingId: string, status: 'Accepted' | 'Declined') => {
+    setUpdatingId(bookingId);
+    try {
+      const res = await videographerAPI.updateBookingStatus(bookingId, status);
+      if (res.ok) {
+        loadBookings();
+      } else {
+        alert(res.data?.message || 'Failed to update status.');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  let filtered = bookings.filter((b) => {
+    const title = getClientDisplayName(b).toLowerCase();
+    const matchSearch = title.includes(searchTerm.toLowerCase()) || (b.eventType || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const status = getVendorStatus(b, "videographer");
+    const matchStatus = statusFilter === "All" || status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  if (sortFilter === "Earliest Date") {
+    filtered = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  } else if (sortFilter === "Latest Date") {
+    filtered = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } else if (sortFilter === "Status") {
+    filtered = [...filtered].sort((a, b) => getVendorStatus(a, "videographer").localeCompare(getVendorStatus(b, "videographer")));
+  }
+
+  const statusBadge = (status: string) => {
+    if (status === "Accepted") return "bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]";
+    if (status === "Completed") return "bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]";
+    if (status === "Declined") return "bg-[#FDE8E8] text-[#9B3434] border border-[#F5D4D4]";
+    return "bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]";
+  };
 
   return (
     <div>
-      {/* Search & Filters */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="relative w-full md:max-w-md">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by event title, customer or venue..."
+            placeholder="Search by event or client..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#B08D2C] tracking-wide"
+            className="w-full pl-10 pr-4 py-2.5 text-xs border border-[#E0D8C3] bg-white focus:outline-none focus:border-[#B08D2C]"
           />
         </div>
-
-        <div className="flex flex-row items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:flex-none">
-            <select className="w-full md:w-48 appearance-none bg-white border border-[#E0D8C3] px-4 py-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#B08D2C]">
-              <option>Status: All</option>
-              <option>Upcoming</option>
-              <option>Confirmed</option>
-              <option>Completed</option>
-            </select>
-
-            <ChevronDown
-              size={14}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-            />
-          </div>
-
-          <div className="relative flex-1 md:flex-none">
-            <select className="w-full md:w-48 appearance-none bg-white border border-[#E0D8C3] px-4 py-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#B08D2C]">
-              <option>Sort: Earliest Date</option>
-              <option>Latest Date</option>
-              <option>Status</option>
-            </select>
-
-            <ChevronDown
-              size={14}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-            />
-          </div>
+        <div className="flex gap-3 w-full md:w-auto">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="md:w-48 bg-white border border-[#E0D8C3] px-4 py-2.5 text-xs">
+            <option value="All">Status: All</option>
+            <option value="Pending">Pending</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Completed">Completed</option>
+            <option value="Declined">Declined</option>
+          </select>
+          <select value={sortFilter} onChange={(e) => setSortFilter(e.target.value)} className="md:w-48 bg-white border border-[#E0D8C3] px-4 py-2.5 text-xs">
+            <option value="Earliest Date">Sort: Earliest Date</option>
+            <option value="Latest Date">Latest Date</option>
+            <option value="Status">Status</option>
+          </select>
         </div>
       </div>
 
-      {/* Booking Cards */}
       {isLoading ? (
-        <div className="text-center py-12 text-sm text-[#7C6A2E] animate-pulse">
-          Loading assigned bookings...
-        </div>
+        <div className="text-center py-12 text-sm text-[#7C6A2E] animate-pulse">Loading assigned bookings...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-sm text-gray-500 italic">No bookings found.</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {filteredBookings.map((booking) => (
-            <div
-              key={booking.code}
-              className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300"
-            >
-              {/* Image */}
-              <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden group">
-                <img
-                  src={booking.image}
-                  alt={booking.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-
-                <div className="absolute inset-0 bg-black/5" />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span
-                      className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${
-                        booking.status === "CONFIRMED"
-                          ? "bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]"
-                          : booking.status === "COMPLETED"
-                          ? "bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]"
-                          : "bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
-
-                    <span className="text-[10px] font-bold text-gray-400 tracking-wider">
-                      {booking.code}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-1">
-                    {booking.title}
-                  </h3>
-
-                  <p className="text-xs text-gray-500 mb-3 font-serif italic">{booking.eventName}</p>
-
-                  <div className="space-y-1.5 mb-4 text-xs text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={13} className="text-[#A6955C]" />
-                      <span>{booking.date}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <MapPin size={13} className="text-[#A6955C]" />
-                      <span>{booking.location}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4">
-                    {booking.videoPackage}
-                  </p>
+          {filtered.map((booking) => {
+            const status = getVendorStatus(booking, "videographer");
+            const imgUrl = getApiImageUrl(booking.vendors?.videographer?.completionPhotos?.[0]) ||
+              "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
+            return (
+              <div key={booking._id} className="bg-white border border-[#E0D8C3] overflow-hidden shadow-sm flex flex-col sm:flex-row">
+                <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden">
+                  <img src={imgUrl} alt={booking.eventType} className="w-full h-full object-cover" />
                 </div>
-
-                <div className="flex gap-3">
+                <div className="flex-1 p-5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${statusBadge(status)}`}>
+                        {status === "Pending" ? "ACTION REQUIRED" : status.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-400">{getBookingRef(booking)}</span>
+                    </div>
+                    <h3 className="text-xl font-serif font-bold text-gray-900 mb-1">{getClientDisplayName(booking)}</h3>
+                    <div className="space-y-1.5 mb-4 text-xs text-gray-600">
+                      <div className="flex items-center gap-2"><Calendar size={13} className="text-[#A6955C]" /><span>{new Date(booking.date).toLocaleDateString()} · {formatTimeslot(booking)}</span></div>
+                      <div className="flex items-center gap-2"><MapPin size={13} className="text-[#A6955C]" /><span>{VENUE_NAME}</span></div>
+                    </div>
+                    <p className="text-xs font-serif italic text-gray-500 border-l-2 border-[#E0D8C3] pl-3 mb-4">{getPackageName(booking, "videographer")}</p>
+                  </div>
+                  {status === "Pending" ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => handleStatusUpdate(booking._id, "Accepted")}
+                        disabled={updatingId === booking._id}
+                        className="px-3 py-1 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleStatusUpdate(booking._id, "Declined")}
+                        disabled={updatingId === booking._id}
+                        className="px-3 py-1 border border-red-300 text-red-500 hover:bg-red-50 text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  ) : (
                   <button
-                    onClick={() => router.push(`/videographer/events-bookings/${booking.code.replace('#', '')}`)}
-                    className="flex-1 border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase"
+                    onClick={() => router.push(`/videographer/events-bookings/${booking._id}`)}
+                    className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest uppercase"
                   >
                     VIEW DETAILS
                   </button>
-                  <button
-                    className="flex items-center justify-center gap-1.5 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-600 px-4 py-2 text-xs font-bold tracking-widest transition-colors uppercase"
-                  >
-                    <Video size={12} />
-                    CONTACT
-                  </button>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-
-      {/* Pagination */}
-      <div className="flex justify-center items-center space-x-2 my-12">
-        <button className="border border-[#E0D8C3] p-2 hover:bg-[#F2EADA] transition-colors text-gray-500 hover:text-gray-800">
-          <ChevronLeft size={14} />
-        </button>
-
-        <button className="w-9 h-9 border border-[#7C6A2E] bg-[#7C6A2E] text-white flex items-center justify-center font-bold text-xs">
-          1
-        </button>
-
-        <button className="w-9 h-9 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-600 flex items-center justify-center font-bold text-xs transition-colors">
-          2
-        </button>
-
-        <button className="w-9 h-9 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-600 flex items-center justify-center font-bold text-xs transition-colors">
-          3
-        </button>
-
-        <button className="border border-[#E0D8C3] p-2 hover:bg-[#F2EADA] transition-colors text-gray-500 hover:text-gray-800">
-          <ChevronRight size={14} />
-        </button>
-      </div>
     </div>
   );
 };

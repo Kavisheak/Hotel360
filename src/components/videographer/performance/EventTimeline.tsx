@@ -3,6 +3,7 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { isSameCalendarDay, normalizeCalendarDate, parseBookingDate } from '@/lib/vendorUtils';
 
 interface EventTimelineProps {
   bookings?: any[];
@@ -10,17 +11,15 @@ interface EventTimelineProps {
 }
 
 const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimelineProps) => {
-  // Bookings on the selected date
-  const dayBookings = bookings.filter(b => {
-    const bDate = new Date(b.date);
-    return bDate.getDate() === selectedDate.getDate() && 
-           bDate.getMonth() === selectedDate.getMonth() && 
-           bDate.getFullYear() === selectedDate.getFullYear();
-  });
+  const normalizedSelected = normalizeCalendarDate(selectedDate);
 
-  // Up to 3 upcoming bookings starting from today
+  const dayBookings = bookings.filter((b) =>
+    isSameCalendarDay(parseBookingDate(b.date), normalizedSelected)
+  );
+
+  const today = normalizeCalendarDate(new Date());
   const upcomingBookings = bookings
-    .filter(b => new Date(b.date) >= new Date(new Date().setHours(0,0,0,0)))
+    .filter((b) => parseBookingDate(b.date) >= today)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
@@ -128,9 +127,9 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
           VIEW ALL
         </Link>
 
-        <button className="flex-1 bg-[#685724] hover:bg-[#4A463B] text-white py-3 font-semibold text-xs tracking-[0.15em] transition-colors shadow-md">
-          ADD SHOOT
-        </button>
+        <Link href="/videographer/upcoming-events" className="flex-1 bg-[#685724] hover:bg-[#4A463B] text-white py-3 font-semibold text-xs tracking-[0.15em] transition-colors shadow-md text-center">
+          VIEW ASSIGNED
+        </Link>
       </div>
     </div>
   );

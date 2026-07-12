@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, MapPin, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { videographerAPI } from "@/lib/api";
+import { VENUE_NAME, getClientFirstName } from "@/lib/vendorUtils";
+
+interface UpcomingEventListProps {
+  searchTerm?: string;
+  statusFilter?: string;
+}
 
 function statusClass(status: string = "") {
   const upper = status.toUpperCase();
@@ -11,7 +17,7 @@ function statusClass(status: string = "") {
   return "bg-[#EAF0F6] text-[#3F6897] border-[#DCE6EE]";
 }
 
-const UpcomingEventList = () => {
+const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEventListProps) => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,17 +31,18 @@ const UpcomingEventList = () => {
       if (ok && data.success) {
         const mapped = data.data
           .filter((b: any) => {
-            const status = b.vendors?.videographer?.status?.toUpperCase();
-            return status !== 'COMPLETED'; // Only upcoming
+            const status = b.vendors?.videographer?.status;
+            const isFuture = new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0));
+            return status !== 'Completed' && status !== 'Declined' && status !== 'NotRequired' && isFuture;
           })
           .map((b: any) => ({
             _id: b._id,
-            title: (`${b.eventType} for ${b.clientName}`).toUpperCase(),
+            title: (`${b.eventType} for ${getClientFirstName(b)}`).toUpperCase(),
             type: b.vendors?.videographer?.packageName || "Custom Package",
             date: new Date(b.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
-            time: b.time || "TBD",
-            venue: b.location?.address || b.location?.city || "TBD",
-            status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
+            time: b.timeslot || "TBD",
+            venue: VENUE_NAME,
+            status: b.vendors?.videographer?.status || "Pending",
             clientName: b.clientName,
             eventType: b.eventType
           }));
@@ -51,6 +58,19 @@ const UpcomingEventList = () => {
   useEffect(() => {
     fetchUpcomingEvents();
   }, []);
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      !searchTerm ||
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "All" ||
+      statusFilter === "All Status" ||
+      event.status === statusFilter ||
+      (statusFilter === "Confirmed" && event.status === "Accepted");
+    return matchesSearch && matchesStatus;
+  });
 
   const handleStatusChange = (eventId: string, newStatus: string) => {
     setSelectedEventId(eventId);
@@ -86,48 +106,49 @@ const UpcomingEventList = () => {
           <Loader2 className="w-6 h-6 animate-spin text-[#7C6A2E]" />
         </div>
       ) : (
-        <div className="space-y-4">
-          {events.length === 0 ? (
-            <p className="text-gray-500 text-sm">No upcoming shoots.</p>
+        <div className="space-y-2">
+          {filteredEvents.length === 0 ? (
+            <p className="text-gray-500 text-sm">No upcoming shoots assigned by the manager.</p>
           ) : (
-            events.map((event, index) => (
+            filteredEvents.map((event) => (
               <div
-                key={index}
-                className={`border p-4 hover:bg-[#FDF9F1] transition-colors ${
-                  event.status === 'PENDING' ? 'border-[#C69C6D] bg-[#FCF6E3]' : 'border-[#E0D8C3]'
+                key={event._id}
+                className={`border px-4 py-3 hover:bg-[#FDF9F1] transition-colors ${
+                  event.status === 'Pending' ? 'border-[#C69C6D] bg-[#FCF6E3]' : 'border-[#E0D8C3] bg-white'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <p className="font-serif font-bold text-gray-900 text-sm">{event.title}</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <p className="font-serif font-bold text-gray-900 text-sm truncate">{event.title}</p>
+                      <span className={`text-[9px] font-bold tracking-widest px-2 py-0.5 border shrink-0 ${statusClass(event.status)}`}>
+                        {event.status}
+                      </span>
+                    </div>
                     <p className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase mt-0.5">{event.type}</p>
-                  </div>
-                  <span className={`text-[9px] font-bold tracking-widest px-2 py-1 border shrink-0 ${statusClass(event.status)}`}>
-                    {event.status}
-                  </span>
-                </div>
-
-                <div className="space-y-1 mt-3">
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar size={12} className="text-[#A6955C] shrink-0" />
-                    <span>{event.date} · {event.time}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <MapPin size={12} className="text-[#A6955C] shrink-0" />
-                    <span>{event.venue}</span>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-[11px] text-gray-500">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar size={11} className="text-[#A6955C] shrink-0" />
+                        {event.date} · {event.time}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin size={11} className="text-[#A6955C] shrink-0" />
+                        {event.venue}
+                      </span>
+                    </div>
                   </div>
 
-                  {event.status === 'PENDING' && (
-                    <div className="flex items-center gap-2 mt-4">
-                      <button 
+                  {event.status === 'Pending' && (
+                    <div className="flex items-center gap-1.5 shrink-0 self-center">
+                      <button
                         onClick={() => handleStatusChange(event._id, 'Accepted')}
-                        className="flex-1 bg-[#7C6A2E] hover:bg-[#685724] text-white py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        className="px-3 py-1 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[9px] font-bold tracking-widest uppercase transition-colors"
                       >
                         Accept
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleStatusChange(event._id, 'Declined')}
-                        className="flex-1 border border-red-200 text-red-500 hover:bg-red-50 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        className="px-3 py-1 border border-red-300 text-red-500 hover:bg-red-50 text-[9px] font-bold tracking-widest uppercase transition-colors"
                       >
                         Decline
                       </button>

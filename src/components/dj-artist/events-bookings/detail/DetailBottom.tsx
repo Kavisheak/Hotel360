@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Music, Mic2, Volume2, Plus, Trash2, Camera, CheckSquare } from 'lucide-react';
 import { djAPI } from '@/lib/api';
 
+import { getPackageName } from '@/lib/vendorUtils';
+
 interface DetailBottomProps {
   booking: any;
   onRefresh: () => void;
@@ -9,6 +11,7 @@ interface DetailBottomProps {
 
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const djVendor = booking?.vendors?.dj;
+  const packageName = getPackageName(booking, 'dj');
   
   const defaultTasks = [
     { task: 'Confirm equipment load-in time with venue', isCompleted: true },
@@ -73,16 +76,19 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
-    
-    setUploaded(true);
     const formData = new FormData();
     files.forEach(f => formData.append('photos', f));
-    
+
     setIsUpdating(true);
     try {
-      await djAPI.uploadCompletionPhotos(booking._id, formData);
-      setSuccessDetails("Photos uploaded successfully.");
-      onRefresh();
+      const res = await djAPI.uploadCompletionPhotos(booking._id, formData);
+      if (res.ok) {
+        setUploaded(true);
+        setSuccessDetails("Photos uploaded successfully.");
+        onRefresh();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to upload photos.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to upload photos.");
@@ -97,16 +103,16 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       setErrorDetails("Please complete all checklist items before marking the job as complete.");
       return;
     }
-    if (!uploaded) {
-      setErrorDetails("Please upload completion photos before marking the job as complete.");
-      return;
-    }
-    
+
     setIsUpdating(true);
     try {
-      await djAPI.updateBookingStatus(booking._id, "Completed");
-      setSuccessDetails("Job marked as complete. The Concierge team has been notified.");
-      onRefresh();
+      const res = await djAPI.updateBookingStatus(booking._id, "Completed");
+      if (res.ok) {
+        setSuccessDetails("Job marked as complete. The manager has been notified.");
+        onRefresh();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to mark as complete.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to mark as complete.");
@@ -121,7 +127,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm lg:col-span-3 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
-            <h3 className="text-xl font-serif font-bold text-gray-900">Diamond DJ Package</h3>
+            <h3 className="text-xl font-serif font-bold text-gray-900">{packageName}</h3>
             <span className="text-[8px] font-bold tracking-widest border border-[#B08D2C] text-[#7C6A2E] px-2 py-0.5 uppercase">PREMIUM TIER</span>
           </div>
 
@@ -150,12 +156,12 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
           </div>
         </div>
 
+        {booking?.eventName && (
         <div className="bg-[#FAF6EE] border-l-2 border-[#7C6A2E] p-4">
-          <p className="text-[9px] font-bold tracking-[0.15em] text-[#7C6A2E] uppercase mb-1">CLIENT NOTES</p>
-          <p className="text-xs font-serif italic text-gray-600 leading-relaxed">
-            "Would love a mix of Bollywood classics, current hits, and Arabic pop. Please avoid hip-hop during dinner service. First dance song: 'A Thousand Years' — request a beautiful intro build-up."
-          </p>
+          <p className="text-[9px] font-bold tracking-[0.15em] text-[#7C6A2E] uppercase mb-1">EVENT NOTES</p>
+          <p className="text-xs font-serif italic text-gray-600 leading-relaxed">{booking.eventName}</p>
         </div>
+        )}
       </div>
 
       {/* Event Day Checklist */}
