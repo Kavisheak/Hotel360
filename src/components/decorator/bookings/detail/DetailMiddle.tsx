@@ -23,7 +23,7 @@ const DetailMiddle = ({
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const avatarUrl = clientAvatar
     ? (clientAvatar.startsWith('http') ? clientAvatar : `${API_BASE}${clientAvatar}`)
-    : "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=120&h=120";
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=F2EADA&color=7C6A2E`;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

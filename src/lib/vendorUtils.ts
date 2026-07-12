@@ -11,10 +11,10 @@ export const getApiImageUrl = (path?: string | null) => {
 };
 
 export const getClientFullName = (booking: any) => {
-  if (booking?.clientName) return booking.clientName;
   if (booking?.customerId?.firstName) {
     return `${booking.customerId.firstName} ${booking.customerId.lastName || ""}`.trim();
   }
+  if (booking?.clientName) return booking.clientName;
   return "Client";
 };
 
@@ -25,8 +25,8 @@ export const getClientEmail = (booking: any) =>
   booking?.email || booking?.customerId?.email || "Not provided";
 
 export const getClientFirstName = (booking: any) => {
-  if (booking?.clientFirstName) return booking.clientFirstName;
   if (booking?.customerId?.firstName) return booking.customerId.firstName;
+  if (booking?.clientFirstName) return booking.clientFirstName;
   if (booking?.clientName) return booking.clientName.split(" ")[0];
   return "Client";
 };
