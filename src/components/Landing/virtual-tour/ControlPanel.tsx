@@ -27,7 +27,7 @@ export const ControlPanel = () => {
   const [isStatsOpen, setIsStatsOpen] = useState(true);
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-white border-r border-[#E8DFC9] flex flex-col">
+    <div className="w-full h-full overflow-y-auto bg-[#FDFBF7] border-r border-[#E8DFC9] flex flex-col">
       {/* Header */}
       <div className="p-5 border-b border-[#E8DFC9]">
         <h2 className="text-xl font-serif text-[#1A1512] tracking-tight">Hall Arranger</h2>

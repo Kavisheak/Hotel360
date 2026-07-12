@@ -6,6 +6,7 @@ interface DetailMiddleProps {
   clientSubtitle: string;
   phone: string;
   email: string;
+  clientAvatar?: string;
   inspirationImage: string;
   inspirationCaption: string;
 }
@@ -15,9 +16,15 @@ const DetailMiddle = ({
   clientSubtitle,
   phone,
   email,
+  clientAvatar,
   inspirationImage,
   inspirationCaption,
 }: DetailMiddleProps) => {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const avatarUrl = clientAvatar
+    ? (clientAvatar.startsWith('http') ? clientAvatar : `${API_BASE}${clientAvatar}`)
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=F2EADA&color=7C6A2E`;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       {/* Client Profile (1/3 width on desktop) */}
@@ -29,7 +36,7 @@ const DetailMiddle = ({
           
           <div className="flex items-center space-x-4 mb-6">
             <img
-              src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=120&h=120"
+              src={avatarUrl}
               alt={clientName}
               className="w-16 h-16 rounded-full object-cover border border-[#E0D8C3]"
             />

@@ -6,37 +6,52 @@ import { Package } from "lucide-react";
 interface PackageSelectorProps {
   selectedPackage: string;
   onSelectPackage: (p: string) => void;
+  dbPackages?: any[];
 }
 
-export default function PackageSelector({ selectedPackage, onSelectPackage }: PackageSelectorProps) {
-  const pkgs = [
-    {
-      id: "silver",
-      name: "Silver Essential",
-      base: "LKR 1.8M",
-      pax: "250 Guests included"
-    },
-    {
-      id: "gold",
-      name: "Gold Signature",
-      base: "LKR 3.4M",
-      pax: "380 Guests included"
-    },
-    {
-      id: "diamond",
-      name: "Diamond Elite",
-      base: "LKR 5.9M",
-      pax: "480 Guests included"
-    }
-  ];
+export default function PackageSelector({ selectedPackage, onSelectPackage, dbPackages }: PackageSelectorProps) {
+  const pkgs = dbPackages && dbPackages.length > 0
+    ? dbPackages.map((pkg: any) => {
+        const nameLower = pkg.name.toLowerCase();
+        let slug = "gold";
+        if (nameLower.includes("silver")) slug = "silver";
+        else if (nameLower.includes("diamond")) slug = "diamond";
+
+        return {
+          id: slug,
+          name: pkg.name,
+          base: `LKR ${pkg.price.toLocaleString()}`,
+          pax: `${pkg.maxGuests} Guests included`
+        };
+      })
+    : [
+        {
+          id: "silver",
+          name: "Silver Essential",
+          base: "LKR 1.8M",
+          pax: "250 Guests included"
+        },
+        {
+          id: "gold",
+          name: "Gold Signature",
+          base: "LKR 3.4M",
+          pax: "380 Guests included"
+        },
+        {
+          id: "diamond",
+          name: "Diamond Elite",
+          base: "LKR 5.9M",
+          pax: "480 Guests included"
+        }
+      ];
 
   return (
-    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
-      <label className="block text-[10px] uppercase tracking-widest text-[#C9A84C] font-bold flex items-center gap-1.5 mb-2">
-        <Package className="w-4 h-4 text-[#C9A84C]" /> Step 3: Select Baseline Framework
+    <div className="space-y-6">
+      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5 mb-2">
+        <Package className="w-4 h-4 text-[#A6955C]" /> STEP 3: SELECT BASELINE FRAMEWORK
       </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {pkgs.map((pkg) => {
           const isActive = selectedPackage === pkg.id;
           return (
@@ -44,26 +59,26 @@ export default function PackageSelector({ selectedPackage, onSelectPackage }: Pa
               key={pkg.id}
               onClick={() => onSelectPackage(pkg.id)}
               className={`
-                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm hover-glow relative
+                p-5 cursor-pointer transition-all duration-300 flex flex-col justify-center items-center text-center rounded-sm
                 ${isActive 
-                  ? "bg-gradient-to-br from-[#D4AF37] to-[#8C6D23] border-[#C9A84C] text-black shadow-lg ring-2 ring-[#C9A84C] ring-offset-2 ring-offset-[#0A0A0A] scale-[1.03] z-10" 
-                  : "bg-[#1A1A1A] border border-[#C9A84C]/30 text-white hover:border-[#C9A84C]/80 text-[#C9A84C]"
+                  ? "bg-white dark:bg-[#111] border-2 border-[#C69C6D] shadow-sm z-10" 
+                  : "bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 hover:border-[#A6955C]"
                 }
               `}
             >
-              <h4 className={`font-serif text-lg mb-1 ${isActive ? "text-black" : "text-white"}`}>{pkg.name}</h4>
-              <span className={`text-xs font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-black/80" : "text-[#C9A84C]"}`}>
-                {pkg.base} base
+              <h4 className={`font-serif text-[17px] font-semibold mb-1 ${isActive ? "text-[#C69C6D]" : "text-[#1A1512] dark:text-white"}`}>{pkg.name}</h4>
+              <span className={`text-[10px] font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-[#C69C6D]" : "text-[#A6955C]"}`}>
+                {pkg.base} BASE
               </span>
-              <p className={`text-[10px] font-light ${isActive ? "text-black/70" : "text-gray-400"}`}>
+              <p className={`text-[9px] uppercase tracking-widest font-bold ${isActive ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}>
                 {pkg.pax}
               </p>
             </div>
           );
         })}
       </div>
-      <p className="text-[10px] text-gray-500 italic mt-2">
-        * You can fully customize menus, florals, and entertainment within your client portal after holding the date.
+      <p className="text-[10px] text-gray-500 dark:text-gray-400 italic mt-3 pb-4">
+        * You can fully customize menu, florals, and entertainment within your client portal after holding the date.
       </p>
     </div>
   );

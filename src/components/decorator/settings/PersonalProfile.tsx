@@ -1,24 +1,49 @@
 "use client";
 
 import React, { useState } from 'react';
-import { User, ChevronDown } from 'lucide-react';
+import { User, ChevronDown, Camera } from 'lucide-react';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
-const PersonalProfile = () => {
-  const [formData, setFormData] = useState({
-    fullName: 'Julian Sattar',
-    email: 'julian.elite@sattar.com',
-    phone: '+1 (555) 000-0000',
-    experience: '12',
-    specialty: 'Floral Architecture & Design',
-    website: 'https://portfolio.sattar-elite.com',
-    instagram: '@julian_sattar_designs',
-    pinterest: 'pinterest.com/juliansattar',
-    bio: "Julian specializes in blending classic European floral techniques with modern minimalist architecture, creating timeless atmospheres for the world's most exclusive celebrations."
-  });
+interface PersonalProfileProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  user: any;
+  setUser: (user: any) => void;
+  errors?: { email?: string, phone?: string };
+}
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }: PersonalProfileProps) => {
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    setMessage('');
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("avatar", file);
+
+    try {
+      const { ok, data } = await authAPI.uploadAvatar(formDataUpload);
+      if (ok && data.avatar) {
+        setMessage('Profile photo updated successfully!');
+        setUser({ ...user, avatar: data.avatar });
+        useAuthStore.getState().updateUser({ avatar: data.avatar });
+      } else {
+        setMessage(data.message || 'Failed to upload photo.');
+      }
+    } catch (error) {
+      setMessage('An error occurred during photo upload.');
+    } finally {
+      setIsUploadingPhoto(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   return (
@@ -30,6 +55,45 @@ const PersonalProfile = () => {
           <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">
             PERSONAL PROFILE
           </h3>
+        </div>
+
+        {message && (
+          <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            {message}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 mb-6 md:flex-row md:items-center">
+          <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
+            <img
+              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=112&h=112"}
+              alt="Decorator profile portrait"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-end bg-black/25 px-2 py-1 text-white">
+              <Camera size={12} />
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <h4 className="text-[28px] font-serif text-gray-900 mb-2">Profile Picture</h4>
+            <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
+              Upload a high-quality logo or portrait to display on the client directory.
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              id="decorator-avatar-upload"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+            <label
+              htmlFor="decorator-avatar-upload"
+              className="mt-4 inline-block border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1] cursor-pointer"
+            >
+              {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
+            </label>
+          </div>
         </div>
 
         {/* Inputs Grid */}
@@ -68,7 +132,7 @@ const PersonalProfile = () => {
               PHONE NUMBER
             </label>
             <input
-              type="text"
+              type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -99,18 +163,14 @@ const PersonalProfile = () => {
               DECORATOR SPECIALTY
             </label>
             <div className="relative">
-              <select
+              <input
+                type="text"
                 name="specialty"
                 value={formData.specialty}
                 onChange={handleChange}
-                className="w-full appearance-none bg-white border border-[#E0D8C3] px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
-              >
-                <option>Floral Architecture & Design</option>
-                <option>Lighting & Ambiance Curation</option>
-                <option>Stage & Backdrop Sculpting</option>
-                <option>Traditional Mehndi Theme Setup</option>
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                placeholder="e.g. Floral Architecture & Design"
+                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+              />
             </div>
           </div>
 

@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { Upload, X, Search, ChevronDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Upload, X, Search, ChevronDown, Loader2, Edit3, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { videographerAPI } from "@/lib/api";
 
 interface GalleryItem {
-  id: number;
+  id: string | number;
   title: string;
   category: string;
   year: string;
   image: string;
+  description?: string;
 }
 
-const galleryData: GalleryItem[] = [
+const mockGalleryData: GalleryItem[] = [
   {
     id: 1,
     title: "Sterling-Vance Wedding",
@@ -85,6 +87,59 @@ const GalleryGrid = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
+  const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleDelete = async (itemId: string | number) => {
+    if (confirm("Are you sure you want to delete this project?")) {
+      try {
+        const res = await videographerAPI.deletePortfolioItem(itemId.toString());
+        if (res.ok && res.data?.success) {
+          setGalleryData(prev => prev.filter(item => item.id !== itemId));
+          setPreviewItem(null);
+        } else {
+          alert(res.data?.message || "Failed to delete portfolio item");
+        }
+      } catch (error) {
+        console.error("Error deleting item:", error);
+        alert("Failed to delete portfolio item due to network error.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const { ok, data } = await videographerAPI.getPortfolioItems();
+        if (ok && data.success) {
+          const items = data.data.map((item: any) => {
+            const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+            const imageUrl = coverMedia?.url 
+              ? (coverMedia.url.startsWith('http') ? coverMedia.url : `${apiBase}${coverMedia.url}`)
+              : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
+
+            return {
+              id: item._id,
+              title: item.title || "Untitled Project",
+              category: item.category || "cinematography",
+              year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
+              image: imageUrl,
+              description: item.description || "A professionally captured project featuring cinematic storytelling.",
+            };
+          });
+          setGalleryData(items);
+        }
+      } catch (error) {
+        console.error("Failed to fetch portfolio:", error);
+        // Fall back to mock data if fetch fails
+        setGalleryData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPortfolio();
+  }, []);
 
   const filtered = galleryData.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.category === activeCategory;
@@ -150,33 +205,40 @@ const GalleryGrid = () => {
         </div>
       </div>
 
-      {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-            onClick={() => setPreviewItem(item)}
-          >
-            <div className="relative h-52 overflow-hidden">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
-                  PREVIEW
-                </span>
+      {/* Gallery Grid / Loader */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-[#7C6A2E]">
+          <Loader2 className="w-8 h-8 animate-spin mb-4" />
+          <p className="text-xs font-bold tracking-wider uppercase">Loading Gallery Projects...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+              onClick={() => setPreviewItem(item)}
+            >
+              <div className="relative h-52 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
+                    PREVIEW
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
+                <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
               </div>
             </div>
-            <div className="p-4">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
-              <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Load More */}
       <div className="flex justify-center my-8">
@@ -212,14 +274,20 @@ const GalleryGrid = () => {
               <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{previewItem.category} · {previewItem.year}</span>
               <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                A professionally captured {previewItem.category.toLowerCase()} project featuring cinematic storytelling, high-resolution footage, and seamless editing.
+                {previewItem.description || `A professionally captured ${previewItem.category.toLowerCase()} project featuring cinematic storytelling.`}
               </p>
               <div className="flex gap-3 mt-5">
-                <button className="flex-1 bg-[#7C6A2E] hover:bg-[#685724] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md">
-                  DOWNLOAD REEL
+                <button 
+                  onClick={() => router.push(`/videographer/gallery/edit/${previewItem.id}`)}
+                  className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-[#7C6A2E] py-2.5 text-xs font-bold tracking-widest transition-colors uppercase flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Edit3 size={14} /> EDIT
                 </button>
-                <button className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-gray-700 py-2.5 text-xs font-bold tracking-widest transition-colors uppercase">
-                  SHARE PROJECT
+                <button 
+                  onClick={() => handleDelete(previewItem.id)}
+                  className="flex-1 bg-[#93000a] hover:bg-[#7a0008] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Trash2 size={14} /> DELETE
                 </button>
               </div>
             </div>

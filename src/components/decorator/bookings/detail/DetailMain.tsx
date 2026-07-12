@@ -15,17 +15,11 @@ const DetailMain = () => {
         
         {/* Hero banner for event */}
         <DetailBanner 
-<<<<<<< Updated upstream
           code="#BK-8842" 
           status="AWAITING PREP" 
           confirmedDate="Sept 12, 2024" 
-=======
-          code={booking.bookingRef} 
-          status={vendorStatus} 
-          confirmedDate={new Date(booking.date).toLocaleDateString()} 
-          clientEmail={booking.email}
-          clientPhone={getClientPhone(booking)}
->>>>>>> Stashed changes
+          clientEmail="z.omar@weddingmail.com"
+          clientPhone="+971 50 123 4567"
         />
 
         {/* 4 Summary Stats Cards */}

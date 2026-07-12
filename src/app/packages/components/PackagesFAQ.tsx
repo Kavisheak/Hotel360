@@ -19,12 +19,12 @@ export default function PackagesFAQ() {
   };
 
   return (
-    <section className="w-full bg-[#F0E6D0] py-20">
+    <section className="w-full bg-[#F0E6D0] dark:bg-[#0A0A0A] py-20 transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-6">
-        <p className="text-[#A67C52] text-[10px] tracking-[0.2em] uppercase font-bold mb-3 text-center">
+        <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-bold mb-3 text-center">
           Client Support
         </p>
-        <h2 className="text-3xl md:text-5xl font-serif text-[#2C1E14] mb-12 text-center">
+        <h2 className="text-3xl md:text-5xl font-serif text-[#2C1E14] dark:text-white mb-12 text-center">
           Frequently Asked Questions
         </h2>
 
@@ -32,25 +32,25 @@ export default function PackagesFAQ() {
           {faqs.map((faq, idx) => (
             <div 
               key={idx} 
-              className="bg-white border border-[#D4C9A8] rounded-sm overflow-hidden shadow-sm transition-all duration-300"
+              className="bg-[#FDFBF7] dark:bg-[#111111] border border-[#D4C9A8] dark:border-[#C9A84C]/30 rounded-sm overflow-hidden shadow-sm transition-all duration-300"
             >
               <button
                 onClick={() => toggle(idx)}
-                className="w-full px-6 py-5 flex justify-between items-center text-left focus:outline-none hover:bg-[#F9F7F2] transition-colors"
+                className="w-full px-6 py-5 flex justify-between items-center text-left focus:outline-none hover:bg-[#F9F7F2] dark:hover:bg-[#1A1A1A] transition-colors"
               >
-                <span className={`text-sm font-bold ${openIdx === idx ? 'text-[#C9A84C]' : 'text-[#2C1E14]'}`}>
+                <span className={`text-sm font-bold ${openIdx === idx ? 'text-[#805D3A] dark:text-[#C9A84C]' : 'text-[#2C1E14] dark:text-white'}`}>
                   {faq.question}
                 </span>
                 <ChevronDown 
                   size={16} 
-                  className={`text-[#A67C52] transition-transform duration-300 ${openIdx === idx ? 'rotate-180' : ''}`}
+                  className={`text-[#805D3A] dark:text-[#A67C52] transition-transform duration-300 ${openIdx === idx ? 'rotate-180' : ''}`}
                 />
               </button>
               
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${openIdx === idx ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
               >
-                <div className="px-6 pb-5 pt-2 text-sm text-gray-600 font-light leading-relaxed border-t border-[#F0E6D0] mx-6">
+                <div className="px-6 pb-5 pt-2 text-sm text-gray-700 dark:text-gray-400 font-light leading-relaxed border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 mx-6">
                   {faq.answer}
                 </div>
               </div>

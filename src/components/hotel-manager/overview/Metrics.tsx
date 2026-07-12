@@ -2,20 +2,27 @@
 
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, Clock, CheckCircle2, Wallet } from 'lucide-react';
-import { useBookingStore } from '@/store/bookingStore';
+import { bookingAPI } from '@/lib/api';
 
 const Metrics = () => {
   const [isClient, setIsClient] = useState(false);
-  const bookings = useBookingStore(state => state.bookings);
+  const [bookings, setBookings] = useState<any[]>([]);
 
   useEffect(() => {
     setIsClient(true);
+    const fetchBookings = async () => {
+      const res = await bookingAPI.getAllBookings();
+      if (res.ok && res.data?.data) {
+        setBookings(res.data.data);
+      }
+    };
+    fetchBookings();
   }, []);
 
   const totalBookings = bookings.length;
-  const pendingApprovals = bookings.filter(b => b.status === "Pending").length;
-  const confirmedEvents = bookings.filter(b => b.status === "Confirmed").length;
-  const monthlyRevenue = bookings.filter(b => b.status === "Confirmed").reduce((sum, b) => sum + b.totalCost, 0);
+  const pendingApprovals = bookings.filter((b: any) => b.status === "Pending").length;
+  const confirmedEvents = bookings.filter((b: any) => b.status === "Confirmed" || b.status === "DepositPaid" || b.status === "BalancePaid").length;
+  const monthlyRevenue = bookings.filter((b: any) => b.status !== "Cancelled" && b.status !== "Rejected").reduce((sum: number, b: any) => sum + (b.totalCost || 0), 0);
 
   const formatCurrency = (val: number) => {
     if (val >= 1000000) return `LKR ${(val / 1000000).toFixed(1)}M`;

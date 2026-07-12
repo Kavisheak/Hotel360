@@ -35,16 +35,16 @@ export default function WelcomePanel() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#D4C9A8]"
+      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#D4C9A8] dark:border-white/10 transition-colors duration-300"
     >
       <div>
         <span className="text-[10px] uppercase tracking-widest font-bold text-[#C9A84C] flex items-center gap-1.5 mb-1.5">
           <Sparkles className="w-4 h-4 text-[#C9A84C] animate-pulse" /> Welcome back, Farhan &amp; Zainab
         </span>
-        <h2 className="text-3xl font-serif text-gray-900 leading-tight">
+        <h2 className="text-3xl font-serif text-gray-900 dark:text-white leading-tight">
           Your Forever <span className="italic text-[#C9A84C]">Begins Soon</span>
         </h2>
-        <p className="text-xs text-gray-500 font-light mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 font-light mt-1">
           Orchestrating your dream gala at EASCC Grand Ballroom.
         </p>
       </div>

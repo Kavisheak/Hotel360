@@ -1,5 +1,6 @@
 import React from "react";
 import { Vendor } from "@/components/landing/vendors/types";
+import { Settings, CalendarCheck } from "lucide-react";
 
 interface VendorProfileStatsProps {
   vendor: Vendor;
@@ -7,33 +8,33 @@ interface VendorProfileStatsProps {
 
 export default function VendorProfileStats({ vendor }: VendorProfileStatsProps) {
   return (
-    <div className="bg-white border-b border-[#E8DFC9]">
-      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-wrap justify-between items-center gap-6">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Pricing Tier</span>
-          <span className="text-lg font-serif text-[#1A1512]">{vendor.priceLevelLabel}</span>
-        </div>
+    <div className="bg-white dark:bg-[#111315] border-b border-[#E8DFC9] dark:border-[#C9A84C]/20">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-6">
         
-        <div className="w-px h-10 bg-[#E8DFC9] hidden md:block" />
-
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Starting Price</span>
-          <span className="text-lg font-serif text-[#1A1512]">{vendor.startingPrice}</span>
+        {/* Years Experience */}
+        <div className="flex items-center gap-4 flex-1 justify-center md:justify-start">
+          <div className="p-2 border border-[#C69C6D]/30 rounded-sm">
+            <Settings className="w-5 h-5 text-[#C69C6D]" strokeWidth={1.5} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Years Experience</span>
+            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{((vendor as any).experience) || "5+ Years"}</span>
+          </div>
         </div>
 
-        <div className="w-px h-10 bg-[#E8DFC9] hidden md:block" />
+        <div className="w-full md:w-px h-[1px] md:h-12 bg-[#E8DFC9] dark:bg-white/10" />
 
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Years Experience</span>
-          <span className="text-lg font-serif text-[#1A1512]">{((vendor as any).experience) || "5+ Years"}</span>
+        {/* Events Completed */}
+        <div className="flex items-center gap-4 flex-1 justify-center md:justify-start md:pl-6">
+          <div className="p-2 border border-[#C69C6D]/30 rounded-sm">
+            <CalendarCheck className="w-5 h-5 text-[#C69C6D]" strokeWidth={1.5} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Events Completed</span>
+            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{((vendor as any).eventsCompleted) || "120+"}</span>
+          </div>
         </div>
 
-        <div className="w-px h-10 bg-[#E8DFC9] hidden md:block" />
-
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Events Completed</span>
-          <span className="text-lg font-serif text-[#1A1512]">{((vendor as any).eventsCompleted) || "120+"}</span>
-        </div>
       </div>
     </div>
   );

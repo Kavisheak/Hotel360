@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, CalendarDays, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus
+  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -15,7 +17,7 @@ interface NavItemProps {
   href: string;
   active?: boolean;
   isCollapsed?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: any) => void;
 }
 
 const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onClick }: NavItemProps) => (
@@ -45,6 +47,8 @@ const ManagerSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { clearUser } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
@@ -59,18 +63,27 @@ const ManagerSidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />,    label: 'DASHBOARD', href: '/hotel-manager' },
-    { icon: <CalendarCheck size={20} />, label: 'BOOKINGS',  href: '/hotel-manager/bookings' },
-    { icon: <CalendarDays size={20} />,  label: 'CALENDAR',  href: '/hotel-manager/calendar' },
-    { icon: <CreditCard size={20} />,    label: 'PAYMENTS',  href: '/hotel-manager/payments' },
-    { icon: <BarChart3 size={20} />,     label: 'REPORTS',   href: '/hotel-manager/reports' },
-    { icon: <Settings size={20} />,      label: 'SETTINGS',  href: '/hotel-manager/settings' },
+    { icon: <LayoutGrid size={20} />,    label: 'DASHBOARD',  href: '/hotel-manager' },
+    { icon: <CalendarCheck size={20} />, label: 'BOOKINGS',   href: '/hotel-manager/bookings' },
+    { icon: <CalendarDays size={20} />,  label: 'CALENDAR',   href: '/hotel-manager/calendar' },
+    { icon: <CreditCard size={20} />,    label: 'PAYMENTS',   href: '/hotel-manager/payments' },
+    { icon: <Package size={20} />,       label: 'PACKAGES',   href: '/hotel-manager/packages' },
+    { icon: <Users size={20} />,         label: 'VENDORS',    href: '/hotel-manager/vendors' },
+    { icon: <BarChart3 size={20} />,     label: 'REPORTS',    href: '/hotel-manager/reports' },
+    { icon: <Settings size={20} />,      label: 'SETTINGS',   href: '/hotel-manager/settings' },
   ];
 
-  const bottomItems = [
-    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '#' },
-    { icon: <LogOut size={20} />,     label: 'LOGOUT',  href: '/login' },
-  ];
+  const handleLogout = async (e: any) => {
+    if (e) e.preventDefault();
+    try {
+      await authAPI.signout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      clearUser();
+      router.push('/');
+    }
+  };
 
   const close = () => setMobileOpen(false);
 
@@ -118,16 +131,7 @@ const ManagerSidebar = () => {
           ))}
         </nav>
 
-        {/* Quick Action Button */}
-        <button
-          title={collapsed ? 'New Booking' : undefined}
-          className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
-            collapsed ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
-          }`}
-        >
-          <Plus size={16} />
-          {!collapsed && <span>NEW BOOKING</span>}
-        </button>
+
       </div>
 
       {/* Bottom */}
@@ -151,17 +155,20 @@ const ManagerSidebar = () => {
         </div>
         {/* Support & Logout */}
         <div className="space-y-1">
-          {bottomItems.map((item) => (
-            <NavItem
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={false}
-              isCollapsed={collapsed}
-              onClick={close}
-            />
-          ))}
+          <NavItem
+            icon={<HelpCircle size={20} />}
+            label="SUPPORT"
+            href="#"
+            isCollapsed={collapsed}
+            onClick={close}
+          />
+          <NavItem
+            icon={<LogOut size={20} />}
+            label="LOGOUT"
+            href="/login"
+            isCollapsed={collapsed}
+            onClick={(e) => { close(); handleLogout(e); }}
+          />
         </div>
       </div>
     </div>

@@ -10,9 +10,11 @@ interface StaffFiltersProps {
 }
 
 const roleTabs: { key: Role; label: string }[] = [
-  { key: 'all',        label: 'ALL ROLES'   },
-  { key: 'managers',   label: 'MANAGERS'    },
-  { key: 'decorators', label: 'DECORATORS'  },
+  { key: 'all',           label: 'ALL ROLES'      },
+  { key: 'managers',      label: 'MANAGERS'       },
+  { key: 'decorators',    label: 'DECORATORS'     },
+  { key: 'videographers', label: 'VIDEOGRAPHERS'  },
+  { key: 'djs',           label: 'DJ ARTISTS'     },
 ];
 
 const StaffFilters = ({ activeRole, onRoleChange }: StaffFiltersProps) => {

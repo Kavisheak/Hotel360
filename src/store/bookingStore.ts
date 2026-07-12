@@ -1,91 +1,167 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { customerBookingAPI } from "@/lib/api";
+
+export interface Feedback {
+  overall: number;
+  food: number;
+  decorator?: number;
+  dj?: number;
+  videographer?: number;
+  comments: {
+    overall: string;
+    food: string;
+    decorator?: string;
+    dj?: string;
+    videographer?: string;
+  };
+}
 
 export interface Booking {
-  id: string;
+  _id: string;
+  id?: string;
+  bookingRef: string;
+  eventName?: string;
   clientName: string;
   email: string;
-  eventType: string; // e.g. "Grand Ballroom Ceremony" derived from package
-  date: string; // Formatted date string
+  phone: string;
+  alternativePhone?: string;
+  eventType: string;
+  date: string;
+  timeslot: string;
+  durationHours: number;
+  extraHours: number;
   guests: number;
-  status: "Pending" | "Confirmed" | "Rejected";
+  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected";
   totalCost: number;
+  depositAmount: number;
+  balanceAmount: number;
+  packageId?: string;
+  packageName: string;
   package?: string;
-  vendors: {
-    decorator: string;
-    dj: string;
-    videographer: string;
-  };
   menuType: string;
+  customMenuItems: string[];
+  vendors: {
+    decorator?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    dj?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    videographer?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    // Legacy fields for backward compatibility during transition
+    decoratorId?: string;
+    videographerId?: string;
+    djId?: string;
+  };
+  pricingBreakdown: {
+    hallFixedPrice: number;
+    extraHoursPremium: number;
+    foodCost: number;
+    timeslotPremium: number;
+    decoratorCost: number;
+    videographerCost: number;
+    djCost: number;
+  };
   createdAt: string;
+  feedback?: Feedback;
 }
 
 interface BookingState {
   bookings: Booking[];
+  isLoading: boolean;
+  error: string | null;
+  fetchUserBookings: () => Promise<void>;
+  addBookingLocally: (booking: Booking) => void;
   addBooking: (booking: Booking) => void;
-  updateBookingStatus: (id: string, status: "Pending" | "Confirmed" | "Rejected") => void;
   getPendingBookings: () => Booking[];
   getConfirmedBookings: () => Booking[];
+  updateBookingStatus: (id: string, status: string) => void;
+  submitFeedback: (id: string, feedback: Feedback) => void;
+  swapVendor: (bookingId: string, service: string, newVendorId: string) => Promise<void>;
+  vendorRespondBooking: (bookingId: string, service: string, status: "Accepted" | "Declined") => Promise<void>;
 }
 
 export const useBookingStore = create<BookingState>()(
   persist(
     (set, get) => ({
-      bookings: [
-        // Initialize with some mock data for the dashboard to look populated
-        {
-          id: "bk-1001",
-          clientName: "Eleanor Rigby",
-          email: "eleanor@example.com",
-          eventType: "Grand Wedding Gala",
-          date: "Oct 24, 2024",
-          guests: 250,
-          status: "Pending",
-          totalCost: 4500000,
-          vendors: { decorator: "none", dj: "none", videographer: "none" },
-          menuType: "signature",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "bk-1002",
-          clientName: "Amelia & Thomas",
-          email: "amelia@example.com",
-          eventType: "Grand Ballroom Ceremony",
-          date: "Oct 12, 2024",
-          guests: 250,
-          status: "Confirmed",
-          totalCost: 5200000,
-          vendors: { decorator: "none", dj: "none", videographer: "none" },
-          menuType: "custom",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "bk-1003",
-          clientName: "Royal Polo Club",
-          email: "royal@example.com",
-          eventType: "Corporate Anniversary",
-          date: "Oct 28, 2024",
-          guests: 400,
-          status: "Confirmed",
-          totalCost: 3800000,
-          vendors: { decorator: "none", dj: "none", videographer: "none" },
-          menuType: "signature",
-          createdAt: new Date().toISOString()
+      bookings: [],
+      isLoading: false,
+      error: null,
+      fetchUserBookings: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const res = await customerBookingAPI.getMyBookings();
+          if (res.ok && res.data.success) {
+            // Note: backend may return bookings inside data.data or data.bookings depending on controller
+            // The account controller returns data.bookings, but our new controller might return data.data.
+            // Actually `getMyBookings` in booking.controller returns { success: true, data: bookings }
+            const fetchedBookings = res.data.data || res.data.bookings || [];
+            set({ bookings: fetchedBookings, isLoading: false });
+          } else {
+            set({ error: res.data.message || "Failed to load bookings", isLoading: false });
+          }
+        } catch (err: any) {
+          set({ error: err.message, isLoading: false });
         }
-      ],
-      addBooking: (booking) => 
+      },
+      addBookingLocally: (booking) => 
         set((state) => ({ bookings: [booking, ...state.bookings] })),
-      updateBookingStatus: (id, status) =>
-        set((state) => ({
-          bookings: state.bookings.map((b) => 
-            b.id === id ? { ...b, status } : b
-          )
-        })),
       getPendingBookings: () => get().bookings.filter(b => b.status === "Pending"),
       getConfirmedBookings: () => get().bookings.filter(b => b.status === "Confirmed"),
+      addBooking: (booking) => set((state) => ({ bookings: [booking, ...state.bookings] })),
+      updateBookingStatus: (id, status) => set((state) => ({
+        bookings: state.bookings.map((b) => ((b.id || b._id) === id ? { ...b, status: status as any } : b))
+      })),
+      swapVendor: async (bookingId, service, newVendorId) => {
+        try {
+          const res = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId });
+          if (res.ok && res.data?.data) {
+            const updatedBooking = res.data.data;
+            set((state) => ({
+              bookings: state.bookings.map((b) =>
+                (b.id || b._id) === bookingId ? updatedBooking : b
+              )
+            }));
+          }
+        } catch (error) {
+          console.error("Swap vendor error:", error);
+        }
+      },
+      vendorRespondBooking: async (bookingId, service, status) => {
+        // Just mock the state update for demonstration, as vendor routes require vendor auth token
+        set((state) => ({
+          bookings: state.bookings.map((b) =>
+            (b.id || b._id) === bookingId ? {
+              ...b,
+              vendors: {
+                ...b.vendors,
+                [service]: {
+                  ...(b.vendors?.[service as keyof typeof b.vendors] as any),
+                  status
+                }
+              }
+            } : b
+          )
+        }));
+      },
+      submitFeedback: (id, feedback) =>
+        set((state) => ({
+          bookings: state.bookings.map((b) =>
+            b._id === id ? { ...b, feedback } : b
+          )
+        })),
     }),
     {
-      name: "booking-storage",
+      name: "booking-storage-v3",
     }
   )
 );

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import ToastProvider from "@/components/landing/shared/ToastProvider";
+import FloatingEventCart from "@/components/landing/shared/FloatingEventCart";
+import AutoLogout from "@/components/shared/AutoLogout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +35,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <link
@@ -42,7 +47,14 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Jost:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,400&display=swap"
         />
       </head>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <FloatingEventCart />
+          <ToastProvider />
+          <AutoLogout />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

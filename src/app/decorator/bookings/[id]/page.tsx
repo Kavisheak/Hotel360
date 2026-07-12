@@ -12,7 +12,7 @@ const BookingDetailPage = async ({ params }: PageProps) => {
     <div className="flex min-h-screen bg-[#FDF9F1] font-sans text-gray-800">
       <Sidebar />
       <div className="flex-1 pt-14 lg:pt-0 min-w-0">
-        <DetailMain />
+        <DetailMain bookingId={id} />
       </div>
     </div>
   );
@@ -20,12 +20,3 @@ const BookingDetailPage = async ({ params }: PageProps) => {
 
 export default BookingDetailPage;
 
-// Generate params statically for BK-8842
-export async function generateStaticParams() {
-  return [
-    { id: 'BK-8842' },
-    { id: 'BK-9012' },
-    { id: 'BK-8850' },
-    { id: 'BK-9104' },
-  ];
-}

@@ -17,10 +17,12 @@ const DetailBanner = ({ code, status, confirmedDate, djPackage, phone }: DetailB
     }
   };
   const statusStyle =
-    status === 'CONFIRMED'
+    status === 'Accepted'
       ? 'bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]'
-      : status === 'COMPLETED'
+      : status === 'Completed'
       ? 'bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]'
+      : status === 'Declined'
+      ? 'bg-[#FDE8E8] text-[#9B3434] border border-[#F5D4D4]'
       : 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]';
 
   return (

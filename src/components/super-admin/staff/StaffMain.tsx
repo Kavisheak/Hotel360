@@ -7,6 +7,7 @@ import StaffFilters from './StaffFilters';
 import StaffTable from './StaffTable';
 import Header from '@/components/super-admin/dashboard/Header';
 import Footer from '@/components/super-admin/dashboard/Footer';
+import ChangeManagerModal from './ChangeManagerModal';
 
 const TOTAL_COUNT = 28;
 const TOTAL_PAGES = 3;
@@ -14,10 +15,13 @@ const TOTAL_PAGES = 3;
 const StaffMain = () => {
   const [activeRole, setActiveRole] = useState<Role>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isManagerModalOpen, setIsManagerModalOpen] = useState(false);
 
   const filtered = staffData.filter(m => {
-    if (activeRole === 'managers')   return m.roleCategory === 'managers';
-    if (activeRole === 'decorators') return m.roleCategory === 'decorators';
+    if (activeRole === 'managers')      return m.roleCategory === 'managers';
+    if (activeRole === 'decorators')    return m.roleCategory === 'decorators';
+    if (activeRole === 'videographers') return m.roleCategory === 'videographers';
+    if (activeRole === 'djs')           return m.roleCategory === 'djs';
     return true;
   });
 
@@ -26,7 +30,7 @@ const StaffMain = () => {
       <Header />
 
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto w-full">
-        <StaffHeader />
+        <StaffHeader onOpenChangeManager={() => setIsManagerModalOpen(true)} />
 
         <StaffFilters
           activeRole={activeRole}
@@ -43,6 +47,11 @@ const StaffMain = () => {
       </div>
 
       <Footer />
+
+      <ChangeManagerModal 
+        isOpen={isManagerModalOpen} 
+        onClose={() => setIsManagerModalOpen(false)} 
+      />
     </div>
   );
 };

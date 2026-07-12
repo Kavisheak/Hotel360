@@ -1,7 +1,13 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
 
-const AccountSettings = () => {
+interface AccountSettingsProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  errors?: {email?: string, phone?: string};
+}
+
+const AccountSettings = ({ formData, handleChange, errors = {} }: AccountSettingsProps) => {
   return (
     <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm">
       <div className="flex items-center space-x-2 border-b border-[#E0D8C3] pb-3 mb-6">
@@ -18,7 +24,9 @@ const AccountSettings = () => {
           <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Display Name</label>
           <input
             type="text"
-            defaultValue="Julian Saint-Clair"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
             className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
           />
         </div>
@@ -27,14 +35,13 @@ const AccountSettings = () => {
           <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Booking Email</label>
           <input
             type="email"
-            defaultValue="julian@aureumentertainment.com"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
             className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
           />
+          {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
         </div>
-
-        <button className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-2 text-xs font-bold tracking-widest transition-colors uppercase">
-          Save Profile Updates
-        </button>
       </div>
     </article>
   );

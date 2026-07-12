@@ -4,6 +4,8 @@ import Image from "next/image";
 import { PackageData } from "../data";
 import { useRouter } from "next/navigation";
 import { Check, Users } from "lucide-react";
+import React, { useState } from "react";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 
 interface Props {
   pkg: PackageData;
@@ -14,14 +16,15 @@ interface Props {
 
 export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: Props) {
   const router = useRouter();
-  const isGold = pkg.name === "Gold";
+  const isGold = pkg.name.toLowerCase().includes("gold");
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   return (
-    <div className={`relative bg-white flex flex-col h-full group hover-lift shadow-sm hover:shadow-xl transition-all duration-300 ${isGold ? 'border-2 border-[#C9A84C]' : 'border border-[#D4C9A8]'} stagger-${index + 1}`}>
+    <div className={`relative bg-[#FDFBF7] dark:bg-[#111111] flex flex-col h-full group hover-lift shadow-sm hover:shadow-xl transition-all duration-300 ${isGold ? 'border-2 border-[#D4C9A8] dark:border-[#C9A84C]' : 'border border-[#D4C9A8] dark:border-[#C9A84C]/30'} stagger-${index + 1}`}>
       
       {/* MOST CHOSEN Badge */}
       {isGold && (
-        <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#C9A84C] text-[#2C1E14] text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1 shadow-md z-10">
+        <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#805D3A] dark:bg-[#C9A84C] text-[#FDFBF7] dark:text-[#2C1E14] text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1 shadow-md z-10">
           Most Chosen
         </div>
       )}
@@ -43,63 +46,57 @@ export default function PackageCard({ pkg, isGuest, onViewDetails, index = 0 }: 
         
         {/* Title & Price */}
         <div className="mb-4">
-          <h3 className="text-2xl md:text-3xl font-serif text-[#2C1E14] mb-1">{pkg.name} Package</h3>
-          <p className="text-2xl md:text-3xl font-serif text-[#C9A84C]">{pkg.priceLabel}</p>
+          <h3 className="text-2xl md:text-3xl font-serif text-[#2C1E14] dark:text-white mb-1">
+            {pkg.name.toLowerCase().endsWith("package") ? pkg.name : `${pkg.name} Package`}
+          </h3>
+          <p className="text-2xl md:text-3xl font-serif text-[#805D3A] dark:text-[#C9A84C]">{pkg.priceLabel}</p>
         </div>
 
         {/* Guest Count */}
-        <div className="flex items-center gap-2 text-[#C9A84C] mb-4">
-          <Users size={14} className="text-[#C9A84C]" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#2C1E14]">{pkg.guestsLabel}</span>
+        <div className="flex items-center gap-2 text-[#805D3A] dark:text-[#C9A84C] mb-4">
+          <Users size={14} className="text-[#805D3A] dark:text-[#C9A84C]" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#2C1E14] dark:text-white">{pkg.guestsLabel}</span>
         </div>
 
         {/* Description */}
-        <p className="text-gray-600 text-sm font-light leading-relaxed mb-8">{pkg.description}</p>
+        <p className="text-gray-700 dark:text-gray-400 text-sm font-light leading-relaxed mb-8">{pkg.description}</p>
         
         {/* Features List */}
         <div className="space-y-4 mb-8 flex-1">
           {pkg.features.map((feature, idx) => (
             <div key={idx} className="flex items-start gap-3">
-              <Check className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" strokeWidth={3} />
-              <span className="text-gray-700 text-xs font-medium leading-relaxed">{feature}</span>
+              <Check className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C] shrink-0 mt-0.5" strokeWidth={3} />
+              <span className="text-gray-700 dark:text-gray-300 text-xs font-medium leading-relaxed">{feature}</span>
             </div>
           ))}
         </div>
 
         {/* Actions Section */}
         <div className="mt-auto">
-          {isGuest ? (
-            <div className="relative group/tooltip">
-              <button 
-                disabled
-                className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all cursor-not-allowed flex items-center justify-center gap-2 ${
-                  isGold 
-                    ? 'bg-[#E5D7B3] text-gray-500 border border-[#C9A84C]/30' 
-                    : 'bg-gray-50 text-gray-400 border border-gray-200'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px]">lock</span>
-                Login to Select {pkg.name}
-              </button>
-              {/* Tooltip */}
-              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#2C1E14] text-[#F0E6D0] text-[10px] text-center p-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg border border-[#C9A84C]/30">
-                You must register or sign in to start a booking.
-              </div>
-            </div>
-          ) : (
-            <button 
-              onClick={() => router.push(`/book?pkg=${pkg.id}`)}
-              className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all btn-interactive ${
-                isGold 
-                  ? 'bg-[#C9A84C] text-[#2C1E14] hover:bg-[#B89238]' 
-                  : 'bg-transparent text-[#2C1E14] border border-[#2C1E14] hover:bg-[#2C1E14] hover:text-[#C9A84C]'
-              }`}
-            >
-              Select {pkg.name}
-            </button>
-          )}
+          <button 
+            onClick={() => {
+              if (isGuest) {
+                setShowLoginModal(true);
+              } else {
+                router.push(`/book?pkg=${pkg.id}`);
+              }
+            }}
+            className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all btn-interactive ${
+              isGold 
+                ? 'bg-[#805D3A] dark:bg-[#C9A84C] text-[#FDFBF7] dark:text-[#2C1E14] hover:bg-[#6A4B2D] dark:hover:bg-[#B89238]' 
+                : 'bg-transparent text-[#2C1E14] dark:text-white border border-[#2C1E14] dark:border-[#C9A84C]/50 hover:bg-[#2C1E14] dark:hover:bg-[#C9A84C]/10 hover:text-white dark:hover:text-[#C9A84C]'
+            }`}
+          >
+            Select {pkg.name}
+          </button>
         </div>
       </div>
+
+      <LoginRequiredModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+        message={`Please log in to select the ${pkg.name} Package and begin your booking.`} 
+      />
     </div>
   );
 }

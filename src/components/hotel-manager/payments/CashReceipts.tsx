@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, User, Gem, Music } from 'lucide-react';
-import { useBookingStore } from '@/store/bookingStore';
+import { paymentAPI } from '../../../lib/api';
 
 const receipts = [
   {
@@ -35,13 +35,33 @@ const receipts = [
 ];
 
 const CashReceipts = () => {
-  const [confirmed, setConfirmed] = useState<number[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const globalBookings = useBookingStore(state => state.bookings);
+
+  const fetchPayments = async () => {
+    setIsLoading(true);
+    const res = await paymentAPI.getAllPayments();
+    if (res.ok) {
+      setPayments(res.data.data.filter((p: any) => p.paymentStatus === "Pending"));
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     setIsClient(true);
+    fetchPayments();
   }, []);
+
+  const handlePayment = async (id: string) => {
+    const res = await paymentAPI.confirmPayment(id);
+    if (res.ok) {
+      // Re-fetch or update local state
+      fetchPayments();
+    } else {
+      alert("Failed to process payment: " + res.data.message);
+    }
+  };
 
   return (
     <div className="bg-white border border-[#E0D8C3] rounded-xl shadow-sm overflow-hidden">
@@ -56,18 +76,23 @@ const CashReceipts = () => {
 
       {/* Receipt rows */}
       <div className="divide-y divide-[#F2EADA]">
-        {isClient && globalBookings.length === 0 ? (
+        {isLoading ? (
+          <div className="px-5 py-8 text-center text-xs text-gray-500 italic">Loading receipts...</div>
+        ) : isClient && payments.length === 0 ? (
           <div className="px-5 py-8 text-center text-xs text-gray-500 italic">No receipts pending.</div>
         ) : isClient ? (
-          globalBookings.map((r, i) => {
+          payments.map((p, i) => {
             const icon = i % 3 === 0 ? <User size={18} className="text-[#B08D2C]" /> :
                          i % 3 === 1 ? <Gem size={18} className="text-[#4258af]" /> :
                                        <Music size={18} className="text-gray-500" />;
-            const displayStatus = r.status === "Pending" ? "Pending Cash" : "Fully Paid";
-            const statusColor = r.status === "Pending" ? 'bg-[#F9DD76] text-[#7C6A2E]' : 'bg-green-100 text-green-700';
+            const isDeposit = p.paymentType === "Deposit";
+            const amountDue = p.amount;
+            const amountLabel = isDeposit ? "30% DEPOSIT DUE" : "70% BALANCE DUE";
+            const displayStatus = isDeposit ? "Pending Deposit" : "Pending Balance";
+            const statusColor = isDeposit ? 'bg-[#F9DD76] text-[#7C6A2E]' : 'bg-blue-100 text-blue-700';
 
             return (
-              <div key={r.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FDF9F1] transition-colors">
+              <div key={p._id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FDF9F1] transition-colors">
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-full bg-[#F2EADA] flex items-center justify-center shrink-0">
                   {icon}
@@ -75,14 +100,14 @@ const CashReceipts = () => {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-serif font-semibold text-gray-800">{r.clientName}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{r.id}</p>
+                  <p className="text-sm font-serif font-semibold text-gray-800">{p.clientName}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{p.bookingRef || p._id}</p>
                 </div>
 
                 {/* Amount */}
                 <div className="text-left sm:text-right shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">TOTAL DUE</p>
-                  <p className="text-base font-serif font-bold text-gray-800">LKR {r.totalCost.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C]">{amountLabel}</p>
+                  <p className="text-base font-serif font-bold text-gray-800">LKR {amountDue.toLocaleString()}</p>
                 </div>
 
                 {/* Status */}
@@ -92,14 +117,10 @@ const CashReceipts = () => {
 
                 {/* Action */}
                 <button
-                  onClick={() => setConfirmed(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i])}
-                  className={`text-[9px] font-bold uppercase tracking-widest px-3 py-2 rounded transition-all shrink-0 ${
-                    confirmed.includes(i)
-                      ? 'bg-green-600 text-white'
-                      : 'bg-[#7C6A2E] hover:bg-[#B08D2C] text-white'
-                  }`}
+                  onClick={() => handlePayment(p._id)}
+                  className={`text-[9px] font-bold uppercase tracking-widest px-3 py-2 rounded transition-all shrink-0 bg-[#7C6A2E] hover:bg-[#B08D2C] text-white`}
                 >
-                  {confirmed.includes(i) ? '✓ Confirmed' : 'Confirm Receipt'}
+                  Confirm Receipt
                 </button>
               </div>
             );

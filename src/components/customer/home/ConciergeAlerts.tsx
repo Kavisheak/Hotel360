@@ -27,7 +27,7 @@ export default function ConciergeAlerts() {
   return (
     <>
       {/* Notifications Card */}
-      <div className="bg-[#2C1E14] text-white border border-[#C9A84C]/20 p-6 shadow-2xl rounded-sm hover-glow transition-all duration-300">
+      <div className="bg-[#2C1E14] dark:bg-[#111111] text-white border border-[#C9A84C]/20 p-6 shadow-2xl rounded-sm hover-glow transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-serif text-[#C9A84C] flex items-center gap-2">
             <Bell className="w-4 h-4 animate-bounce" /> Concierge Directives
@@ -47,7 +47,7 @@ export default function ConciergeAlerts() {
         ) : (
           <div className="space-y-4">
             {notifications.map((notif) => (
-              <div key={notif.id} className="pb-4 border-b border-white/10 last:border-0 last:pb-0 p-2 rounded-sm transition-colors duration-200 -mx-2 group relative">
+              <div key={notif.id} className="pb-4 border-b border-white/10 dark:border-[#C9A84C]/20 last:border-0 last:pb-0 p-2 rounded-sm transition-colors duration-200 -mx-2 group relative">
                 <div className="flex justify-between items-baseline gap-2">
                   <h4 className="text-xs font-bold text-[#F0E6D0] pr-6">{notif.title}</h4>
                   <span className="text-[8px] text-gray-500 font-semibold shrink-0 uppercase tracking-wider">{notif.time}</span>
@@ -69,10 +69,10 @@ export default function ConciergeAlerts() {
       </div>
 
       {/* Quick Resources / Tips */}
-      <div className="bg-[#F0E6D0] border border-[#D4C9A8] p-5 rounded-sm hover-glow transition-all duration-300 mt-6">
+      <div className="bg-[#F0E6D0] dark:bg-[#1A1512] border border-[#D4C9A8] dark:border-[#C9A84C]/20 p-5 rounded-sm hover-glow transition-all duration-300 mt-6">
         <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-[#C9A84C] block mb-1">Planning Guide</span>
-        <h4 className="text-sm font-serif font-semibold text-gray-900 mb-2">Did you know?</h4>
-        <p className="text-xs font-light text-gray-500 leading-normal">
+        <h4 className="text-sm font-serif font-semibold text-gray-900 dark:text-white mb-2">Did you know?</h4>
+        <p className="text-xs font-light text-gray-500 dark:text-gray-400 leading-normal">
           EASCC collaborates directly with premium verified decorators, photographers, and local florists. You can select your creative team directly through your dashboard to link culinary and setup timelines seamlessly.
         </p>
         <div className="mt-4">

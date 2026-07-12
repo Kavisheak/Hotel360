@@ -2,6 +2,8 @@ import React from 'react';
 import Sidebar from '@/components/videographer/shared/Sidebar';
 import BookingDetailMain from '@/components/videographer/events-bookings/detail/DetailMain';
 
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -19,13 +21,3 @@ const VideographerBookingDetailPage = async ({ params }: PageProps) => {
 };
 
 export default VideographerBookingDetailPage;
-
-// Pre-render known booking IDs
-export async function generateStaticParams() {
-  return [
-    { id: 'VG-2241' },
-    { id: 'VG-2298' },
-    { id: 'VG-2354' },
-    { id: 'VG-2381' },
-  ];
-}

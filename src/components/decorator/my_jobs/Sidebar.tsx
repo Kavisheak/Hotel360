@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock,
+  LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, User, BookOpen,
   Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -23,13 +25,11 @@ const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onCli
       href={href}
       onClick={onClick}
       title={isCollapsed ? label : undefined}
-      className={`flex items-center rounded-md transition-all duration-200 ${
-        isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
-      } ${
-        active
+      className={`flex items-center rounded-md transition-all duration-200 ${isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+        } ${active
           ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm'
           : 'text-gray-600 hover:bg-[#F2EADA]'
-      }`}
+        }`}
     >
       <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
       {!isCollapsed && (
@@ -46,6 +46,19 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, clearUser } = useAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.signout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      clearUser();
+      router.push('/');
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -62,17 +75,18 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />,   label: 'MY JOBS',      href: '/decorator' },
-    { icon: <Calendar size={20} />,     label: 'SCHEDULE',     href: '/decorator/schedule' },
-    { icon: <FolderHeart size={20} />,  label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
-    { icon: <BarChart3 size={20} />,    label: 'RATINGS',      href: '/decorator/ratings' },
-    { icon: <Clock size={20} />,       label: 'HISTORY',      href: '/decorator/history' },
-    { icon: <Settings size={20} />,    label: 'SETTINGS',     href: '/decorator/settings' },
+    { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/decorator/overview' },
+    { icon: <User size={20} />, label: 'MY JOBS', href: '/decorator/my-jobs' },
+    { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/decorator/bookings' },
+    { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/decorator/schedule' },
+    { icon: <FolderHeart size={20} />, label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
+    { icon: <BarChart3 size={20} />, label: 'RATINGS', href: '/decorator/ratings' },
+    { icon: <Clock size={20} />, label: 'HISTORY', href: '/decorator/history' },
+    { icon: <Settings size={20} />, label: 'SETTINGS', href: '/decorator/settings' },
   ];
 
   const bottomItems = [
-    { icon: <HelpCircle size={20} />,   label: 'SUPPORT',      href: '#' },
-    { icon: <LogOut size={20} />,       label: 'LOGOUT',       href: '/' },
+    { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '#' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -116,8 +130,8 @@ const Sidebar = () => {
               label={item.label}
               href={item.href}
               active={
-                item.href === '/decorator'
-                  ? pathname === '/decorator'
+                item.href === '/decorator/overview'
+                  ? pathname === '/decorator' || pathname === '/decorator/overview'
                   : pathname === item.href || pathname?.startsWith(item.href + '/')
               }
               isCollapsed={collapsedState}
@@ -128,18 +142,49 @@ const Sidebar = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="border-t border-[#E0D8C3] pt-6 space-y-1">
-        {bottomItems.map((item) => (
-          <NavItem
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            active={pathname === item.href}
-            isCollapsed={collapsedState}
-            onClick={close}
+      <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
+        <div
+          className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
+          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Lead Decorator` : undefined}
+        >
+          <img
+            src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]"
           />
-        ))}
+          {!collapsedState && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "Lead Decorator"}</span>
+              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">LEAD DECORATOR</span>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          {bottomItems.map((item) => (
+            <NavItem
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              active={pathname === item.href}
+              isCollapsed={collapsedState}
+              onClick={close}
+            />
+          ))}
+          {/* Logout — calls signout API first to destroy session cookie */}
+          <button
+            onClick={() => { close(); handleLogout(); }}
+            title={collapsedState ? 'LOGOUT' : undefined}
+            className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+              }`}
+          >
+            <span><LogOut size={20} /></span>
+            {!collapsedState && (
+              <span className="text-sm font-bold tracking-wide">LOGOUT</span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -164,9 +209,8 @@ const Sidebar = () => {
 
       {/* Mobile drawer */}
       <div
-        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-[#FDF9F1] border-r border-[#E0D8C3] z-50 p-6 transition-transform duration-300 overflow-y-auto ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-[#FDF9F1] border-r border-[#E0D8C3] z-50 p-6 transition-transform duration-300 overflow-y-auto ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
@@ -179,9 +223,8 @@ const Sidebar = () => {
 
       {/* Desktop sidebar with smooth collapse */}
       <div
-        className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${
-          mounted && isCollapsed ? 'w-20' : 'w-64'
-        }`}
+        className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${mounted && isCollapsed ? 'w-20' : 'w-64'
+          }`}
       >
         {sidebarBody(mounted && isCollapsed)}
       </div>

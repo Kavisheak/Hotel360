@@ -25,20 +25,20 @@ export default function MenuSummary({ currentMenu }: MenuSummaryProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-white border border-[#E8DFC9] p-6 shadow-xl rounded-md sticky top-24"
+      className="bg-[#FDFBF7] dark:bg-gradient-to-br dark:from-[#382B14] dark:via-[#1A1610] dark:to-[#0D0B08] border border-[#D4C9A8] dark:border-[#C9A84C]/40 p-6 shadow-xl dark:shadow-md dark:shadow-[#C9A84C]/5 rounded-md sticky top-24 transition-colors duration-300"
     >
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#E8DFC9]">
-        <h3 className="text-lg font-serif font-bold text-[#1A1512] flex items-center gap-2">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/20">
+        <h3 className="text-lg font-serif font-bold text-[#2C1E14] dark:text-white flex items-center gap-2">
           <Receipt className="w-5 h-5 text-[#C69C6D]" />
           Pricing Summary
         </h3>
-        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest bg-gray-100 px-2 py-1 rounded-sm">
+        <span className="text-[10px] uppercase font-bold text-[#C9A84C] tracking-widest bg-[#F0E6D0]/50 dark:bg-[#1A1A1A] px-2 py-1 rounded-sm border border-[#C9A84C] dark:border-[#C9A84C]/30">
           {currentMenu.length} Items Selected
         </span>
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center text-sm text-gray-600">
+        <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
           <span className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-600/70" />
             Base Package
@@ -56,7 +56,7 @@ export default function MenuSummary({ currentMenu }: MenuSummaryProps) {
           </div>
         )}
 
-        <div className="pt-4 mt-2 border-t border-dashed border-gray-300 flex justify-between items-end">
+        <div className="pt-4 mt-2 border-t border-dashed border-[#D4C9A8] dark:border-[#C9A84C]/30 flex justify-between items-end">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mb-1">
               Estimated Total
@@ -66,15 +66,15 @@ export default function MenuSummary({ currentMenu }: MenuSummaryProps) {
           <motion.span 
             key={totalPerHead}
             initial={{ scale: 1.1, color: "#C69C6D" }}
-            animate={{ scale: 1, color: "#1A1512" }}
-            className="text-2xl font-serif font-bold"
+            animate={{ scale: 1 }}
+            className="text-2xl font-serif font-bold text-[#2C1E14] dark:text-white"
           >
             LKR {totalPerHead.toLocaleString()}
           </motion.span>
         </div>
       </div>
 
-      <button className="w-full mt-8 bg-[#1A1512] text-white py-3.5 text-xs uppercase tracking-[0.2em] font-bold hover:bg-[#C69C6D] hover:shadow-lg hover:shadow-[#C69C6D]/20 transition-all duration-300 rounded-sm flex justify-center items-center gap-2 group">
+      <button className="w-full mt-8 bg-[#C9A84C] text-[#2C1E14] dark:text-[#1A1A1A] py-3.5 text-xs uppercase tracking-[0.2em] font-bold hover:bg-[#B89238] dark:hover:bg-white hover:shadow-lg hover:shadow-[#C9A84C]/20 transition-all duration-300 rounded-sm flex justify-center items-center gap-2 group">
         Confirm Menu
         <span className="group-hover:translate-x-1 transition-transform">→</span>
       </button>

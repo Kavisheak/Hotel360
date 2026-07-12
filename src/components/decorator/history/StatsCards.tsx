@@ -1,17 +1,26 @@
 import React from 'react';
 import { CheckCircle, Star, Crown, Smile } from 'lucide-react';
 
-const stats = [
-  { label: 'COMPLETED JOBS', value: '124', icon: <CheckCircle size={22} className="text-[#B08D2C]" /> },
-  { label: 'AVERAGE RATING', value: '4.9', icon: <Star size={22} className="text-[#B08D2C]" /> },
-  { label: 'ROYAL PACKAGES', value: '42', icon: <Crown size={22} className="text-[#B08D2C]" /> },
-  { label: 'SATISFACTION RATE', value: '98%', icon: <Smile size={22} className="text-[#B08D2C]" /> },
-];
+interface StatsCardsProps {
+  statsData: {
+    completedCount: number;
+    averageRating: string;
+    royalPackages: number;
+    satisfactionRate: string;
+  };
+}
 
-const StatsCards = () => {
+const StatsCards = ({ statsData }: StatsCardsProps) => {
+  const dynamicStats = [
+    { label: 'COMPLETED JOBS', value: statsData.completedCount.toString(), icon: <CheckCircle size={22} className="text-[#B08D2C]" /> },
+    { label: 'AVERAGE RATING', value: statsData.averageRating, icon: <Star size={22} className="text-[#B08D2C]" /> },
+    { label: 'ROYAL PACKAGES', value: statsData.royalPackages.toString(), icon: <Crown size={22} className="text-[#B08D2C]" /> },
+    { label: 'SATISFACTION RATE', value: statsData.satisfactionRate, icon: <Smile size={22} className="text-[#B08D2C]" /> },
+  ];
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-      {stats.map((stat) => (
+      {dynamicStats.map((stat) => (
         <div
           key={stat.label}
           className="bg-[#FDF9F1] border border-[#E0D8C3] p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-sm"

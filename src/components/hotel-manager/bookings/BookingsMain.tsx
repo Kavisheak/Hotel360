@@ -1,43 +1,104 @@
-import React from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useBookingStore } from '@/store/bookingStore';
 import BookingsHeader from './BookingsHeader';
 import VenueImage from './VenueImage';
 import ClientInfo from './ClientInfo';
 import SelectedPackage from './SelectedPackage';
 import AssignedArtisans from './AssignedArtisans';
 import ManagerActions from './ManagerActions';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
-const BookingsMain = () => (
-  <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
-    {/* Sticky top header matching overview */}
-    <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
-      <h2 className="font-serif italic text-[#7C6A2E] text-xl font-semibold tracking-wide">Bookings</h2>
-    </header>
+import { bookingAPI } from '../../../lib/api';
 
-    <main className="flex-1 px-4 lg:px-6 py-6">
-      <BookingsHeader />
+const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
+  const [isClient, setIsClient] = useState(false);
+  const [dbBooking, setDbBooking] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const bookings = useBookingStore(state => state.bookings);
+  
+  const fetchBooking = async () => {
+    if (!bookingId) {
+      setDbBooking(bookings[0]);
+      setIsLoading(false);
+      return;
+    }
+    try {
+      const res = await bookingAPI.getBookingById(bookingId);
+      if (res.ok && res.data?.data) {
+        // Normalize the backend model to match what the frontend components expect
+        const backendData = res.data.data;
+        setDbBooking({
+          ...backendData,
+          clientEmail: backendData.email,
+          clientPhone: backendData.phone,
+          id: backendData.bookingRef || backendData._id,
+          date: new Date(backendData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          packageName: backendData.packageId?.name || backendData.packageName || "Custom Package"
+        });
+      } else {
+        // Fallback to dummy store if not found in DB
+        const localBooking = bookings.find(b => b.id === bookingId);
+        setDbBooking(localBooking || null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch booking", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      {/* Two-column layout: main content + side panel */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left: main booking content */}
-        <div className="flex-1 min-w-0">
-          <VenueImage />
+  useEffect(() => {
+    setIsClient(true);
+    fetchBooking();
+  }, [bookingId, bookings]);
 
-          {/* Client Info + Package grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
-            <ClientInfo />
-            <SelectedPackage />
+  if (!isClient || isLoading) return <div className="min-h-screen bg-[#FDF9F1] flex items-center justify-center">Loading...</div>;
+
+  const booking = dbBooking;
+
+  if (!booking) {
+    return (
+      <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1] p-10 text-center items-center justify-center">
+        <h2 className="text-2xl font-serif font-bold text-gray-800 mb-4">Booking Not Found</h2>
+        <Link href="/hotel-manager/bookings" className="text-[#7C6A2E] underline font-bold tracking-widest text-[10px] uppercase">Return to Bookings</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
+      <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
+        <Link href="/hotel-manager/bookings" className="mr-4 text-gray-500 hover:text-[#7C6A2E] transition-colors">
+          <ArrowLeft size={18} />
+        </Link>
+        <div className="w-px h-6 bg-[#E0D8C3] mr-4 hidden sm:block" />
+        <h2 className="font-serif italic text-[#7C6A2E] text-xl font-semibold tracking-wide">Booking Details</h2>
+      </header>
+
+      <main className="flex-1 px-4 lg:px-6 py-6 max-w-[1400px] mx-auto w-full">
+        <BookingsHeader booking={booking} />
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 min-w-0">
+            <VenueImage booking={booking} />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
+              <ClientInfo booking={booking} />
+              <SelectedPackage booking={booking} />
+            </div>
+
+            <AssignedArtisans booking={booking} />
           </div>
 
-          <AssignedArtisans />
+          <div className="w-full lg:w-72 xl:w-80 shrink-0">
+            <ManagerActions booking={booking} onStatusUpdate={fetchBooking} />
+          </div>
         </div>
-
-        {/* Right: manager action panel */}
-        <div className="w-full lg:w-72 xl:w-80 shrink-0">
-          <ManagerActions />
-        </div>
-      </div>
-    </main>
-  </div>
-);
+      </main>
+    </div>
+  );
+};
 
 export default BookingsMain;

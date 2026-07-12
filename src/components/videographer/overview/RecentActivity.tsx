@@ -1,7 +1,10 @@
-import React from "react";
-import { Calendar, CreditCard, FileText, Star } from "lucide-react";
+"use client";
 
-const activities = [
+import React, { useState, useEffect } from "react";
+import { Calendar, CreditCard, FileText, Star } from "lucide-react";
+import { videographerAPI } from "@/lib/api";
+
+const mockActivities = [
   {
     title: "STERLING-VANCE WEDDING",
     status: "CONFIRMED",
@@ -32,14 +35,42 @@ const activities = [
   },
 ];
 
-function statusClass(status: string) {
-  if (status.includes("CONFIRMED")) return "bg-[#E6F4EA] text-[#2E7A3E] border-[#D7ECD8]";
-  if (status.includes("DEPOSIT")) return "bg-[#F7EBD6] text-[#7C6A2E] border-[#EDE3C8]";
-  if (status.includes("PENDING")) return "bg-[#FFF4E6] text-[#C27D2C] border-[#F2E4C9]";
+function statusClass(status: string = "") {
+  if (!status) return "bg-[#FFF4E6] text-[#C27D2C] border-[#F2E4C9]";
+  const upper = status.toUpperCase();
+  if (upper.includes("CONFIRMED")) return "bg-[#E6F4EA] text-[#2E7A3E] border-[#D7ECD8]";
+  if (upper.includes("DEPOSIT")) return "bg-[#F7EBD6] text-[#7C6A2E] border-[#EDE3C8]";
+  if (upper.includes("PENDING")) return "bg-[#FFF4E6] text-[#C27D2C] border-[#F2E4C9]";
   return "bg-[#EAF3F0] text-[#2E7A3E] border-[#DCEEE6]";
 }
 
 export default function RecentActivity() {
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const { ok, data } = await videographerAPI.getAssignedBookings();
+        if (ok && data.success) {
+          const mapped = data.data.slice(0, 4).map((b: any) => ({
+            title: (`${b.eventType} for ${b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client")}`).toUpperCase(),
+            status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
+            note: b.vendors?.videographer?.packageName || "Custom Package",
+            date: new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
+            icon: <Calendar size={16} />,
+          }));
+          setActivities(mapped);
+        }
+      } catch (error) {
+        console.error("Error fetching activity:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchActivity();
+  }, []);
+
   return (
     <article className="border border-[#E0D8C3] bg-[#FDF9F1] p-6 shadow-sm">
       <h2 className="mb-2 text-[28px] font-serif text-gray-800">Recent Activity</h2>

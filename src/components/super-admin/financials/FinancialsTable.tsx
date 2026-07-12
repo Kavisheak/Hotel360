@@ -1,6 +1,23 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+import React from 'react';
 import { MoreVertical, ChevronLeft, ChevronRight, FileOutput } from 'lucide-react';
-import { useBookingStore } from '@/store/bookingStore';
+import { transactionsData } from './financeData';
+
+const PremiumCardIcon = () => (
+  <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0 drop-shadow-sm">
+    <rect width="24" height="16" rx="3" fill="url(#goldGradient)" />
+    <path d="M3 5H6V9H3V5Z" fill="#FFF3CD" fillOpacity="0.9" />
+    <circle cx="15" cy="8" r="3" fill="#FFF" fillOpacity="0.4" />
+    <circle cx="19" cy="8" r="3" fill="#FFF" fillOpacity="0.4" />
+    <defs>
+      <linearGradient id="goldGradient" x1="0" y1="0" x2="24" y2="16" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#D4C9A8" />
+        <stop offset="0.5" stopColor="#B08D2C" />
+        <stop offset="1" stopColor="#7C6A2E" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -18,15 +35,6 @@ const getStatusStyle = (status: string) => {
 };
 
 const FinancialsTable = () => {
-  const [isClient, setIsClient] = useState(false);
-  const globalBookings = useBookingStore(state => state.bookings);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const totalRevenue = isClient ? globalBookings.reduce((acc, curr) => acc + curr.totalCost, 0) : 0;
-
   return (
     <div className="bg-white border border-[#E0D8C3] shadow-sm mb-8">
       {/* Filters & Pagination */}
@@ -75,39 +83,34 @@ const FinancialsTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E0D8C3]">
-            {isClient && globalBookings.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 italic">No financial transactions found.</td>
+            {transactionsData.map((txn, idx) => (
+              <tr key={txn.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE]'}>
+                <td className="px-6 py-4 text-gray-500 text-xs">{txn.date}</td>
+                <td className="px-6 py-4 font-mono text-xs text-gray-700">{txn.id}</td>
+                <td className="px-6 py-4">
+                  <p className="font-bold text-gray-800 text-sm">{txn.clientName}</p>
+                  <p className="text-[10px] text-gray-500">{txn.event}</p>
+                </td>
+                <td className="px-6 py-4 text-xs font-bold text-gray-700 flex items-center gap-2 mt-2">
+                  <PremiumCardIcon /> {txn.method}
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`inline-block border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getStatusStyle(txn.status)}`}>
+                    {txn.status}
+                  </span>
+                </td>
+                <td className={`px-6 py-4 font-bold ${txn.amount < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                  {txn.amount < 0 ? '-' : ''}€{Math.abs(txn.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-6 py-4 text-right">
+                  {txn.status === 'REFUND ISSUED' ? (
+                    <button className="text-gray-400 hover:text-[#7C6A2E]"><FileOutput size={16} /></button>
+                  ) : (
+                    <button className="text-gray-400 hover:text-[#7C6A2E]"><MoreVertical size={16} /></button>
+                  )}
+                </td>
               </tr>
-            ) : isClient ? (
-              globalBookings.map((booking, idx) => {
-                const displayStatus = booking.status === "Pending" ? "PENDING" : "BALANCE PAID";
-                return (
-                  <tr key={booking.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE]'}>
-                    <td className="px-6 py-4 text-gray-500 text-xs">{booking.date}</td>
-                    <td className="px-6 py-4 font-mono text-xs text-gray-700">{booking.id}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-gray-800 text-sm">{booking.clientName}</p>
-                      <p className="text-[10px] text-gray-500">{booking.eventType}</p>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-gray-700 flex items-center gap-2 mt-2">
-                      <span className="text-gray-400">💳</span> Card
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getStatusStyle(displayStatus)}`}>
-                        {displayStatus}
-                      </span>
-                    </td>
-                    <td className={`px-6 py-4 font-bold text-gray-900`}>
-                      LKR {booking.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-400 hover:text-[#7C6A2E]"><MoreVertical size={16} /></button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : null}
+            ))}
           </tbody>
         </table>
       </div>
@@ -116,15 +119,15 @@ const FinancialsTable = () => {
       <div className="bg-[#FDF9F1] p-6 border-t border-[#E0D8C3] flex flex-col sm:flex-row justify-end items-end gap-8 sm:gap-16">
         <div className="text-right">
           <p className="text-[9px] font-bold tracking-widest text-gray-500 uppercase mb-1">Subtotal (Page)</p>
-          <p className="text-xl font-serif text-gray-800">LKR {totalRevenue.toLocaleString()}</p>
+          <p className="text-xl font-serif text-gray-800">€63,700.00</p>
         </div>
         <div className="text-right">
           <p className="text-[9px] font-bold tracking-widest text-gray-500 uppercase mb-1">Adjustments/Refunds</p>
-          <p className="text-xl font-serif text-red-600">(LKR 0.00)</p>
+          <p className="text-xl font-serif text-red-600">(-€2,200.00)</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase mb-1">Net Revenue</p>
-          <p className="text-2xl font-serif font-bold text-[#7C6A2E]">LKR {totalRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-serif font-bold text-[#7C6A2E]">€61,500.00</p>
         </div>
       </div>
     </div>

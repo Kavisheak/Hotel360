@@ -1,22 +1,47 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { ChevronDown, Camera } from 'lucide-react';
+import { authAPI } from '@/lib/api';
 
-const ProfileSettings = () => {
-  const [formData, setFormData] = useState({
-    fullName: 'Julian Saint-Clair',
-    email: 'julian@aureumentertainment.com',
-    phone: '+1 (555) 014-2200',
-    bio:
-      'Julian crafts refined, high-energy sets for luxury weddings and private celebrations, blending deep house, disco, and classic anthems with seamless precision.',
-    specialty: 'Bespoke Weddings',
-  });
+interface ProfileSettingsProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  user: any;
+  setUser: (user: any) => void;
+  errors?: { email?: string, phone?: string };
+}
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target;
-    setFormData((previous) => ({ ...previous, [name]: value }));
+const ProfileSettings = ({ formData, handleChange, user, setUser, errors = {} }: ProfileSettingsProps) => {
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    setMessage('');
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("avatar", file);
+
+    try {
+      const { ok, data } = await authAPI.uploadAvatar(formDataUpload);
+      if (ok && data.avatar) {
+        setMessage('Profile photo updated successfully!');
+        setUser({ ...user, avatar: data.avatar });
+      } else {
+        setMessage(data.message || 'Failed to upload photo.');
+      }
+    } catch (error) {
+      setMessage('An error occurred during photo upload.');
+    } finally {
+      setIsUploadingPhoto(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   return (
@@ -27,14 +52,18 @@ const ProfileSettings = () => {
           <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">PROFILE ARTISTRY</h3>
         </div>
 
+        {message && (
+          <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            {message}
+          </div>
+        )}
+
         <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 mb-6 md:flex-row md:items-center">
           <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
-            <Image
-              src="/images/05.png"
+            <img
+              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE}${user.avatar}`) : "/images/05.png"}
               alt="DJ profile portrait"
-              fill
-              sizes="112px"
-              className="object-cover"
+              className="w-full h-full object-cover animate-fadeIn"
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-end bg-black/25 px-2 py-1 text-white">
               <Camera size={12} />
@@ -46,9 +75,19 @@ const ProfileSettings = () => {
             <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
               Manage how your brand is perceived by elite clients and booking partners.
             </p>
-            <button className="mt-4 border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1]">
-              Replace Media
-            </button>
+            <input
+              type="file"
+              accept="image/*"
+              id="dj-avatar-upload"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+            <label
+              htmlFor="dj-avatar-upload"
+              className="mt-4 inline-block border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1] cursor-pointer"
+            >
+              {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
+            </label>
           </div>
         </div>
 
@@ -96,7 +135,7 @@ const ProfileSettings = () => {
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
             <input
-              type="text"
+              type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}

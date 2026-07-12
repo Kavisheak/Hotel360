@@ -8,10 +8,9 @@ interface GuestCounterProps {
   onChange: (n: number) => void;
   min: number;
   max: number;
-  baseLine: number;
 }
 
-export default function GuestCounter({ count, onChange, min, max, baseLine }: GuestCounterProps) {
+export default function GuestCounter({ count, onChange, min, max }: GuestCounterProps) {
   
   const handleDecrement = () => {
     if (count > min) onChange(count - 10);
@@ -25,61 +24,51 @@ export default function GuestCounter({ count, onChange, min, max, baseLine }: Gu
     onChange(Number(e.target.value));
   };
 
-  const extraGuests = count > baseLine ? count - baseLine : 0;
-
   return (
-    <div className="space-y-4 hover-glow p-4 rounded-sm transition-all duration-300 bg-[#111111] border border-[#C9A84C]/20 shadow-[0_0_20px_rgba(201,168,76,0.05)]">
-      <label className="block text-[10px] uppercase tracking-widest text-[#C9A84C] font-bold flex items-center gap-1.5 mb-2">
-        <Users className="w-4 h-4 text-[#C9A84C]" /> Step 4: Estimated Guest Count
+    <div className="space-y-6">
+      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5 mb-2">
+        <Users className="w-4 h-4 text-[#A6955C]" /> STEP 4: ESTIMATED GUEST COUNT
       </label>
 
-      <div className="bg-[#1A1A1A] border border-[#C9A84C]/30 p-6 rounded-sm">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          
-          <div className="flex-1 w-full">
-            <input 
-              type="range" 
-              min={min} 
-              max={max} 
-              step="10"
-              value={count}
-              onChange={handleSliderChange}
-              className="w-full h-1.5 bg-[#0A0A0A] rounded-lg appearance-none cursor-pointer accent-[#C9A84C]"
-            />
-            <div className="flex justify-between text-[10px] text-gray-500 mt-2 font-semibold uppercase tracking-wider">
-              <span>{min} min</span>
-              <span>{max} max</span>
-            </div>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-12 border-b border-[#E8DFC9] dark:border-[#C9A84C]/30 pb-10">
+        
+        {/* Slider Section */}
+        <div className="flex-1 w-full pt-4">
+          <input 
+            type="range" 
+            min={min} 
+            max={max} 
+            step="10"
+            value={count}
+            onChange={handleSliderChange}
+            className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-sm appearance-none cursor-pointer accent-[#C69C6D]"
+          />
+          <div className="flex justify-between text-[9px] text-[#1A1512] dark:text-gray-400 mt-3 font-bold uppercase tracking-widest">
+            <span>{min} MIN</span>
+            <span>{max} MAX</span>
           </div>
-
-          <div className="flex items-center gap-6 bg-[#111111] p-2 rounded-sm border border-[#C9A84C]/30">
-            <button 
-              onClick={handleDecrement}
-              disabled={count <= min}
-              className="w-10 h-10 flex items-center justify-center bg-transparent border border-[#C9A84C]/50 hover:border-[#C9A84C] hover:bg-[#C9A84C]/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors btn-interactive"
-            >
-              <Minus className="w-4 h-4 text-[#C9A84C]" />
-            </button>
-            <div className="w-16 text-center">
-              <span className="text-3xl font-serif text-[#C9A84C]">{count}</span>
-            </div>
-            <button 
-              onClick={handleIncrement}
-              disabled={count >= max}
-              className="w-10 h-10 flex items-center justify-center bg-transparent border border-[#C9A84C]/50 hover:border-[#C9A84C] hover:bg-[#C9A84C]/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors btn-interactive"
-            >
-              <Plus className="w-4 h-4 text-[#C9A84C]" />
-            </button>
-          </div>
-
         </div>
 
-        {extraGuests > 0 && (
-          <div className="mt-4 pt-4 border-t border-white/10 text-[10px] text-[#C9A84C] font-semibold uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] rounded-full inline-block shadow-[0_0_8px_rgba(212,175,55,0.8)]"></span>
-            Note: Your count exceeds the {baseLine}-guest baseline for this package. A per-head surcharge of LKR 8,500 applies to {extraGuests} extra guests.
+        {/* Number Input Section */}
+        <div className="flex items-center text-[#A6955C] border border-[#E8DFC9] dark:border-gray-700 w-40">
+          <button 
+            onClick={handleDecrement}
+            disabled={count <= min}
+            className="w-12 h-12 flex items-center justify-center bg-transparent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <div className="flex-1 text-center border-x border-[#E8DFC9] dark:border-gray-700 py-2">
+            <span className="text-2xl font-serif">{count}</span>
           </div>
-        )}
+          <button 
+            onClick={handleIncrement}
+            disabled={count >= max}
+            className="w-12 h-12 flex items-center justify-center bg-transparent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

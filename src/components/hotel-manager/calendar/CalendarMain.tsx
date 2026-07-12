@@ -1,11 +1,16 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
 import CalendarLegend from './CalendarLegend';
 import UpcomingWeek from './UpcomingWeek';
 import ManagerFooter from '../overview/Footer';
 
-const CalendarMain = () => (
+const CalendarMain = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  return (
   <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
     {/* Page header bar */}
     <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
@@ -13,13 +18,13 @@ const CalendarMain = () => (
     </header>
 
     <main className="flex-1 px-4 lg:px-6 py-6">
-      <CalendarHeader />
+      <CalendarHeader currentDate={currentDate} setCurrentDate={setCurrentDate} />
 
       {/* Two-column: calendar (left 2/3) + upcoming week (right 1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar section */}
         <div className="lg:col-span-2">
-          <CalendarGrid />
+          <CalendarGrid currentDate={currentDate} />
           <CalendarLegend />
         </div>
 
@@ -32,6 +37,7 @@ const CalendarMain = () => (
 
     <ManagerFooter />
   </div>
-);
+  );
+};
 
 export default CalendarMain;

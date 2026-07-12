@@ -6,7 +6,9 @@ import {
   PanelLeftClose, PanelLeftOpen, User
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -23,13 +25,11 @@ const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onCli
       href={href}
       onClick={onClick}
       title={isCollapsed ? label : undefined}
-      className={`flex items-center rounded-md transition-all duration-200 ${
-        isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
-      } ${
-        active
+      className={`flex items-center rounded-md transition-all duration-200 ${isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+        } ${active
           ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm'
           : 'text-gray-600 hover:bg-[#F2EADA]'
-      }`}
+        }`}
     >
       <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
       {!isCollapsed && (
@@ -46,6 +46,19 @@ const DjSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, clearUser } = useAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.signout();
+    } catch (e) {
+      console.error('Logout error:', e);
+    } finally {
+      clearUser();       // ← clear Zustand store so navbar updates
+      router.push('/');
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -61,17 +74,16 @@ const DjSidebar = () => {
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/dj-artist/overview' },
+    { icon: <User size={20} />, label: 'MY JOBS', href: '/dj-artist/my-jobs' },
     { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/dj-artist/performance' },
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
     { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
     { icon: <ImageIcon size={20} />, label: 'GALLERY', href: '/dj-artist/gallery' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/dj-artist/settings' },
-   
   ];
 
   const bottomItems = [
     { icon: <HelpCircle size={20} />, label: 'SUPPORT', href: '/dj-artist/support' },
-    { icon: <LogOut size={20} />, label: 'SIGN OUT', href: '/' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -82,7 +94,9 @@ const DjSidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Julian Dashboard</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                {user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}
+              </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">DJ ARTIST PORTAL</p>
             </div>
           ) : (
@@ -112,26 +126,23 @@ const DjSidebar = () => {
           ))}
         </nav>
 
-        <Link
-  href="/dj-artist/upcoming-events"
-  onClick={close}
-  title={collapsedState ? 'Upcoming Events' : undefined}
-  className={`mt-6 flex items-center justify-center bg-[#B08D2C] hover:bg-[#9B7A20] text-white rounded-md font-semibold transition-all duration-200 shadow-md ${
-    collapsedState ? 'p-3 w-full' : 'space-x-2 px-4 py-3 w-full text-xs tracking-widest'
-  }`}
->
-  <Plus size={16} />
-  {!collapsedState && <span>UPCOMING EVENTS</span>}
-</Link>
+
       </div>
 
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
-        <div className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`} title={collapsedState ? 'DJ Name' : undefined}>
-          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100" alt="DJ Profile" className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
+        <div
+          className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
+          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Premier Wedding DJ` : undefined}
+        >
+          <img
+            src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100"}
+            alt="DJ Profile"
+            className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]"
+          />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">Julian Saint-Clair</span>
-              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">Premier Wedding DJ</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}</span>
+              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">DJ ARTIST</span>
             </div>
           )}
         </div>
@@ -148,6 +159,18 @@ const DjSidebar = () => {
               onClick={close}
             />
           ))}
+          {/* Logout — calls signout API first to destroy session cookie */}
+          <button
+            onClick={() => { close(); handleLogout(); }}
+            title={collapsedState ? 'LOGOUT' : undefined}
+            className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+              }`}
+          >
+            <span><LogOut size={20} /></span>
+            {!collapsedState && (
+              <span className="text-sm font-bold tracking-wide">LOGOUT</span>
+            )}
+          </button>
         </div>
       </div>
     </div>

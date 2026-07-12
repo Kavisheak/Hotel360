@@ -6,39 +6,43 @@ import { Sparkles } from "lucide-react";
 
 export default function BookHero() {
   return (
-    <section className="relative w-full py-24 bg-[#0A0A0A] text-white overflow-hidden border-b border-[#C9A84C]/20">
-      {/* Background Image */}
-      <div className="absolute inset-0">
+    <section className="relative w-full py-20 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white overflow-hidden border-b border-[#E8DFC9] dark:border-[#C9A84C]/20 transition-colors duration-300">
+      
+      {/* Background Image on Right */}
+      <div className="absolute top-0 right-0 w-full md:w-2/3 h-full z-0">
         <Image
-          src="/crystal_pavilion_venue.png"
-          alt="Crystal Pavilion Venue"
+          src="/vendors_hero_bg_v3.png"
+          alt="Crystal Pavilion Venue Light"
           fill
-          className="object-cover opacity-40 mix-blend-overlay"
+          className="object-cover dark:hidden"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/50 via-[#0A0A0A]/70 to-[#0A0A0A]"></div>
+        <Image
+          src="/dark_hotel_booking_hero_bg.png"
+          alt="Dark Hotel Booking Lobby"
+          fill
+          className="object-cover hidden dark:block opacity-90"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#0A0A0A] dark:via-[#0A0A0A]/60 dark:to-transparent pointer-events-none"></div>
       </div>
 
-      <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-[1px] h-full bg-white"></div>
-        <div className="absolute top-0 left-3/4 w-[1px] h-full bg-white"></div>
-        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white"></div>
-      </div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-4">
-        <div className="flex items-center justify-center gap-2 text-[#C9A84C]">
-          <Sparkles className="w-4 h-4 animate-pulse" />
-          <span className="text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">Exclusive Booking Office</span>
-          <Sparkles className="w-4 h-4 animate-pulse" />
+      <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex flex-col justify-center">
+        <div className="max-w-xl space-y-4 py-12">
+          <div className="flex items-center gap-2 text-[#A6955C] dark:text-[#C9A84C]">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="text-[10px] tracking-[0.3em] uppercase font-bold text-reveal stagger-1">Exclusive Booking Office</span>
+            <Sparkles className="w-3.5 h-3.5" />
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-serif leading-tight text-[#1A1512] dark:text-white text-reveal stagger-2">
+            Compose Your <span className="italic text-[#A6955C] dark:text-[#C9A84C]">Historic Union</span>
+          </h1>
+          
+          <p className="text-gray-600 dark:text-gray-400 text-base font-light leading-relaxed text-reveal stagger-3 pt-2">
+            By holding only one wedding per day, EASCC guarantees absolute, uninterrupted focus on your celebration. Plan your date, hours, and guests details below to coordinate with our concierge.
+          </p>
         </div>
-        
-        <h1 className="text-4xl md:text-5xl font-serif leading-tight text-reveal stagger-2">
-          Compose Your <span className="italic text-[#C9A84C]">Historic Union</span>
-        </h1>
-        
-        <p className="max-w-2xl mx-auto text-gray-400 text-sm font-light leading-relaxed text-reveal stagger-3">
-          By holding only one wedding per day, EASCC guarantees absolute, uninterrupted focus on your celebration. Plan your date, hours, and guests details below to coordinate with our concierge.
-        </p>
       </div>
     </section>
   );

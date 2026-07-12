@@ -17,11 +17,13 @@ const DetailBanner = ({ code, status, confirmedDate, videoPackage, phone }: Deta
     }
   };
   const statusStyle =
-    status === 'CONFIRMED'
+    status === 'Accepted'
       ? 'bg-[#EAF0F6] text-[#3F6897] border border-[#DCE6EE]'
-      : status === 'COMPLETED'
-        ? 'bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]'
-        : 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]';
+      : status === 'Completed'
+      ? 'bg-[#EAF4EC] text-[#2E7A3E] border border-[#D8EBD9]'
+      : status === 'Declined'
+      ? 'bg-[#FDE8E8] text-[#9B3434] border border-[#F5D4D4]'
+      : 'bg-[#FCF6E3] text-[#7C6A2E] border border-[#F5EAD2]';
 
   return (
     <div className="relative overflow-hidden bg-[#FAF6EE] border border-[#E0D8C3] p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 shadow-sm">

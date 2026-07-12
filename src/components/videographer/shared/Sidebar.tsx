@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
+import { authAPI } from '@/lib/api';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -47,6 +49,7 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { user, clearUser } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
@@ -60,6 +63,13 @@ const Sidebar = () => {
     localStorage.setItem('videographer-sidebar-collapsed', String(next));
   };
 
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await authAPI.signout();
+    clearUser();
+    window.location.href = '/';
+  };
+
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW',  href: '/videographer' },
     { icon: <Calendar size={20} />,   label: 'SCHEDULE',  href: '/videographer/performance' },
@@ -71,7 +81,6 @@ const Sidebar = () => {
 
   const bottomItems = [
     { icon: <HelpCircle size={20} />, label: 'SUPPORT',   href: '/videographer/support' },
-    { icon: <LogOut size={20} />,     label: 'SIGN OUT',  href: '/' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -89,7 +98,9 @@ const Sidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Frame Story</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                {user ? `${user.firstName} ${user.lastName}` : "Videographer"}
+              </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">VIDEOGRAPHER PORTAL</p>
             </div>
           ) : (
@@ -135,16 +146,16 @@ const Sidebar = () => {
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
         <div
           className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
-          title={collapsedState ? 'A. Malik — Lead Videographer' : undefined}
+          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Lead Videographer` : undefined}
         >
           <img
-            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"
-            alt="A. Malik Profile"
+            src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
+            alt="Profile"
             className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]"
           />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">A. Malik</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "A. Malik"}</span>
               <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">LEAD VIDEOGRAPHER</span>
             </div>
           )}
@@ -162,6 +173,21 @@ const Sidebar = () => {
               onClick={close}
             />
           ))}
+          <a
+            href="#"
+            onClick={handleSignOut}
+            title={collapsedState ? 'SIGN OUT' : undefined}
+            className={`flex items-center rounded-md transition-all duration-200 ${
+              collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+            } text-gray-600 hover:bg-[#F2EADA]`}
+          >
+            <span className="text-gray-500"><LogOut size={20} /></span>
+            {!collapsedState && (
+              <span className="text-sm font-semibold tracking-wide">
+                SIGN OUT
+              </span>
+            )}
+          </a>
         </div>
       </div>
     </div>
