@@ -97,12 +97,12 @@ const SettingsMain = () => {
     if (!userId) return;
 
     // Validate email & phone
-    const emailErr = validateEmail(formData.email);
-    const phoneErr = validatePhone(formData.phone);
-    if (emailErr || phoneErr) {
+    const isEmailValid = validateEmail(formData.email);
+    const isPhoneValid = validatePhone(formData.phone);
+    if (!isEmailValid || !isPhoneValid) {
       setErrors({
-        email: emailErr || undefined,
-        phone: phoneErr || undefined
+        email: !isEmailValid ? "Invalid email address" : undefined,
+        phone: !isPhoneValid ? "Invalid phone number" : undefined
       });
       setToastType('error');
       setToastMessage("Please resolve validation errors.");

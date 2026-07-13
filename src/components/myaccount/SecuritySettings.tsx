@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Lock, ShieldCheck, Smartphone, KeyRound, Eye, EyeOff, Loader2 } from "lucide-react";
-import { accountAPI } from "@/lib/api";
+import { accountAPI, authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 
 export default function SecuritySettings() {
@@ -38,7 +38,7 @@ export default function SecuritySettings() {
     setIsLoading(true);
     setErrorMsg("");
     
-    const { ok, data } = await accountAPI.changePassword({ currentPassword, newPassword });
+    const { ok, data } = await authAPI.changePassword({ currentPassword, newPassword });
     
     setIsLoading(false);
     

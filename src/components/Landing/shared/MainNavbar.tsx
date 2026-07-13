@@ -44,7 +44,7 @@ export default function MainNavbar() {
    await authAPI.signout();
    clearUser();
    setIsSignOutModalOpen(false);
-   router.push("/");
+   window.location.replace('/login');
  };
  const { favoriteVendors } = useVendorCartStore();
 

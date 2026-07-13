@@ -56,7 +56,7 @@ const Sidebar = () => {
       console.error(e);
     } finally {
       clearUser();
-      router.push('/');
+      window.location.replace('/login');
     }
   };
 

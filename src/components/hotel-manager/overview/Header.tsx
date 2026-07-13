@@ -24,7 +24,7 @@ const ManagerHeader = () => {
       console.error("Logout failed:", error);
     } finally {
       clearUser();
-      router.push('/');
+      window.location.replace('/login');
     }
   };
 

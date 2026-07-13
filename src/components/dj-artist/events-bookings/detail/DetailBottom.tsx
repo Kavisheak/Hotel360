@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Music, Mic2, Volume2, Plus, Trash2, Camera, CheckSquare } from 'lucide-react';
 import { djAPI } from '@/lib/api';
@@ -5,8 +7,8 @@ import { djAPI } from '@/lib/api';
 import { getPackageName } from '@/lib/vendorUtils';
 
 interface DetailBottomProps {
-  booking: any;
-  onRefresh: () => void;
+  booking?: any;
+  onRefresh?: () => void;
 }
 
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
@@ -37,11 +39,12 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   }, [booking?._id, booking?.vendors?.dj]);
 
   const saveChecklist = async (newList: any[]) => {
+    if (!booking?._id) return;
     setIsUpdating(true);
     try {
       const res = await djAPI.updateChecklist(booking._id, newList);
       if (res.ok) {
-        onRefresh();
+        onRefresh?.();
       }
     } catch (e) {
       console.error(e);
@@ -85,7 +88,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       if (res.ok) {
         setUploaded(true);
         setSuccessDetails("Photos uploaded successfully.");
-        onRefresh();
+        onRefresh?.();
       } else {
         setErrorDetails(res.data?.message || "Failed to upload photos.");
       }
@@ -109,7 +112,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       const res = await djAPI.updateBookingStatus(booking._id, "Completed");
       if (res.ok) {
         setSuccessDetails("Job marked as complete. The manager has been notified.");
-        onRefresh();
+        onRefresh?.();
       } else {
         setErrorDetails(res.data?.message || "Failed to mark as complete.");
       }
