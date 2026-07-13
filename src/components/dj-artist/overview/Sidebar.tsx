@@ -25,13 +25,11 @@ const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onCli
       href={href}
       onClick={onClick}
       title={isCollapsed ? label : undefined}
-      className={`flex items-center rounded-md transition-all duration-200 ${
-        isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
-      } ${
-        active
+      className={`flex items-center rounded-md transition-all duration-200 ${isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+        } ${active
           ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm'
           : 'text-gray-600 hover:bg-[#F2EADA]'
-      }`}
+        }`}
     >
       <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
       {!isCollapsed && (
@@ -49,7 +47,7 @@ const DjSidebar = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { clearUser } = useAuthStore();
+  const { user, clearUser } = useAuthStore();
 
   const handleLogout = async () => {
     try {
@@ -96,7 +94,9 @@ const DjSidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Julian Dashboard</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                {user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}
+              </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">DJ ARTIST PORTAL</p>
             </div>
           ) : (
@@ -130,42 +130,48 @@ const DjSidebar = () => {
       </div>
 
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
-        <div className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`} title={collapsedState ? 'DJ Name' : undefined}>
-          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100" alt="DJ Profile" className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
+        <div
+          className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
+          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Premier Wedding DJ` : undefined}
+        >
+          <img
+            src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100"}
+            alt="DJ Profile"
+            className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]"
+          />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">Julian Saint-Clair</span>
-              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">Premier Wedding DJ</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}</span>
+              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">DJ ARTIST</span>
             </div>
           )}
         </div>
 
         <div className="space-y-1">
-            {bottomItems.map((item) => (
-              <NavItem
-                key={item.href}
-                icon={item.icon}
-                label={item.label}
-                href={item.href}
-                active={pathname === item.href}
-                isCollapsed={collapsedState}
-                onClick={close}
-              />
-            ))}
-            {/* Logout — calls signout API first to destroy session cookie */}
-            <button
-              onClick={() => { close(); handleLogout(); }}
-              title={collapsedState ? 'LOGOUT' : undefined}
-              className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${
-                collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+          {bottomItems.map((item) => (
+            <NavItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              active={pathname === item.href}
+              isCollapsed={collapsedState}
+              onClick={close}
+            />
+          ))}
+          {/* Logout — calls signout API first to destroy session cookie */}
+          <button
+            onClick={() => { close(); handleLogout(); }}
+            title={collapsedState ? 'LOGOUT' : undefined}
+            className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
               }`}
-            >
-              <span><LogOut size={20} /></span>
-              {!collapsedState && (
-                <span className="text-sm font-bold tracking-wide">LOGOUT</span>
-              )}
-            </button>
-          </div>
+          >
+            <span><LogOut size={20} /></span>
+            {!collapsedState && (
+              <span className="text-sm font-bold tracking-wide">LOGOUT</span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

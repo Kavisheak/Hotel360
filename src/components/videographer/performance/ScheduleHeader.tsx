@@ -12,16 +12,6 @@ const ScheduleHeader = () => {
           Performance Schedule
         </h1>
       </div>
-
-      <div className="flex space-x-3 shrink-0">
-        <button className="border border-[#7C6A2E] text-[#7C6A2E] px-5 py-2.5 font-semibold text-xs tracking-[0.15em] hover:bg-[#FDF9F1] transition-colors">
-          EXPORT PDF
-        </button>
-
-        <button className="bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-5 py-2.5 font-semibold text-xs tracking-[0.15em] transition-colors shadow-md">
-          VIEW TIMELINE
-        </button>
-      </div>
     </div>
   );
 };

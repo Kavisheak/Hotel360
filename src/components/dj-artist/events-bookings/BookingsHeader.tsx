@@ -23,7 +23,7 @@ const BookingsHeader = () => {
       </div>
 
       <Link
-        href="/dj-artist/upcoming-events"
+        href="/dj-artist/events-bookings"
         className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start md:mt-2"
       >
         <Plus size={16} />

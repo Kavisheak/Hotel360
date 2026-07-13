@@ -13,9 +13,6 @@ const MainContent = () => {
             <h2 className="text-5xl font-serif text-[#7C6A2E] mb-2 tracking-tight">Job Queue</h2>
             <p className="text-gray-500 font-serif italic text-lg">Overseeing elegance for upcoming celebrations.</p>
           </div>
-          <button className="bg-[#7C6A2E] hover:bg-[#685724] text-white px-8 py-3 font-semibold text-sm tracking-widest transition-colors shadow-md">
-            DOWNLOAD SCHEDULE
-          </button>
         </div>
         
         <JobQueue />

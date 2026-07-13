@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Camera, Save, Loader2 } from 'lucide-react';
+import { ChevronDown, Camera, Loader2, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { videographerAPI, authAPI } from '@/lib/api';
+import { authAPI, videographerAPI } from '@/lib/api';
 import { validateEmail, validatePhone } from '@/lib/validation';
 import { getImageUrl } from "@/lib/utils";
 
@@ -11,10 +11,48 @@ const ProfileSettings = () => {
   const { user, fetchUser, updateUser } = useAuthStore();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+  const [errors, setErrors] = useState<{ email?: string, phone?: string }>({});
   const [message, setMessage] = useState('');
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const [formData, setFormData] = useState({
+    fullName: 'A. Malik',
+    email: 'a.malik@framestory.co',
+    phone: '+44 (0) 7891 234 567',
+    bio: 'A. Malik is a lead wedding and event videographer specialising in cinematic storytelling for luxury weddings, intimate engagements, and high-profile corporate events across the UK.',
+    specialty: 'Bespoke Wedding Films',
+    experience: '8 Years',
+    shopName: '',
+    startingPrice: '',
+    location: '',
+    eventsCompleted: '',
+    responseTime: '',
+    depositReq: '',
+    cancellation: '',
+    availableIslandWide: true,
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        shopName: (user as any).shopName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        bio: user.vendorProfile?.bio || '',
+        specialty: user.vendorProfile?.specialty || 'Bespoke Wedding Films',
+        experience: user.vendorProfile?.experience || '',
+        startingPrice: user.vendorProfile?.startingPrice || '',
+        location: user.vendorProfile?.location || '',
+        eventsCompleted: user.vendorProfile?.eventsCompleted || '',
+        responseTime: user.vendorProfile?.responseTime || '',
+        depositReq: user.vendorProfile?.depositReq || '',
+        cancellation: user.vendorProfile?.cancellation || '',
+        availableIslandWide: user.vendorProfile?.availableIslandWide !== false,
+      });
+    }
+  }, [user]);
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -22,7 +60,7 @@ const ProfileSettings = () => {
 
     setIsUploadingPhoto(true);
     setMessage('');
-    
+
     const formDataUpload = new FormData();
     formDataUpload.append("avatar", file);
 
@@ -42,52 +80,12 @@ const ProfileSettings = () => {
     }
   };
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    shopName: '',
-    email: '',
-    phone: '',
-    bio: '',
-    specialty: 'Bespoke Wedding Films',
-    experience: '',
-    startingPrice: '',
-    location: '',
-    eventsCompleted: '',
-    responseTime: '',
-    depositReq: '',
-    cancellation: '',
-    availableIslandWide: true,
-  });
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        shopName: (user as any).shopName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        bio: user.vendorProfile?.bio || '',
-        specialty: user.vendorProfile?.specialty || 'Bespoke Wedding Films',
-        experience: user.vendorProfile?.experience || '',
-        startingPrice: user.vendorProfile?.startingPrice || '',
-        location: user.vendorProfile?.location || '',
-        eventsCompleted: user.vendorProfile?.eventsCompleted || '',
-        responseTime: user.vendorProfile?.responseTime || '',
-        depositReq: user.vendorProfile?.depositReq || '',
-        cancellation: user.vendorProfile?.cancellation || '',
-        availableIslandWide: user.vendorProfile?.availableIslandWide !== false,
-      });
-    }
-  }, [user]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as any;
     const checked = (e.target as HTMLInputElement).checked;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
     }));
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -96,7 +94,7 @@ const ProfileSettings = () => {
 
   const handleSave = async () => {
     if (!user?.id && !(user as any)?._id) return;
-    
+
     setErrors({});
     let hasError = false;
     const newErrors: typeof errors = {};
@@ -119,11 +117,15 @@ const ProfileSettings = () => {
 
     setIsSaving(true);
     setMessage('');
-    
+
     try {
+      const parts = formData.fullName.trim().split(/\s+/);
+      const firstName = parts[0] || '';
+      const lastName = parts.slice(1).join(' ') || '';
+
       const { ok, data } = await videographerAPI.updateProfile({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName,
+        lastName,
         shopName: formData.shopName,
         email: formData.email,
         phone: formData.phone,
@@ -154,14 +156,20 @@ const ProfileSettings = () => {
   };
 
   return (
-    <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between relative">
+    <article className="bg-white border border-[#E0D8C3] p-6 sm:p-8 shadow-sm flex flex-col justify-between">
       <div>
+        {message && (
+          <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('successfully') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            {message}
+          </div>
+        )}
+
         <div className="flex items-center justify-between border-b border-[#E0D8C3] pb-3 mb-6">
           <div className="flex items-center space-x-2">
             <Camera size={16} className="text-[#B08D2C]" />
             <h3 className="text-xs font-bold tracking-[0.2em] text-[#7C6A2E] uppercase">PROFILE INFORMATION</h3>
           </div>
-          <button 
+          <button
             onClick={handleSave}
             disabled={isSaving}
             className="flex items-center gap-2 bg-[#7C6A2E] text-white px-4 py-2 text-[10px] font-bold tracking-[0.18em] uppercase transition-colors hover:bg-[#B08D2C] disabled:opacity-50"
@@ -170,12 +178,6 @@ const ProfileSettings = () => {
             {isSaving ? 'SAVING...' : 'SAVE CHANGES'}
           </button>
         </div>
-
-        {message && (
-          <div className={`p-3 mb-4 text-xs font-bold tracking-wide uppercase ${message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-            {message}
-          </div>
-        )}
 
         <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 mb-6 md:flex-row md:items-center">
           <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
@@ -194,15 +196,15 @@ const ProfileSettings = () => {
             <p className="text-sm text-gray-600 leading-relaxed max-w-xl">
               Manage how your brand is perceived by clients and booking partners.
             </p>
-            <input 
-              type="file" 
-              accept="image/*" 
-              id="videographer-avatar-upload" 
-              className="hidden" 
-              onChange={handlePhotoChange} 
+            <input
+              type="file"
+              accept="image/*"
+              id="videographer-avatar-upload"
+              className="hidden"
+              onChange={handlePhotoChange}
             />
-            <label 
-              htmlFor="videographer-avatar-upload" 
+            <label
+              htmlFor="videographer-avatar-upload"
               className="mt-4 inline-block border border-[#B08D2C] px-4 py-2 text-[10px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase transition-colors hover:bg-[#FDF9F1] cursor-pointer"
             >
               {isUploadingPhoto ? 'Uploading...' : 'Replace Photo'}
@@ -212,46 +214,11 @@ const ProfileSettings = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Shop Name / Business Name</label>
+            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Full Name</label>
             <input
               type="text"
-              name="shopName"
-              value={formData.shopName}
-              onChange={handleChange}
-              placeholder="e.g. Gilded Floral & Co."
-              className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Starting Price (e.g. LKR 350,000)</label>
-            <input
-              type="text"
-              name="startingPrice"
-              value={formData.startingPrice}
-              onChange={handleChange}
-              placeholder="e.g. LKR 350,000"
-              className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
@@ -290,7 +257,7 @@ const ProfileSettings = () => {
           <div>
             <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">Phone Number</label>
             <input
-              type="tel"
+              type="text"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -308,104 +275,6 @@ const ProfileSettings = () => {
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
-          </div>
-        </div>
-
-        {/* Additional Vendor Details */}
-        <div className="border-t border-gray-100 pt-5 mb-5">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-[#7C6A2E] uppercase mb-4">
-            ADDITIONAL VENDOR DETAILS & POLICIES
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* Studio Address / Location */}
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                STUDIO ADDRESS / LOCATION
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location || ''}
-                onChange={handleChange}
-                placeholder="e.g. 75/1 Barnes Place, Colombo 07"
-                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-              />
-            </div>
-
-            {/* Events Completed */}
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                EVENTS COMPLETED (e.g. 120+)
-              </label>
-              <input
-                type="text"
-                name="eventsCompleted"
-                value={formData.eventsCompleted || ''}
-                onChange={handleChange}
-                placeholder="e.g. 120+"
-                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-              />
-            </div>
-
-            {/* Response Time */}
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                RESPONSE TIME (e.g. ~24 Hours)
-              </label>
-              <input
-                type="text"
-                name="responseTime"
-                value={formData.responseTime || ''}
-                onChange={handleChange}
-                placeholder="e.g. ~24 Hours"
-                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-              />
-            </div>
-
-            {/* Deposit Required */}
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                DEPOSIT REQUIRED (e.g. 50%)
-              </label>
-              <input
-                type="text"
-                name="depositReq"
-                value={formData.depositReq || ''}
-                onChange={handleChange}
-                placeholder="e.g. 50%"
-                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-              />
-            </div>
-
-            {/* Cancellation Policy */}
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 tracking-wider mb-2 uppercase">
-                CANCELLATION POLICY (e.g. Flexible)
-              </label>
-              <input
-                type="text"
-                name="cancellation"
-                value={formData.cancellation || ''}
-                onChange={handleChange}
-                placeholder="e.g. Flexible"
-                className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
-              />
-            </div>
-
-            {/* Island-wide Availability */}
-            <div className="flex items-center mt-6">
-              <input
-                type="checkbox"
-                id="availableIslandWide"
-                name="availableIslandWide"
-                checked={!!formData.availableIslandWide}
-                onChange={handleChange}
-                className="w-4 h-4 accent-[#B08D2C] cursor-pointer"
-              />
-              <label htmlFor="availableIslandWide" className="ml-2 text-xs font-bold text-gray-600 tracking-wider uppercase cursor-pointer">
-                AVAILABLE ISLAND-WIDE
-              </label>
-            </div>
           </div>
         </div>
 

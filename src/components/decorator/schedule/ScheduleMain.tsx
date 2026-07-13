@@ -7,9 +7,11 @@ import EventTimeline from './EventTimeline';
 import ResourceAllocation from './ResourceAllocation';
 import Footer from '../my_jobs/Footer';
 import { decoratorAPI } from '@/lib/api';
+import { normalizeCalendarDate } from '@/lib/vendorUtils';
 
 const ScheduleMain = () => {
   const [bookings, setBookings] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(normalizeCalendarDate(new Date()));
 
   useEffect(() => {
     fetchBookings();
@@ -34,10 +36,18 @@ const ScheduleMain = () => {
         {/* Calendar + Timeline: stack on mobile, side by side on lg */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 mt-6">
           <div className="lg:col-span-2">
-            <CalendarView bookings={bookings} />
+            <CalendarView 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+              onSelectDate={(date) => setSelectedDate(normalizeCalendarDate(date))}
+              vendorKey="decorator"
+            />
           </div>
           <div className="lg:col-span-1">
-            <EventTimeline bookings={bookings} />
+            <EventTimeline 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+            />
           </div>
         </div>
 

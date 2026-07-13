@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Star, SlidersHorizontal, Loader2 } from 'lucide-react';
-import { videographerAPI } from '@/lib/api';
 
 interface Review {
   id: string;
@@ -14,34 +13,30 @@ interface Review {
   tags: string[];
 }
 
-const RecentFeedback = () => {
+const RecentFeedback = ({ reviews, loading }: { reviews: any[]; loading: boolean }) => {
   const [reviewsData, setReviewsData] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const { ok, data } = await videographerAPI.getRatings();
-        if (ok && data.success && data.data && Array.isArray(data.data.reviews)) {
-          const mappedReviews = data.data.reviews.map((r: any) => ({
-            id: r._id,
-            name: r.customerId ? `${r.customerId.firstName} ${r.customerId.lastName}`.trim() : "Customer",
-            event: "Videography Service",
-            avatar: r.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
-            rating: r.rating || 5,
-            comment: r.reviewText ? `"${r.reviewText}"` : '"No comment provided."',
-            tags: ["Videography"]
-          }));
-          setReviewsData(mappedReviews);
-        }
-      } catch (error) {
-        console.error("Failed to fetch ratings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchReviews();
-  }, []);
+    if (reviews && Array.isArray(reviews)) {
+      const mappedReviews = reviews.map((r: any) => ({
+        id: r._id,
+        name: r.customerId ? `${r.customerId.firstName} ${r.customerId.lastName}`.trim() : "Customer",
+        event: "Videography Service",
+        avatar: r.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
+        rating: r.rating || 5,
+        comment: r.reviewText ? `"${r.reviewText}"` : '"No comment provided."',
+        tags: ["Videography"]
+      }));
+      setReviewsData(mappedReviews);
+    }
+  }, [reviews]);
+
+  const getAvatarUrl = (avatarUrl: string) => {
+    if (!avatarUrl) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120";
+    if (avatarUrl.startsWith('http')) return avatarUrl;
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    return `${base}${avatarUrl}`;
+  };
 
   return (
     <div>
@@ -57,7 +52,7 @@ const RecentFeedback = () => {
         </button>
       </div>
 
-      {isLoading ? (
+      {loading ? (
         <div className="flex justify-center items-center py-20">
           <Loader2 className="animate-spin text-[#B08D2C]" size={32} />
         </div>
@@ -78,7 +73,7 @@ const RecentFeedback = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                   <div className="flex items-center space-x-3.5">
                     <img
-                      src={review.avatar}
+                      src={getAvatarUrl(review.avatar)}
                       alt={review.name}
                       className="w-12 h-12 rounded-full object-cover border border-[#E0D8C3]"
                     />

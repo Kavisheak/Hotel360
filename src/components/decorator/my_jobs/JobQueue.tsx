@@ -38,7 +38,8 @@ const JobQueue = () => {
     b.status !== 'Completed' && 
     b.status !== 'Cancelled' && 
     b.status !== 'Rejected' &&
-    b.vendors?.decorator?.status !== 'Completed'
+    b.vendors?.decorator?.status !== 'Completed' &&
+    b.vendors?.decorator?.status !== 'Declined'
   );
   
   if (manualPriorityId) {
@@ -59,7 +60,7 @@ const JobQueue = () => {
         <div>
           <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">Current Priority</h3>
           {currentPriority ? (
-            <CurrentPriority booking={currentPriority} />
+            <CurrentPriority booking={currentPriority} onRefresh={fetchBookings} />
           ) : (
             <div className="bg-white border border-[#E0D8C3] p-8 text-center text-gray-500 text-sm font-serif italic">
               No current priority jobs assigned.
@@ -68,7 +69,9 @@ const JobQueue = () => {
         </div>
         
         {upcomingJobs.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-3">Upcoming Jobs</h3>
+            <div className="space-y-2">
             {upcomingJobs.map((job) => (
               <UpcomingJobs 
                 key={job._id} 
@@ -77,6 +80,7 @@ const JobQueue = () => {
                 onMakePriority={setManualPriorityId}
               />
             ))}
+            </div>
           </div>
         )}
       </div>

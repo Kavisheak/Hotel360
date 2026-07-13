@@ -43,8 +43,8 @@ const BookingsMain = () => {
 
         if (ratingsRes.ok && ratingsRes.data?.data) {
           revs = ratingsRes.data.data.reviews || [];
-          avg = (ratingsRes.data.data.averageRating || 0).toFixed(1);
-          totalRev = ratingsRes.data.data.totalReviews || 0;
+          avg = (ratingsRes.data.data.stats?.averageRating || 0).toFixed(1);
+          totalRev = ratingsRes.data.data.stats?.totalReviews || 0;
           
           const highStars = revs.filter((r: any) => r.rating >= 4).length;
           satisfaction = totalRev > 0 ? `${Math.round((highStars / totalRev) * 100)}%` : '0%';

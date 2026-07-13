@@ -7,9 +7,11 @@ import EventTimeline from "./EventTimeline";
 import ResourceAllocation from "./ResourceAllocation";
 import Footer from "../overview/Footer";
 import { djAPI } from "@/lib/api";
+import { normalizeCalendarDate } from "@/lib/vendorUtils";
 
 const PerformanceMain = () => {
   const [bookings, setBookings] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(normalizeCalendarDate(new Date()));
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -31,11 +33,19 @@ const PerformanceMain = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 mt-6">
           <div className="lg:col-span-2">
-            <CalendarView bookings={bookings} />
+            <CalendarView 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+              onSelectDate={(date) => setSelectedDate(normalizeCalendarDate(date))}
+              vendorKey="dj"
+            />
           </div>
 
           <div className="lg:col-span-1">
-            <EventTimeline bookings={bookings} />
+            <EventTimeline 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+            />
           </div>
         </div>
 

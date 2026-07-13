@@ -7,10 +7,11 @@ import EventTimeline from "./EventTimeline";
 import ResourceAllocation from "./ResourceAllocation";
 import Footer from "../shared/Footer";
 import { videographerAPI } from "@/lib/api";
+import { normalizeCalendarDate } from "@/lib/vendorUtils";
 
 const PerformanceMain = () => {
   const [bookings, setBookings] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(normalizeCalendarDate(new Date()));
   
   useEffect(() => {
     const fetchBookings = async () => {
@@ -32,7 +33,8 @@ const PerformanceMain = () => {
             <CalendarView 
               bookings={bookings} 
               selectedDate={selectedDate} 
-              onSelectDate={setSelectedDate} 
+              onSelectDate={(date) => setSelectedDate(normalizeCalendarDate(date))}
+              vendorKey="videographer"
             />
           </div>
 
@@ -44,7 +46,7 @@ const PerformanceMain = () => {
           </div>
         </div>
 
-        <ResourceAllocation />
+        <ResourceAllocation bookings={bookings} />
       </div>
 
       <Footer />

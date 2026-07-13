@@ -18,17 +18,22 @@ import {
   Video,
   Play,
   Aperture,
+  Loader2,
+  Info,
 } from 'lucide-react';
 import Footer from '../shared/Footer';
+import { videographerAPI } from '@/lib/api';
 
 interface MediaItem {
   id: string;
   src: string;
   isCover: boolean;
   name: string;
+  file?: File;
+  isExisting?: boolean;
 }
 
-const UploadProjectMain = () => {
+const UploadProjectMain = ({ id }: { id?: string }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,15 +59,74 @@ const UploadProjectMain = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
+  const [successDetails, setSuccessDetails] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+
   // Media Gallery State
-  const [mediaList, setMediaList] = useState<MediaItem[]>([
-    {
-      id: 'default-cover',
-      src: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80',
-      isCover: true,
-      name: 'Cover Shot',
-    },
-  ]);
+  const [mediaList, setMediaList] = useState<MediaItem[]>(
+    id ? [] : [
+      {
+        id: 'default-cover',
+        src: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80',
+        isCover: true,
+        name: 'Cover Shot',
+      },
+    ]
+  );
+
+  // Fetch if editing
+  React.useEffect(() => {
+    if (id) {
+      const fetchItem = async () => {
+        try {
+          const res = await videographerAPI.getPortfolioItems();
+          if (res.ok && res.data?.success) {
+            const item = res.data.data.find((i: any) => i._id === id);
+            if (item) {
+              setProjectTitle(item.title || '');
+              setEventType(item.eventType || 'Wedding Film');
+              setEventDate(item.eventDate ? item.eventDate.substring(0, 10) : '');
+              setDescription(item.description || '');
+              setVenue(item.venue || '');
+              setResolution(item.category || '4K Ultra HD');
+
+              if (item.servicesProvided) {
+                const s = {
+                  cinematicFilm: false,
+                  droneAerial: false,
+                  highlightReel: false,
+                  rawFootage: false,
+                  sameDay: false,
+                };
+                item.servicesProvided.forEach((srv: string) => {
+                  if (srv in s) (s as any)[srv] = true;
+                });
+                setServices(s);
+              }
+
+              setIsFeatured(item.isFeatured || false);
+              setIsPrivate(item.isPrivate || false);
+              
+              if (item.media && item.media.length > 0) {
+                const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+                setMediaList(item.media.map((m: any, idx: number) => ({
+                  id: `existing-${idx}`,
+                  src: m.url.startsWith('http') ? m.url : `${API_BASE}${m.url}`,
+                  isCover: m.isCover || false,
+                  name: m.url.split('/').pop() || `existing-${idx}`,
+                  isExisting: true,
+                })));
+              }
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchItem();
+    }
+  }, [id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -71,17 +135,20 @@ const UploadProjectMain = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setMediaList(prev => [
-          ...prev,
+          ...prev.filter(item => item.id !== 'default-cover'),
           {
             id: `uploaded-${Date.now()}-${idx}`,
             src: reader.result as string,
-            isCover: false,
+            isCover: prev.filter(i => i.id !== 'default-cover').length === 0 && idx === 0,
             name: file.name,
+            file: file,
           },
         ]);
       };
       reader.readAsDataURL(file);
     });
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const triggerFileSelect = () => {
@@ -104,8 +171,91 @@ const UploadProjectMain = () => {
     );
   };
 
-  const handlePublish = () => {
-    alert(`Success! "${projectTitle || 'Untitled Cinematic Project'}" has been published to your portfolio.`);
+  const openDatePicker = (e: React.FocusEvent<HTMLInputElement> | React.MouseEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  };
+
+  const handlePublish = async () => {
+    if (isPublishing) return;
+
+    if (!projectTitle.trim()) {
+      setErrorDetails("Please enter a project title.");
+      return;
+    }
+
+    if (!eventDate) {
+      setErrorDetails("Please select an event date.");
+      return;
+    }
+
+    if (mediaList.length === 0) {
+      setErrorDetails("Please upload at least one image of your project.");
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", projectTitle);
+      formData.append("eventType", eventType);
+      formData.append("eventDate", eventDate);
+      formData.append("description", description);
+      formData.append("venue", venue);
+      formData.append("category", resolution);
+      formData.append("isFeatured", String(isFeatured));
+      formData.append("isPrivate", String(isPrivate));
+
+      const activeServices = Object.entries(services)
+        .filter(([_, isActive]) => isActive)
+        .map(([key]) => key);
+      formData.append("servicesProvided", JSON.stringify(activeServices));
+
+      const coverItem = mediaList.find(m => m.isCover) || mediaList[0];
+      if (coverItem) {
+        if (coverItem.file) {
+          formData.append("coverImageName", coverItem.file.name);
+        } else {
+          formData.append("coverImageName", coverItem.name);
+        }
+      }
+
+      mediaList.forEach(item => {
+        if (item.isExisting) {
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const relativeUrl = item.src.replace(API_BASE, '');
+          formData.append("existingMedia", relativeUrl);
+        } else if (item.file) {
+          formData.append("media", item.file);
+        }
+      });
+
+      let res;
+      if (id) {
+        res = await videographerAPI.updatePortfolioItem(id, formData);
+      } else {
+        res = await videographerAPI.createPortfolioItem(formData);
+      }
+
+      if (res.ok && res.data?.success) {
+        setSuccessDetails(`Success! "${projectTitle}" has been ${id ? 'updated' : 'published'} to your public portfolio.`);
+      } else {
+        setErrorDetails(res.data?.message || `Failed to ${id ? 'update' : 'publish'} project to database.`);
+      }
+    } catch (e: any) {
+      console.error(e);
+      setErrorDetails("Failed to communicate with server.");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleContinue = () => {
+    setSuccessDetails(null);
     router.push('/videographer/gallery');
   };
 
@@ -136,15 +286,17 @@ const UploadProjectMain = () => {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               onClick={handleCancel}
-              className="flex-1 md:flex-initial px-6 py-3 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase hover:bg-[#FAF6EE] active:opacity-80 transition-colors"
+              className="flex-1 md:flex-initial px-6 py-3 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase hover:bg-[#FAF6EE] active:opacity-80 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handlePublish}
-              className="flex-1 md:flex-initial px-6 py-3 bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-[10px] tracking-[0.15em] uppercase shadow-sm active:scale-95 transition-all"
+              disabled={isPublishing}
+              className="flex-1 md:flex-initial px-6 py-3 bg-[#B08D2C] hover:bg-[#9B7A20] text-white font-bold text-[10px] tracking-[0.15em] uppercase shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              Publish to Portfolio
+              {isPublishing ? <Loader2 size={12} className="animate-spin" /> : null}
+              {isPublishing ? 'Publishing...' : 'Publish to Portfolio'}
             </button>
           </div>
         </header>
@@ -318,17 +470,21 @@ const UploadProjectMain = () => {
                     <option>Anniversary Film</option>
                     <option>Pre-Wedding Shoot</option>
                     <option>Event Highlight Reel</option>
+                    <option>Cinematic Story</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                  <label htmlFor="videographer-event-date" className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
                     Event Date
                   </label>
                   <input
+                    id="videographer-event-date"
                     type="date"
                     value={eventDate}
                     onChange={e => setEventDate(e.target.value)}
-                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+                    onClick={openDatePicker}
+                    onFocus={openDatePicker}
+                    className="w-full bg-white border border-[#E0D8C3] p-4 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer min-h-[3rem] relative z-[1] [color-scheme:light] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-90 [&::-webkit-calendar-picker-indicator]:scale-125"
                   />
                 </div>
               </div>
@@ -520,6 +676,48 @@ const UploadProjectMain = () => {
           </section>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {successDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Check size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Published</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {successDetails}
+            </p>
+            <button 
+              onClick={handleContinue}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Continue to Portfolio
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {errorDetails && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-red-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Info size={32} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-red-600 mb-2 tracking-wide">Upload Failed</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              {errorDetails}
+            </p>
+            <button 
+              onClick={() => setErrorDetails(null)}
+              className="w-full bg-[#EBE5D9] hover:bg-[#E0D8C3] text-gray-700 px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FOOTER */}
       <Footer />

@@ -96,13 +96,14 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
         {/* Breadcrumb & Action Header */}
         <DetailHeader />
-
+        
         {/* Hero Banner */}
         <DetailBanner
           code={bookingId}
           status={data.status}
           confirmedDate={data.confirmedDate}
           videoPackage={data.videoPackage}
+          phone={data.phone}
         />
 
         {/* 4 Summary Stat Cards */}
