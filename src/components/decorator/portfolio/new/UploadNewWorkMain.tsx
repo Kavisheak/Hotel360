@@ -49,7 +49,7 @@ const UploadNewWorkMain = () => {
 
   // Toggles
   const [isFeatured, setIsFeatured] = useState(false);
-  const [isPrivate, setIsPrivate] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Dynamic Uploads Gallery State
   const [mediaList, setMediaList] = useState<MediaItem[]>([

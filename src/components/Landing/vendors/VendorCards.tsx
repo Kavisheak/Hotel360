@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Award, Info, ArrowRight, Heart, CalendarPlus } from "lucide-react";
+import { Star, Award, Info, ArrowRight, Heart, CalendarPlus, Check } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useState } from "react";
@@ -78,10 +78,10 @@ export default function VendorCards({
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                   <button 
                     onClick={() => handleRestrictedAction("Please log in to add vendors to your event plan.", () => toggleVendorInEventPlan(vendor.id, vendor.category as any))} 
-                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isInEventPlan ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A]' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
+                    className={`p-2 rounded-full shadow-md transition-colors btn-interactive ${isInEventPlan ? 'bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A] hover:bg-red-500 hover:text-white' : 'bg-white/95 dark:bg-[#1A1A1A]/95 text-gray-400 hover:text-[#D4AF37] dark:hover:text-[#C9A84C]'}`}
                     title={isInEventPlan ? "Remove from Event Plan" : "Add to Event Plan"}
                   >
-                    <CalendarPlus className={`w-4 h-4 ${isInEventPlan ? 'text-white dark:text-[#1A1A1A]' : ''}`} />
+                    {isInEventPlan ? <Check className="w-4 h-4 text-white dark:text-[#1A1A1A]" /> : <CalendarPlus className="w-4 h-4" />}
                   </button>
                   <button 
                     onClick={() => handleRestrictedAction("Please log in to add vendors to your favorites list.", () => toggleFavoriteVendor(vendor.id))} 

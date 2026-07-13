@@ -25,7 +25,8 @@ const PortfolioGallery = ({ activeCategory, items = [] }: PortfolioGalleryProps)
       ) : (
         filteredItems.map((item: any) => {
           const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
-          const imgUrl = coverMedia ? `${API_URL}${coverMedia.url}` : "https://via.placeholder.com/600x400";
+          const rawUrl = coverMedia?.url || "";
+          const imgUrl = coverMedia ? (rawUrl.startsWith("http") ? rawUrl : `${API_URL}${rawUrl}`) : "https://via.placeholder.com/600x400";
           
           return (
             <Link 
