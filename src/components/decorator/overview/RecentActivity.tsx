@@ -1,6 +1,7 @@
 import React from "react";
 import { Calendar, CreditCard, FileText, Star } from "lucide-react";
 
+<<<<<<< Updated upstream
 const activities = [
   {
     title: "CLARIDGE'S WEDDING",
@@ -31,6 +32,13 @@ const activities = [
     icon: <Star size={16} />,
   },
 ];
+=======
+import React, { useState, useEffect } from 'react';
+import { Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { decoratorAPI } from '@/lib/api';
+import { getClientFullName } from '@/lib/vendorUtils';
+>>>>>>> Stashed changes
 
 function statusClass(status: string) {
   if (status.includes("CONFIRMED")) return "bg-[#E6F4EA] text-[#2E7A3E] border-[#D7ECD8]";
@@ -40,6 +48,38 @@ function statusClass(status: string) {
 }
 
 export default function RecentActivity() {
+<<<<<<< Updated upstream
+=======
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const { ok, data } = await decoratorAPI.getAssignedBookings();
+        if (ok && data?.data) {
+          const mapped = data.data.slice(0, 4).map((b: any) => ({
+            title: (`${b.eventType} for ${getClientFullName(b)}`).toUpperCase(),
+            status: (b.vendors?.decorator?.status || 'PENDING').toUpperCase(),
+            note: b.vendors?.decorator?.packageName || 'Custom Decoration Package',
+            date: new Date(b.date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric',
+            }).toUpperCase(),
+          }));
+          setActivities(mapped);
+        }
+      } catch (error) {
+        console.error('Error fetching decorator recent activity:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchActivity();
+  }, []);
+
+>>>>>>> Stashed changes
   return (
     <article className="border border-[#E0D8C3] bg-[#FDF9F1] p-6 shadow-sm">
       <h2 className="mb-2 text-[28px] font-serif text-gray-800">Recent Activity</h2>
@@ -68,9 +108,9 @@ export default function RecentActivity() {
         ))}
       </div>
 
-      <button className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
+      <Link href="/decorator/bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
         View all activity
-      </button>
+      </Link>
     </article>
   );
 }

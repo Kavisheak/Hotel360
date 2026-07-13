@@ -20,7 +20,14 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
 
   // Up to 3 upcoming bookings starting from today
   const upcomingBookings = bookings
+<<<<<<< Updated upstream
     .filter(b => new Date(b.date) >= new Date(new Date().setHours(0,0,0,0)))
+=======
+    .filter((b) => {
+      const status = b.vendors?.dj?.status;
+      return parseBookingDate(b.date) >= today && status !== "Completed" && status !== "Declined";
+    })
+>>>>>>> Stashed changes
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 

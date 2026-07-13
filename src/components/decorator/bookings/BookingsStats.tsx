@@ -1,12 +1,51 @@
 import React from 'react';
 import { Hourglass, CheckCircle2, AlertTriangle } from 'lucide-react';
 
+<<<<<<< Updated upstream
 const BookingsStats = ({ bookings }: { bookings: any[] }) => {
   const awaitingPrep = bookings.filter(b => b.vendors?.decorator?.status === 'Pending').length;
   const readyForSetup = bookings.filter(b => b.vendors?.decorator?.status === 'Accepted').length;
   
   // Note: Inventory alerts can be handled later, keeping static for now or set to 0.
   const inventoryAlerts = 0; 
+=======
+import React, { useState, useEffect } from "react";
+import { CalendarDays, Clock3, CheckCircle2, Star } from "lucide-react";
+import { getVendorStatus } from "@/lib/vendorUtils";
+import { decoratorAPI } from "@/lib/api";
+
+interface BookingsStatsProps {
+  bookings?: any[];
+}
+
+const BookingsStats = ({ bookings = [] }: BookingsStatsProps) => {
+  const [avgRating, setAvgRating] = useState<string>("—");
+
+  useEffect(() => {
+    decoratorAPI.getRatings().then((res) => {
+      if (res.ok && res.data?.data?.stats?.averageRating) {
+        setAvgRating(res.data.data.stats.averageRating.toFixed(1));
+      }
+    });
+  }, []);
+
+  const totalEvents = bookings.length;
+  const upcomingEvents = bookings.filter((b) => {
+    const s = getVendorStatus(b, "decorator");
+    const eventDate = new Date(b.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return s !== "Declined" && s !== "NotRequired" && eventDate >= today;
+  }).length;
+  const completedEvents = bookings.filter((b) => getVendorStatus(b, "decorator") === "Completed").length;
+
+  const dynamicStats = [
+    { title: "TOTAL EVENTS", value: totalEvents.toString(), icon: CalendarDays },
+    { title: "UPCOMING EVENTS", value: upcomingEvents.toString(), icon: Clock3 },
+    { title: "COMPLETED EVENTS", value: completedEvents.toString(), icon: CheckCircle2 },
+    { title: "AVERAGE RATING", value: avgRating, icon: Star },
+  ];
+>>>>>>> Stashed changes
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">

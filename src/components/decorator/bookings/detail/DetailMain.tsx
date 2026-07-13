@@ -7,7 +7,78 @@ import DetailSummary from './DetailSummary';
 import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../my_jobs/Footer';
+import {
+  getClientFullName,
+  getClientPhone,
+  getClientEmail,
+  VENUE_NAME,
+} from '@/lib/vendorUtils';
+import { decoratorAPI } from '@/lib/api';
 
+const DetailMain = ({ bookingId }: { bookingId: string }) => {
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    fetchBooking();
+  }, [bookingId]);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await decoratorAPI.getBookingById(bookingId);
+      if (res.ok && res.data?.data) {
+        setBooking(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (status: 'Accepted' | 'Declined') => {
+    setStatusUpdating(true);
+    try {
+      const res = await decoratorAPI.updateBookingStatus(bookingId, status);
+      if (res.ok) {
+        setToast({ type: 'success', msg: `Booking ${status} successfully!` });
+        await fetchBooking();
+      } else {
+        setToast({ type: 'error', msg: res.data?.message || 'Failed to update status.' });
+      }
+    } catch (e) {
+      setToast({ type: 'error', msg: 'Network error.' });
+    } finally {
+      setStatusUpdating(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-[#7C6A2E] animate-pulse">Loading booking details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-gray-500 italic">Booking not found.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const vendorStatus = booking.vendors?.decorator?.status || 'Pending';
+
+<<<<<<< Updated upstream
 const DetailMain = ({ bookingId }: { bookingId: string }) => {
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +145,8 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
 
   const vendorStatus = booking.vendors?.decorator?.status || 'Pending';
 
+=======
+>>>>>>> Stashed changes
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
       {/* Toast */}
@@ -91,10 +164,18 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
         
         {/* Hero banner for event */}
         <DetailBanner 
+<<<<<<< Updated upstream
           code={booking.bookingRef} 
           status={vendorStatus} 
           confirmedDate={new Date(booking.date).toLocaleDateString()} 
           clientEmail={booking.email}
+=======
+          code={booking.bookingRef || `#${(booking._id || '').slice(-6).toUpperCase()}`} 
+          status={vendorStatus} 
+          confirmedDate={new Date(booking.date).toLocaleDateString()} 
+          clientEmail={getClientEmail(booking)}
+          clientPhone={getClientPhone(booking)}
+>>>>>>> Stashed changes
         />
 
         {/* Accept / Decline Action Panel — only shown when status is Pending */}
@@ -126,13 +207,20 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
         {/* 4 Summary Stats Cards */}
         <DetailSummary 
           date={new Date(booking.date).toLocaleDateString()} 
+<<<<<<< Updated upstream
           guests={`${booking.guests} Guests`} 
           window={booking.timeslot || "08:00 AM - 02:00 PM"} 
           venue="Grand Majestic Hall" 
+=======
+          guests={`${booking.guests || 'N/A'} Guests`} 
+          window={booking.timeslot || "08:00 AM - 02:00 PM"} 
+          venue={VENUE_NAME} 
+>>>>>>> Stashed changes
         />
 
         {/* Client details & Visuals */}
         <DetailMiddle 
+<<<<<<< Updated upstream
           clientName={booking.clientName || (booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : "Valued Client")} 
           clientSubtitle={booking.eventType || 'Event'} 
           phone={booking.phone || booking.contactNumber || (booking.customerId ? booking.customerId.phone : "N/A")} 
@@ -140,6 +228,15 @@ const DetailMain = ({ bookingId }: { bookingId: string }) => {
           clientAvatar={booking.customerId?.avatar}
           inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
           inspirationCaption={`"${booking.menuType || 'Custom'} package."`} 
+=======
+          clientName={getClientFullName(booking)} 
+          clientSubtitle={booking.eventType || 'Event'} 
+          phone={getClientPhone(booking)} 
+          email={getClientEmail(booking)} 
+          clientAvatar={booking.customerId?.avatar}
+          inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
+          inspirationCaption={`${booking.packageName || 'Custom'} package at ${VENUE_NAME}.`}
+>>>>>>> Stashed changes
         />
 
         {/* Package components checklist & tasks */}

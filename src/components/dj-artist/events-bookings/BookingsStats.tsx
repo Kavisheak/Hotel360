@@ -12,10 +12,21 @@ interface BookingsStatsProps {
 
 const BookingsStats = ({ bookings = [] }: BookingsStatsProps) => {
   const totalEvents = bookings.length;
+<<<<<<< Updated upstream
   const upcomingEvents = bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').length;
   const completedEvents = bookings.filter(b => b.status === 'Completed').length;
   // DJ rating comes from profile, or mock it for now since we don't have it in bookings
   const avgRating = "4.9"; 
+=======
+  const upcomingEvents = bookings.filter((b) => {
+    const s = getVendorStatus(b, "dj");
+    const eventDate = new Date(b.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return s !== "Declined" && s !== "NotRequired" && eventDate >= today;
+  }).length;
+  const completedEvents = bookings.filter((b) => getVendorStatus(b, "dj") === "Completed").length;
+>>>>>>> Stashed changes
 
   const dynamicStats = [
     { title: "TOTAL EVENTS", value: totalEvents.toString(), icon: CalendarDays },

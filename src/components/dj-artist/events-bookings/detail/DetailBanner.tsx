@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { Mail, Music } from 'lucide-react';
 

@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Calendar, CreditCard, FileText, Star } from "lucide-react";
+import Link from "next/link";
 import { videographerAPI } from "@/lib/api";
+import { getClientFullName } from "@/lib/vendorUtils";
 
 const mockActivities = [
   {
@@ -54,7 +56,7 @@ export default function RecentActivity() {
         const { ok, data } = await videographerAPI.getAssignedBookings();
         if (ok && data.success) {
           const mapped = data.data.slice(0, 4).map((b: any) => ({
-            title: (`${b.eventType} for ${b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client")}`).toUpperCase(),
+            title: (`${b.eventType} for ${getClientFullName(b)}`).toUpperCase(),
             status: b.vendors?.videographer?.status?.toUpperCase() || "PENDING",
             note: b.vendors?.videographer?.packageName || "Custom Package",
             date: new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
@@ -98,9 +100,9 @@ export default function RecentActivity() {
         ))}
       </div>
 
-      <button className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
+      <Link href="/videographer/events-bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
         View all activity
-      </button>
+      </Link>
     </article>
   );
 }

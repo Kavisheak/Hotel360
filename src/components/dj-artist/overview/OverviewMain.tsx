@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Footer from './Footer';
 import { Music, CheckCircle2, Star, Calendar } from 'lucide-react';
 import { djAPI } from '@/lib/api';
+import { getClientFullName } from '@/lib/vendorUtils';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -155,7 +156,7 @@ const OverviewMain = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-gray-800 group-hover:text-[#7C6A2E] transition-colors">
-                        {activity.clientName ? `${activity.clientName}'s ${activity.eventType}` : activity.eventType}
+                        {`${activity.eventType} for ${getClientFullName(activity)}`}
                       </p>
                       <span className={`whitespace-nowrap border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] rounded-sm ${statusClass(activity.status)}`}>
                         {activity.status}

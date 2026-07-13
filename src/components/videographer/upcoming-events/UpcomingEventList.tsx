@@ -25,8 +25,14 @@ const UpcomingEventList = () => {
       if (ok && data.success) {
         const mapped = data.data
           .filter((b: any) => {
+<<<<<<< Updated upstream
             const status = b.vendors?.videographer?.status?.toUpperCase();
             return status !== 'COMPLETED'; // Only upcoming
+=======
+            const status = b.vendors?.videographer?.status;
+            const isFuture = new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0));
+            return status !== 'Declined' && status !== 'NotRequired' && isFuture;
+>>>>>>> Stashed changes
           })
           .map((b: any) => ({
             _id: b._id,

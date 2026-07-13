@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { Music, Mic2, Volume2, Plus, Trash2, Camera, CheckSquare } from 'lucide-react';
+import { Music, Mic2, Volume2, Plus, Trash2, Camera, CheckSquare, CheckCircle2 } from 'lucide-react';
 import { djAPI } from '@/lib/api';
+<<<<<<< Updated upstream
+=======
+import { getApiImageUrl, getPackageName } from '@/lib/vendorUtils';
+>>>>>>> Stashed changes
 
 interface DetailBottomProps {
   booking: any;
@@ -18,8 +22,14 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
     { task: 'Coordinate with MC / event host for cues', isCompleted: false },
   ];
 
+  const isJobCompleted = djVendor?.status === 'Completed';
+
   const initialChecklist = djVendor?.checklist?.length > 0 ? djVendor.checklist : defaultTasks;
-  const [checklist, setChecklist] = useState<any[]>(initialChecklist);
+  const checklistData = isJobCompleted 
+    ? initialChecklist.map((item: any) => ({ ...item, isCompleted: true })) 
+    : initialChecklist;
+  
+  const [checklist, setChecklist] = useState<any[]>(checklistData);
   const [newTask, setNewTask] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
@@ -28,8 +38,9 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
 
   React.useEffect(() => {
     const dj = booking?.vendors?.dj;
+    const isCompleted = dj?.status === 'Completed';
     const updatedChecklist = dj?.checklist?.length > 0 ? dj.checklist : defaultTasks;
-    setChecklist(updatedChecklist);
+    setChecklist(isCompleted ? updatedChecklist.map((i: any) => ({ ...i, isCompleted: true })) : updatedChecklist);
     setUploaded(dj?.completionPhotos?.length > 0);
   }, [booking?._id, booking?.vendors?.dj]);
 
@@ -101,7 +112,11 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       setErrorDetails("Please upload completion photos before marking the job as complete.");
       return;
     }
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
     setIsUpdating(true);
     try {
       await djAPI.updateBookingStatus(booking._id, "Completed");
@@ -177,8 +192,8 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
                   </span>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteTask(idx); }}
-                    disabled={isUpdating}
-                    className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                    disabled={isUpdating || isJobCompleted}
+                    className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -187,54 +202,67 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
             ))}
           </div>
           
-          <div className="flex items-center space-x-2 mt-4 mb-8">
-            <input 
-              type="text" 
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-              placeholder="Add new preparation task..."
-              className="flex-1 border-b border-[#E0D8C3] focus:border-[#7C6A2E] text-xs py-1.5 focus:outline-none placeholder-gray-400"
-            />
-            <button 
-              onClick={handleAddTask}
-              disabled={isUpdating || !newTask.trim()}
-              className="text-[#7C6A2E] hover:bg-[#FDF9F1] p-1.5 rounded transition-colors disabled:opacity-50"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
+          {!isJobCompleted && (
+            <div className="flex items-center space-x-2 mt-4 mb-8">
+              <input 
+                type="text" 
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                placeholder="Add new preparation task..."
+                className="flex-1 border-b border-[#E0D8C3] focus:border-[#7C6A2E] text-xs py-1.5 focus:outline-none placeholder-gray-400"
+              />
+              <button 
+                onClick={handleAddTask}
+                disabled={isUpdating || !newTask.trim()}
+                className="text-[#7C6A2E] hover:bg-[#FDF9F1] p-1.5 rounded transition-colors disabled:opacity-50"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          )}
 
           <div className="pt-6 border-t border-[#E0D8C3]">
-            <h4 className="text-[10px] font-bold tracking-[0.2em] text-gray-800 uppercase mb-4">UPLOAD COMPLETION PHOTOS</h4>
-            <label className="block">
-              <input type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} disabled={isUpdating} />
-              <div 
-                className={`border-2 border-dashed border-[#E0D8C3] p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${uploaded ? 'bg-emerald-50 border-emerald-200' : 'bg-white hover:bg-gray-50'}`}
-              >
-                {uploaded ? (
-                  <>
-                    <CheckSquare size={24} className="text-emerald-600 mb-3" />
-                    <p className="text-xs text-emerald-700 font-medium">Photos uploaded successfully.</p>
-                  </>
-                ) : (
-                  <>
-                    <Camera size={24} className="text-[#A6955C] mb-3" />
-                    <p className="text-xs text-gray-500 font-medium">Click or drag photos of<br/>the finished stage to<br/>upload for review.</p>
-                  </>
-                )}
+            <h4 className="text-[10px] font-bold tracking-[0.2em] text-gray-800 uppercase mb-4">COMPLETION PHOTOS</h4>
+            
+            {isJobCompleted && djVendor?.completionPhotos?.length > 0 ? (
+              <div className="border border-[#E0D8C3] p-2 bg-gray-50 flex flex-wrap gap-2">
+                {djVendor.completionPhotos.map((photo: string, i: number) => (
+                  <img key={i} src={getApiImageUrl(photo)} alt="Completion" className="w-24 h-24 object-cover border border-[#E0D8C3]" />
+                ))}
               </div>
-            </label>
+            ) : (
+              <label className="block">
+                <input type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} disabled={isUpdating} />
+                <div 
+                  className={`border-2 border-dashed border-[#E0D8C3] p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${uploaded ? 'bg-emerald-50 border-emerald-200' : 'bg-white hover:bg-gray-50'}`}
+                >
+                  {uploaded ? (
+                    <>
+                      <CheckSquare size={24} className="text-emerald-600 mb-3" />
+                      <p className="text-xs text-emerald-700 font-medium">Photos uploaded successfully.</p>
+                    </>
+                  ) : (
+                    <>
+                      <Camera size={24} className="text-[#A6955C] mb-3" />
+                      <p className="text-xs text-gray-500 font-medium">Click or drag photos of<br/>the finished stage to<br/>upload for review.</p>
+                    </>
+                  )}
+                </div>
+              </label>
+            )}
           </div>
         </div>
 
-        <button 
-          onClick={handleComplete}
-          disabled={isUpdating}
-          className="w-full bg-[#685724] hover:bg-[#4A463B] disabled:opacity-50 text-white py-4 mt-6 font-semibold text-xs tracking-[0.2em] transition-colors shadow-md"
-        >
-          {isUpdating ? 'PROCESSING...' : 'MARK JOB COMPLETE'}
-        </button>
+        {!isJobCompleted && (
+          <button 
+            onClick={handleComplete}
+            disabled={isUpdating}
+            className="w-full bg-[#685724] hover:bg-[#4A463B] disabled:opacity-50 text-white py-4 mt-6 font-semibold text-xs tracking-[0.2em] transition-colors shadow-md"
+          >
+            {isUpdating ? 'PROCESSING...' : 'MARK JOB COMPLETE'}
+          </button>
+        )}
       </div>
 
       {/* Premium Success Modal */}

@@ -4,8 +4,39 @@ import React, { useEffect, useState } from "react";
 import { useBookingStore } from "@/store/bookingStore";
 
 const UpcomingEventList = () => {
+<<<<<<< Updated upstream
   const [isClient, setIsClient] = useState(false);
   const globalBookings = useBookingStore(state => state.bookings);
+=======
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await djAPI.getAssignedBookings();
+      if (res.ok && res.data?.data) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        // Only show future Pending / Accepted events
+        const filtered = res.data.data.filter((b: any) => {
+          const status = b.vendors?.dj?.status;
+          const eventDate = new Date(b.date);
+          return (
+            status !== "Declined" &&
+            status !== "NotRequired" &&
+            eventDate >= today
+          );
+        });
+        setEvents(filtered);
+      }
+    } catch (e) {
+      console.error("Failed to fetch DJ upcoming events:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+>>>>>>> Stashed changes
 
   useEffect(() => {
     setIsClient(true);
