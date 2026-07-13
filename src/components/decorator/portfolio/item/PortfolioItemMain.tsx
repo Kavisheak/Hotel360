@@ -53,10 +53,11 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
   }
 
   const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
-  const coverUrl = coverMedia ? `${API_URL}${coverMedia.url}` : "https://via.placeholder.com/1200x800";
+  const getMediaUrl = (url: string) => url.startsWith("http") ? url : `${API_URL}${url}`;
+  const coverUrl = coverMedia ? getMediaUrl(coverMedia.url) : "https://via.placeholder.com/1200x800";
 
   // Gallery images (excluding cover if desired, or all images)
-  const galleryImages = item.media?.map((m: any) => `${API_URL}${m.url}`) || [];
+  const galleryImages = item.media?.map((m: any) => getMediaUrl(m.url)) || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">

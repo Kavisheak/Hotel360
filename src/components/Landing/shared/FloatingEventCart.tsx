@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarCheck, ChevronUp, X, Sparkles } from "lucide-react";
+import { CalendarCheck, ChevronUp, X, Sparkles, Trash2 } from "lucide-react";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { useBookingFormStore } from "@/store/bookingFormStore";
@@ -12,7 +12,7 @@ import { Vendor } from "@/components/landing/vendors/types";
 
 export default function FloatingEventCart() {
   const router = useRouter();
-  const { vendors: cartVendors } = useVendorCartStore();
+  const { vendors: cartVendors, toggleVendorInEventPlan } = useVendorCartStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
   const { setStep } = useBookingFormStore();
   const { addToast } = useToastStore();
@@ -79,14 +79,21 @@ export default function FloatingEventCart() {
             
             <div className="p-4 space-y-4 max-h-[40vh] overflow-y-auto">
               {selectedVendorsList.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-[#FDFBF7] dark:bg-[#0A0A0A] p-2 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
+                <div key={idx} className="flex items-center gap-3 bg-[#FDFBF7] dark:bg-[#0A0A0A] p-2 border border-[#E8DFC9] dark:border-gray-800 rounded-sm relative group">
                   <div className="w-10 h-10 shrink-0 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800">
                     <img src={item.vendor!.image} alt={item.vendor!.name} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex flex-col overflow-hidden">
+                  <div className="flex flex-col overflow-hidden flex-1 pr-6">
                     <span className="text-xs uppercase text-[#C9A84C] tracking-widest font-bold">{item.type}</span>
                     <span className="text-sm font-medium text-[#2C1E14] dark:text-gray-200 truncate">{item.vendor!.name}</span>
                   </div>
+                  <button
+                    onClick={() => toggleVendorInEventPlan(item.vendor!.id, item.vendor!.category as any)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remove from Event Plan"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>

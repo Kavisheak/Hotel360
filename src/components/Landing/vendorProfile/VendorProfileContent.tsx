@@ -102,11 +102,10 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
               {vendor.portfolio.map((img, i) => (
                 <div key={i} className="relative aspect-square bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group">
-                  <Image 
+                  <img 
                     src={img} 
                     alt={`${vendor.name} portfolio ${i + 1}`}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
                 </div>

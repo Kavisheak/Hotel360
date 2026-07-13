@@ -33,6 +33,7 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState<{email?: string, phone?: string, regEmail?: string}>({});
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   // Toggle mode
   const toggleMode = (e?: React.MouseEvent) => {
@@ -116,6 +117,11 @@ export default function AuthPage() {
       return;
     }
 
+    if (!isStrongPassword) {
+      setShowPasswordRequirements(true);
+      return;
+    }
+
     if (regPassword !== confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -139,6 +145,14 @@ export default function AuthPage() {
 
     router.replace("/");
   };
+
+  const validations = {
+    length: regPassword.length >= 8,
+    uppercase: /[A-Z]/.test(regPassword),
+    number: /[0-9]/.test(regPassword),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(regPassword)
+  };
+  const isStrongPassword = Object.values(validations).every(Boolean);
 
   // Animation variants
   const leftSideVariants: Variants = {
@@ -387,7 +401,7 @@ export default function AuthPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+              <form onSubmit={handleRegisterSubmit} className="space-y-3" autoComplete="off">
                 <div className="flex gap-3">
                   {/* First Name */}
                   <div className="flex-1">
@@ -401,6 +415,7 @@ export default function AuthPage() {
                       <input
                         type="text"
                         placeholder="First name"
+                        autoComplete="off"
                         className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
@@ -420,6 +435,7 @@ export default function AuthPage() {
                       <input
                         type="text"
                         placeholder="Last name"
+                        autoComplete="off"
                         className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
@@ -440,6 +456,7 @@ export default function AuthPage() {
                     <input
                       type="email"
                       placeholder="youremail@gmail.com"
+                      autoComplete="off"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={regEmail}
                       onChange={(e) => {
@@ -473,6 +490,7 @@ export default function AuthPage() {
                       type="tel"
                       title="Please enter a valid Sri Lankan phone number (e.g., 0771234567 or 771234567)."
                       placeholder="Your mobile number"
+                      autoComplete="off"
                       className="w-full bg-white/5 border border-white/10 rounded-r-md py-2 pl-2 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={phone}
                       onChange={(e) => {
@@ -496,6 +514,7 @@ export default function AuthPage() {
                     <input
                       type={showRegPassword ? "text" : "password"}
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
@@ -522,6 +541,7 @@ export default function AuthPage() {
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -537,27 +557,29 @@ export default function AuthPage() {
                 </div>
 
                 {/* Password strength indicators */}
-                <div className="pt-1 pb-1">
-                  <p className="text-[9px] text-gray-400 mb-1.5">Password must contain:</p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                    <div className="flex items-center gap-1 text-[#C9A84C]">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span className="text-[8px] uppercase tracking-wider">At least 8 chars</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#C9A84C]">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span className="text-[8px] uppercase tracking-wider">Uppercase letter</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#C9A84C]">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span className="text-[8px] uppercase tracking-wider">Number</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#C9A84C]">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span className="text-[8px] uppercase tracking-wider">Special character</span>
+                {showPasswordRequirements && !isStrongPassword && (
+                  <div className="pt-1 pb-1">
+                    <p className="text-[9px] text-red-500 mb-1.5 font-bold">Password must contain:</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                      <div className={`flex items-center gap-1 transition-colors ${validations.length ? 'text-[#C9A84C]' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span className="text-[8px] uppercase tracking-wider">At least 8 chars</span>
+                      </div>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.uppercase ? 'text-[#C9A84C]' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span className="text-[8px] uppercase tracking-wider">Uppercase letter</span>
+                      </div>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.number ? 'text-[#C9A84C]' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span className="text-[8px] uppercase tracking-wider">Number</span>
+                      </div>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.special ? 'text-[#C9A84C]' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span className="text-[8px] uppercase tracking-wider">Special character</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Terms */}
                 <div className="flex items-start pt-0.5 mb-2">

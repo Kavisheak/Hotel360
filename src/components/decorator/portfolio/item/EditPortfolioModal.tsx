@@ -41,7 +41,7 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
   });
 
   const [isFeatured, setIsFeatured] = useState(item.isFeatured || false);
-  const [isPrivate, setIsPrivate] = useState(item.isPrivate || true);
+  const [isPrivate, setIsPrivate] = useState(item.isPrivate || false);
 
   // Map existing media to MediaItem format
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
@@ -51,10 +51,10 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
 
   useEffect(() => {
     if (item.media && item.media.length > 0) {
-      setMediaList(item.media.map((m: any, idx: number) => ({
-        id: `existing-${idx}`,
-        src: `${API_URL}${m.url}`,
-        isCover: m.isCover,
+      setMediaList(item.media.map((m: any, index: number) => ({
+        id: m._id || `existing-${index}`,
+        src: m.url.startsWith("http") ? m.url : `${API_URL}${m.url}`,
+        isCover: m.isCover || false,
         isExisting: true
       })));
     }
