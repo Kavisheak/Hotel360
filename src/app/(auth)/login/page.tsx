@@ -87,14 +87,13 @@ export default function AuthPage() {
 
     // Redirect based on role
     const role = data.user.role;
-    localStorage.setItem("user", role);
     
-    if      (role === "super_admin")   router.push("/super-admin");
-    else if (role === "manager")       router.push("/hotel-manager");
-    else if (role === "decorator")     router.push("/decorator");
-    else if (role === "videographer")  router.push("/videographer");
-    else if (role === "dj_artist")     router.push("/dj-artist");
-    else                               router.push("/");
+    if      (role === "super_admin")   router.replace("/super-admin");
+    else if (role === "manager")       router.replace("/hotel-manager");
+    else if (role === "decorator")     router.replace("/decorator");
+    else if (role === "videographer")  router.replace("/videographer");
+    else if (role === "dj_artist")     router.replace("/dj-artist");
+    else                               router.replace("/");
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -138,8 +137,7 @@ export default function AuthPage() {
     // Update global state now that we have a valid session
     await fetchUser(true);
 
-    localStorage.setItem("user", "customer");
-    router.push("/");
+    router.replace("/");
   };
 
   // Animation variants

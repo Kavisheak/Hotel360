@@ -38,30 +38,30 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     if (!isLoading && hasVerified) {
       if (!user) {
         // Not authenticated
-        router.push("/login");
+        router.replace("/login");
       } else if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(user.role.toLowerCase())) {
         // Authenticated but wrong role -> Redirect to their respective dashboard
         switch (user.role.toLowerCase()) {
           case "super_admin":
-            router.push("/super-admin");
+            router.replace("/super-admin");
             break;
           case "manager":
-            router.push("/hotel-manager");
+            router.replace("/hotel-manager");
             break;
           case "customer":
-            router.push("/");
+            router.replace("/");
             break;
           case "decorator":
-            router.push("/decorator/my-jobs");
+            router.replace("/decorator/my-jobs");
             break;
           case "videographer":
-            router.push("/videographer");
+            router.replace("/videographer");
             break;
           case "dj_artist":
-            router.push("/dj-artist");
+            router.replace("/dj-artist");
             break;
           default:
-            router.push("/");
+            router.replace("/");
         }
       }
     }

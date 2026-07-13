@@ -67,7 +67,7 @@ const Sidebar = () => {
     e.preventDefault();
     await authAPI.signout();
     clearUser();
-    window.location.href = '/';
+    window.location.replace('/login');
   };
 
   const navItems = [

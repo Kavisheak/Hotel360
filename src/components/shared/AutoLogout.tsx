@@ -26,9 +26,9 @@ export default function AutoLogout() {
     
     // Redirect to login only if not already on public pages like login/signup/home
     if (pathname !== "/login" && pathname !== "/register") {
-      router.push("/login?reason=inactivity");
+      window.location.replace("/login?reason=inactivity");
     }
-  }, [clearUser, router, pathname]);
+  }, [clearUser, pathname]);
 
   const resetTimer = useCallback(() => {
     if (timeoutRef.current) {

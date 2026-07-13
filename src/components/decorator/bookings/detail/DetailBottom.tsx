@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
 
 interface DetailBottomProps {
-  booking: any;
-  onRefresh: () => void;
+  booking?: any;
+  onRefresh?: () => void;
 }
 
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
@@ -23,12 +23,13 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   }, [booking]);
 
   const saveChecklist = async (newList: any[]) => {
+    if (!booking?._id) return;
     setIsUpdating(true);
     try {
       const { decoratorAPI } = await import('@/lib/api');
       const res = await decoratorAPI.updateChecklist(booking._id, newList);
       if (res.ok) {
-        onRefresh();
+        onRefresh?.();
       }
     } catch (e) {
       console.error(e);

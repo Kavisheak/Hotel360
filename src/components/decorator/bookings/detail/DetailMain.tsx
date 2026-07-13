@@ -6,7 +6,11 @@ import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../my_jobs/Footer';
 
-const DetailMain = () => {
+interface DetailMainProps {
+  bookingId: string;
+}
+
+const DetailMain = ({ bookingId }: DetailMainProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">

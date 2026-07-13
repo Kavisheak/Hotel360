@@ -56,7 +56,7 @@ const DjSidebar = () => {
       console.error('Logout error:', e);
     } finally {
       clearUser();       // ← clear Zustand store so navbar updates
-      router.push('/');
+      window.location.replace('/login');
     }
   };
 

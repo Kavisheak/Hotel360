@@ -19,6 +19,16 @@ const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
     });
 
     const data = await res.json();
+
+    if (res.status === 401 && endpoint !== "/api/auth/me") {
+      import("../store/authStore").then(({ useAuthStore }) => {
+        useAuthStore.getState().clearUser();
+      });
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
+      }
+    }
+
     return { ok: res.ok, status: res.status, data };
   } catch (error: any) {
     console.error("API Fetch Error:", error);
@@ -84,6 +94,12 @@ export const packageAPI = {
     }),
   deletePackage: (id: string) =>
     apiFetch(`/api/packages/${id}`, { method: "DELETE" }),
+  getSettings: () => apiFetch("/api/packages/settings"),
+  updateSettings: (body: any) =>
+    apiFetch("/api/packages/settings", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const bookingAPI = {
@@ -226,6 +242,16 @@ export const accountAPI = {
       method: "PUT",
       body: JSON.stringify({ notifications }),
     }),
+  updatePreferences: (preferences: any) =>
+    apiFetch("/api/customer/account/preferences", {
+      method: "PUT",
+      body: JSON.stringify({ preferences }),
+    }),
+  toggle2FA: (enabled: boolean) =>
+    apiFetch("/api/customer/account/2fa", {
+      method: "PUT",
+      body: JSON.stringify({ enabled }),
+    }),
   getPaymentMethods: () => apiFetch("/api/customer/account/payment-methods"),
   addPaymentMethod: (body: any) =>
     apiFetch("/api/customer/account/payment-methods", {
@@ -256,4 +282,9 @@ export const customerBookingAPI = {
 export const vendorAPI = {
   getAllVendors: () => apiFetch("/api/customer/vendors"),
   getVendorById: (id: string) => apiFetch(`/api/customer/vendors/${id}`),
+  favoriteVendor: (id: string) =>
+    apiFetch("/api/customer/vendors/favorite", {
+      method: "POST",
+      body: JSON.stringify({ vendorId: id }),
+    }),
 };

@@ -28,8 +28,7 @@ export default function AccountSidebar({ activeTab, onTabChange }: AccountSideba
   const handleSignOut = async () => {
     await authAPI.signout();
     useAuthStore.getState().clearUser();
-    localStorage.removeItem("user");
-    router.push("/");
+    window.location.replace('/login');
   };
 
   return (
