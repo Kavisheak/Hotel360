@@ -25,9 +25,10 @@ const Metrics = () => {
   const monthlyRevenue = bookings.filter((b: any) => b.status !== "Cancelled" && b.status !== "Rejected").reduce((sum: number, b: any) => sum + (b.totalCost || 0), 0);
 
   const formatCurrency = (val: number) => {
-    if (val >= 1000000) return `LKR ${(val / 1000000).toFixed(1)}M`;
-    if (val >= 1000) return `LKR ${(val / 1000).toFixed(0)}K`;
-    return `LKR ${val}`;
+    if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
+    if (val >= 100000) return `${(val / 100000).toFixed(1)}L`;
+    if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
+    return `${val}`;
   };
 
   const metrics = [

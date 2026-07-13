@@ -37,11 +37,11 @@ export default function BookPage() {
 
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
-  
+
   useEffect(() => {
     fetchVendors();
   }, [fetchVendors]);
-  
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -53,7 +53,7 @@ export default function BookPage() {
       setIsGuest(true);
     }
   }, [user]);
-  
+
   const cartVendors = useVendorCartStore((state) => state.vendors);
   const cartMenu = useVendorCartStore((state) => state.menuSelection);
   const setMenuTypeStore = useVendorCartStore((state) => state.setMenuType);
@@ -66,15 +66,15 @@ export default function BookPage() {
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
-  }>({ 
-    decorator: "none", 
+  }>({
+    decorator: "none",
     decoratorPackage: "none",
     dj: "none",
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none"
   });
-  
+
   const [menu, setMenu] = useState<"signature" | "custom">(
     (cartMenu.type === "signature" || cartMenu.type === "custom") ? cartMenu.type : "signature"
   );
@@ -133,14 +133,14 @@ export default function BookPage() {
   const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
     const vendorId = vendors[category];
     if (vendorId === "none" || vendorId === "custom_preference") return 0;
-    
+
     if (category === "decorator") {
       const pkgName = vendors[`decoratorPackage`];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
-      
+
       const v = globalVendors.find(v => v.id === vendorId);
       if (!v) return 0;
-      
+
       const pkg = v.packages.find(p => p.name === pkgName);
       if (pkg) {
         const numericStr = pkg.price.replace(/[^0-9]/g, "");
@@ -172,7 +172,7 @@ export default function BookPage() {
   const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
   const foodCost = guestCount * getMenuPricePerGuest();
   const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
-  
+
   let addonsCost = getVendorCost("decorator") + getVendorCost("dj") + getVendorCost("videographer");
 
   if (menu === "custom") {
@@ -192,7 +192,7 @@ export default function BookPage() {
 
   const handleFinalizeBooking = async (contactInfo: any) => {
     const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
-    
+
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
     const bookingPayload = {
@@ -276,12 +276,12 @@ export default function BookPage() {
 
       <main className="flex-grow">
         <BookHero />
-        
+
         <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
-          
+
           {/* Left Column: Booking Form Steps */}
           <div className={`${activeTab === "history" ? "lg:col-span-12" : "lg:col-span-8"} space-y-12 transition-all duration-500`}>
-            
+
             {/* Tab Switcher */}
             {!isGuest && (
               <div className="flex border-b border-[#E8DFC9] dark:border-gray-800 mb-8 overflow-x-auto hide-scrollbar">
@@ -308,104 +308,104 @@ export default function BookPage() {
               <>
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
-              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
-              {[1, 2, 3, 4].map((step) => (
-                <div 
-                  key={step} 
-                  onClick={() => handleStepClick(step)}
-                  className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
-                    {step}
+                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      onClick={() => handleStepClick(step)}
+                      className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
+                        {step}
+                      </div>
+                      <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
+                        {step === 1 && "Event Details"}
+                        {step === 2 && "Vendors"}
+                        {step === 3 && "Menu"}
+                        {step === 4 && "Checkout"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Step 1: Event Details */}
+                {currentStep === 1 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
+                      <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
+                      <select
+                        value={eventType}
+                        onChange={(e) => setEventType(e.target.value)}
+                        className="w-full bg-[#FDFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-3 rounded-sm text-base text-[#1A1512] dark:text-white outline-none focus:border-[#C9A84C]"
+                      >
+                        <option value="Wedding">Wedding</option>
+                        <option value="Birthday Party">Birthday Party</option>
+                        <option value="Corporate Meeting">Corporate Meeting</option>
+                        <option value="Conference">Conference</option>
+                        <option value="Anniversary">Anniversary</option>
+                        <option value="Other">Other Event</option>
+                      </select>
+                    </div>
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <TimeRangeSelector
+                      startTime={startTime}
+                      endTime={endTime}
+                      onChange={(start, end) => {
+                        setStartTime(start);
+                        setEndTime(end);
+                      }}
+                    />
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
                   </div>
-                  <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
-                    {step === 1 && "Event Details"}
-                    {step === 2 && "Vendors"}
-                    {step === 3 && "Menu"}
-                    {step === 4 && "Checkout"}
-                  </span>
+                )}
+
+                {/* Step 2: Vendor Selection */}
+                {currentStep === 2 && (
+                  <div className="animate-fadeIn">
+                    <BookingVendorSelector vendors={vendors} onChange={setVendors} />
+                  </div>
+                )}
+
+                {/* Step 3: Food Menu Customization */}
+                {currentStep === 3 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
+                  </div>
+                )}
+
+                {/* Step 4: Checkout */}
+                {currentStep === 4 && (
+                  <div className="animate-fadeIn">
+                    <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between pt-8">
+                  {currentStep > 1 ? (
+                    <button
+                      onClick={handleBack}
+                      className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
+                    >
+                      &larr; Previous Step
+                    </button>
+                  ) : <div></div>}
+
+                  {currentStep < 4 && (
+                    <button
+                      onClick={handleNext}
+                      className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
+                    >
+                      Next Step &rarr;
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            {/* Step 1: Event Details */}
-            {currentStep === 1 && (
-              <div className="space-y-8 animate-fadeIn">
-                <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
-                  <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
-                  <select 
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    className="w-full bg-[#FDFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-3 rounded-sm text-base text-[#1A1512] dark:text-white outline-none focus:border-[#C9A84C]"
-                  >
-                    <option value="Wedding">Wedding</option>
-                    <option value="Birthday Party">Birthday Party</option>
-                    <option value="Corporate Meeting">Corporate Meeting</option>
-                    <option value="Conference">Conference</option>
-                    <option value="Anniversary">Anniversary</option>
-                    <option value="Other">Other Event</option>
-                  </select>
-                </div>
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <TimeRangeSelector 
-                  startTime={startTime} 
-                  endTime={endTime} 
-                  onChange={(start, end) => {
-                    setStartTime(start);
-                    setEndTime(end);
-                  }} 
-                />
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-              </div>
-            )}
-
-            {/* Step 2: Vendor Selection */}
-            {currentStep === 2 && (
-              <div className="animate-fadeIn">
-                <BookingVendorSelector vendors={vendors} onChange={setVendors} />
-              </div>
-            )}
-
-            {/* Step 3: Food Menu Customization */}
-            {currentStep === 3 && (
-              <div className="space-y-8 animate-fadeIn">
-                <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
-                <div className="h-px bg-[#D4C9A8] w-full"></div>
-                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
-              </div>
-            )}
-
-            {/* Step 4: Checkout */}
-            {currentStep === 4 && (
-              <div className="animate-fadeIn">
-                <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-8">
-              {currentStep > 1 ? (
-                <button 
-                  onClick={handleBack}
-                  className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
-                >
-                  &larr; Previous Step
-                </button>
-              ) : <div></div>}
-
-              {currentStep < 4 && (
-                <button 
-                  onClick={handleNext}
-                  className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
-                >
-                  Next Step &rarr;
-                </button>
-              )}
-            </div>
-            </>
+              </>
             )}
 
           </div>
@@ -413,7 +413,7 @@ export default function BookPage() {
           {/* Right Column: Sticky Cost Breakdown & Trust Flags */}
           {activeTab === "new" && (
             <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
-              <CostBreakdown 
+              <CostBreakdown
                 packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
                 selectedTimeslot={`${startTime} - ${endTime}`}
                 costBreakdown={{
@@ -437,16 +437,16 @@ export default function BookPage() {
       </main>
 
       <Footer />
-      
-      <DateRequiredModal 
-        isOpen={isDateModalOpen} 
-        onClose={() => setIsDateModalOpen(false)} 
+
+      <DateRequiredModal
+        isOpen={isDateModalOpen}
+        onClose={() => setIsDateModalOpen(false)}
       />
 
-      <LoginRequiredModal 
-        isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
-        message="Please log in to continue with your booking process." 
+      <LoginRequiredModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        message="Please log in to continue with your booking process."
       />
     </div>
   );

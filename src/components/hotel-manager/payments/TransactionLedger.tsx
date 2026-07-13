@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { paymentAPI } from '../../../lib/api';
 
 const TransactionLedger = () => {
@@ -72,9 +73,9 @@ const TransactionLedger = () => {
 
     {/* View full ledger */}
     <div className="px-5 py-3 text-center border-t border-[#F2EADA]">
-      <button className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] hover:underline transition-all">
+      <Link href="/hotel-manager/reports" className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] hover:underline transition-all inline-block">
         View Full Ledger
-      </button>
+      </Link>
     </div>
   </div>
   );
