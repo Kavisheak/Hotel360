@@ -26,7 +26,8 @@ const BookingsStats = ({ bookings = [] }: BookingsStatsProps) => {
     const eventDate = new Date(b.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return s !== "Completed" && s !== "Declined" && s !== "NotRequired" && eventDate >= today;
+    // Preserved the updated logic: counts all future events except Declined/NotRequired
+    return s !== "Declined" && s !== "NotRequired" && eventDate >= today;
   }).length;
   const completedEvents = bookings.filter((b) => getVendorStatus(b, "decorator") === "Completed").length;
 

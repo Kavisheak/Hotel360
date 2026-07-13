@@ -1,106 +1,157 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import DetailHeader from './DetailHeader';
 import DetailBanner from './DetailBanner';
 import DetailSummary from './DetailSummary';
 import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../overview/Footer';
-
-const bookingData: Record<string, {
-  status: 'UPCOMING' | 'CONFIRMED' | 'COMPLETED';
-  confirmedDate: string;
-  djPackage: string;
-  date: string;
-  guests: string;
-  setWindow: string;
-  venue: string;
-  clientName: string;
-  clientSubtitle: string;
-  phone: string;
-  email: string;
-  venueImage: string;
-  venueCaption: string;
-}> = {
-  'BK-8842': {
-    status: 'CONFIRMED',
-    confirmedDate: 'June 10, 2026',
-    djPackage: 'Diamond DJ Package',
-    date: 'July 24, 2026',
-    guests: '320 Guests',
-    setWindow: '06:00 PM – 12:00 AM',
-    venue: 'Rosewood Estate',
-    clientName: 'Eleanor Sterling',
-    clientSubtitle: 'The Sterling-Vance Wedding',
-    phone: '+44 20 7946 0321',
-    email: 'eleanor.sterling@weddingmail.com',
-    venueImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80',
-    venueCaption: '"Rosewood Estate — Grand Ballroom Reception · Diamond DJ Package"',
-  },
-  'BK-9012': {
-    status: 'UPCOMING',
-    confirmedDate: 'July 15, 2026',
-    djPackage: 'Premium DJ Package',
-    date: 'August 02, 2026',
-    guests: '500 Attendees',
-    setWindow: '07:00 PM – 11:00 PM',
-    venue: 'Grand Convention Hall',
-    clientName: 'James Harrison',
-    clientSubtitle: 'Harrison Corporate Annual Gala',
-    phone: '+44 20 7935 1100',
-    email: 'j.harrison@harrisoncorp.com',
-    venueImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
-    venueCaption: '"Grand Convention Hall — Annual Corporate Gala · Premium DJ Package"',
-  },
-  'BK-9104': {
-    status: 'COMPLETED',
-    confirmedDate: 'May 20, 2026',
-    djPackage: 'Gold DJ Package',
-    date: 'June 14, 2026',
-    guests: '180 Guests',
-    setWindow: '08:00 PM – 02:00 AM',
-    venue: 'Ocean View Resort',
-    clientName: 'Amara Okafor',
-    clientSubtitle: 'Birthday Celebration',
-    phone: '+44 79 4812 5543',
-    email: 'amara.okafor@partymail.com',
-    venueImage: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1200&q=80',
-    venueCaption: '"Ocean View Resort — Birthday Bash · Gold DJ Package"',
-  },
-};
+import {
+  getClientFullName,
+  getClientPhone,
+  getClientEmail,
+  VENUE_NAME,
+} from '@/lib/vendorUtils';
+import { djAPI } from '@/lib/api';
 
 interface DetailMainProps {
   bookingId: string;
 }
 
 const DetailMain = ({ bookingId }: DetailMainProps) => {
-  const data = bookingData[bookingId] ?? bookingData['BK-8842'];
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    fetchBooking();
+  }, [bookingId]);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await djAPI.getBookingById(bookingId);
+      if (res.ok && res.data?.data) {
+        setBooking(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (status: 'Accepted' | 'Declined') => {
+    setStatusUpdating(true);
+    try {
+      const res = await djAPI.updateBookingStatus(bookingId, status);
+      if (res.ok) {
+        setToast({ type: 'success', msg: `Booking ${status} successfully!` });
+        await fetchBooking();
+      } else {
+        setToast({ type: 'error', msg: res.data?.message || 'Failed to update status.' });
+      }
+    } catch (e) {
+      setToast({ type: 'error', msg: 'Network error.' });
+    } finally {
+      setStatusUpdating(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-[#7C6A2E] animate-pulse">Loading booking details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-gray-500 italic">Booking not found.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const vendorStatus = booking.vendors?.dj?.status || 'Pending';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-6 py-3 text-sm font-semibold rounded shadow-lg transition-all ${
+          toast.type === 'success' ? 'bg-green-700 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+        {/* Breadcrumb & Action Button Header */}
         <DetailHeader />
-        <DetailBanner
-          code={bookingId}
-          status={data.status}
-          confirmedDate={data.confirmedDate}
-          djPackage={data.djPackage}
-          phone={data.phone}
+        
+        {/* Hero banner for event */}
+        <DetailBanner 
+          code={booking.bookingRef || `#${(booking._id || '').slice(-6).toUpperCase()}`} 
+          status={vendorStatus} 
+          confirmedDate={new Date(booking.date).toLocaleDateString()} 
+          djPackage={booking.vendors?.dj?.packageName || 'Custom'}
+          phone={getClientPhone(booking)}
         />
-        <DetailSummary
-          date={data.date}
-          guests={data.guests}
-          setWindow={data.setWindow}
-          venue={data.venue}
+
+        {/* Accept / Decline Action Panel */}
+        {vendorStatus === 'Pending' && (
+          <div className="bg-[#FCF6E3] border border-[#F5EAD2] rounded p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-[#7C6A2E] mb-1">Action Required</p>
+              <p className="text-xs text-gray-600">You have been assigned to this event. Please accept or decline to notify the hotel manager.</p>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <button
+                onClick={() => handleStatusUpdate('Accepted')}
+                disabled={statusUpdating}
+                className="px-6 py-2.5 bg-[#7C6A2E] hover:bg-[#5C4E1E] text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                {statusUpdating ? 'Updating...' : 'Accept'}
+              </button>
+              <button
+                onClick={() => handleStatusUpdate('Declined')}
+                disabled={statusUpdating}
+                className="px-6 py-2.5 border border-red-400 hover:bg-red-50 text-red-600 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4 Summary Stats Cards */}
+        <DetailSummary 
+          date={new Date(booking.date).toLocaleDateString()} 
+          guests={`${booking.guests || 'N/A'} Guests`} 
+          setWindow={booking.timeslot || "08:00 AM - 02:00 PM"} 
+          venue={VENUE_NAME} 
         />
-        <DetailMiddle
-          clientName={data.clientName}
-          clientSubtitle={data.clientSubtitle}
-          phone={data.phone}
-          email={data.email}
-          venueImage={data.venueImage}
-          venueCaption={data.venueCaption}
+
+        {/* Client details & Visuals */}
+        <DetailMiddle 
+          clientName={getClientFullName(booking)} 
+          clientSubtitle={booking.eventType || 'Event'} 
+          phone={getClientPhone(booking)} 
+          email={getClientEmail(booking)} 
+          venueImage="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80" 
+          venueCaption={`DJ set at ${VENUE_NAME}.`}
         />
-        <DetailBottom />
+
+        {/* Package components checklist & tasks */}
+        <DetailBottom booking={booking} onRefresh={fetchBooking} />
       </div>
       <Footer />
     </div>

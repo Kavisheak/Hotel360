@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { djAPI } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import { getClientFullName } from "@/lib/vendorUtils";
 
 const UpcomingEventList = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -15,12 +16,12 @@ const UpcomingEventList = () => {
       if (res.ok && res.data?.data) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // Only show future Pending / Accepted events
+        
+        // Show future events excluding Declined / NotRequired
         const filtered = res.data.data.filter((b: any) => {
           const status = b.vendors?.dj?.status;
           const eventDate = new Date(b.date);
           return (
-            status !== "Completed" &&
             status !== "Declined" &&
             status !== "NotRequired" &&
             eventDate >= today
@@ -75,6 +76,7 @@ const UpcomingEventList = () => {
           events.map((event) => {
             const status = event.vendors?.dj?.status || "Pending";
             const isUpdating = updatingId === event._id;
+            const clientName = getClientFullName(event);
 
             return (
               <div
@@ -88,7 +90,7 @@ const UpcomingEventList = () => {
                 }`}
               >
                 <p className="font-semibold text-gray-800">
-                  {event.clientName} — {event.eventType}
+                  {clientName} — {event.eventType}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {new Date(event.date).toLocaleDateString("en-US", {

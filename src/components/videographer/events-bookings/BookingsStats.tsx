@@ -29,27 +29,27 @@ const BookingsStats = () => {
           let completed = 0;
           let pending = 0;
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-            bookings.forEach((b: any) => {
-              const status = b.vendors?.videographer?.status?.toUpperCase() || "PENDING";
-              const eventDate = new Date(b.date);
-              
-              if (status === 'COMPLETED') {
-                completed++;
-              }
-              
-              // Count all pending for the Pending Confirmations card
-              if (status === 'PENDING') {
-                pending++;
-              }
-              
-              // Count future active jobs for the Upcoming Events card (matches Overview & Schedule logic)
-              if ((status === 'PENDING' || status === 'ACCEPTED' || status === 'CONFIRMED') && eventDate >= today) {
-                upcoming++;
-              }
-            });
+          bookings.forEach((b: any) => {
+            const status = b.vendors?.videographer?.status?.toUpperCase() || "PENDING";
+            const eventDate = new Date(b.date);
+            
+            if (status === 'COMPLETED') {
+              completed++;
+            }
+            
+            // Count all pending for the Pending Confirmations card
+            if (status === 'PENDING') {
+              pending++;
+            }
+            
+            // Count future active jobs for the Upcoming Events card (matches Overview & Schedule logic)
+            if (status !== 'DECLINED' && status !== 'NOTREQUIRED' && eventDate >= today) {
+              upcoming++;
+            }
+          });
 
           setStatsData({
             total: bookings.length,

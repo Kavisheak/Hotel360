@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 
@@ -9,66 +9,47 @@ interface ProtectedRouteProps {
   allowedRoles?: string[];
 }
 
+const ROLE_REDIRECT: Record<string, string> = {
+  super_admin: "/super-admin",
+  manager: "/hotel-manager",
+  customer: "/",
+  decorator: "/decorator/my-jobs",
+  videographer: "/videographer",
+  dj_artist: "/dj-artist",
+};
+
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const router = useRouter();
-  const { user, isLoading, fetchUser } = useAuthStore();
-  const [hasVerified, setHasVerified] = useState(false);
+  const { user, isLoading, hasFetched, fetchUser } = useAuthStore();
 
+  // On mount: fetch the user session ONCE if not already fetched.
+  // We use an empty dependency array so this only runs once per mount.
   useEffect(() => {
-    let isMounted = true;
-    
-    const verify = async () => {
-      // If we don't have a user and aren't already loading one from a previous check
-      if (!user) {
-        await fetchUser();
-      }
-      if (isMounted) {
-        setHasVerified(true);
-      }
-    };
-    
-    verify();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [user, fetchUser]);
-
-  useEffect(() => {
-    if (!isLoading && hasVerified) {
-      if (!user) {
-        // Not authenticated
-        router.replace("/login");
-      } else if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(user.role.toLowerCase())) {
-        // Authenticated but wrong role -> Redirect to their respective dashboard
-        switch (user.role.toLowerCase()) {
-          case "super_admin":
-            router.replace("/super-admin");
-            break;
-          case "manager":
-            router.replace("/hotel-manager");
-            break;
-          case "customer":
-            router.replace("/");
-            break;
-          case "decorator":
-            router.replace("/decorator/my-jobs");
-            break;
-          case "videographer":
-            router.replace("/videographer");
-            break;
-          case "dj_artist":
-            router.replace("/dj-artist");
-            break;
-          default:
-            router.replace("/");
-        }
-      }
+    if (!hasFetched) {
+      fetchUser();
     }
-  }, [user, isLoading, hasVerified, allowedRoles, router]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Show a loading spinner while validating session
-  if (isLoading || !hasVerified) {
+  // After the fetch has resolved, evaluate access.
+  useEffect(() => {
+    // Wait until the fetch is complete and not loading
+    if (!hasFetched || isLoading) return;
+
+    if (!user) {
+      // Not authenticated at all
+      router.replace("/login");
+      return;
+    }
+
+    if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(user.role.toLowerCase())) {
+      // Authenticated but wrong role → redirect to their own dashboard
+      const destination = ROLE_REDIRECT[user.role.toLowerCase()] ?? "/";
+      router.replace(destination);
+    }
+  }, [hasFetched, isLoading, user, allowedRoles, router]);
+
+  // Show loading spinner while session is being verified
+  if (!hasFetched || isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDF9F1]">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E0D8C3] border-t-[#B08D2C] mb-4"></div>
@@ -77,11 +58,11 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     );
   }
 
-  // If user is authenticated and has the right role, render children
+  // Render children only if the user is authenticated with the correct role
   if (user && (!allowedRoles || allowedRoles.map(r => r.toLowerCase()).includes(user.role.toLowerCase()))) {
     return <>{children}</>;
   }
 
-  // Fallback (will be redirected by the useEffect anyway)
+  // Fallback: return null while the redirect in useEffect fires
   return null;
 }

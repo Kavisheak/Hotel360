@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { djAPI } from "@/lib/api";
+import { getApiImageUrl, getClientDisplayName } from "@/lib/vendorUtils";
 
 // Removed unused Booking interface and bookingsData
 
@@ -115,7 +116,7 @@ const BookingsGrid = ({ bookings = [], loading = false }: BookingsGridProps) => 
           </div>
         ) : currentItems.map((booking, idx) => {
           const djStatus = booking.vendors?.dj?.status || 'Pending';
-          const imgUrl = booking.vendors?.dj?.completionPhotos?.[0] || 
+          const imgUrl = getApiImageUrl(booking.vendors?.dj?.completionPhotos?.[0]) || 
             (idx % 2 === 0 
               ? 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80' 
               : 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80');
@@ -156,9 +157,9 @@ const BookingsGrid = ({ bookings = [], loading = false }: BookingsGridProps) => 
                   </span>
                 </div>
 
-                <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-3">
-                  {booking.clientName ? `${booking.clientName}'s ${booking.eventType}` : booking.eventType}
-                </h3>
+                  <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-1">
+                    {getClientDisplayName(booking)}
+                  </h3>
 
                 <div className="space-y-1.5 mb-4 text-xs text-gray-600">
                   <div className="flex items-center gap-2">

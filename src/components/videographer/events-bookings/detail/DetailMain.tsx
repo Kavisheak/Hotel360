@@ -1,131 +1,157 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import DetailHeader from './DetailHeader';
 import DetailBanner from './DetailBanner';
 import DetailSummary from './DetailSummary';
 import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../shared/Footer';
-
-// Booking data lookup by ID
-const bookingData: Record<string, {
-  status: 'UPCOMING' | 'CONFIRMED' | 'COMPLETED';
-  confirmedDate: string;
-  videoPackage: string;
-  date: string;
-  guests: string;
-  shootWindow: string;
-  venue: string;
-  clientName: string;
-  clientSubtitle: string;
-  phone: string;
-  email: string;
-  coverImage: string;
-  coverCaption: string;
-}> = {
-  'VG-2241': {
-    status: 'CONFIRMED',
-    confirmedDate: 'June 10, 2026',
-    videoPackage: 'Cinematic Wedding Package',
-    date: 'July 24, 2026',
-    guests: '280 Guests',
-    shootWindow: '09:00 AM – 09:00 PM',
-    venue: 'Rosewood Estate, London',
-    clientName: 'Eleanor Sterling',
-    clientSubtitle: 'The Sterling-Vance Wedding',
-    phone: '+44 20 7946 0321',
-    email: 'eleanor.sterling@weddingmail.com',
-    coverImage: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=1200&q=80',
-    coverCaption: '"Rosewood Estate — Golden Hour Ceremony Arch Sequence"',
-  },
-  'VG-2298': {
-    status: 'UPCOMING',
-    confirmedDate: 'July 15, 2026',
-    videoPackage: 'Engagement Session Package',
-    date: 'August 05, 2026',
-    guests: '2 Subjects',
-    shootWindow: '05:00 PM – 08:00 PM',
-    venue: 'Hyde Park Gardens, London',
-    clientName: 'Amara Okafor',
-    clientSubtitle: 'Okafor Engagement Session',
-    phone: '+44 79 4812 5543',
-    email: 'amara.okafor@engagementmail.com',
-    coverImage: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
-    coverCaption: '"Hyde Park Gardens — Intimate Engagement Session"',
-  },
-  'VG-2354': {
-    status: 'COMPLETED',
-    confirmedDate: 'May 20, 2026',
-    videoPackage: 'Corporate Event Package',
-    date: 'June 14, 2026',
-    guests: '450 Attendees',
-    shootWindow: '06:00 PM – 11:00 PM',
-    venue: "Claridge's Hotel, Mayfair",
-    clientName: 'James Harrison',
-    clientSubtitle: 'Harrison Corporate Gala',
-    phone: '+44 20 7935 1100',
-    email: 'j.harrison@harrisoncorp.com',
-    coverImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
-    coverCaption: '"Claridge\'s Mayfair — Annual Corporate Gala Main Stage"',
-  },
-  'VG-2381': {
-    status: 'UPCOMING',
-    confirmedDate: 'Aug 01, 2026',
-    videoPackage: 'Premium Documentary Package',
-    date: 'September 12, 2026',
-    guests: '120 Guests',
-    shootWindow: '03:00 PM – 11:00 PM',
-    venue: 'The Savoy, London',
-    clientName: 'Richard Montague',
-    clientSubtitle: '25th Wedding Anniversary',
-    phone: '+44 20 7836 4343',
-    email: 'r.montague@savoy.events',
-    coverImage: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=1200&q=80',
-    coverCaption: '"The Savoy — 25th Anniversary Grand Ballroom Reception"',
-  },
-};
+import {
+  getClientFullName,
+  getClientPhone,
+  getClientEmail,
+  VENUE_NAME,
+} from '@/lib/vendorUtils';
+import { videographerAPI } from '@/lib/api';
 
 interface DetailMainProps {
   bookingId: string;
 }
 
 const DetailMain = ({ bookingId }: DetailMainProps) => {
-  const data = bookingData[bookingId] ?? bookingData['VG-2241'];
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    fetchBooking();
+  }, [bookingId]);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await videographerAPI.getBookingById(bookingId);
+      if (res.ok && res.data?.data) {
+        setBooking(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (status: 'Accepted' | 'Declined') => {
+    setStatusUpdating(true);
+    try {
+      const res = await videographerAPI.updateBookingStatus(bookingId, status);
+      if (res.ok) {
+        setToast({ type: 'success', msg: `Booking ${status} successfully!` });
+        await fetchBooking();
+      } else {
+        setToast({ type: 'error', msg: res.data?.message || 'Failed to update status.' });
+      }
+    } catch (e) {
+      setToast({ type: 'error', msg: 'Network error.' });
+    } finally {
+      setStatusUpdating(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-[#7C6A2E] animate-pulse">Loading booking details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-gray-500 italic">Booking not found.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const vendorStatus = booking.vendors?.videographer?.status || 'Pending';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-6 py-3 text-sm font-semibold rounded shadow-lg transition-all ${
+          toast.type === 'success' ? 'bg-green-700 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
-        {/* Breadcrumb & Action Header */}
+        {/* Breadcrumb & Action Button Header */}
         <DetailHeader />
         
-        {/* Hero Banner */}
-        <DetailBanner
-          code={bookingId}
-          status={data.status}
-          confirmedDate={data.confirmedDate}
-          videoPackage={data.videoPackage}
-          phone={data.phone}
+        {/* Hero banner for event */}
+        <DetailBanner 
+          code={booking.bookingRef || `#${(booking._id || '').slice(-6).toUpperCase()}`} 
+          status={vendorStatus} 
+          confirmedDate={new Date(booking.date).toLocaleDateString()} 
+          videoPackage={booking.vendors?.videographer?.packageName || 'Custom'}
+          phone={getClientPhone(booking)}
         />
 
-        {/* 4 Summary Stat Cards */}
-        <DetailSummary
-          date={data.date}
-          guests={data.guests}
-          shootWindow={data.shootWindow}
-          venue={data.venue}
+        {/* Accept / Decline Action Panel */}
+        {vendorStatus === 'Pending' && (
+          <div className="bg-[#FCF6E3] border border-[#F5EAD2] rounded p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-[#7C6A2E] mb-1">Action Required</p>
+              <p className="text-xs text-gray-600">You have been assigned to this event. Please accept or decline to notify the hotel manager.</p>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <button
+                onClick={() => handleStatusUpdate('Accepted')}
+                disabled={statusUpdating}
+                className="px-6 py-2.5 bg-[#7C6A2E] hover:bg-[#5C4E1E] text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                {statusUpdating ? 'Updating...' : 'Accept'}
+              </button>
+              <button
+                onClick={() => handleStatusUpdate('Declined')}
+                disabled={statusUpdating}
+                className="px-6 py-2.5 border border-red-400 hover:bg-red-50 text-red-600 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4 Summary Stats Cards */}
+        <DetailSummary 
+          date={new Date(booking.date).toLocaleDateString()} 
+          guests={`${booking.guests || 'N/A'} Guests`} 
+          shootWindow={booking.timeslot || "08:00 AM - 02:00 PM"} 
+          venue={VENUE_NAME} 
         />
 
-        {/* Client Profile & Event Scene */}
-        <DetailMiddle
-          clientName={data.clientName}
-          clientSubtitle={data.clientSubtitle}
-          phone={data.phone}
-          email={data.email}
-          coverImage={data.coverImage}
-          coverCaption={data.coverCaption}
+        {/* Client details & Visuals */}
+        <DetailMiddle 
+          clientName={getClientFullName(booking)} 
+          clientSubtitle={booking.eventType || 'Event'} 
+          phone={getClientPhone(booking)} 
+          email={getClientEmail(booking)} 
+          coverImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
+          coverCaption={`Cinematic coverage at ${VENUE_NAME}.`}
         />
 
-        {/* Package Details & Shoot Checklist */}
-        <DetailBottom />
+        {/* Package components checklist & tasks */}
+        <DetailBottom booking={booking} onRefresh={fetchBooking} />
       </div>
       <Footer />
     </div>

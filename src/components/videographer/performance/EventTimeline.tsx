@@ -3,7 +3,7 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { isSameCalendarDay, normalizeCalendarDate, parseBookingDate } from '@/lib/vendorUtils';
+import { isSameCalendarDay, normalizeCalendarDate, parseBookingDate, getClientFullName } from '@/lib/vendorUtils';
 
 interface EventTimelineProps {
   bookings?: any[];
@@ -18,8 +18,13 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
   );
 
   const today = normalizeCalendarDate(new Date());
+  
+  // Exclude Declined/NotRequired, but keep everything else that is >= today
   const upcomingBookings = bookings
-    .filter((b) => parseBookingDate(b.date) >= today)
+    .filter((b) => {
+      const status = b.vendors?.videographer?.status;
+      return parseBookingDate(b.date) >= today && status !== "Declined" && status !== "NotRequired";
+    })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
@@ -47,7 +52,7 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
               if (status === 'COMPLETED') dotColor = "bg-[#5A87C7]";
               else if (status === 'PENDING') dotColor = "bg-[#C4BCAB]";
 
-              const clientName = b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client");
+              const clientName = getClientFullName(b);
 
               return (
                 <div key={b._id || idx} className="bg-white border border-[#E0D8C3] p-4 shadow-sm relative pl-8">
@@ -93,7 +98,7 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
               const eventDate = new Date(b.date);
               const status = b.vendors?.videographer?.status?.toUpperCase() || 'PENDING';
               const dotColor = idx === 0 ? 'bg-[#B08D2C]' : idx === 1 ? 'bg-[#5A87C7]' : 'bg-[#C4BCAB]';
-              const clientName = b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client");
+              const clientName = getClientFullName(b);
 
               return (
                 <div key={b._id || idx} className="relative pl-8 sm:pl-10">

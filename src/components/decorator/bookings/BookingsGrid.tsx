@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useBookingStore } from '@/store/bookingStore';
+import { getApiImageUrl, getClientDisplayName } from '@/lib/vendorUtils';
 
 interface BookingsGridProps {
   bookings: any[];
@@ -101,7 +102,7 @@ const BookingsGrid = ({ bookings, loading }: BookingsGridProps) => {
               const vendorStatus = booking.vendors?.decorator?.status || 'Pending';
               const displayStatus = vendorStatus === 'Pending' ? 'ACTION REQUIRED' : vendorStatus.toUpperCase();
               
-              const imgUrl = booking.vendors?.decorator?.completionPhotos?.[0] || 
+              const imgUrl = getApiImageUrl(booking.vendors?.decorator?.completionPhotos?.[0]) || 
                 (idx % 2 === 0 
                   ? 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80' 
                   : 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80');
@@ -140,7 +141,7 @@ const BookingsGrid = ({ bookings, loading }: BookingsGridProps) => {
 
                       {/* Title */}
                       <h3 className="text-xl font-serif font-bold text-gray-900 leading-snug mb-3">
-                        {booking.clientName}
+                        {getClientDisplayName(booking)}
                       </h3>
 
                       {/* Details list */}

@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
+import Link from 'next/link';
 import { decoratorAPI } from '@/lib/api';
+import { getClientFullName } from '@/lib/vendorUtils';
 
 function statusClass(status: string = '') {
   const s = status.toUpperCase();
@@ -23,7 +25,7 @@ export default function RecentActivity() {
         const { ok, data } = await decoratorAPI.getAssignedBookings();
         if (ok && data?.data) {
           const mapped = data.data.slice(0, 4).map((b: any) => ({
-            title: (`${b.eventType} for ${b.clientName || 'Client'}`).toUpperCase(),
+            title: (`${b.eventType} for ${getClientFullName(b)}`).toUpperCase(),
             status: (b.vendors?.decorator?.status || 'PENDING').toUpperCase(),
             note: b.vendors?.decorator?.packageName || 'Custom Decoration Package',
             date: new Date(b.date).toLocaleDateString('en-US', {
@@ -84,9 +86,9 @@ export default function RecentActivity() {
         )}
       </div>
 
-      <button className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
+      <Link href="/decorator/bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
         View all activity
-      </button>
+      </Link>
     </article>
   );
 }

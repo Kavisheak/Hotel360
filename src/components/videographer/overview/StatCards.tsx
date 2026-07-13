@@ -17,7 +17,7 @@ export default function StatCards() {
     const fetchStats = async () => {
       try {
         const [bookingsRes, ratingsRes] = await Promise.all([
-          videographerAPI.getAssignedBookings(),
+          videographerAPI.getOverview(),
           videographerAPI.getRatings()
         ]);
 
@@ -25,24 +25,11 @@ export default function StatCards() {
         let upcoming = 0;
         let completed = 0;
         
-        if (bookingsRes.ok && bookingsRes.data.success) {
-          const bookings = bookingsRes.data.data;
-          total = bookings.length;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            bookings.forEach((b: any) => {
-              const status = b.vendors?.videographer?.status;
-              const eventDate = new Date(b.date);
-              
-              if (status === 'Completed') {
-                completed++;
-              } else if (status !== 'Declined' && status !== 'NotRequired') {
-                if (eventDate >= today) {
-                  upcoming++;
-                }
-              }
-            });
+        if (bookingsRes.ok && bookingsRes.data?.data) {
+          const d = bookingsRes.data.data;
+          total = d.totalBookings ?? 0;
+          upcoming = d.upcomingCount ?? 0;
+          completed = d.completedCount ?? 0;
         }
 
         let avgRating = 0;

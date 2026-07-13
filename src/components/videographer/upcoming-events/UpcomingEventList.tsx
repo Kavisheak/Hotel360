@@ -33,7 +33,7 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEv
           .filter((b: any) => {
             const status = b.vendors?.videographer?.status;
             const isFuture = new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0));
-            return status !== 'Completed' && status !== 'Declined' && status !== 'NotRequired' && isFuture;
+            return status !== 'Declined' && status !== 'NotRequired' && isFuture;
           })
           .map((b: any) => ({
             _id: b._id,
