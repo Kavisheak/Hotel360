@@ -67,7 +67,7 @@ const Sidebar = () => {
     e.preventDefault();
     await authAPI.signout();
     clearUser();
-    window.location.href = '/';
+    window.location.replace('/login');
   };
 
   const navItems = [
@@ -98,7 +98,9 @@ const Sidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Frame Story</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                {user ? `${user.firstName} ${user.lastName}` : "Videographer"}
+              </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">VIDEOGRAPHER PORTAL</p>
             </div>
           ) : (

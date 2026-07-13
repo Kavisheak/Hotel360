@@ -6,8 +6,8 @@ import { decoratorAPI } from '@/lib/api';
 import { getApiImageUrl } from '@/lib/vendorUtils';
 
 interface DetailBottomProps {
-  booking: any;
-  onRefresh: () => void;
+  booking?: any;
+  onRefresh?: () => void;
 }
 
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
@@ -44,11 +44,12 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   }, [booking?._id, booking?.vendors?.decorator]);
 
   const saveChecklist = async (newList: any[]) => {
+    if (!booking?._id) return;
     setIsUpdating(true);
     try {
       const res = await decoratorAPI.updateChecklist(booking._id, newList);
       if (res.ok) {
-        onRefresh();
+        onRefresh?.();
       }
     } catch (e) {
       console.error(e);

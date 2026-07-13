@@ -47,7 +47,7 @@ function statusClass(status: string = "") {
 }
 
 export default function RecentActivity() {
-  const [activities, setActivities] = useState<any[]>(mockActivities);
+  const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

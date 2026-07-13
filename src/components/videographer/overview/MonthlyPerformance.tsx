@@ -25,14 +25,15 @@ export default function MonthlyPerformance() {
     fetchPerformance();
   }, []);
 
+  const now = new Date();
+  const currentYear = now.getFullYear();
   const monthCounts = new Array(12).fill(0);
   bookings.forEach((b: any) => {
     const date = new Date(b.date);
-    const month = date.getMonth();
-    monthCounts[month]++;
+    if (date.getFullYear() === currentYear) {
+      monthCounts[date.getMonth()]++;
+    }
   });
-
-  const now = new Date();
   const currentMonthIdx = now.getMonth();
 
   const sixBars = Array.from({ length: 6 }, (_, i) => {

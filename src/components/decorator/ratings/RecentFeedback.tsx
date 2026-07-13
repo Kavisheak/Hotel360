@@ -55,7 +55,7 @@ const RecentFeedback = ({ reviews }: RecentFeedbackProps) => {
                     {review.customerId?.firstName} {review.customerId?.lastName}
                   </h4>
                   <p className="text-[9px] font-bold tracking-wider text-[#A6955C] mt-0.5 uppercase">
-                    {review.bookingId?.eventDetails?.eventType || 'Elite Event'}
+                    {review.bookingId?.eventType || 'Decoration Service'}
                   </p>
                 </div>
               </div>

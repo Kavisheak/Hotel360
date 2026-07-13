@@ -3,15 +3,16 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Plus, Video, Film, Aperture, Trash2, Camera, CheckSquare } from 'lucide-react';
 import { videographerAPI } from '@/lib/api';
-import { getApiImageUrl } from '@/lib/vendorUtils';
+import { getApiImageUrl, getPackageName } from '@/lib/vendorUtils';
 
 interface DetailBottomProps {
-  booking: any;
-  onRefresh: () => void;
+  booking?: any;
+  onRefresh?: () => void;
 }
 
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const vgVendor = booking?.vendors?.videographer;
+  const packageName = getPackageName(booking, 'videographer');
 
   const defaultTasks = [
     { task: 'Confirm camera & lens kit packed', isCompleted: true },
@@ -44,11 +45,12 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   }, [booking?._id, booking?.vendors?.videographer]);
 
   const saveChecklist = async (newList: any[]) => {
+    if (!booking?._id) return;
     setIsUpdating(true);
     try {
       const res = await videographerAPI.updateChecklist(booking._id, newList);
       if (res.ok) {
-        onRefresh();
+        onRefresh?.();
       }
     } catch (e) {
       console.error(e);
@@ -83,16 +85,19 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
-    
-    setUploaded(true);
     const formData = new FormData();
     files.forEach(f => formData.append('photos', f));
-    
+
     setIsUpdating(true);
     try {
-      await videographerAPI.uploadCompletionPhotos(booking._id, formData);
-      setSuccessDetails("Photos uploaded successfully.");
-      onRefresh();
+      const res = await videographerAPI.uploadCompletionPhotos(booking._id, formData);
+      if (res.ok) {
+        setUploaded(true);
+        setSuccessDetails("Photos uploaded successfully.");
+        onRefresh?.();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to upload photos.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to upload photos.");
@@ -111,16 +116,16 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       setErrorDetails("Please upload completion photos before marking the job as complete.");
       return;
     }
-<<<<<<< Updated upstream
-    
-=======
 
->>>>>>> Stashed changes
     setIsUpdating(true);
     try {
-      await videographerAPI.updateBookingStatus(booking._id, "Completed");
-      setSuccessDetails("Job marked as complete. The Concierge team has been notified.");
-      onRefresh();
+      const res = await videographerAPI.updateBookingStatus(booking._id, "Completed");
+      if (res.ok) {
+        setSuccessDetails("Job marked as complete. The manager has been notified.");
+        onRefresh?.();
+      } else {
+        setErrorDetails(res.data?.message || "Failed to mark as complete.");
+      }
     } catch (err) {
       console.error(err);
       setErrorDetails("Failed to mark as complete.");
@@ -135,9 +140,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm lg:col-span-3 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
-            <h3 className="text-xl font-serif font-bold text-gray-900">
-              Cinematic Package Details
-            </h3>
+            <h3 className="text-xl font-serif font-bold text-gray-900">{packageName}</h3>
             <span className="text-[8px] font-bold tracking-widest border border-[#B08D2C] text-[#7C6A2E] px-2 py-0.5 uppercase">
               PREMIUM TIER
             </span>

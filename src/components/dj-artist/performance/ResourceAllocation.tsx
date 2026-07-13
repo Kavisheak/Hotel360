@@ -11,7 +11,7 @@ const ResourceAllocation = ({ bookings = [] }: ResourceAllocationProps) => {
     const eventDate = new Date(b.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return (status === 'PENDING' || status === 'ACCEPTED' || status === 'CONFIRMED') && eventDate >= today;
+    return (status === 'PENDING' || status === 'ACCEPTED') && eventDate >= today;
   }).length;
 
   const alertGigs = bookings.filter(b => {
@@ -49,7 +49,7 @@ const ResourceAllocation = ({ bookings = [] }: ResourceAllocationProps) => {
 
           <div className="flex items-center space-x-2 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase mt-4">
             <TrendingUp size={13} />
-            <span>+2 VS LAST WEEK</span>
+            <span>{upcomingGigs} SCHEDULED</span>
           </div>
         </div>
 

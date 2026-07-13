@@ -7,7 +7,9 @@ import {
   PanelLeftClose, PanelLeftOpen, ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -47,6 +49,19 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { clearUser } = useAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.signout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      clearUser();
+      window.location.replace('/login');
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -71,7 +86,6 @@ const Sidebar = () => {
 
   const bottomItems = [
     { icon: <HelpCircle size={20} />, label: 'Support', href: '/super-admin/support' },
-    { icon: <LogOut size={20} />,     label: 'Logout',  href: '/' },
   ];
 
   const close = () => setMobileOpen(false);
@@ -161,6 +175,17 @@ const Sidebar = () => {
               onClick={close}
             />
           ))}
+          <button
+            onClick={() => { close(); handleLogout(); }}
+            title={collapsedState ? 'LOGOUT' : undefined}
+            className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+              }`}
+          >
+            <span><LogOut size={20} /></span>
+            {!collapsedState && (
+              <span className="text-sm font-semibold tracking-wide">LOGOUT</span>
+            )}
+          </button>
         </div>
       </div>
     </div>

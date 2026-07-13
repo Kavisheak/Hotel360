@@ -59,11 +59,14 @@ const OverviewMain = () => {
 
   const displayName = isLoading ? '...' : profile ? `${profile.firstName} ${profile.lastName}` : 'Decorator';
 
+  const avgRating = overview?.averageRating ?? 0;
+  const ratingDisplay = avgRating > 0 ? avgRating.toFixed(1) : "—";
+
   const statCards = [
-    { title: "TOTAL BOOKINGS",  value: totalBookings.toString(),  sub: "All time jobs",         icon: <Music        size={22} className="text-[#B08D2C]" /> },
+    { title: "TOTAL BOOKINGS",  value: totalBookings.toString(),  sub: "All time jobs",         icon: <Calendar     size={22} className="text-[#B08D2C]" /> },
     { title: "UPCOMING EVENTS", value: upcomingCount.toString(),  sub: "Needs preparation",     icon: <Calendar     size={22} className="text-[#B08D2C]" /> },
-    { title: "COMPLETED SETS",  value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
-    { title: "AVERAGE RATING",  value: "4.9",                    sub: "★★★★★",               icon: <Star         size={22} className="text-[#B08D2C]" /> },
+    { title: "COMPLETED JOBS",  value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
+    { title: "AVERAGE RATING",  value: ratingDisplay,             sub: avgRating > 0 ? "★★★★★" : "No reviews yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
   ];
 
   return (
@@ -77,7 +80,7 @@ const OverviewMain = () => {
             Welcome back, {isLoading ? "..." : displayName}
           </h1>
           <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">
-            Your curated schedule for the season ahead. Track bookings, reviews, and upcoming performances.
+            Your curated schedule for the season ahead. Track bookings, reviews, and upcoming decoration jobs.
           </p>
         </div>
 

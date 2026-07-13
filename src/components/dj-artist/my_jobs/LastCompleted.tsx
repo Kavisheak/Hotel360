@@ -21,7 +21,7 @@ const LastCompleted = ({ booking }: { booking: any }) => {
             LAST COMPLETED: {booking.clientName} {booking.eventType}
           </h4>
           <p className="text-xs font-serif italic text-gray-600">
-            "Exquisite attention to detail on the floral work." - Client Review
+            Performance completed successfully for this event.
           </p>
         </div>
       </div>

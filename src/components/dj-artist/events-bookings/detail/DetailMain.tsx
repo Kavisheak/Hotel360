@@ -1,19 +1,12 @@
 "use client";
 
-<<<<<<< Updated upstream
-import React, { useState, useEffect } from 'react';
-=======
 import React, { useEffect, useState } from 'react';
->>>>>>> Stashed changes
 import DetailHeader from './DetailHeader';
 import DetailBanner from './DetailBanner';
 import DetailSummary from './DetailSummary';
 import DetailMiddle from './DetailMiddle';
 import DetailBottom from './DetailBottom';
 import Footer from '../../overview/Footer';
-<<<<<<< Updated upstream
-import { djAPI } from '@/lib/api';
-=======
 import {
   getClientFullName,
   getClientPhone,
@@ -22,35 +15,25 @@ import {
 } from '@/lib/vendorUtils';
 import { djAPI } from '@/lib/api';
 
-const DetailMain = ({ bookingId }: { bookingId: string }) => {
+interface DetailMainProps {
+  bookingId: string;
+}
+
+const DetailMain = ({ bookingId }: DetailMainProps) => {
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
->>>>>>> Stashed changes
 
   useEffect(() => {
     fetchBooking();
   }, [bookingId]);
 
-<<<<<<< Updated upstream
-const DetailMain = ({ bookingId }: DetailMainProps) => {
-  const [booking, setBooking] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchBooking = async () => {
-    try {
-      const res = await djAPI.getAssignedBookings();
-      if (res.ok && res.data?.data) {
-        const found = res.data.data.find((b: any) => b._id === bookingId);
-        setBooking(found);
-=======
   const fetchBooking = async () => {
     try {
       const res = await djAPI.getBookingById(bookingId);
       if (res.ok && res.data?.data) {
         setBooking(res.data.data);
->>>>>>> Stashed changes
       }
     } catch (e) {
       console.error(e);
@@ -59,22 +42,6 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
     }
   };
 
-<<<<<<< Updated upstream
-  useEffect(() => {
-    fetchBooking();
-  }, [bookingId]);
-
-  if (loading) {
-    return <div className="p-12 text-center text-gray-500 font-serif animate-pulse">Loading booking details...</div>;
-  }
-
-  if (!booking) {
-    return <div className="p-12 text-center text-red-500 font-serif">Booking not found.</div>;
-  }
-
-  const djStatus = booking.vendors?.dj?.status || 'Pending';
-  const djPackageName = booking.package?.name || "Custom DJ Package";
-=======
   const handleStatusUpdate = async (status: 'Accepted' | 'Declined') => {
     setStatusUpdating(true);
     try {
@@ -114,7 +81,6 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
   }
 
   const vendorStatus = booking.vendors?.dj?.status || 'Pending';
->>>>>>> Stashed changes
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
@@ -130,29 +96,6 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
         {/* Breadcrumb & Action Button Header */}
         <DetailHeader />
-<<<<<<< Updated upstream
-        <DetailBanner
-          code={booking.bookingRef || `#${booking._id.slice(-6).toUpperCase()}`}
-          status={djStatus}
-          confirmedDate={new Date(booking.createdAt).toLocaleDateString()}
-          djPackage={djPackageName}
-        />
-        <DetailSummary
-          date={new Date(booking.date).toLocaleDateString()}
-          guests={`${booking.guests || 'N/A'} Guests`}
-          setWindow="06:00 PM – 12:00 AM"
-          venue="Venue TBD"
-        />
-        <DetailMiddle
-          clientName={booking.clientName || (booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : "Valued Client")}
-          clientSubtitle={booking.eventType || 'Event'}
-          phone={booking.phone || booking.contactNumber || (booking.customerId ? booking.customerId.phone : "N/A")}
-          email={booking.email || booking.clientEmail || (booking.customerId ? booking.customerId.email : "N/A")}
-          clientAvatar={booking.customerId?.avatar}
-          venueImage="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80"
-          venueCaption={`"Event Venue — ${djPackageName}"`}
-        />
-=======
         
         {/* Hero banner for event */}
         <DetailBanner 
@@ -208,7 +151,6 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
         />
 
         {/* Package components checklist & tasks */}
->>>>>>> Stashed changes
         <DetailBottom booking={booking} onRefresh={fetchBooking} />
       </div>
       <Footer />

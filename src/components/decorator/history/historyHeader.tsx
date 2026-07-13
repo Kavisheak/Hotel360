@@ -5,7 +5,7 @@ const HistoryHeader = () => {
   return (
     <div className="mt-4 mb-8">
       {/* Subtitle + Title */}
-      <p className="text-sm font-serif italic text-[#A6955C] mb-1">Sattar Elite Registry</p>
+      <p className="text-sm font-serif italic text-[#A6955C] mb-1">EASCCA Event History</p>
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-900 font-bold tracking-tight leading-none mb-3">

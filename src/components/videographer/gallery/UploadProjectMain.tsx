@@ -171,11 +171,25 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
     );
   };
 
+  const openDatePicker = (e: React.FocusEvent<HTMLInputElement> | React.MouseEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  };
+
   const handlePublish = async () => {
     if (isPublishing) return;
 
     if (!projectTitle.trim()) {
       setErrorDetails("Please enter a project title.");
+      return;
+    }
+
+    if (!eventDate) {
+      setErrorDetails("Please select an event date.");
       return;
     }
 
@@ -460,15 +474,17 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                  <label htmlFor="videographer-event-date" className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
                     Event Date
                   </label>
                   <input
+                    id="videographer-event-date"
                     type="date"
                     value={eventDate}
                     onChange={e => setEventDate(e.target.value)}
-                    onClick={e => e.currentTarget.showPicker?.()}
-                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
+                    onClick={openDatePicker}
+                    onFocus={openDatePicker}
+                    className="w-full bg-white border border-[#E0D8C3] p-4 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer min-h-[3rem] relative z-[1] [color-scheme:light] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-90 [&::-webkit-calendar-picker-indicator]:scale-125"
                   />
                 </div>
               </div>

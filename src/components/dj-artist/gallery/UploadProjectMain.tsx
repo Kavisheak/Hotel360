@@ -23,6 +23,7 @@ import {
 import Footer from '../overview/Footer';
 
 import { djAPI } from '@/lib/api';
+import { getImageUrl } from "@/lib/utils";
 
 interface MediaItem {
   id: string;
@@ -94,7 +95,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
                 setMediaList(item.media.map((m: any, idx: number) => ({
                   id: `existing-${idx}`,
-                  src: `${API_BASE}${m.url}`,
+                  src: getImageUrl(m.url),
                   isCover: m.isCover || false,
                   name: m.url.split('/').pop() || `existing-${idx}`,
                   isExisting: true,
@@ -144,8 +145,18 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
   const handleSetCover = (id: string) =>
     setMediaList(prev => prev.map(item => ({ ...item, isCover: item.id === id })));
 
+  const openDatePicker = (e: React.FocusEvent<HTMLInputElement> | React.MouseEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  };
+
   const handlePublish = async () => {
     if (!projectTitle) return alert("Please enter a project title.");
+    if (!eventDate) return alert("Please select an event date.");
     if (mediaList.length === 0) return alert("Please upload at least one media file.");
 
     setIsSaving(true);
@@ -403,12 +414,15 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">Event Date</label>
+                  <label htmlFor="dj-event-date" className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">Event Date</label>
                   <input
+                    id="dj-event-date"
                     type="date"
                     value={eventDate}
                     onChange={e => setEventDate(e.target.value)}
-                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C]"
+                    onClick={openDatePicker}
+                    onFocus={openDatePicker}
+                    className="w-full bg-white border border-[#E0D8C3] p-4 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer min-h-[3rem] relative z-[1] [color-scheme:light] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-90 [&::-webkit-calendar-picker-indicator]:scale-125"
                   />
                 </div>
               </div>

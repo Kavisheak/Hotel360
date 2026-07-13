@@ -56,7 +56,7 @@ const DjSidebar = () => {
       console.error('Logout error:', e);
     } finally {
       clearUser();       // ← clear Zustand store so navbar updates
-      router.push('/');
+      window.location.replace('/login');
     }
   };
 
@@ -94,7 +94,9 @@ const DjSidebar = () => {
         <div className={`mb-10 flex ${collapsedState ? 'flex-col items-center gap-4' : 'items-start justify-between'}`}>
           {!collapsedState ? (
             <div>
-              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">Julian Dashboard</h1>
+              <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
+                {user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}
+              </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">DJ ARTIST PORTAL</p>
             </div>
           ) : (
@@ -139,8 +141,8 @@ const DjSidebar = () => {
           />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "Julian Saint-Clair"}</span>
-              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">PREMIER WEDDING DJ</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "DJ Artist"}</span>
+              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">DJ ARTIST</span>
             </div>
           )}
         </div>

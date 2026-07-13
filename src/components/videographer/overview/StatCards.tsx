@@ -25,22 +25,11 @@ export default function StatCards() {
         let upcoming = 0;
         let completed = 0;
         
-<<<<<<< Updated upstream
-        if (bookingsRes.ok && bookingsRes.data.success) {
-          const bookings = bookingsRes.data.data;
-          total = bookings.length;
-          bookings.forEach((b: any) => {
-            const status = b.vendors?.videographer?.status?.toUpperCase();
-            if (status === 'COMPLETED') completed++;
-            else if (status === 'ACCEPTED' || status === 'CONFIRMED' || status === 'PENDING') upcoming++;
-          });
-=======
         if (bookingsRes.ok && bookingsRes.data?.data) {
           const d = bookingsRes.data.data;
           total = d.totalBookings ?? 0;
           upcoming = d.upcomingCount ?? 0;
           completed = d.completedCount ?? 0;
->>>>>>> Stashed changes
         }
 
         let avgRating = 0;

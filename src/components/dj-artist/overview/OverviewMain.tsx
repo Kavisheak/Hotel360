@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Footer from './Footer';
 import { Music, CheckCircle2, Star, Calendar } from 'lucide-react';
 import { djAPI } from '@/lib/api';
@@ -58,11 +59,14 @@ const OverviewMain = () => {
 
   const displayName = isLoading ? '...' : profile ? `${profile.firstName} ${profile.lastName}` : 'DJ Artist';
 
+  const avgRating = overview?.averageRating ?? 0;
+  const ratingDisplay = avgRating > 0 ? avgRating.toFixed(1) : "—";
+
   const statCards = [
     { title: "TOTAL BOOKINGS",  value: totalBookings.toString(),  sub: "All time jobs",         icon: <Music        size={22} className="text-[#B08D2C]" /> },
     { title: "UPCOMING EVENTS", value: upcomingCount.toString(),  sub: "Needs preparation",     icon: <Calendar     size={22} className="text-[#B08D2C]" /> },
     { title: "COMPLETED SETS",  value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
-    { title: "AVERAGE RATING",  value: "4.9",                    sub: "★★★★★",               icon: <Star         size={22} className="text-[#B08D2C]" /> },
+    { title: "AVERAGE RATING",  value: ratingDisplay,             sub: avgRating > 0 ? "★★★★★" : "No reviews yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
   ];
 
   return (
@@ -170,9 +174,9 @@ const OverviewMain = () => {
                 </div>
               ))}
             </div>
-            <button className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
+            <Link href="/dj-artist/events-bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
               View all activity
-            </button>
+            </Link>
           </article>
         </div>
 

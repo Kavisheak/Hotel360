@@ -3,6 +3,7 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { isSameCalendarDay, normalizeCalendarDate, parseBookingDate, getClientFullName } from '@/lib/vendorUtils';
 
 interface EventTimelineProps {
   bookings?: any[];
@@ -10,24 +11,20 @@ interface EventTimelineProps {
 }
 
 const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimelineProps) => {
-  // Gigs on the selected date
-  const dayBookings = bookings.filter(b => {
-    const bDate = new Date(b.date);
-    return bDate.getDate() === selectedDate.getDate() && 
-           bDate.getMonth() === selectedDate.getMonth() && 
-           bDate.getFullYear() === selectedDate.getFullYear();
-  });
+  const normalizedSelected = normalizeCalendarDate(selectedDate);
 
-  // Up to 3 upcoming bookings starting from today
+  const dayBookings = bookings.filter((b) =>
+    isSameCalendarDay(parseBookingDate(b.date), normalizedSelected)
+  );
+
+  const today = normalizeCalendarDate(new Date());
+  
+  // Future events excluding Declined/NotRequired (matches dashboard logic)
   const upcomingBookings = bookings
-<<<<<<< Updated upstream
-    .filter(b => new Date(b.date) >= new Date(new Date().setHours(0,0,0,0)))
-=======
     .filter((b) => {
       const status = b.vendors?.dj?.status;
-      return parseBookingDate(b.date) >= today && status !== "Completed" && status !== "Declined";
+      return parseBookingDate(b.date) >= today && status !== "Declined" && status !== "NotRequired";
     })
->>>>>>> Stashed changes
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
@@ -55,7 +52,7 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
               if (status === 'COMPLETED') dotColor = "bg-[#5A87C7]";
               else if (status === 'PENDING') dotColor = "bg-[#C4BCAB]";
 
-              const clientName = b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client");
+              const clientName = getClientFullName(b);
 
               return (
                 <div key={b._id || idx} className="bg-white border border-[#E0D8C3] p-4 shadow-sm relative pl-8">
@@ -98,7 +95,7 @@ const EventTimeline = ({ bookings = [], selectedDate = new Date() }: EventTimeli
               const eventDate = new Date(b.date);
               const status = b.vendors?.dj?.status?.toUpperCase() || 'PENDING';
               const dotColor = idx === 0 ? 'bg-[#B08D2C]' : idx === 1 ? 'bg-[#5A87C7]' : 'bg-[#C4BCAB]';
-              const clientName = b.clientName || (b.customerId ? `${b.customerId.firstName} ${b.customerId.lastName}` : "Client");
+              const clientName = getClientFullName(b);
 
               return (
                 <div key={b._id || idx} className="relative pl-8 sm:pl-10">
