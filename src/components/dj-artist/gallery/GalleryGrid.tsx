@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Upload, X, Search, Edit3, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { djAPI } from "@/lib/api";
+import { getImageUrl } from "@/lib/utils";
 
 const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena"];
 
@@ -109,7 +110,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
         ) : filtered.map((item) => {
           const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
           const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-          const imgUrl = coverMedia ? `${API_BASE}${coverMedia.url}` : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+          const imgUrl = coverMedia ? getImageUrl(coverMedia.url) : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
           const year = new Date(item.eventDate || item.createdAt).getFullYear();
 
           return (

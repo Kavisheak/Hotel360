@@ -5,6 +5,7 @@ import { ChevronDown, Camera, Save, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { videographerAPI, authAPI } from '@/lib/api';
 import { validateEmail, validatePhone } from '@/lib/validation';
+import { getImageUrl } from "@/lib/utils";
 
 const ProfileSettings = () => {
   const { user, fetchUser, updateUser } = useAuthStore();
@@ -179,7 +180,7 @@ const ProfileSettings = () => {
         <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 mb-6 md:flex-row md:items-center">
           <div className="relative h-28 w-28 overflow-hidden border border-[#E0D8C3] bg-[#FDF9F1]">
             <img
-              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_BASE}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=112&h=112"}
+              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : getImageUrl(user.avatar)) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=112&h=112"}
               alt="Videographer profile portrait"
               className="w-full h-full object-cover"
             />

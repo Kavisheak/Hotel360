@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, CalendarDays, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users
+  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users, Shield, User
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import { getImageUrl } from "@/lib/utils";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -46,9 +47,22 @@ const ManagerSidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const pathname = usePathname();
   const router = useRouter();
-  const { clearUser } = useAuthStore();
+  const { user, clearUser } = useAuthStore();
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     setMounted(true);
@@ -70,7 +84,6 @@ const ManagerSidebar = () => {
     { icon: <Package size={20} />,       label: 'PACKAGES',   href: '/hotel-manager/packages' },
     { icon: <Users size={20} />,         label: 'VENDORS',    href: '/hotel-manager/vendors' },
     { icon: <BarChart3 size={20} />,     label: 'REPORTS',    href: '/hotel-manager/reports' },
-    { icon: <Settings size={20} />,      label: 'SETTINGS',   href: '/hotel-manager/settings' },
   ];
 
   const handleLogout = async (e: any) => {
@@ -137,19 +150,60 @@ const ManagerSidebar = () => {
       {/* Bottom */}
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
         {/* Profile block */}
-        <div
-          className={`flex items-center ${collapsed ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
-          title={collapsed ? 'Hall Manager' : undefined}
-        >
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv0rt5w6JHhyT0aULGsvUTEhH0YGbA1Gd8ZrFx43b_uzbKWemyf_4_Qp48TJQ9vH9iTw-SGP8hB3e93Cq3gbm_IUhqcluJMXvuLBMvDUP0D8FPGXBGIqhu8_RPsBa5rNKXl4yD0YbQ7ozuhMGKOe8oSUXCdtVaxq2h2IcNZqCyDNuQbkTvNSjVNstk0B9_r9AfVTRKYpsOmV2BI5HGSFrE-Q-BOvnTzomP_bXb8jk_Zep4l6sU5VW0SOV3lUdKALmUgU_-mN2eCsU"
-            alt="Manager Profile"
-            className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3] shrink-0"
-          />
-          {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">A. Sattar</span>
-              <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">HALL MANAGER</span>
+        <div className="relative" ref={profileMenuRef}>
+          <button
+            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+            className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'space-x-3 px-2'} py-2 rounded-md hover:bg-[#F2EADA] transition-colors text-left`}
+            title={collapsed ? 'Hall Manager' : 'Profile Options'}
+          >
+            {user?.avatar ? (
+              <img
+                src={getImageUrl(user.avatar)}
+                alt="Manager Profile"
+                className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3] shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#FAF6EE] flex items-center justify-center border border-[#E0D8C3] shrink-0 text-[#7C6A2E]">
+                <User size={20} />
+              </div>
+            )}
+            {!collapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold text-gray-800 tracking-wide truncate">
+                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'A. Sattar'}
+                </span>
+                <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">PROFILE SERVICES</span>
+              </div>
+            )}
+          </button>
+
+          {/* Instagram-style popup menu */}
+          {isProfileMenuOpen && (
+            <div className={`absolute ${collapsed ? 'left-14 bottom-0 w-48' : 'bottom-full left-0 mb-2 w-full'} bg-white rounded-md shadow-lg py-1 z-50 border border-[#E0D8C3] animate-fadeIn`}>
+              <Link 
+                href="/hotel-manager/settings" 
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#FDF9F1] hover:text-[#7C6A2E] transition-colors font-semibold"
+                onClick={() => { setIsProfileMenuOpen(false); close(); }}
+              >
+                <User size={16} />
+                Edit Profile
+              </Link>
+              <Link 
+                href="/hotel-manager/settings" 
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#FDF9F1] hover:text-[#7C6A2E] transition-colors font-semibold"
+                onClick={() => { setIsProfileMenuOpen(false); close(); }}
+              >
+                <Shield size={16} />
+                Security Options
+              </Link>
+              <hr className="my-1 border-[#E0D8C3]" />
+              <button 
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-semibold"
+                onClick={(e) => { setIsProfileMenuOpen(false); close(); handleLogout(e); }}
+              >
+                <LogOut size={16} />
+                Switch Account
+              </button>
             </div>
           )}
         </div>

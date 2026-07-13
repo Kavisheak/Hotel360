@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Mail, Phone, MapPin, Crown, CalendarDays, Shield, User, Pencil } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { USER_PROFILE } from "./types";
+import { getImageUrl } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -44,7 +45,7 @@ export default function AccountOverview() {
         <div className="w-24 h-24 rounded-full border-4 border-white dark:border-[#111111] shadow-lg overflow-hidden bg-white dark:bg-[#1A1A1A] flex-shrink-0 mb-4 relative group flex items-center justify-center">
           {authUser?.avatar ? (
             <Image
-              src={`${API_BASE}${authUser.avatar}`}
+              src={getImageUrl(authUser.avatar)}
               alt={`${user.firstName} ${user.lastName}`}
               width={96}
               height={96}
