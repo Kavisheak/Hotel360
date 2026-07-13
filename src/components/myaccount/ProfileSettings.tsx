@@ -9,6 +9,7 @@ import { validateEmail, validatePhone } from "@/lib/validation";
 import getCroppedImg from "@/utils/cropImage";
 import { useAuthStore } from "@/store/authStore";
 import { authAPI } from "@/lib/api";
+import { getImageUrl } from "@/lib/utils";
 
 export default function ProfileSettings() {
   const { user: authUser, updateUser } = useAuthStore();
@@ -156,7 +157,7 @@ export default function ProfileSettings() {
           <div className="w-24 h-24 rounded-full bg-[#FAF6EE] flex items-center justify-center text-[#C69C6D] relative overflow-hidden border border-[#E8DFC9]">
             {authUser?.avatar ? (
               <Image 
-                src={`${API_BASE}${authUser.avatar}`} 
+                src={getImageUrl(authUser.avatar)} 
                 alt="Profile Avatar" 
                 fill 
                 className="object-cover"

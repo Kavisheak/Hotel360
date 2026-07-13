@@ -23,6 +23,7 @@ import {
 import Footer from '../overview/Footer';
 
 import { djAPI } from '@/lib/api';
+import { getImageUrl } from "@/lib/utils";
 
 interface MediaItem {
   id: string;
@@ -94,7 +95,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
                 setMediaList(item.media.map((m: any, idx: number) => ({
                   id: `existing-${idx}`,
-                  src: `${API_BASE}${m.url}`,
+                  src: getImageUrl(m.url),
                   isCover: m.isCover || false,
                   name: m.url.split('/').pop() || `existing-${idx}`,
                   isExisting: true,
