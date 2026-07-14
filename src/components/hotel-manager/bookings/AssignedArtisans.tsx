@@ -26,6 +26,12 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
     
     if (!user) return null;
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const rawImg = user.profileImage || user.avatar || '';
+    const imgUrl = rawImg 
+      ? (rawImg.startsWith('http') ? rawImg : `${API_URL}${rawImg}`)
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100';
+
     return {
       role,
       name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown',
@@ -33,7 +39,7 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
       phone: user.phone,
       status: vendorObj.status || 'Pending',
       packageName: vendorObj.packageName || 'Custom',
-      img: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100', // Default placeholder
+      img: imgUrl,
     };
   };
 
@@ -57,6 +63,9 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
                 src={a.img}
                 alt={a.name}
                 className="w-16 h-16 rounded-full object-cover border-2 border-[#E0D8C3] mb-3"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100";
+                }}
               />
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">{a.role}</p>
               <p className="text-sm font-serif italic text-gray-700 mb-1">{a.name}</p>

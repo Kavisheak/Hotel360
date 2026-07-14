@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Users, Package, ArrowRight, Star, Loader2 } from "lucide-react";
-import FeedbackModal from "./FeedbackModal";
+import CompletedEventReview from "./CompletedEventReview";
 import VendorSwapModal from "./VendorSwapModal";
 import BookingDetailsModal from "./BookingDetailsModal";
 import { useBookingStore, type Booking } from "@/store/bookingStore";
@@ -18,8 +18,19 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 
 export default function BookingHistory() {
   const [isClient, setIsClient] = useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    bookingRef: string;
+    eventName: string;
+    vendors: { service: "decorator" | "dj" | "videographer"; vendorId: string; vendorName: string }[];
+  }>({
+    isOpen: false,
+    bookingId: "",
+    bookingRef: "",
+    eventName: "",
+    vendors: [],
+  });
   const [detailsModalBooking, setDetailsModalBooking] = useState<Booking | null>(null);
   const { bookings, isLoading } = useBookingStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
@@ -202,10 +213,28 @@ export default function BookingHistory() {
                       {statusKey === "completed" && (
                         <button
                           onClick={() => {
-                            setSelectedBookingId(booking.id || (booking._id as string));
-                            setIsFeedbackOpen(true);
+                            // Build the list of vendors that were actually used in this booking
+                            const usedVendors: { service: "decorator" | "dj" | "videographer"; vendorId: string; vendorName: string }[] = [];
+                            ["decorator", "dj", "videographer"].forEach((svc) => {
+                              const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
+                              if (v?.vendorId && v.status !== "NotRequired") {
+                                const resolved = globalVendors.find(gv => gv.userId === v.vendorId || gv.id === v.vendorId);
+                                usedVendors.push({
+                                  service: svc as "decorator" | "dj" | "videographer",
+                                  vendorId: v.vendorId,
+                                  vendorName: resolved?.name || svc.charAt(0).toUpperCase() + svc.slice(1),
+                                });
+                              }
+                            });
+                            setReviewModal({
+                              isOpen: true,
+                              bookingId: booking._id || booking.id,
+                              bookingRef: booking.bookingRef || (booking._id ? booking._id.slice(-6) : booking.id),
+                              eventName: booking.eventName || booking.eventType || "Event",
+                              vendors: usedVendors,
+                            });
                           }}
-                          className="text-[9px] uppercase tracking-widest font-bold text-white bg-[#C69C6D] hover:bg-[#B58A59] px-3 py-1.5 rounded-sm transition-colors flex items-center gap-1.5 shadow-sm"
+                          className="text-[9px] uppercase tracking-widest font-bold text-white bg-[#C9A84C] hover:bg-[#B08D2C] px-3 py-1.5 rounded-sm transition-colors flex items-center gap-1.5 shadow-sm"
                         >
                           <Star className="w-3 h-3 fill-current" />
                           Leave Review
@@ -227,16 +256,14 @@ export default function BookingHistory() {
         ) : null}
       </div>
 
-      {selectedBookingId && (
-        <FeedbackModal
-          isOpen={isFeedbackOpen}
-          onClose={() => {
-            setIsFeedbackOpen(false);
-            setTimeout(() => setSelectedBookingId(null), 300); // allow animation to finish
-          }}
-          bookingId={selectedBookingId}
-        />
-      )}
+      <CompletedEventReview
+        isOpen={reviewModal.isOpen}
+        onClose={() => setReviewModal({ ...reviewModal, isOpen: false })}
+        bookingId={reviewModal.bookingId}
+        bookingRef={reviewModal.bookingRef}
+        eventName={reviewModal.eventName}
+        vendors={reviewModal.vendors}
+      />
 
       {swapModalState.isOpen && (
         <VendorSwapModal

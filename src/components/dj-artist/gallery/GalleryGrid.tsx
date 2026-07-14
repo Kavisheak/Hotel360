@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, X, Search, Edit3, Trash2 } from "lucide-react";
+import { Upload, Search, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { djAPI } from "@/lib/api";
 import { getImageUrl } from "@/lib/utils";
+import RatingsStats from "../ratings/RatingsStats";
+import RecentFeedback from "../ratings/RecentFeedback";
 
-const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena"];
+const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena", "Birthday Celebration"];
 
 interface GalleryGridProps {
   items: any[];
@@ -18,7 +21,6 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [previewItem, setPreviewItem] = useState<any | null>(null);
 
   const filtered = items.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
@@ -26,6 +28,8 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
     const matchesSearch = itemTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this gallery item?")) return;
@@ -98,7 +102,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
       </div>
 
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         {loading ? (
           <div className="col-span-full py-12 text-center text-sm text-[#7C6A2E] animate-pulse">
             Loading performance gallery...
@@ -109,39 +113,72 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
           </div>
         ) : filtered.map((item) => {
           const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
-          const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-          const imgUrl = coverMedia ? getImageUrl(coverMedia.url) : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
-          const year = new Date(item.eventDate || item.createdAt).getFullYear();
+          const rawUrl = coverMedia?.url || "";
+          const imgUrl = coverMedia ? (rawUrl.startsWith("http") ? rawUrl : `${API_URL}${rawUrl}`) : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
 
           return (
-          <div
-            key={item._id}
-            className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-            onClick={() => setPreviewItem({ ...item, imgUrl, year })}
-          >
-            <div className="relative h-52 overflow-hidden bg-gray-100">
-              <img
-                src={imgUrl}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
-                  PREVIEW
-                </span>
+            <Link 
+              href={`/dj-artist/gallery/${item._id}`}
+              key={item._id}
+              className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
+            >
+              {/* Image Container with Absolute Badge */}
+              <div className="relative aspect-[4/3] overflow-hidden">
+                {/* Category Badge */}
+                <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
+                  {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "PERFORMANCE"}
+                </div>
+                
+                {/* Portfolio Image */}
+                <img
+                  src={imgUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+                  }}
+                />
               </div>
-            </div>
-            <div className="p-4">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">
-                {item.category} · {year}
-              </span>
-              <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
-            </div>
-          </div>
-        )})}
+
+              {/* Card Details Panel */}
+              <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
+                <div>
+                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
+                    {item.title}
+                  </h3>
+
+                  {/* Price Tag */}
+                  {item.price ? (
+                    <div className="inline-block bg-[#FDF9F1] border border-[#E0D8C3] px-3 py-1 mb-3">
+                      <span className="text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase">
+                        LKR {item.price.toLocaleString()}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {/* Description */}
+                  <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-2">
+                    {item.description || "A high-energy live performance featuring seamless mixing and curated playlists."}
+                  </p>
+                </div>
+
+                {/* Bottom Panel */}
+                <div className="flex items-center justify-between pt-4 border-t border-[#F2EDE0] text-[9px] font-bold tracking-[0.15em] uppercase">
+                  {/* Event Location/Year */}
+                  <span className="text-gray-400">
+                    {item.venue || 'Elite Venue'}
+                  </span>
+
+                  {/* View Case Link */}
+                  <div className="flex items-center space-x-1.5 text-[#7C6A2E] group-hover:text-[#B08D2C] transition-colors">
+                    <span>DETAILS</span>
+                    <ArrowRight size={10} className="transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Load More */}
@@ -150,59 +187,6 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
           LOAD MORE PROJECTS
         </button>
       </div>
-
-      {/* Preview Modal */}
-      {previewItem && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={() => setPreviewItem(null)}
-        >
-          <div
-            className="bg-white max-w-2xl w-full shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative h-72 bg-gray-100">
-              <img
-                src={previewItem.imgUrl}
-                alt={previewItem.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
-                }}
-              />
-              <button
-                className="absolute top-3 right-3 bg-white p-1.5 shadow-sm hover:bg-gray-100 transition-colors"
-                onClick={() => setPreviewItem(null)}
-              >
-                <X size={16} className="text-gray-700" />
-              </button>
-            </div>
-            <div className="p-6">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">
-                {previewItem.category} · {previewItem.year}
-              </span>
-              <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {previewItem.description || `A high-energy ${previewItem.category?.toLowerCase() || 'live'} performance featuring seamless mixing, curated playlists, and an unforgettable atmosphere tailored to the occasion.`}
-              </p>
-              <div className="flex gap-3 mt-5">
-                <button 
-                  onClick={() => router.push(`/dj-artist/gallery/edit/${previewItem._id}`)}
-                  className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-[#7C6A2E] py-2.5 text-xs font-bold tracking-widest transition-colors uppercase flex items-center justify-center gap-2"
-                >
-                  <Edit3 size={14} /> EDIT
-                </button>
-                <button 
-                  onClick={() => handleDelete(previewItem._id)}
-                  className="flex-1 bg-[#93000a] hover:bg-[#7a0008] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md flex items-center justify-center gap-2"
-                >
-                  <Trash2 size={14} /> DELETE
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -41,6 +41,7 @@ const BookingsListMain = () => {
           packageId: b.packageId,
           depositAmount: b.depositAmount || 0,
           balanceAmount: b.balanceAmount || 0,
+          vendors: b.vendors,
         }));
         setBookings(mappedBookings);
       }
@@ -159,10 +160,17 @@ const BookingsListMain = () => {
                       <td className="px-6 py-4 text-xs font-semibold text-[#7C6A2E]">
                         {b.eventType}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 flex flex-col gap-1 items-start">
                         <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded ${getStatusColor(b.status)}`}>
                           {b.status === "DepositPaid" ? "DEPOSIT PAID" : b.status === "BalancePaid" ? "BALANCE PAID" : b.status}
                         </span>
+                        {(b.vendors?.decorator?.status === 'Declined' || 
+                          b.vendors?.dj?.status === 'Declined' || 
+                          b.vendors?.videographer?.status === 'Declined') && (
+                          <span className="inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded bg-red-500/90 text-white animate-pulse shadow-red-500/50">
+                            Vendor Declined
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <Link 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Plus, Trash2, Camera, CheckSquare } from 'lucide-react';
 import { decoratorAPI } from '@/lib/api';
-import { getApiImageUrl } from '@/lib/vendorUtils';
+import { getApiImageUrl, getPackageName } from '@/lib/vendorUtils';
 
 interface DetailBottomProps {
   booking?: any;
@@ -13,6 +13,7 @@ interface DetailBottomProps {
 const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const decoratorVendor = booking?.vendors?.decorator;
   const isJobCompleted = decoratorVendor?.status === 'Completed';
+  const packageName = getPackageName(booking, 'decorator');
 
   const defaultTasks = [
     { task: 'Confirm floral arrangements & centerpieces', isCompleted: false },
@@ -140,10 +141,10 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
         <div>
           <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
             <h3 className="text-xl font-serif font-bold text-gray-900">
-              {booking.packageName || 'Custom'} Package Details
+              {packageName} Package Details
             </h3>
             <span className="text-[8px] font-bold tracking-widest border border-[#B08D2C] text-[#7C6A2E] px-2 py-0.5 uppercase">
-              {booking.packageName === 'Custom' ? 'TAILORED TIER' : 'PREMIUM TIER'}
+              {packageName === 'Custom Package' ? 'TAILORED TIER' : 'PREMIUM TIER'}
             </span>
           </div>
 

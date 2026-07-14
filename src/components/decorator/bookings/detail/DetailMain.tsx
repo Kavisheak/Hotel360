@@ -12,6 +12,7 @@ import {
   getClientPhone,
   getClientEmail,
   VENUE_NAME,
+  getPackageName,
 } from '@/lib/vendorUtils';
 import { decoratorAPI } from '@/lib/api';
 
@@ -113,7 +114,7 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
           email={getClientEmail(booking)} 
           clientAvatar={booking.customerId?.avatar}
           inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
-          inspirationCaption={`${booking.packageName || 'Custom'} package at ${VENUE_NAME}.`}
+          inspirationCaption={`${getPackageName(booking, 'decorator')} package at ${VENUE_NAME}.`}
         />
 
         {/* Package components checklist & tasks */}

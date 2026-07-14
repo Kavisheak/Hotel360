@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Upload, X, Search, ChevronDown, Loader2, Edit3, Trash2 } from "lucide-react";
+import { Upload, Search, ChevronDown, Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { videographerAPI } from "@/lib/api";
 
 interface GalleryItem {
@@ -11,7 +12,9 @@ interface GalleryItem {
   category: string;
   year: string;
   image: string;
+  galleryImages?: string[];
   description?: string;
+  price?: number;
 }
 
 const mockGalleryData: GalleryItem[] = [
@@ -80,32 +83,14 @@ const mockGalleryData: GalleryItem[] = [
   },
 ];
 
-const categories = ["All", "Wedding Videos", "Pre-Shoot Projects", "Engagement Sessions", "Event Highlights"];
+const categories = ["All", "Wedding Film", "Engagement Session", "Corporate Event", "Pre-Wedding Shoot", "Event Highlight Reel", "Anniversary Film", "Cinematic Story"];
 
 const GalleryGrid = () => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
   const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleDelete = async (itemId: string | number) => {
-    if (confirm("Are you sure you want to delete this project?")) {
-      try {
-        const res = await videographerAPI.deletePortfolioItem(itemId.toString());
-        if (res.ok && res.data?.success) {
-          setGalleryData(prev => prev.filter(item => item.id !== itemId));
-          setPreviewItem(null);
-        } else {
-          alert(res.data?.message || "Failed to delete portfolio item");
-        }
-      } catch (error) {
-        console.error("Error deleting item:", error);
-        alert("Failed to delete portfolio item due to network error.");
-      }
-    }
-  };
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -122,27 +107,28 @@ const GalleryGrid = () => {
             return {
               id: item._id,
               title: item.title || "Untitled Project",
+              eventType: item.eventType || "Unknown",
               category: item.category || "cinematography",
               year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
               image: imageUrl,
               description: item.description || "A professionally captured project featuring cinematic storytelling.",
+              price: item.price || 0,
             };
           });
           setGalleryData(items);
         }
       } catch (error) {
         console.error("Failed to fetch portfolio:", error);
-        // Fall back to mock data if fetch fails
-        setGalleryData([]);
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchPortfolio();
   }, []);
 
-  const filtered = galleryData.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+  const filtered = galleryData.filter((item: any) => {
+    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -212,31 +198,73 @@ const GalleryGrid = () => {
           <p className="text-xs font-bold tracking-wider uppercase">Loading Gallery Projects...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className="group bg-white border border-[#E0D8C3] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-              onClick={() => setPreviewItem(item)}
-            >
-              <div className="relative h-52 overflow-hidden">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[10px] font-bold tracking-widest uppercase px-4 py-2 text-[#7C6A2E]">
-                    PREVIEW
-                  </span>
-                </div>
-              </div>
-              <div className="p-4">
-                <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{item.category} · {item.year}</span>
-                <p className="text-sm font-serif font-bold text-gray-900 mt-1">{item.title}</p>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {filtered.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-sm text-gray-500 font-light italic">
+              No cinematic projects found.
             </div>
-          ))}
+          ) : (
+            filtered.map((item) => (
+              <Link 
+                href={`/videographer/gallery/${item.id}`}
+                key={item.id}
+                className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
+              >
+                {/* Image Container with Absolute Badge */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
+                    {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "CINEMATOGRAPHY"}
+                  </div>
+                  
+                  {/* Portfolio Image */}
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                </div>
+
+                {/* Card Details Panel */}
+                <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
+                  <div>
+                    {/* Title */}
+                    <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
+                      {item.title}
+                    </h3>
+
+                    {/* Price Tag */}
+                    {item.price ? (
+                      <div className="inline-block bg-[#FDF9F1] border border-[#E0D8C3] px-3 py-1 mb-3">
+                        <span className="text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase">
+                          LKR {item.price.toLocaleString()}
+                        </span>
+                      </div>
+                    ) : null}
+
+                    {/* Description */}
+                    <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-2">
+                      {item.description || "A professionally captured project featuring cinematic storytelling."}
+                    </p>
+                  </div>
+
+                  {/* Bottom Panel */}
+                  <div className="flex items-center justify-between pt-4 border-t border-[#F2EDE0] text-[9px] font-bold tracking-[0.15em] uppercase">
+                    {/* Event Year */}
+                    <span className="text-gray-400">
+                      PREMIUM · {item.year}
+                    </span>
+
+                    {/* View Case Link */}
+                    <div className="flex items-center space-x-1.5 text-[#7C6A2E] group-hover:text-[#B08D2C] transition-colors">
+                      <span>DETAILS</span>
+                      <ArrowRight size={10} className="transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       )}
 
@@ -246,54 +274,6 @@ const GalleryGrid = () => {
           LOAD MORE PROJECTS
         </button>
       </div>
-
-      {/* Preview Modal */}
-      {previewItem && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={() => setPreviewItem(null)}
-        >
-          <div
-            className="bg-white max-w-2xl w-full shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative h-72">
-              <img
-                src={previewItem.image}
-                alt={previewItem.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                className="absolute top-3 right-3 bg-white p-1.5 shadow-sm hover:bg-gray-100 transition-colors"
-                onClick={() => setPreviewItem(null)}
-              >
-                <X size={16} className="text-gray-700" />
-              </button>
-            </div>
-            <div className="p-6">
-              <span className="text-[9px] font-bold tracking-widest text-[#A6955C] uppercase">{previewItem.category} · {previewItem.year}</span>
-              <h3 className="text-2xl font-serif font-bold text-gray-900 mt-2 mb-2">{previewItem.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {previewItem.description || `A professionally captured ${previewItem.category.toLowerCase()} project featuring cinematic storytelling.`}
-              </p>
-              <div className="flex gap-3 mt-5">
-                <button 
-                  onClick={() => router.push(`/videographer/gallery/edit/${previewItem.id}`)}
-                  className="flex-1 border border-[#E0D8C3] hover:bg-[#F2EADA] text-[#7C6A2E] py-2.5 text-xs font-bold tracking-widest transition-colors uppercase flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Edit3 size={14} /> EDIT
-                </button>
-                <button 
-                  onClick={() => handleDelete(previewItem.id)}
-                  className="flex-1 bg-[#93000a] hover:bg-[#7a0008] text-white py-2.5 text-xs font-bold tracking-widest transition-colors uppercase shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Trash2 size={14} /> DELETE
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
