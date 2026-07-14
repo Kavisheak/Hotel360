@@ -237,6 +237,12 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Style</div>
                   <div className="text-sm font-serif font-bold text-gray-800">{"Cinematic Film"}</div>
                 </div>
+                {item.price ? (
+                  <div className="col-span-2 pt-2 border-t border-[#F2EDE0]">
+                    <div className="text-[9px] font-bold tracking-widest text-[#B08D2C] uppercase mb-1">Project Value</div>
+                    <div className="text-lg font-serif font-bold text-gray-900">LKR {item.price.toLocaleString()}</div>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

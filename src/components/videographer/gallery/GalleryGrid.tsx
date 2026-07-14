@@ -14,6 +14,7 @@ interface GalleryItem {
   image: string;
   galleryImages?: string[];
   description?: string;
+  price?: number;
 }
 
 const mockGalleryData: GalleryItem[] = [
@@ -111,6 +112,7 @@ const GalleryGrid = () => {
               year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
               image: imageUrl,
               description: item.description || "A professionally captured project featuring cinematic storytelling.",
+              price: item.price || 0,
             };
           });
           setGalleryData(items);
@@ -227,12 +229,21 @@ const GalleryGrid = () => {
                 <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
                   <div>
                     {/* Title */}
-                    <h3 className="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-[#7C6A2E] transition-colors leading-tight">
+                    <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
                       {item.title}
                     </h3>
 
+                    {/* Price Tag */}
+                    {item.price ? (
+                      <div className="inline-block bg-[#FDF9F1] border border-[#E0D8C3] px-3 py-1 mb-3">
+                        <span className="text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase">
+                          LKR {item.price.toLocaleString()}
+                        </span>
+                      </div>
+                    ) : null}
+
                     {/* Description */}
-                    <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-3">
+                    <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-2">
                       {item.description || "A professionally captured project featuring cinematic storytelling."}
                     </p>
                   </div>

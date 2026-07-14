@@ -30,6 +30,7 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
   );
   const [description, setDescription] = useState(item.description || '');
   const [venue, setVenue] = useState(item.venue || '');
+  const [price, setPrice] = useState(item.price ? String(item.price) : '');
   const [category, setCategory] = useState(item.category || 'installations');
 
   const [services, setServices] = useState({
@@ -115,6 +116,7 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
       formData.append("eventDate", eventDate);
       formData.append("description", description);
       formData.append("venue", venue);
+      formData.append("price", price);
       formData.append("category", category);
       formData.append("isFeatured", String(isFeatured));
       formData.append("isPrivate", String(isPrivate));
@@ -225,7 +227,10 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
                   <option value="lighting">LIGHTING DESIGN</option>
                   <option value="stages">STAGE SETUPS</option>
                 </select>
-                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
+                <div className="flex gap-4">
+                  <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
+                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price (LKR)" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
