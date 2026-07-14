@@ -53,8 +53,6 @@ export default function CostBreakdown({
           </div>
         )}
 
-
-
         {costBreakdown.addonsCost > 0 && (
           <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
             <span>Vendors:</span>

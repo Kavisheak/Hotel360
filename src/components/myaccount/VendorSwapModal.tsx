@@ -45,7 +45,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
   const categoryMap: Record<string, string> = {
     decorator: "decorators",
     dj: "djs",
-    videographer: "others"
+    videographer: "videographers"
   };
   
   const mappedCategory = categoryMap[serviceCategory] || "decorators";

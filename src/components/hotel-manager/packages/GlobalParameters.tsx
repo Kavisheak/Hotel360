@@ -8,8 +8,6 @@ interface GlobalParametersProps {
   onDepositChange: (val: number) => void;
   taxRate: string;
   onTaxRateChange: (val: string) => void;
-  currency: string;
-  onCurrencyChange: (val: string) => void;
   enforcement: boolean;
   onEnforcementToggle: () => void;
 }
@@ -17,7 +15,6 @@ interface GlobalParametersProps {
 const GlobalParameters = ({
   deposit, onDepositChange,
   taxRate, onTaxRateChange,
-  currency, onCurrencyChange,
   enforcement, onEnforcementToggle
 }: GlobalParametersProps) => {
   return (
@@ -65,26 +62,6 @@ const GlobalParameters = ({
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
             %
           </span>
-        </div>
-      </div>
-
-      {/* Currency Display */}
-      <div className="mb-8">
-        <label className="block text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-3">
-          Currency Display
-        </label>
-        <div className="relative">
-          <select
-            value={currency}
-            onChange={(e) => onCurrencyChange(e.target.value)}
-            className="w-full border border-[#E0D8C3] px-4 py-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-[#B08D2C] appearance-none bg-white pr-10 cursor-pointer"
-          >
-            <option>USD ($) - US Dollar</option>
-            <option>EUR (€) - Euro</option>
-            <option>GBP (£) - British Pound</option>
-            <option>AED (د.إ) - UAE Dirham</option>
-          </select>
-          <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </div>
 

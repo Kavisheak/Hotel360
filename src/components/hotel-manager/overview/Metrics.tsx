@@ -31,15 +31,18 @@ const Metrics = () => {
     return `${val}`;
   };
 
+  const completedEvents = bookings.filter((b: any) => b.status === "Completed").length;
+
   const metrics = [
     { icon: <CalendarDays size={28} className="text-[#B08D2C]" />, label: 'Total Bookings',    value: isClient ? totalBookings.toString() : '...' },
     { icon: <Clock size={28}        className="text-[#4258af]" />, label: 'Pending Approvals', value: isClient ? pendingApprovals.toString() : '...'  },
     { icon: <CheckCircle2 size={28} className="text-[#7C6A2E]" />, label: 'Confirmed Events',  value: isClient ? confirmedEvents.toString() : '...'  },
-    { icon: <Wallet size={28}       className="text-[#735c00]" />, label: 'Confirmed Revenue',   value: isClient ? formatCurrency(monthlyRevenue) : '...' },
+    { icon: <CheckCircle2 size={28} className="text-gray-500" />,  label: 'Completed Events',  value: isClient ? completedEvents.toString() : '...' },
+    { icon: <Wallet size={28}       className="text-[#735c00]" />, label: 'Total Contract Value', value: isClient ? formatCurrency(monthlyRevenue) : '...' },
   ];
 
   return (
-  <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
     {metrics.map((m) => (
       <div
         key={m.label}
