@@ -143,13 +143,21 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
               {/* Card Details Panel */}
               <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
                 <div>
-                  {/* Title */}
-                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-[#7C6A2E] transition-colors leading-tight">
+                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
                     {item.title}
                   </h3>
 
+                  {/* Price Tag */}
+                  {item.price ? (
+                    <div className="inline-block bg-[#FDF9F1] border border-[#E0D8C3] px-3 py-1 mb-3">
+                      <span className="text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase">
+                        LKR {item.price.toLocaleString()}
+                      </span>
+                    </div>
+                  ) : null}
+
                   {/* Description */}
-                  <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-3">
+                  <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-2">
                     {item.description || "A high-energy live performance featuring seamless mixing and curated playlists."}
                   </p>
                 </div>
