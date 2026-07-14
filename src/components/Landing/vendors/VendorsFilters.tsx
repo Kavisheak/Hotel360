@@ -12,8 +12,8 @@ interface VendorsFiltersProps {
   setStyleFilter: (s: string) => void;
   settingFilter: string;
   setSettingFilter: (s: string) => void;
-  activeTab: "all" | "decorators" | "videographers" | "djs" | "photographers" | "cake" | "florists";
-  setActiveTab: (t: "all" | "decorators" | "videographers" | "djs" | "photographers" | "cake" | "florists") => void;
+  activeTab: "all" | "decorators" | "videographers" | "djs";
+  setActiveTab: (t: "all" | "decorators" | "videographers" | "djs") => void;
   filteredCount: number;
 }
 
@@ -128,10 +128,7 @@ export default function VendorsFilters({
             { id: "all", label: "All Portfolio Works" },
             { id: "decorators", label: "Floral & Stages" },
             { id: "videographers", label: "Cinematography" },
-            { id: "djs", label: "DJs & Entertainment" },
-            { id: "photographers", label: "Photographers" },
-            { id: "cake", label: "Cake Artisans" },
-            { id: "florists", label: "Florists" }
+            { id: "djs", label: "DJs & Entertainment" }
           ].map((tab) => (
             <button
               key={tab.id}

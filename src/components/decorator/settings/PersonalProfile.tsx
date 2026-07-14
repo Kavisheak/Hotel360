@@ -124,6 +124,7 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
+            {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
           </div>
 
           {/* Phone Number */}
@@ -138,6 +139,7 @@ const PersonalProfile = ({ formData, handleChange, user, setUser, errors = {} }:
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
+            {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
           </div>
 
           {/* Years of Experience */}

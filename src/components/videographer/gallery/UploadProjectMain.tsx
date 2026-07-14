@@ -40,6 +40,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
   // Form State
   const [projectTitle, setProjectTitle] = useState('');
   const [eventType, setEventType] = useState('Wedding Film');
+  const [culturalStyle, setCulturalStyle] = useState('Any');
   const [eventDate, setEventDate] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('');
@@ -87,6 +88,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
             if (item) {
               setProjectTitle(item.title || '');
               setEventType(item.eventType || 'Wedding Film');
+              setCulturalStyle(item.culturalStyle || 'Any');
               setEventDate(item.eventDate ? item.eventDate.substring(0, 10) : '');
               setDescription(item.description || '');
               setVenue(item.venue || '');
@@ -205,6 +207,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
       const formData = new FormData();
       formData.append("title", projectTitle);
       formData.append("eventType", eventType);
+      formData.append("culturalStyle", culturalStyle);
       formData.append("eventDate", eventDate);
       formData.append("description", description);
       formData.append("venue", venue);
@@ -521,6 +524,26 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                     <option>Anamorphic 2.35:1</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Cultural Style */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                  Cultural Style
+                </label>
+                <select
+                  value={culturalStyle}
+                  onChange={e => setCulturalStyle(e.target.value)}
+                  className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
+                >
+                  <option value="Any">Any / Not Specified</option>
+                  <option value="Tamil Traditional">Tamil Traditional</option>
+                  <option value="Sinhala Traditional">Sinhala Traditional</option>
+                  <option value="Muslim/Islamic">Muslim/Islamic</option>
+                  <option value="Christian/Catholic">Christian/Catholic</option>
+                  <option value="Western/Modern">Western/Modern</option>
+                  <option value="Fusion/Mixed">Fusion/Mixed</option>
+                </select>
               </div>
 
               {/* Description */}
