@@ -7,7 +7,7 @@ import { bookingAPI } from '../../../lib/api';
 const ReportMetrics = () => {
   const [metrics, setMetrics] = useState([
     {
-      title: 'Total Revenue',
+      title: 'Booked Contract Value',
       icon: <Banknote size={16} className="text-[#B08D2C]" />,
       value: 'LKR 0',
       trend: '+12.4% vs last year',
@@ -21,17 +21,17 @@ const ReportMetrics = () => {
       trendColor: 'text-gray-500',
     },
     {
-      title: 'Customer NPS',
+      title: 'Events Completed',
       icon: <Star size={16} className="text-[#B08D2C]" />,
-      value: '8.9/10',
-      trend: 'Top 5% Industry',
+      value: '0',
+      trend: 'Successfully delivered',
       trendColor: 'text-green-600',
     },
     {
-      title: 'Hall Utilization',
+      title: 'Active Bookings',
       icon: <PieChart size={16} className="text-[#7C6A2E]" />,
-      value: '78.4%',
-      trend: 'Peak season active',
+      value: '0',
+      trend: 'Upcoming & pending',
       trendColor: 'text-gray-800',
     },
   ]);
@@ -43,11 +43,19 @@ const ReportMetrics = () => {
         const bookings = res.data.data;
         let totalRevenue = 0;
         let validBookingsCount = 0;
+        let completedCount = 0;
+        let activeCount = 0;
 
         bookings.forEach((b: any) => {
           if (b.status !== "Cancelled" && b.status !== "Rejected") {
             totalRevenue += b.totalCost || 0;
             validBookingsCount++;
+            
+            if (b.status === "Completed") {
+              completedCount++;
+            } else if (b.status === "Confirmed" || b.status === "Pending") {
+              activeCount++;
+            }
           }
         });
 
@@ -62,7 +70,14 @@ const ReportMetrics = () => {
             ...prev[1],
             value: `LKR ${avgBooking.toLocaleString()}`,
           },
-          ...prev.slice(2),
+          {
+            ...prev[2],
+            value: `${completedCount}`,
+          },
+          {
+            ...prev[3],
+            value: `${activeCount}`,
+          },
         ]);
       }
     };
