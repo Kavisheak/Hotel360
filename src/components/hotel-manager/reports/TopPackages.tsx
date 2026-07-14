@@ -5,7 +5,7 @@ import { bookingAPI } from '../../../lib/api';
 
 const TopPackages = () => {
   const [packages, setPackages] = useState<any[]>([
-    { name: 'Loading...', bookings: '-', margin: '-', marginColor: 'text-gray-400' }
+    { name: 'Loading...', bookings: '-', revenue: '-' }
   ]);
 
   useEffect(() => {
@@ -26,18 +26,24 @@ const TopPackages = () => {
           }
         });
 
+        const formatCurrency = (val: number) => {
+          if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
+          if (val >= 100000) return `${(val / 100000).toFixed(1)}L`;
+          if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
+          return `${val}`;
+        };
+
         const sortedPackages = Object.keys(packageCounts)
           .map(name => ({
             name,
             bookings: packageCounts[name].count,
-            margin: '28%', // dynamic calculation can be added if cost structure exists
-            marginColor: 'text-green-600'
+            revenue: formatCurrency(packageCounts[name].totalCost),
           }))
           .sort((a, b) => b.bookings - a.bookings)
           .slice(0, 4);
 
         setPackages(sortedPackages.length > 0 ? sortedPackages : [
-            { name: 'No Bookings', bookings: 0, margin: '-', marginColor: 'text-gray-400' }
+            { name: 'No Bookings', bookings: 0, revenue: '-' }
         ]);
       }
     };
@@ -59,7 +65,7 @@ const TopPackages = () => {
           <tr>
             <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest">Package Name</th>
             <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center">Bookings</th>
-            <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-right">Profit Margin</th>
+            <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-right">Revenue Generated</th>
           </tr>
         </thead>
         <tbody>
@@ -73,7 +79,7 @@ const TopPackages = () => {
                 ))}
               </td>
               <td className="px-5 py-4 text-xs text-gray-600 text-center">{p.bookings}</td>
-              <td className={`px-5 py-4 text-xs font-bold text-right ${p.marginColor}`}>{p.margin}</td>
+              <td className="px-5 py-4 text-xs font-bold text-right text-green-600">{p.revenue !== '-' ? `LKR ${p.revenue}` : '-'}</td>
             </tr>
           ))}
         </tbody>
