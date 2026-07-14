@@ -32,10 +32,11 @@ export interface Booking {
   durationHours: number;
   extraHours: number;
   guests: number;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected";
+  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected" | "CancellationRequested";
   totalCost: number;
   depositAmount: number;
   balanceAmount: number;
+  bookingCredit?: number;
   packageId?: string;
   packageName: string;
   package?: string;

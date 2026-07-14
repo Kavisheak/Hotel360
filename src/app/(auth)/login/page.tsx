@@ -58,6 +58,32 @@ export default function AuthPage() {
     }
   }, [isLoading, user, router]);
 
+  useEffect(() => {
+    const handlePageShow = async (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        try {
+          const { ok, data } = await authAPI.getMe();
+          if (ok && data.user) {
+            useAuthStore.getState().updateUser(data.user);
+            const role = data.user.role.toLowerCase();
+            if      (role === "super_admin")   window.location.replace("/super-admin");
+            else if (role === "manager")       window.location.replace("/hotel-manager");
+            else if (role === "decorator")     window.location.replace("/decorator");
+            else if (role === "videographer")  window.location.replace("/videographer");
+            else if (role === "dj_artist")     window.location.replace("/dj-artist");
+            else                               window.location.replace("/");
+          } else {
+            useAuthStore.getState().clearUser();
+          }
+        } catch (e) {
+          useAuthStore.getState().clearUser();
+        }
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   if (isLoading || user) {
     return (
       <div className="bg-[#0A0A0A] min-h-screen flex items-center justify-center">

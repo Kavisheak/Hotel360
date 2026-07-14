@@ -66,13 +66,27 @@ export default function BookPage() {
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
+    photographer: string | null;
+    photographerPackage: string;
+    cake: string | null;
+    cakePackage: string;
+    florist: string | null;
+    floristPackage: string;
+  }>({ 
+    decorator: "none", 
   }>({
     decorator: "none",
     decoratorPackage: "none",
     dj: "none",
     djPackage: "none",
     videographer: "none",
-    videographerPackage: "none"
+    videographerPackage: "none",
+    photographer: "none",
+    photographerPackage: "none",
+    cake: "none",
+    cakePackage: "none",
+    florist: "none",
+    floristPackage: "none"
   });
 
   const [menu, setMenu] = useState<"signature" | "custom">(
@@ -91,25 +105,34 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
+    if (newVendors.photographer !== cartVendors.photographer) setStoreVendor("photographer", newVendors.photographer);
+    if (newVendors.cake !== cartVendors.cake) setStoreVendor("cake", newVendors.cake);
+    if (newVendors.florist !== cartVendors.florist) setStoreVendor("florist", newVendors.florist);
   };
 
   // Read URL params on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const preDecorator = searchParams.get("decorator");
-      const preDj = searchParams.get("dj");
-      const preVid = searchParams.get("videographer");
-      const prePackage = searchParams.get("package");
-
-      if (preDecorator || preDj || preVid) {
-        setVendors({
-          ...vendors,
-          decorator: preDecorator || "none",
-          dj: preDj || "none",
-          videographer: preVid || "none"
-        });
-      }
+      if (typeof window !== "undefined") {
+        const searchParams = new URLSearchParams(window.location.search);
+        const preDecorator = searchParams.get("decorator");
+        const preDj = searchParams.get("dj");
+        const preVid = searchParams.get("videographer");
+        const prePhoto = searchParams.get("photographer");
+        const preCake = searchParams.get("cake");
+        const preFlorist = searchParams.get("florist");
+        const prePackage = searchParams.get("package");
+  
+        if (preDecorator || preDj || preVid || prePhoto || preCake || preFlorist) {
+          setVendors({
+            ...vendors,
+            decorator: preDecorator || "none",
+            dj: preDj || "none",
+            videographer: preVid || "none",
+            photographer: prePhoto || "none",
+            cake: preCake || "none",
+            florist: preFlorist || "none"
+          });
+        }
 
       if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
         setSelectedPackage(prePackage);
@@ -130,9 +153,12 @@ export default function BookPage() {
     return 3500; // signature
   };
 
-  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
+  const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
     if (vendorId === "none" || vendorId === "custom_preference") return 0;
+    
+    if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
+      const pkgName = vendors[`${category}Package`];
 
     if (category === "decorator") {
       const pkgName = vendors[`decoratorPackage`];
@@ -148,7 +174,7 @@ export default function BookPage() {
       }
       return 0;
     } else {
-      // For DJ and Videographer, use startingPrice since they don't have package selection
+      // For DJ and Videographer, use startingPrice since they typically don't have package selection currently
       const v = globalVendors.find(v => v.id === vendorId);
       if (!v) return 0;
       const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
@@ -172,6 +198,14 @@ export default function BookPage() {
   const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
   const foodCost = guestCount * getMenuPricePerGuest();
   const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
+  
+  let addonsCost = 
+    getVendorCost("decorator") + 
+    getVendorCost("dj") + 
+    getVendorCost("videographer") + 
+    getVendorCost("photographer") + 
+    getVendorCost("cake") + 
+    getVendorCost("florist");
 
   let addonsCost = getVendorCost("decorator") + getVendorCost("dj") + getVendorCost("videographer");
 
@@ -210,6 +244,13 @@ export default function BookPage() {
       paymentMethod: contactInfo.paymentMethod,
       menuType: menu,
       customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
+      decoratorCost: getVendorCost("decorator"),
+      djCost: getVendorCost("dj"),
+      videographerCost: getVendorCost("videographer"),
+      photographerCost: getVendorCost("photographer"),
+      cakeCost: getVendorCost("cake"),
+      floristCost: getVendorCost("florist"),
+      totalCost: grandTotal,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
@@ -225,6 +266,21 @@ export default function BookPage() {
           vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
           status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : ""
+        },
+        photographer: {
+          vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
+          status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : ""
+        },
+        cake: {
+          vendorId: vendors.cake !== "none" ? vendors.cake : null,
+          status: vendors.cake !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : ""
+        },
+        florist: {
+          vendorId: vendors.florist !== "none" ? vendors.florist : null,
+          status: vendors.florist !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : ""
         }
       }
     };
@@ -244,29 +300,92 @@ export default function BookPage() {
     }
   };
 
-  const handleNext = () => {
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  useEffect(() => {
+    if (!holdExpiresAt) return;
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.round((holdExpiresAt - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining === 0) {
+        clearInterval(interval);
+        setHoldExpiresAt(null);
+        handleHoldExpired();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [holdExpiresAt, selectedDate]);
+
+  const handleHoldExpired = async () => {
+    alert("Your 10-minute event hold has expired. The date has been released. Returning to Step 1.");
+    if (selectedDate) {
+      const dateString = new Date(selectedDate).toISOString();
+      await customerBookingAPI.releaseHold({ date: dateString });
+    }
+    setCurrentStep(1);
+  };
+
+  const handleNext = async () => {
     if (isGuest) {
       setLoginModalOpen(true);
       return;
     }
-    if (currentStep === 1 && selectedDate === 0) {
-      setIsDateModalOpen(true);
-      return;
+    if (currentStep === 1) {
+      if (selectedDate === 0) {
+        setIsDateModalOpen(true);
+        return;
+      }
+      try {
+        const dateString = new Date(selectedDate).toISOString();
+        const res = await customerBookingAPI.createHold({ date: dateString });
+        const data = res.data;
+        if (res.ok && data.success) {
+          const expiresAt = new Date(data.expiresAt).getTime();
+          setHoldExpiresAt(expiresAt);
+          setTimeLeft(Math.max(0, Math.round((expiresAt - Date.now()) / 1000)));
+        } else {
+          alert(data.message || "This date is currently held by another user. Please choose another date.");
+          return;
+        }
+      } catch (e) {
+        alert("Failed to secure temporary hold. Please try again.");
+        return;
+      }
     }
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setCurrentStep(prev => Math.min(prev + 1, 3));
   };
 
-  const handleStepClick = (step: number) => {
+  const handleStepClick = async (step: number) => {
     if (isGuest) {
       setLoginModalOpen(true);
       return;
     }
     if (step < currentStep) {
+      if ((currentStep === 2 || currentStep === 3) && step === 1) {
+        setHoldExpiresAt(null);
+        setTimeLeft(0);
+        if (selectedDate) {
+          const dateString = new Date(selectedDate).toISOString();
+          await customerBookingAPI.releaseHold({ date: dateString }).catch(console.error);
+        }
+      }
       setCurrentStep(step);
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+    if (currentStep === 2 || currentStep === 3) {
+      setHoldExpiresAt(null);
+      setTimeLeft(0);
+      try {
+        const dateString = new Date(selectedDate).toISOString();
+        await customerBookingAPI.releaseHold({ date: dateString });
+      } catch (e) {
+        console.error("Failed to release hold on back navigation:", e);
+      }
+    }
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
@@ -306,6 +425,21 @@ export default function BookPage() {
               <BookingHistory />
             ) : (
               <>
+                {holdExpiresAt && timeLeft > 0 && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 px-4 py-3 rounded-sm flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-6 animate-pulse">
+                    <span>⚠️ Temporary reservation active. Secure your event date before the hold expires!</span>
+                    <span className="font-mono text-sm bg-[#C69C6D] text-white px-2 py-1 rounded-sm">
+                      {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                    </span>
+                  </div>
+                )}
+
+                {/* Stepper Indicator */}
+                <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
+                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
+                  {[1, 2, 3].map((step) => (
+                    <div 
+                      key={step} 
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
                   <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
@@ -319,6 +453,9 @@ export default function BookPage() {
                         {step}
                       </div>
                       <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
+                        {step === 1 && "Design & Vendors"}
+                        {step === 2 && "Review"}
+                        {step === 3 && "Pay"}
                         {step === 1 && "Event Details"}
                         {step === 2 && "Vendors"}
                         {step === 3 && "Menu"}
@@ -333,6 +470,7 @@ export default function BookPage() {
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
                       <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
+                      <select 
                       <select
                         value={eventType}
                         onChange={(e) => setEventType(e.target.value)}
@@ -349,6 +487,81 @@ export default function BookPage() {
                     <div className="h-px bg-[#D4C9A8] w-full"></div>
                     <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                     <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <TimeRangeSelector 
+                      startTime={startTime} 
+                      endTime={endTime} 
+                      onChange={(start, end) => {
+                        setStartTime(start);
+                        setEndTime(end);
+                      }} 
+                    />
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
+                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <BookingVendorSelector vendors={vendors} onChange={setVendors} />
+                  </div>
+                )}
+
+                {/* Step 2: Booking Review */}
+                {currentStep === 2 && (
+                  <div className="space-y-6 animate-fadeIn bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
+                    <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Event Date:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">
+                          {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Timeslot & Duration:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Guests & Catering:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests • {menu} Menu</span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Venue Package:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Selected Artisans:</span>
+                        <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
+                          <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
+                          <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
+                          <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                      <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
+                        • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
+                        • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
+                        • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4">
+                      <input 
+                        type="checkbox" 
+                        id="termsAgree" 
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
+                      />
+                      <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
+                        I review and agree to the EASCC Cancellation Cutoff Policy and Event Booking Terms.
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Checkout */}
+                {currentStep === 3 && (
                     <TimeRangeSelector
                       startTime={startTime}
                       endTime={endTime}
@@ -388,6 +601,7 @@ export default function BookPage() {
                 {/* Navigation Buttons */}
                 <div className="flex items-center justify-between pt-8">
                   {currentStep > 1 ? (
+                    <button 
                     <button
                       onClick={handleBack}
                       className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
@@ -396,6 +610,15 @@ export default function BookPage() {
                     </button>
                   ) : <div></div>}
 
+                  {currentStep < 3 && (
+                    <button 
+                      onClick={handleNext}
+                      disabled={currentStep === 2 && !termsAccepted}
+                      className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
+                        currentStep === 2 && !termsAccepted 
+                          ? 'bg-gray-400 cursor-not-allowed opacity-50' 
+                          : 'bg-[#C69C6D] hover:bg-[#B58B5C]'
+                      }`}
                   {currentStep < 4 && (
                     <button
                       onClick={handleNext}
@@ -405,6 +628,7 @@ export default function BookPage() {
                     </button>
                   )}
                 </div>
+            </>
               </>
             )}
 

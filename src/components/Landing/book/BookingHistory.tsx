@@ -18,6 +18,9 @@ interface Booking {
   packageName?: string;
   menuType?: string;
   paymentMethod?: string;
+  depositAmount?: number;
+  balanceAmount?: number;
+  bookingCredit?: number;
   vendors?: {
     decorator?: { status: string };
     dj?: { status: string };
@@ -124,6 +127,38 @@ export default function BookingHistory() {
       alert("An error occurred while swapping vendor.");
     } finally {
       setIsSwapping(false);
+    }
+  };
+
+  const handleCancelClick = async (booking: Booking) => {
+    const today = new Date();
+    const eventDate = new Date(booking.date);
+    const diffTime = eventDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let confirmMsg = "";
+    if (diffDays < 14) {
+      alert("This event is less than 14 days away and cannot be cancelled online. Please contact the hotel directly.");
+      return;
+    } else if (diffDays >= 14 && diffDays <= 30) {
+      confirmMsg = `Your event is ${diffDays} days away. Cancellation requires review and approval by the Hotel Manager. Would you like to submit a cancellation request?`;
+    } else {
+      confirmMsg = `Your event is ${diffDays} days away. Are you sure you want to cancel this booking? This will cancel all hall and vendor allocations immediately.`;
+    }
+
+    if (confirm(confirmMsg)) {
+      try {
+        const res = await customerBookingAPI.cancelBooking(booking._id);
+        const data = res.data;
+        if (res.ok && data.success) {
+          alert(data.message || "Action processed successfully!");
+          await fetchBookings();
+        } else {
+          alert(data.message || "Failed to process cancellation request.");
+        }
+      } catch (e) {
+        alert("An error occurred while processing cancellation.");
+      }
     }
   };
 
@@ -437,6 +472,44 @@ export default function BookingHistory() {
                         <div className="border-t border-[#E8DFC9] dark:border-gray-800 pt-3 mt-3 flex justify-between font-serif text-lg">
                           <span className="text-[#1A1512] dark:text-white">Total</span>
                           <span className="text-[#C69C6D]">LKR {booking.totalCost?.toLocaleString()}</span>
+                        </div>
+                        
+                        <div className="pt-3 border-t border-dashed border-[#E8DFC9] dark:border-gray-800 text-xs space-y-1.5 text-gray-500 dark:text-gray-400">
+                          <div className="flex justify-between">
+                            <span>Deposit (30%):</span>
+                            <span className={booking.depositAmount && booking.depositAmount > 0 ? "text-green-600 font-bold" : "text-amber-600 font-bold"}>
+                              {booking.depositAmount && booking.depositAmount > 0 
+                                ? `Paid: LKR ${booking.depositAmount.toLocaleString()}` 
+                                : `Pending: LKR ${(booking.totalCost * 0.3).toLocaleString()}`
+                              }
+                            </span>
+                          </div>
+                          
+                          {booking.bookingCredit && booking.bookingCredit > 0 ? (
+                            <div className="flex justify-between font-bold text-emerald-600">
+                              <span>Booking Credit:</span>
+                              <span>LKR {booking.bookingCredit.toLocaleString()}</span>
+                            </div>
+                          ) : null}
+
+                          <div className="flex justify-between">
+                            <span>Remaining Balance:</span>
+                            <span className={booking.balanceAmount && booking.balanceAmount > 0 ? "text-green-600 font-bold" : "text-amber-600 font-bold"}>
+                              {booking.balanceAmount && booking.balanceAmount > 0 
+                                ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
+                                : `Pending: LKR ${Math.max(0, booking.totalCost - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0)).toLocaleString()}`
+                              }
+                            </span>
+                          </div>
+
+                          {booking.status !== "Completed" && booking.status !== "Cancelled" && booking.status !== "CancellationRequested" && (
+                            <button 
+                              onClick={() => handleCancelClick(booking)}
+                              className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded text-[10px] uppercase tracking-widest font-bold transition-colors shadow-sm text-center"
+                            >
+                              Cancel Booking
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
