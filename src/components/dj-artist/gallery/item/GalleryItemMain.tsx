@@ -39,17 +39,24 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
       const { djAPI } = await import('@/lib/api');
       
       const resItem = await djAPI.getGalleryItems();
+      let foundItem = null;
       if (resItem.ok && resItem.data?.data) {
-        const found = resItem.data.data.find((i: any) => i._id === itemId);
-        setItem(found);
+        foundItem = resItem.data.data.find((i: any) => i._id === itemId);
+        setItem(foundItem);
       }
 
-      const resRatings = await djAPI.getRatings();
-      if (resRatings.ok && resRatings.data?.data) {
-        setReviews(resRatings.data.data.reviews || []);
-        if (resRatings.data.data.stats) {
-          setStats(resRatings.data.data.stats);
+      // Fetch specific rating for this project if it was auto-created from a booking
+      if (foundItem && foundItem.bookingId) {
+        const resRatings = await djAPI.getRatings();
+        if (resRatings.ok && resRatings.data?.data) {
+          const allReviews = resRatings.data.data.reviews || [];
+          const specificReview = allReviews.find((r: any) => 
+            r.bookingId === foundItem.bookingId || r.bookingId?._id === foundItem.bookingId
+          );
+          setReviews(specificReview ? [specificReview] : []);
         }
+      } else {
+        setReviews([]);
       }
 
     } catch (e) {
@@ -261,20 +268,21 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
           </div>
         )}
 
-        {/* Client Review Section - DYNAMIC */}
-        <div className="bg-[#FCFAED] border-t border-[#E0D8C3] py-16 lg:py-24">
-          <div className="max-w-5xl mx-auto px-6 sm:px-8">
-            <h3 className="text-center text-sm font-bold tracking-[0.2em] text-[#A6955C] uppercase mb-12 flex items-center justify-center gap-4">
-              <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
-              Excellence Reflected
-              <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
-            </h3>
+        {/* Client Review Section - DYNAMIC (Only shows if this project has a review) */}
+        {reviews.length > 0 && (
+          <div className="bg-[#FCFAED] border-t border-[#E0D8C3] py-16 lg:py-24">
+            <div className="max-w-5xl mx-auto px-6 sm:px-8">
+              <h3 className="text-center text-sm font-bold tracking-[0.2em] text-[#A6955C] uppercase mb-12 flex items-center justify-center gap-4">
+                <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
+                Client Feedback for this Project
+                <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
+              </h3>
 
-            <RatingsStats stats={stats} />
-            <RecentFeedback reviews={reviews} />
+              <RecentFeedback reviews={reviews} />
 
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
       <Footer />

@@ -82,7 +82,7 @@ const mockGalleryData: GalleryItem[] = [
   },
 ];
 
-const categories = ["All", "Wedding Videos", "Pre-Shoot Projects", "Engagement Sessions", "Event Highlights"];
+const categories = ["All", "Wedding Film", "Engagement Session", "Corporate Event", "Pre-Wedding Shoot", "Event Highlight Reel", "Anniversary Film", "Cinematic Story"];
 
 const GalleryGrid = () => {
   const router = useRouter();
@@ -106,6 +106,7 @@ const GalleryGrid = () => {
             return {
               id: item._id,
               title: item.title || "Untitled Project",
+              eventType: item.eventType || "Unknown",
               category: item.category || "cinematography",
               year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
               image: imageUrl,
@@ -124,8 +125,8 @@ const GalleryGrid = () => {
     fetchPortfolio();
   }, []);
 
-  const filtered = galleryData.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+  const filtered = galleryData.filter((item: any) => {
+    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });

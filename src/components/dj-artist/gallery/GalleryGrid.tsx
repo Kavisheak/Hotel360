@@ -9,7 +9,7 @@ import { getImageUrl } from "@/lib/utils";
 import RatingsStats from "../ratings/RatingsStats";
 import RecentFeedback from "../ratings/RecentFeedback";
 
-const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena"];
+const categories = ["All", "Wedding Reception", "Club Night", "Corporate Gala", "Private Party", "Festival / Arena", "Birthday Celebration"];
 
 interface GalleryGridProps {
   items: any[];
@@ -23,7 +23,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = items.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
     const itemTitle = item.title || "";
     const matchesSearch = itemTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
