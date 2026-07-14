@@ -8,6 +8,7 @@ import {
   Music, Camera, Paintbrush
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
+import { customerBookingAPI } from "@/lib/api";
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
 
 export default function BookingDetailsModal({ isOpen, onClose, booking }: BookingDetailsModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState<"deposit" | "balance" | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -35,11 +38,30 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   if (!mounted || !isOpen || !booking) return null;
 
+  const handlePayment = async (type: "deposit" | "balance") => {
+    setIsPaying(true);
+    const res = await customerBookingAPI.recordPayment(booking._id || booking.id!, { paymentType: type });
+    setIsPaying(false);
+    if (res.ok) {
+      alert(`${type === "deposit" ? "30% Advance" : "70% Balance"} paid successfully!`);
+      window.location.reload();
+    } else {
+      alert(res.data?.message || "Payment failed. Please try again.");
+    }
+  };
+
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
   const statusKey = booking.status ? booking.status.toLowerCase() : "pending";
   const status = STATUS_STYLES[statusKey] || STATUS_STYLES.pending;
 
   const createdDate = new Date(booking.createdAt || new Date());
+  
+  const balanceDue = (booking.totalCost || 0) - (booking.depositAmount || 0) - (booking.balanceAmount || 0);
+
+  const eventDate = new Date(booking.date);
+  const deadlineDate = new Date(eventDate);
+  deadlineDate.setDate(deadlineDate.getDate() - 14);
+  const deadlineString = deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   
   return createPortal(
     <AnimatePresence>
@@ -311,15 +333,72 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       </div>
                       <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
                         <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">Balance Due</span>
-                        <span className="font-bold text-red-500">{formatCurrency(booking.balanceAmount)}</span>
+                        <span className={`font-bold ${balanceDue > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                          {balanceDue > 0 ? formatCurrency(balanceDue) : "PAID IN FULL"}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {booking.balanceAmount > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" && (
-                    <button className="w-full mt-4 bg-[#C9A84C] text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-[#B58A59] transition-colors flex items-center justify-center gap-2 shadow-sm">
-                      <CreditCard className="w-4 h-4" /> Pay Balance
-                    </button>
+                  {showPaymentForm ? (
+                    <div className="mt-6 bg-[#FDFBF7] dark:bg-[#1A1A1A] p-4 rounded border border-[#E8DFC9] dark:border-[#C9A84C]/30 animate-fadeIn">
+                      <h4 className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-4">Secure Payment</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Card Number</label>
+                          <input type="text" placeholder="0000 0000 0000 0000" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={19} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Expiry</label>
+                            <input type="text" placeholder="MM/YY" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={5} />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">CVV</label>
+                            <input type="password" placeholder="***" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={4} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex gap-3">
+                        <button 
+                          onClick={() => setShowPaymentForm(null)}
+                          disabled={isPaying}
+                          className="flex-1 py-2.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => handlePayment(showPaymentForm)}
+                          disabled={isPaying}
+                          className="flex-1 py-2.5 bg-emerald-600 text-white rounded text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          {isPaying ? 'Processing...' : 'Confirm & Pay'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {(!booking.depositAmount || booking.depositAmount === 0) ? (
+                        <button 
+                          onClick={() => setShowPaymentForm("deposit")}
+                          className="w-full mt-4 bg-emerald-600 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <CreditCard className="w-4 h-4" /> Pay 30% Advance ({formatCurrency((booking.totalCost || 0) * 0.3)})
+                        </button>
+                      ) : booking.depositAmount > 0 && balanceDue > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" ? (
+                        <div className="mt-4">
+                          <button 
+                            onClick={() => setShowPaymentForm("balance")}
+                            className="w-full bg-emerald-600 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                          >
+                            <CreditCard className="w-4 h-4" /> Pay 70% Balance ({formatCurrency(balanceDue)})
+                          </button>
+                          <p className="text-center text-[10px] text-gray-500 mt-2">
+                            Payment deadline is <strong className="text-red-500">{deadlineString}</strong> (14 days before event).
+                          </p>
+                        </div>
+                      ) : null}
+                    </>
                   )}
                 </div>
 

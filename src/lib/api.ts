@@ -277,6 +277,11 @@ export const customerBookingAPI = {
       body: JSON.stringify(body),
     }),
   getAvailability: () => apiFetch("/api/customer/bookings/availability"),
+  recordPayment: (id: string, body: any) =>
+    apiFetch(`/api/customer/bookings/${id}/payment`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const vendorAPI = {

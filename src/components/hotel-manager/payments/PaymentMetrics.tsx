@@ -2,13 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, Clock, TrendingUp } from 'lucide-react';
-import { paymentAPI } from '../../../lib/api';
+import { paymentAPI, bookingAPI } from '../../../lib/api';
 
 const PaymentMetrics = () => {
   const [metrics, setMetrics] = useState({
     monthlyRevenue: 0,
-    pendingCash: 0,
-    pendingCount: 0,
+    outstandingBalance: 0,
     forecast: 0,
     growthStr: "+0% vs last month",
     isPositive: true,
@@ -24,12 +23,14 @@ const PaymentMetrics = () => {
 
   useEffect(() => {
     const fetchMetrics = async () => {
-      const res = await paymentAPI.getAllPayments();
-      if (res.ok) {
-        const payments = res.data.data;
+      const [paymentsRes, bookingsRes] = await Promise.all([
+        paymentAPI.getAllPayments(),
+        bookingAPI.getAllBookings()
+      ]);
+
+      if (paymentsRes.ok) {
+        const payments = paymentsRes.data.data;
         let revenue = 0;
-        let pending = 0;
-        let pendingCount = 0;
 
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
@@ -50,11 +51,20 @@ const PaymentMetrics = () => {
                        (month === currentMonth - 1 && year === currentYear)) {
               lastMonthRevenue += p.amount;
             }
-          } else if (p.paymentStatus === "Pending") {
-            pending += p.amount;
-            pendingCount++;
           }
         });
+
+        let bookedContractValue = 0;
+        if (bookingsRes.ok) {
+          const bookings = bookingsRes.data.data;
+          bookings.forEach((b: any) => {
+            if (b.status !== "Cancelled" && b.status !== "Rejected") {
+              bookedContractValue += b.totalCost || 0;
+            }
+          });
+        }
+
+        const outstandingBalance = Math.max(0, bookedContractValue - revenue);
 
         // Calculate growth
         let growthStr = "+0% vs last month";
@@ -73,8 +83,7 @@ const PaymentMetrics = () => {
 
         setMetrics({
           monthlyRevenue: revenue,
-          pendingCash: pending,
-          pendingCount: pendingCount,
+          outstandingBalance: outstandingBalance,
           forecast: revenue > 0 ? revenue * 12 : 512000,
           growthStr,
           isPositive,
@@ -87,11 +96,11 @@ const PaymentMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-    {/* Monthly Revenue */}
+    {/* Cash Collected */}
     <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays size={18} className="text-[#B08D2C]" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Revenue</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Cash Collected</p>
       </div>
       <p className="text-2xl font-serif font-semibold text-gray-800">{formatCurrency(metrics.monthlyRevenue)}</p>
       <p className={`text-[10px] font-semibold mt-1.5 tracking-wide ${metrics.isPositive ? 'text-green-600' : 'text-red-500'}`}>
@@ -99,14 +108,14 @@ const PaymentMetrics = () => {
       </p>
     </div>
 
-    {/* Pending Cash */}
+    {/* Outstanding Balance */}
     <div className="bg-white border border-[#E0D8C3] rounded-xl p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <Clock size={18} className="text-[#4258af]" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pending Cash</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Outstanding Balance</p>
       </div>
-      <p className="text-2xl font-serif font-semibold text-gray-800">{formatCurrency(metrics.pendingCash)}</p>
-      <p className="text-[10px] font-semibold text-gray-400 mt-1.5 tracking-widest uppercase">{metrics.pendingCount} Pending Requests</p>
+      <p className="text-2xl font-serif font-semibold text-gray-800">{formatCurrency(metrics.outstandingBalance)}</p>
+      <p className="text-[10px] font-semibold text-gray-400 mt-1.5 tracking-widest uppercase">Waiting for payment</p>
     </div>
 
     {/* Annual Forecast — dark gold card */}
