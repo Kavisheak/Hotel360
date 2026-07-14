@@ -72,8 +72,6 @@ export default function BookPage() {
     cakePackage: string;
     florist: string | null;
     floristPackage: string;
-  }>({ 
-    decorator: "none", 
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -156,9 +154,6 @@ export default function BookPage() {
   const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
     if (vendorId === "none" || vendorId === "custom_preference") return 0;
-    
-    if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
-      const pkgName = vendors[`${category}Package`];
 
     if (category === "decorator") {
       const pkgName = vendors[`decoratorPackage`];
@@ -199,15 +194,13 @@ export default function BookPage() {
   const foodCost = guestCount * getMenuPricePerGuest();
   const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
   
-  let addonsCost = 
-    getVendorCost("decorator") + 
-    getVendorCost("dj") + 
-    getVendorCost("videographer") + 
-    getVendorCost("photographer") + 
-    getVendorCost("cake") + 
+  let addonsCost =
+    getVendorCost("decorator") +
+    getVendorCost("dj") +
+    getVendorCost("videographer") +
+    getVendorCost("photographer") +
+    getVendorCost("cake") +
     getVendorCost("florist");
-
-  let addonsCost = getVendorCost("decorator") + getVendorCost("dj") + getVendorCost("videographer");
 
   if (menu === "custom") {
     // Add cost of selected custom menu items * guest count
@@ -437,12 +430,6 @@ export default function BookPage() {
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
                   <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
-                  {[1, 2, 3].map((step) => (
-                    <div 
-                      key={step} 
-                {/* Stepper Indicator */}
-                <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
-                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
                   {[1, 2, 3, 4].map((step) => (
                     <div
                       key={step}
@@ -470,7 +457,6 @@ export default function BookPage() {
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
                       <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
-                      <select 
                       <select
                         value={eventType}
                         onChange={(e) => setEventType(e.target.value)}
@@ -562,6 +548,7 @@ export default function BookPage() {
 
                 {/* Step 3: Checkout */}
                 {currentStep === 3 && (
+                  <div className="space-y-8 animate-fadeIn">
                     <TimeRangeSelector
                       startTime={startTime}
                       endTime={endTime}
@@ -601,7 +588,6 @@ export default function BookPage() {
                 {/* Navigation Buttons */}
                 <div className="flex items-center justify-between pt-8">
                   {currentStep > 1 ? (
-                    <button 
                     <button
                       onClick={handleBack}
                       className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
@@ -610,25 +596,20 @@ export default function BookPage() {
                     </button>
                   ) : <div></div>}
 
-                  {currentStep < 3 && (
-                    <button 
-                      onClick={handleNext}
-                      disabled={currentStep === 2 && !termsAccepted}
-                      className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
-                        currentStep === 2 && !termsAccepted 
-                          ? 'bg-gray-400 cursor-not-allowed opacity-50' 
-                          : 'bg-[#C69C6D] hover:bg-[#B58B5C]'
-                      }`}
                   {currentStep < 4 && (
                     <button
                       onClick={handleNext}
-                      className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
+                      disabled={currentStep === 2 && !termsAccepted}
+                      className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
+                        currentStep === 2 && !termsAccepted
+                          ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                          : 'bg-[#C69C6D] hover:bg-[#B58B5C]'
+                      }`}
                     >
                       Next Step &rarr;
                     </button>
                   )}
                 </div>
-            </>
               </>
             )}
 
