@@ -3,23 +3,21 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, Tag, Share2, Heart, Edit2, Trash2, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ArrowLeft, MapPin, Tag, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Footer from '../../my_jobs/Footer';
-import EditPortfolioModal from './EditPortfolioModal';
 import RatingsStats from '../../ratings/RatingsStats';
 import RecentFeedback from '../../ratings/RecentFeedback';
 
-interface PortfolioItemMainProps {
+interface GalleryItemMainProps {
   itemId: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
+const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Dynamic Ratings state
@@ -38,10 +36,9 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
 
   const fetchItem = async () => {
     try {
-      const { decoratorAPI } = await import('@/lib/api');
+      const { djAPI } = await import('@/lib/api');
       
-      // Fetch portfolio item
-      const resItem = await decoratorAPI.getPortfolioItems();
+      const resItem = await djAPI.getGalleryItems();
       let foundItem = null;
       if (resItem.ok && resItem.data?.data) {
         foundItem = resItem.data.data.find((i: any) => i._id === itemId);
@@ -50,7 +47,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
 
       // Fetch specific rating for this project if it was auto-created from a booking
       if (foundItem && foundItem.bookingId) {
-        const resRatings = await decoratorAPI.getRatings();
+        const resRatings = await djAPI.getRatings();
         if (resRatings.ok && resRatings.data?.data) {
           const allReviews = resRatings.data.data.reviews || [];
           const specificReview = allReviews.find((r: any) => 
@@ -74,13 +71,13 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
     
     setIsDeleting(true);
     try {
-      const { decoratorAPI } = await import('@/lib/api');
-      const res = await decoratorAPI.deletePortfolioItem(itemId);
+      const { djAPI } = await import('@/lib/api');
+      const res = await djAPI.deleteGalleryItem(itemId);
       if (res.ok) {
         alert("Masterpiece deleted successfully.");
-        router.push('/decorator/portfolio');
+        router.push('/dj-artist/gallery');
       } else {
-        alert(res.data?.message || 'Failed to delete portfolio item');
+        alert(res.data?.message || 'Failed to delete gallery item');
         setIsDeleting(false);
       }
     } catch (e) {
@@ -109,7 +106,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
   const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
   const getMediaUrl = (url: string) => url.startsWith("http") ? url : `${API_URL}${url}`;
 
-  // Gallery images (excluding cover if desired, or all images)
+  // Gallery images
   const galleryImages = item.media?.map((m: any) => getMediaUrl(m.url)) || [];
   const displayUrl = galleryImages.length > 0 ? galleryImages[currentImageIndex] : "https://via.placeholder.com/1200x800";
 
@@ -128,7 +125,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
         {/* Navigation Bar */}
         <div className="px-6 sm:px-8 lg:px-12 py-6 flex justify-between items-center border-b border-[#E0D8C3] bg-white sticky top-0 z-20">
           <Link 
-            href="/decorator/portfolio" 
+            href="/dj-artist/gallery" 
             className="flex items-center space-x-2 text-[10px] font-bold tracking-widest text-gray-500 hover:text-[#7C6A2E] uppercase transition-colors cursor-pointer"
           >
             <ArrowLeft size={14} />
@@ -136,7 +133,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
           </Link>
           <div className="flex items-center space-x-4">
             <button 
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => router.push(`/dj-artist/gallery/edit/${item._id}`)}
               className="flex items-center space-x-2 text-[10px] font-bold tracking-widest text-[#B08D2C] hover:text-[#7C6A2E] uppercase transition-colors cursor-pointer"
             >
               <Edit2 size={12} />
@@ -184,7 +181,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
 
           <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12 lg:p-16 max-w-6xl mx-auto w-full flex flex-col justify-end pointer-events-none">
             <div className="inline-block bg-[#7C6A2E] text-white px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] uppercase mb-4 self-start shadow-md">
-              {item.servicesProvided?.[0]?.replace(/([A-Z])/g, ' $1').toUpperCase() || "PORTFOLIO"}
+              {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "PERFORMANCE"}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-bold text-white leading-tight mb-4 tracking-tight drop-shadow-md pointer-events-auto">
               {item.title}
@@ -192,7 +189,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
             <div className="flex flex-wrap items-center gap-6 text-white/90 text-[10px] sm:text-xs font-bold tracking-widest uppercase drop-shadow pointer-events-auto">
               <div className="flex items-center space-x-2">
                 <MapPin size={14} />
-                <span>{item.venue || 'Elite Client Venue'}</span>
+                <span>{item.venue || 'Elite Venue'}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Tag size={14} />
@@ -214,7 +211,7 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
                 {item.title}
               </h3>
               <p className="text-base sm:text-lg font-serif text-gray-600 leading-relaxed text-justify whitespace-pre-wrap">
-                {item.description}
+                {item.description || `A high-energy live performance featuring seamless mixing, curated playlists, and an unforgettable atmosphere tailored to the occasion.`}
               </p>
             </div>
           </div>
@@ -227,19 +224,19 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
               <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                 <div>
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Location</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{item.venue || 'Elite Client Venue'}</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{item.venue || 'Elite Venue'}</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Event Type</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{item.eventType || "Grand Gala"}</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{item.category || "Performance"}</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Date</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{new Date(item.eventDate).toLocaleDateString() || "Ongoing"}</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : "2026"}</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Style</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{item.servicesProvided?.[0]?.replace(/([A-Z])/g, ' $1') || "Premium"}</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{"Live DJ Set"}</div>
                 </div>
               </div>
             </div>
@@ -247,27 +244,29 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
         </div>
 
         {/* Gallery Section */}
-        <div className="bg-white border-t border-[#E0D8C3] py-16 lg:py-24">
-          <div className="max-w-7xl mx-auto px-6 sm:px-8">
-            <h3 className="text-center text-sm font-bold tracking-[0.2em] text-[#A6955C] uppercase mb-12 flex items-center justify-center gap-4">
-              <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
-              Visual Journey
-              <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {galleryImages.map((src: string, idx: number) => (
-                <div key={idx} onClick={() => setCurrentImageIndex(idx)} className={`aspect-square relative overflow-hidden group cursor-pointer border shadow-sm transition-all ${currentImageIndex === idx ? 'border-[#B08D2C] scale-[0.98] ring-2 ring-[#F9DD76]/50' : 'border-[#F2EDE0] hover:border-[#B08D2C]/50'}`}>
-                  <img 
-                    src={src} 
-                    alt={`Gallery perspective ${idx + 1}`} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                </div>
-              ))}
+        {galleryImages.length > 0 && (
+          <div className="bg-white border-t border-[#E0D8C3] py-16 lg:py-24">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8">
+              <h3 className="text-center text-sm font-bold tracking-[0.2em] text-[#A6955C] uppercase mb-12 flex items-center justify-center gap-4">
+                <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
+                Visual Journey
+                <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {galleryImages.map((src: string, idx: number) => (
+                  <div key={idx} onClick={() => setCurrentImageIndex(idx)} className={`aspect-square relative overflow-hidden group cursor-pointer border shadow-sm transition-all ${currentImageIndex === idx ? 'border-[#B08D2C] scale-[0.98] ring-2 ring-[#F9DD76]/50' : 'border-[#F2EDE0] hover:border-[#B08D2C]/50'}`}>
+                    <img 
+                      src={src} 
+                      alt={`Gallery perspective ${idx + 1}`} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Client Review Section - DYNAMIC (Only shows if this project has a review) */}
         {reviews.length > 0 && (
@@ -279,7 +278,6 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
                 <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
               </h3>
 
-              {/* Dynamic Recent Feedback Component (Single Review) */}
               <RecentFeedback reviews={reviews} />
 
             </div>
@@ -288,21 +286,8 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
 
       </div>
       <Footer />
-      
-      {isEditModalOpen && (
-        <EditPortfolioModal 
-          item={item} 
-          onClose={() => setIsEditModalOpen(false)} 
-          onSuccess={() => {
-            setIsEditModalOpen(false);
-            setLoading(true);
-            fetchItem(); // Refresh the data
-          }} 
-        />
-      )}
     </div>
   );
 };
 
-
-export default PortfolioItemMain;
+export default GalleryItemMain;
