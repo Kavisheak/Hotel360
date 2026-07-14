@@ -93,7 +93,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       if (res.ok) {
         setUploaded(true);
         setSuccessDetails("Photos uploaded successfully.");
-        onRefresh();
+        onRefresh?.();
       } else {
         setErrorDetails(res.data?.message || "Failed to upload photos.");
       }
@@ -121,7 +121,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       const res = await decoratorAPI.updateBookingStatus(booking._id, "Completed");
       if (res.ok) {
         setSuccessDetails("Job marked as complete. The manager has been notified.");
-        onRefresh();
+        onRefresh?.();
       } else {
         setErrorDetails(res.data?.message || "Failed to mark as complete.");
       }

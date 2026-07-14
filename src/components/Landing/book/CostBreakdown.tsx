@@ -66,19 +66,32 @@ export default function CostBreakdown({
           </div>
         )}
 
-        <div className="pt-2 flex justify-between items-center">
-          <span className="text-[10px] tracking-widest uppercase font-bold text-[#1A1512] dark:text-white">TOTAL PRICE</span>
+        <div className="pt-2 border-t border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center">
+          <span className="text-[10px] tracking-widest uppercase font-bold text-[#1A1512] dark:text-white">ESTIMATED TOTAL</span>
+          <span className="text-xl font-serif text-gray-700 dark:text-gray-300">
+            {formatCurrency(costBreakdown.grandTotal)}
+          </span>
+        </div>
+
+        <div className="pt-3 border-t border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center bg-amber-500/5 p-2 rounded-sm">
+          <span className="text-[10px] tracking-widest uppercase font-bold text-amber-600">30% DEPOSIT DUE NOW</span>
           <div className="text-right">
-            <span className="text-2xl font-serif text-[#A6955C] dark:text-[#C69C6D]">
-              {formatCurrency(costBreakdown.grandTotal)}
+            <span className="text-xl font-serif text-amber-600 font-bold">
+              {formatCurrency(costBreakdown.grandTotal * 0.3)}
             </span>
-            <p className="text-[7px] text-gray-400 uppercase tracking-widest font-bold mt-1">ESTIMATED TOTAL</p>
           </div>
+        </div>
+
+        <div className="pt-2 flex justify-between items-center">
+          <span className="text-[10px] tracking-widest uppercase font-bold text-gray-500">70% BALANCE DUE LATER</span>
+          <span className="text-base font-serif text-gray-500">
+            {formatCurrency(costBreakdown.grandTotal * 0.7)}
+          </span>
         </div>
       </div>
 
       <p className="text-[9px] text-gray-500 italic mt-8 leading-relaxed">
-        * Computations are continuous. A non-refundable 25% deposit is required within 48 hours to secure this date. Surcharges for labor cost stabilization and specific menu items will be final in our formal banquet contract.
+        * A 30% deposit is required to confirm and secure your booking. The remaining 70% balance is calculated dynamically and due prior to the event date. Pricing is subject to adjustments in case of vendor replacements.
       </p>
     </div>
   );

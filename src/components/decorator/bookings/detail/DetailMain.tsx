@@ -117,7 +117,7 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
         />
 
         {/* Package components checklist & tasks */}
-        <DetailBottom />
+        <DetailBottom booking={booking} onRefresh={fetchBooking} />
       </div>
       <Footer />
     </div>

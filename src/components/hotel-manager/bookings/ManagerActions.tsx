@@ -187,11 +187,11 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           </div>
 
           <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
-            <span className="text-gray-500">Balance (70%):</span>
+            <span className="text-gray-500">Balance:</span>
             <span className={`font-bold ${booking.balanceAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
               {booking.balanceAmount > 0 
                 ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
-                : `Pending: LKR ${(booking.totalCost * 0.7).toLocaleString()}`
+                : `Pending: LKR ${(booking.totalCost - booking.depositAmount).toLocaleString()}`
               }
             </span>
           </div>
