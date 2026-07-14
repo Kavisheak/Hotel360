@@ -228,8 +228,8 @@ export default function BookingHistory() {
                             });
                             setReviewModal({
                               isOpen: true,
-                              bookingId: booking._id || booking.id,
-                              bookingRef: booking.bookingRef || (booking._id ? booking._id.slice(-6) : booking.id),
+                              bookingId: (booking._id || booking.id) as string,
+                              bookingRef: (booking.bookingRef || (booking._id ? booking._id.slice(-6) : booking.id)) as string,
                               eventName: booking.eventName || booking.eventType || "Event",
                               vendors: usedVendors,
                             });

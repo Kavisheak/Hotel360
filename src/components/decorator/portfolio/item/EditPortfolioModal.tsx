@@ -32,6 +32,7 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
   const [venue, setVenue] = useState(item.venue || '');
   const [price, setPrice] = useState(item.price ? String(item.price) : '');
   const [category, setCategory] = useState(item.category || 'installations');
+  const [culturalStyle, setCulturalStyle] = useState(item.culturalStyle || 'Western / Modern');
 
   const [services, setServices] = useState({
     floralArt: item.servicesProvided?.includes('floralArt') || false,
@@ -118,6 +119,7 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
       formData.append("venue", venue);
       formData.append("price", price);
       formData.append("category", category);
+      formData.append("culturalStyle", culturalStyle);
       formData.append("isFeatured", String(isFeatured));
       formData.append("isPrivate", String(isPrivate));
       
@@ -237,6 +239,14 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
                 <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
                 <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="Event Type (e.g. Grand Wedding)" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
               </div>
+              
+              <select value={culturalStyle} onChange={(e) => setCulturalStyle(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] cursor-pointer bg-white">
+                <option value="Western / Modern">Western / Modern (Cultural Style)</option>
+                <option value="Sinhala Traditional">Sinhala Traditional</option>
+                <option value="Tamil Traditional">Tamil Traditional</option>
+                <option value="Muslim Traditional">Muslim Traditional</option>
+                <option value="Mixed / Fusion">Mixed / Fusion</option>
+              </select>
               
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={4} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] resize-none" />
 
