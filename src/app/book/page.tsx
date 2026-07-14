@@ -101,6 +101,12 @@ export default function BookPage() {
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
+    photographer: string | null;
+    photographerPackage: string;
+    cake: string | null;
+    cakePackage: string;
+    florist: string | null;
+    floristPackage: string;
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -108,6 +114,12 @@ export default function BookPage() {
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none",
+    photographer: "none",
+    photographerPackage: "none",
+    cake: "none",
+    cakePackage: "none",
+    florist: "none",
+    floristPackage: "none",
   });
 
   const setVendors = (newVendors: typeof vendors) => {
@@ -135,10 +147,21 @@ export default function BookPage() {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const prePackage = searchParams.get("package");
+
+      if (preDecorator || preDj || preVid) {
+        setVendors({
+          ...vendors,
+          decorator: preDecorator || "none",
+          dj: preDj || "none",
+          videographer: preVid || "none",
+        });
+      }
+
       if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
         setSelectedPackage(prePackage);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getBasePrice = () => {
@@ -147,15 +170,21 @@ export default function BookPage() {
     return 3400000;
   };
 
-  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
+  const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
-    if (vendorId === "none" || vendorId === "custom_preference" || !vendorId) return 0;
+    if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
+    
+    if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
+      const pkgName = vendors[`${category}Package` as keyof typeof vendors];
+      if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
+    }
 
     const pkgName = vendors[`${category}Package` as keyof typeof vendors];
     if (pkgName && pkgName !== "none" && pkgName !== "Custom Preferences") {
       const v = globalVendors.find((v: Vendor) => v.id === vendorId || (v as any)._id === vendorId);
       if (!v) return 0;
-      const pkg = v.packages.find((p: VendorPackage) => p.name === pkgName);
+
+      const pkg = v.packages?.find((p: VendorPackage) => p.name === pkgName);
       if (pkg) {
         const numericStr = pkg.price.replace(/[^0-9]/g, "");
         return numericStr ? parseInt(numericStr, 10) : 0;
@@ -185,10 +214,13 @@ export default function BookPage() {
   const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
   const timeslotPremium = 0;
 
-  let addonsCost =
-    getVendorCost("decorator") +
-    getVendorCost("dj") +
-    getVendorCost("videographer");
+  let addonsCost = 
+    getVendorCost("decorator") + 
+    getVendorCost("dj") + 
+    getVendorCost("videographer") + 
+    getVendorCost("photographer") + 
+    getVendorCost("cake") + 
+    getVendorCost("florist");
 
   const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
   const taxes = Math.round(grandTotal * 0.08);
@@ -229,6 +261,10 @@ export default function BookPage() {
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
       totalCost: bookingTotal,
+      photographerCost: getVendorCost("photographer"),
+      cakeCost: getVendorCost("cake"),
+      floristCost: getVendorCost("florist"),
+      totalCost: grandTotal,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
@@ -248,6 +284,21 @@ export default function BookPage() {
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
           requestedDesignId: requestedDesigns.videographer || null,
         },
+        photographer: {
+          vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
+          status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : "",
+        },
+        cake: {
+          vendorId: vendors.cake !== "none" ? vendors.cake : null,
+          status: vendors.cake !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : "",
+        },
+        florist: {
+          vendorId: vendors.florist !== "none" ? vendors.florist : null,
+          status: vendors.florist !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : "",
+        }
       },
     };
 
@@ -278,6 +329,7 @@ export default function BookPage() {
       }
     }, 1000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdExpiresAt, selectedDate]);
 
   const handleHoldExpired = async () => {
@@ -513,7 +565,7 @@ export default function BookPage() {
                       </span>
                     </div>
                   ))}
-                </div>
+                </div>                
 
                 {/* Step 1: Event & Vendors */}
                 {currentStep === 1 && (
@@ -678,6 +730,18 @@ export default function BookPage() {
                             }}
                           />
                           {errors.billingPostalCode && <p className="text-red-500 text-[10px] mt-1">{errors.billingPostalCode}</p>}
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Selected Vendors:</span>
+                        <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1 text-xs">
+                          {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
+                            const id = vendors[cat];
+                            if (!id || id === "none") return null;
+                            const v = globalVendors.find((v: Vendor) => v.id === id);
+                            return <p key={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}: {v ? v.name : "Selected"}</p>;
+                          })}
+                          {(["decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).every(
+                            (cat) => !vendors[cat] || vendors[cat] === "none"
+                          ) && <p className="text-gray-400 font-normal">No vendors selected</p>}
                         </div>
                       </div>
                       <div>
@@ -863,6 +927,56 @@ export default function BookPage() {
                         <input
                           type="checkbox"
                           id="termsAgree"
+                {/* Step 4: Checkout */}
+                {currentStep === 4 && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
+                      <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Event Date:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">
+                            {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Timeslot & Duration:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Total Guests:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Venue Package:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Selected Artisans:</span>
+                          <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
+                            <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
+                            <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
+                            <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
+                            <p>Photographer: {vendors.photographer !== "none" ? "Selected" : "None"}</p>
+                            <p>Florist: {vendors.florist !== "none" ? "Selected" : "None"}</p>
+                            <p>Cake: {vendors.cake !== "none" ? "Selected" : "None"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                        <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
+                          • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
+                          • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
+                          • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-4">
+                        <input 
+                          type="checkbox" 
+                          id="termsAgree" 
                           checked={termsAccepted}
                           onChange={(e) => setTermsAccepted(e.target.checked)}
                           className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
@@ -872,6 +986,11 @@ export default function BookPage() {
                         </label>
                       </div>
                     </div>
+                          I review and agree to the EASCC Cancellation Cutoff Policy and Event Booking Terms.
+                        </label>
+                      </div>
+                    </div>
+                    <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
                   </div>
                 )}
 

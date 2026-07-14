@@ -8,7 +8,7 @@ import {
   Music, Camera, Paintbrush
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
-import { customerBookingAPI } from "@/lib/api";
+import { customerBookingAPI, accountAPI } from "@/lib/api";
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -29,6 +29,28 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const [mounted, setMounted] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState<"deposit" | "balance" | null>(null);
+
+  // Form State for Autofill
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+
+  useEffect(() => {
+    // Fetch saved payment methods to autofill
+    const fetchCards = async () => {
+      const { ok, data } = await accountAPI.getPaymentMethods();
+      if (ok && data.savedCards && data.savedCards.length > 0) {
+        const primaryCard = data.savedCards.find((c: any) => c.isDefault) || data.savedCards[0];
+        setCardNumber(primaryCard.cardNumber || "");
+        setExpiry(primaryCard.expiry || "");
+        // CVV is usually not saved for security, but if you want to leave it empty or prefill:
+        setCvv("");
+      }
+    };
+    if (isOpen) {
+      fetchCards();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -60,14 +82,20 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const balanceDue = Math.max(0, (booking.totalCost || 0) - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0));
 
   const eventDate = new Date(booking.date);
-  const deadlineDate = new Date(eventDate);
-  deadlineDate.setDate(deadlineDate.getDate() - 14);
-  const deadlineString = deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  // Payment deadline is the event date itself
+  const paymentDeadlineString = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   
+  const cancelDeadlineDate = new Date(eventDate);
+  cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 14);
   const handleCancelClick = async () => {
     const today = new Date();
     const diffTime = eventDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      alert("This event has already passed and cannot be cancelled.");
+      return;
+    }
 
     let confirmMsg = "";
     if (diffDays < 14) {
@@ -397,16 +425,37 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       <div className="space-y-4">
                         <div>
                           <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Card Number</label>
-                          <input type="text" placeholder="0000 0000 0000 0000" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={19} />
+                          <input 
+                            type="text" 
+                            placeholder="0000 0000 0000 0000" 
+                            className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
+                            maxLength={19} 
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                          />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Expiry</label>
-                            <input type="text" placeholder="MM/YY" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={5} />
+                            <input 
+                              type="text" 
+                              placeholder="MM/YY" 
+                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
+                              maxLength={5} 
+                              value={expiry}
+                              onChange={(e) => setExpiry(e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">CVV</label>
-                            <input type="password" placeholder="***" className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" maxLength={4} />
+                            <input 
+                              type="password" 
+                              placeholder="***" 
+                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
+                              maxLength={4} 
+                              value={cvv}
+                              onChange={(e) => setCvv(e.target.value)}
+                            />
                           </div>
                         </div>
                       </div>
@@ -445,14 +494,14 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                             <CreditCard className="w-4 h-4" /> Pay 70% Balance ({formatCurrency(balanceDue)})
                           </button>
                           <p className="text-center text-[10px] text-gray-500 mt-2">
-                            Payment deadline is <strong className="text-red-500">{deadlineString}</strong> (14 days before event).
+                            Payment deadline is <strong className="text-red-500">{paymentDeadlineString}</strong> (Event Date).
                           </p>
                         </div>
                       ) : null}
                     </>
                   )}
 
-                  {booking.status !== "Completed" && booking.status !== "Cancelled" && booking.status !== "CancellationRequested" && (
+                  {booking.status !== "Completed" && booking.status !== "Cancelled" && booking.status !== "CancellationRequested" && (new Date(booking.date) >= new Date(new Date().setHours(0,0,0,0))) && (
                     <button 
                       onClick={handleCancelClick}
                       className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
