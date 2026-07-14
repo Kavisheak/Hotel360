@@ -35,6 +35,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
   const [uploaded, setUploaded] = useState(vgVendor?.completionPhotos?.length > 0);
+  const [showcasePrompt, setShowcasePrompt] = useState(false);
 
   React.useEffect(() => {
     const vg = booking?.vendors?.videographer;
@@ -106,7 +107,7 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     const allDone = checklist.every((t: any) => t.isCompleted);
     if (!allDone) {
       setErrorDetails("Please complete all checklist items before marking the job as complete.");
@@ -117,11 +118,16 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
       return;
     }
 
+    setShowcasePrompt(true);
+  };
+
+  const submitCompletion = async (publishToPortfolio: boolean) => {
+    setShowcasePrompt(false);
     setIsUpdating(true);
     try {
-      const res = await videographerAPI.updateBookingStatus(booking._id, "Completed");
+      const res = await videographerAPI.updateBookingStatus(booking._id, "Completed", { publishToPortfolio });
       if (res.ok) {
-        setSuccessDetails("Job marked as complete. The manager has been notified.");
+        setSuccessDetails("Job marked as complete. Portfolio has been updated.");
         onRefresh?.();
       } else {
         setErrorDetails(res.data?.message || "Failed to mark as complete.");
@@ -332,6 +338,31 @@ const DetailBottom = ({ booking, onRefresh }: DetailBottomProps) => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+      {/* Showcase Prompt Modal */}
+      {showcasePrompt && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Publish to Portfolio?</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              Would you like to automatically showcase this completed project in your public portfolio for future clients to see?
+            </p>
+            <div className="flex space-x-4">
+              <button 
+                onClick={() => submitCompletion(false)}
+                className="flex-1 bg-white hover:bg-gray-50 border border-[#E0D8C3] text-gray-800 px-4 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+              >
+                No, Keep Private
+              </button>
+              <button 
+                onClick={() => submitCompletion(true)}
+                className="flex-1 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-4 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+              >
+                Yes, Showcase It
+              </button>
+            </div>
           </div>
         </div>
       )}

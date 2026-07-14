@@ -88,7 +88,11 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
     setIsProcessing(false);
     
     if (success) {
-      alert("Booking Confirmed & Payment Processed! The Concierge will contact you shortly.");
+      if (formData.paymentMethod === "Card") {
+        alert("30% Deposit Paid! Booking Confirmed. Check your dashboard for details.");
+      } else {
+        alert("Booking Submitted! Please pay the 30% deposit offline within 48 hours to confirm.");
+      }
       router.push("/customer/myaccount?tab=bookings");
     }
   };
@@ -283,7 +287,7 @@ export default function BookingForm({ selectedDate, onSubmitBooking }: BookingFo
             disabled={isProcessing}
             className={`w-full py-4 text-[10px] uppercase font-bold tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md ${isProcessing ? 'bg-gray-800 text-gray-600 dark:text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)] hover-glow btn-interactive'}`}
           >
-            {isProcessing ? "Processing Secure Payment..." : "Confirm Booking & Pay"}
+            {isProcessing ? "Processing Secure Payment..." : (formData.paymentMethod === "Card" ? "Pay 30% Deposit & Confirm" : "Submit Booking (Pay Deposit Offline)")}
           </button>
           <p className="text-center text-[10px] text-gray-600 dark:text-gray-500 mt-4 uppercase tracking-widest">
             By confirming, you agree to the EASCC Reservation Terms & Conditions.

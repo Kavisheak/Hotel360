@@ -21,6 +21,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
   pending: { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800" },
   cancelled: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", border: "border-red-200 dark:border-red-800" },
   rejected: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", border: "border-red-200 dark:border-red-800" },
+  cancellationrequested: { bg: "bg-orange-50 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-400", border: "border-orange-200 dark:border-orange-800" },
 };
 
 export default function BookingDetailsModal({ isOpen, onClose, booking }: BookingDetailsModalProps) {
@@ -41,6 +42,40 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   const createdDate = new Date(booking.createdAt || new Date());
   
+  const handleCancelClick = async () => {
+    const today = new Date();
+    const eventDate = new Date(booking.date);
+    const diffTime = eventDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let confirmMsg = "";
+    if (diffDays < 14) {
+      alert("This event is less than 14 days away and cannot be cancelled online. Please contact the hotel directly.");
+      return;
+    } else if (diffDays >= 14 && diffDays <= 30) {
+      confirmMsg = `Your event is ${diffDays} days away. Cancellation requires review and approval by the Hotel Manager. Would you like to submit a cancellation request?`;
+    } else {
+      confirmMsg = `Your event is ${diffDays} days away. Are you sure you want to cancel this booking? This will cancel all hall and vendor allocations immediately.`;
+    }
+
+    if (confirm(confirmMsg)) {
+      try {
+        const { customerBookingAPI } = await import("@/lib/api");
+        const res = await customerBookingAPI.cancelBooking(booking.id || booking._id);
+        const data = res.data;
+        if (res.ok && data.success) {
+          alert(data.message || "Action processed successfully!");
+          onClose();
+          window.location.reload();
+        } else {
+          alert(data.message || "Failed to process cancellation request.");
+        }
+      } catch (e) {
+        alert("An error occurred while processing cancellation.");
+      }
+    }
+  };
+
   return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -85,7 +120,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
               <X className="w-5 h-5" />
             </button>
           </div>
-
+ 
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -129,7 +164,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </div>
                   </div>
                 </div>
-
+ 
                 {/* Package & Menu */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
@@ -158,7 +193,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     )}
                   </div>
                 </div>
-
+ 
                 {/* Vendors */}
                 {booking.vendors && (
                   <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
@@ -206,7 +241,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 )}
               </div>
-
+ 
               {/* Right Column (Client & Pricing) */}
               <div className="space-y-6">
                 
@@ -240,7 +275,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </div>
                   </div>
                 </div>
-
+ 
                 {/* Pricing Summary */}
                 <div className="bg-[#FAF6EE] dark:bg-[#151515] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-lg p-5 shadow-[0_4px_20px_-4px_rgba(201,168,76,0.1)]">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
@@ -297,7 +332,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       )}
                     </div>
                   )}
-
+ 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-bold text-[#1A1512] dark:text-white">Total Amount</span>
@@ -306,23 +341,54 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     
                     <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-[#E8DFC9]/50 dark:border-white/5 space-y-2">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Deposit Paid</span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(booking.depositAmount)}</span>
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
+                          {booking.depositAmount && booking.depositAmount > 0 ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                          )} 
+                          Deposit Paid
+                        </span>
+                        <span className={`font-bold ${booking.depositAmount && booking.depositAmount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600'}`}>
+                          {formatCurrency(booking.depositAmount)}
+                        </span>
                       </div>
+                      
+                      {booking.bookingCredit && booking.bookingCredit > 0 ? (
+                        <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-[10px]">Booking Credit</span>
+                          <span className="font-bold text-emerald-600">{formatCurrency(booking.bookingCredit)}</span>
+                        </div>
+                      ) : null}
+
                       <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
-                        <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">Balance Due</span>
-                        <span className="font-bold text-red-500">{formatCurrency(booking.balanceAmount)}</span>
+                        <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">Remaining Balance</span>
+                        <span className="font-bold text-red-500">
+                          {formatCurrency(Math.max(0, booking.totalCost - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0)))}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {booking.balanceAmount > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" && (
-                    <button className="w-full mt-4 bg-[#C9A84C] text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-[#B58A59] transition-colors flex items-center justify-center gap-2 shadow-sm">
+ 
+                  {Math.max(0, booking.totalCost - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0)) > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" && (
+                    <button 
+                      onClick={() => alert("Simulating balance payment... Payment successful!")}
+                      className="w-full mt-4 bg-[#C9A84C] text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-[#B58A59] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
                       <CreditCard className="w-4 h-4" /> Pay Balance
                     </button>
                   )}
-                </div>
 
+                  {booking.status !== "Completed" && booking.status !== "Cancelled" && booking.status !== "CancellationRequested" && (
+                    <button 
+                      onClick={handleCancelClick}
+                      className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      Cancel Booking
+                    </button>
+                  )}
+                </div>
+ 
               </div>
             </div>
           </div>

@@ -16,7 +16,7 @@ import Preferences from "@/components/myaccount/Preferences";
 import BookingHistory from "@/components/myaccount/BookingHistory";
 import { useAuthStore } from "@/store/authStore";
 import { useBookingStore } from "@/store/bookingStore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const TAB_TITLES: Record<AccountTab, { title: string; subtitle: string }> = {
   profile: { title: "Personal Information", subtitle: "Update your name, email, phone and address." },
@@ -28,12 +28,20 @@ const TAB_TITLES: Record<AccountTab, { title: string; subtitle: string }> = {
 };
 
 export default function MyAccountPage() {
-  const [activeTab, setActiveTab] = useState<AccountTab>("profile");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const tabParam = searchParams.get("tab") as AccountTab;
+  const activeTab = (tabParam && Object.keys(TAB_TITLES).includes(tabParam)) ? tabParam : "profile";
+  
   const currentSection = TAB_TITLES[activeTab];
   
   const { user, fetchUser, isLoading } = useAuthStore();
   const fetchUserBookings = useBookingStore(state => state.fetchUserBookings);
-  const router = useRouter();
+
+  const setActiveTab = (tab: AccountTab) => {
+    router.push(`?tab=${tab}`);
+  };
 
   useEffect(() => {
     fetchUser();
@@ -46,16 +54,6 @@ export default function MyAccountPage() {
       fetchUserBookings();
     }
   }, [isLoading, user, router, fetchUserBookings]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const tabParam = searchParams.get("tab") as AccountTab;
-      if (tabParam && Object.keys(TAB_TITLES).includes(tabParam)) {
-        setActiveTab(tabParam);
-      }
-    }
-  }, []);
 
   if (!user) {
     return (

@@ -16,7 +16,7 @@ export default function MainNavbar() {
  const pathname = usePathname();
  const router = useRouter();
  
- const { user, fetchUser, clearUser } = useAuthStore();
+ const { user, fetchUser, clearUser, isLoading } = useAuthStore();
  const isLoggedIn = !!user;
  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   
@@ -104,7 +104,9 @@ export default function MainNavbar() {
   )}
   </Link>
 
-  {isLoggedIn ? (
+  {isLoading ? (
+    <div className="w-16 h-4 bg-[#E8DFC9]/40 dark:bg-gray-800 animate-pulse rounded-sm shrink-0"></div>
+  ) : isLoggedIn ? (
   <div className="flex items-center gap-4">
     <Link
     href="/customer/myaccount"

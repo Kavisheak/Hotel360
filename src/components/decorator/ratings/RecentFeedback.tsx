@@ -75,7 +75,7 @@ const RecentFeedback = ({ reviews }: RecentFeedbackProps) => {
 
             {/* Bottom tags */}
             <div className="flex flex-wrap gap-2">
-              {review.tags?.map((tag: string) => (
+              {(review.tags?.length > 0 ? review.tags : [review.bookingId?.eventType || "Decorator"]).map((tag: string) => (
                 <span
                   key={tag}
                   className="text-[9px] font-bold tracking-wider border border-[#E0D8C3] bg-[#FAF6EE] text-[#7C6A2E] px-3 py-1 rounded-sm uppercase"

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Vendor } from "@/components/landing/vendors/types";
 import { vendorAPI } from "@/lib/api";
 import VendorsHeader from "@/components/landing/vendors/VendorsHeader";
@@ -11,9 +11,11 @@ import VendorProfileContent from "@/components/landing/vendorProfile/VendorProfi
 import { useAuthStore } from "@/store/authStore";
 import { useVendorStore } from "@/store/vendorStore";
 
-export default function VendorProfilePage() {
+function VendorProfileInner() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isBooking = searchParams.get("booking") === "true";
   const [vendor, setVendor] = useState<Vendor | null>(null);
 
   const { fetchUser, user } = useAuthStore();
@@ -75,7 +77,22 @@ export default function VendorProfilePage() {
 
       <VendorProfileHero vendor={vendor} />
       <VendorProfileStats vendor={vendor} />
-      <VendorProfileContent vendor={vendor} />
+      <VendorProfileContent vendor={vendor} isBooking={isBooking} />
     </div>
+  );
+}
+
+export default function VendorProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#C69C6D] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#A6955C] tracking-widest uppercase text-xs font-bold">Loading Profile...</p>
+        </div>
+      </div>
+    }>
+      <VendorProfileInner />
+    </Suspense>
   );
 }

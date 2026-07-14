@@ -33,7 +33,7 @@ const RecentFeedback = ({ reviews, loading }: { reviews?: any[]; loading?: boole
             const event =
               review.bookingId?.eventType ||
               (review.bookingId?.clientName ? `${review.bookingId.clientName}'s Event` : "DJ Performance");
-            const tags = review.tags?.length ? review.tags : ["DJ Artist"];
+            const tags = review.tags?.length ? review.tags : [review.bookingId?.eventType || "DJ Artist"];
 
             return (
               <div

@@ -3,20 +3,28 @@
 import React, { useState } from "react";
 import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
-import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check } from "lucide-react";
 
 interface VendorProfileContentProps {
   vendor: Vendor;
+  isBooking?: boolean;
 }
 
-export default function VendorProfileContent({ vendor }: VendorProfileContentProps) {
-  const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "packages" | "reviews">("about");
+export default function VendorProfileContent({ vendor, isBooking = false }: VendorProfileContentProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"portfolio" | "packages" | "reviews" | "availability" | "about">("portfolio");
+
+  const handleSelectVendor = () => {
+    router.push(`/book?${vendor.category}=${vendor.id}`);
+  };
 
   const tabs = [
-    { id: "about", label: "About & Location" },
     { id: "portfolio", label: "Portfolio" },
-    { id: "packages", label: "Packages" },
+    { id: "packages", label: "Packages & Pricing" },
     { id: "reviews", label: `Reviews (${vendor.reviewsCount})` },
+    { id: "availability", label: "Availability" },
+    { id: "about", label: "Vendor Profile" },
   ] as const;
 
   return (
@@ -99,15 +107,20 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
 
           {/* PORTFOLIO TAB */}
           {activeTab === "portfolio" && (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
               {vendor.portfolio.map((img, i) => (
-                <div key={i} className="relative aspect-square bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group">
+                <div key={i} className="relative break-inside-avoid bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group mb-4">
                   <img 
                     src={img} 
                     alt={`${vendor.name} portfolio ${i + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <button className="px-4 py-2 border border-white/50 text-white text-[10px] uppercase font-bold tracking-widest backdrop-blur-sm rounded-sm hover:bg-white hover:text-black transition-colors">
+                      View Full
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -224,6 +237,68 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
             </div>
           )}
 
+          {/* AVAILABILITY TAB */}
+          {activeTab === "availability" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-8 rounded-sm shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex-1">
+                  <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white mb-3">Live Availability Calendar</h3>
+                  <p className="text-sm text-gray-500 max-w-lg leading-relaxed mb-6">
+                    Select your preferred event date to check if {vendor.name} is available. High-demand vendors book up months in advance, so early booking is recommended.
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-[#C69C6D]"></div>
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-800"></div>
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Booked Out</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-[#FAF6EE] dark:bg-[#2A2312] border border-[#C69C6D]/30"></div>
+                      <span className="text-[10px] uppercase font-bold text-[#C69C6D] tracking-widest">Limited / Pending</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Mock Calendar Widget */}
+                <div className="w-full md:w-[320px] shrink-0 border border-[#E8DFC9] dark:border-white/10 rounded-sm overflow-hidden bg-[#FAF6EE] dark:bg-black">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#E8DFC9] dark:border-white/10">
+                    <button className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm">&lt;</button>
+                    <span className="text-sm font-bold tracking-widest uppercase text-[#1A1512] dark:text-white">December 2026</span>
+                    <button className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm">&gt;</button>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                      {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+                        <span key={d} className="text-[9px] text-gray-400 font-bold">{d}</span>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {[...Array(31)].map((_, i) => {
+                        const day = i + 1;
+                        const isBooked = [3, 4, 12, 18, 19, 25, 31].includes(day);
+                        const isPending = [10, 11, 26].includes(day);
+                        return (
+                          <div 
+                            key={day} 
+                            className={`aspect-square flex items-center justify-center text-xs rounded-sm cursor-pointer transition-colors
+                              ${isBooked ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed opacity-50' : 
+                                isPending ? 'bg-[#FAF6EE] dark:bg-[#2A2312] border border-[#C69C6D]/30 text-[#C69C6D]' : 
+                                'hover:bg-[#C69C6D] hover:text-white text-[#1A1512] dark:text-gray-300 font-medium'}`}
+                          >
+                            {day}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Bottom CTA Banner */}
@@ -237,9 +312,15 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
               <p className="text-sm text-gray-500">Our team is here to help you create unforgettable moments.</p>
             </div>
           </div>
-          <button className="w-full md:w-auto bg-[#C69C6D] text-white px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#B58B5C] transition-colors shrink-0 shadow-md">
-            Contact Vendor
-          </button>
+          {isBooking ? (
+            <button onClick={handleSelectVendor} className="w-full md:w-auto bg-[#C69C6D] text-white px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#B58B5C] transition-colors shrink-0 shadow-md flex items-center gap-2 justify-center">
+              <Check className="w-4 h-4" /> Select This Vendor
+            </button>
+          ) : (
+            <button className="w-full md:w-auto bg-[#C69C6D] text-white px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#B58B5C] transition-colors shrink-0 shadow-md">
+              Contact Vendor
+            </button>
+          )}
         </div>
 
       </div>
@@ -276,9 +357,15 @@ export default function VendorProfileContent({ vendor }: VendorProfileContentPro
               </ul>
             </div>
             
-            <button className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors">
-              Contact Vendor
-            </button>
+            {isBooking ? (
+              <button onClick={handleSelectVendor} className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors flex items-center justify-center gap-2">
+                <Check className="w-4 h-4" /> Select This Vendor
+              </button>
+            ) : (
+              <button className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors">
+                Contact Vendor
+              </button>
+            )}
           </div>
 
           {/* Features Checklist */}

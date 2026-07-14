@@ -69,5 +69,49 @@ export default function AutoLogout() {
     };
   }, [user, resetTimer]);
 
+  // Handle bfcache back button navigation checking
+  useEffect(() => {
+    const handlePageShow = async (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        try {
+          const { ok, data } = await authAPI.getMe();
+          if (!ok || !data.user) {
+            clearUser();
+            const isProtectedRoute = 
+              pathname.startsWith("/customer/myaccount") ||
+              pathname.startsWith("/hotel-manager") ||
+              pathname.startsWith("/decorator") ||
+              pathname.startsWith("/dj-artist") ||
+              pathname.startsWith("/videographer") ||
+              pathname.startsWith("/super-admin") ||
+              pathname === "/book";
+
+            if (isProtectedRoute) {
+              window.location.replace("/login");
+            }
+          } else {
+            useAuthStore.getState().updateUser(data.user);
+          }
+        } catch (err) {
+          clearUser();
+          const isProtectedRoute = 
+            pathname.startsWith("/customer/myaccount") ||
+            pathname.startsWith("/hotel-manager") ||
+            pathname.startsWith("/decorator") ||
+            pathname.startsWith("/dj-artist") ||
+            pathname.startsWith("/videographer") ||
+            pathname.startsWith("/super-admin") ||
+            pathname === "/book";
+
+          if (isProtectedRoute) {
+            window.location.replace("/login");
+          }
+        }
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [clearUser, pathname]);
+
   return null; // Component does not render anything visually
 }

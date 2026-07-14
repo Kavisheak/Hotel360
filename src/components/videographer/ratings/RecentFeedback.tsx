@@ -21,11 +21,11 @@ const RecentFeedback = ({ reviews, loading }: { reviews: any[]; loading: boolean
       const mappedReviews = reviews.map((r: any) => ({
         id: r._id,
         name: r.customerId ? `${r.customerId.firstName} ${r.customerId.lastName}`.trim() : "Customer",
-        event: "Videography Service",
+        event: r.bookingId?.eventType || "Videography Service",
         avatar: r.customerId?.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120",
         rating: r.rating || 5,
         comment: r.reviewText ? `"${r.reviewText}"` : '"No comment provided."',
-        tags: ["Videography"]
+        tags: [r.bookingId?.eventType || "Videography"]
       }));
       setReviewsData(mappedReviews);
     }

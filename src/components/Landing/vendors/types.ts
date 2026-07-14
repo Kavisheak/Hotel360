@@ -18,7 +18,7 @@ export interface VendorReview {
 export interface Vendor {
   id: string;
   name: string;
-  category: "decorators" | "djs" | "videographers" | "others";
+  category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others";
   categoryLabel: string;
   rating: number;
   reviewsCount: number;

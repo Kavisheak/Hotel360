@@ -8,7 +8,7 @@ export interface MenuItemSelection {
 }
 
 interface VendorCartState {
-  vendors: Record<"decorator" | "dj" | "videographer", string | null>;
+  vendors: Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>;
   menuSelection: {
     type: "signature" | "custom" | "none";
     items: MenuItemSelection[]; // legacy
@@ -17,6 +17,8 @@ interface VendorCartState {
   };
   favoriteVendors: string[];
   setFavoriteVendors: (favorites: string[]) => void;
+  vendorPackages: Record<"decorator" | "photographer" | "cake" | "florist", string>;
+  setVendorPackage: (category: "decorator" | "photographer" | "cake" | "florist", pkgName: string) => void;
   setVendor: (category: keyof VendorCartState["vendors"], id: string | null) => void;
   toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
@@ -25,8 +27,8 @@ interface VendorCartState {
   toggleDefaultItem: (itemId: string) => void;
   toggleOptionalItem: (item: MenuItemSelection) => void;
   clearCart: () => void;
-  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others") => void;
-  isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others") => boolean;
+  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others") => void;
+  isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others") => boolean;
 }
 
 export const useVendorCartStore = create<VendorCartState>()(
@@ -35,8 +37,17 @@ export const useVendorCartStore = create<VendorCartState>()(
       vendors: {
         decorator: null,
         dj: null,
-        videographer: null
-      } as Record<"decorator" | "dj" | "videographer", string | null>,
+        videographer: null,
+        photographer: null,
+        cake: null,
+        florist: null
+      } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>,
+      vendorPackages: {
+        decorator: "none",
+        photographer: "none",
+        cake: "none",
+        florist: "none"
+      } as Record<"decorator" | "photographer" | "cake" | "florist", string>,
       menuSelection: {
         type: "none",
         items: [],
@@ -44,6 +55,13 @@ export const useVendorCartStore = create<VendorCartState>()(
         addedOptionalItems: [],
       },
       favoriteVendors: [],
+      setVendorPackage: (category, pkgName) =>
+        set((state) => ({
+          vendorPackages: {
+            ...state.vendorPackages,
+            [category]: pkgName,
+          },
+        })),
       setVendor: (category, id) =>
         set((state) => ({
           vendors: {
@@ -123,8 +141,17 @@ export const useVendorCartStore = create<VendorCartState>()(
           vendors: {
             decorator: null,
             dj: null,
-            videographer: null
-          } as Record<"decorator" | "dj" | "videographer", string | null>,
+            videographer: null,
+            photographer: null,
+            cake: null,
+            florist: null
+          } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>,
+          vendorPackages: {
+            decorator: "none",
+            photographer: "none",
+            cake: "none",
+            florist: "none"
+          } as Record<"decorator" | "photographer" | "cake" | "florist", string>,
           menuSelection: {
             type: "none",
             items: [],
@@ -138,7 +165,11 @@ export const useVendorCartStore = create<VendorCartState>()(
           let storeCategory: keyof VendorCartState["vendors"];
           if (category === "decorators") storeCategory = "decorator";
           else if (category === "djs") storeCategory = "dj";
-          else storeCategory = "videographer";
+          else if (category === "videographers") storeCategory = "videographer";
+          else if (category === "photographers") storeCategory = "photographer";
+          else if (category === "cake") storeCategory = "cake";
+          else if (category === "florists") storeCategory = "florist";
+          else storeCategory = "decorator"; // fallback
 
           const isCurrentlySelected = state.vendors[storeCategory] === id;
           return {
@@ -149,11 +180,15 @@ export const useVendorCartStore = create<VendorCartState>()(
           };
         });
       },
-      isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "others"): boolean => {
+      isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others"): boolean => {
         let storeCategory: keyof VendorCartState["vendors"];
         if (category === "decorators") storeCategory = "decorator";
         else if (category === "djs") storeCategory = "dj";
-        else storeCategory = "videographer";
+        else if (category === "videographers") storeCategory = "videographer";
+        else if (category === "photographers") storeCategory = "photographer";
+        else if (category === "cake") storeCategory = "cake";
+        else if (category === "florists") storeCategory = "florist";
+        else return false;
 
         return useVendorCartStore.getState().vendors[storeCategory] === id;
       },

@@ -43,6 +43,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
   const [eventDate, setEventDate] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('');
+  const [price, setPrice] = useState('');
   const [filmDuration, setFilmDuration] = useState('');
   const [resolution, setResolution] = useState('4K Ultra HD');
 
@@ -89,6 +90,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
               setEventDate(item.eventDate ? item.eventDate.substring(0, 10) : '');
               setDescription(item.description || '');
               setVenue(item.venue || '');
+              setPrice(item.price ? String(item.price) : '');
               setResolution(item.category || '4K Ultra HD');
 
               if (item.servicesProvided) {
@@ -206,6 +208,7 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
       formData.append("eventDate", eventDate);
       formData.append("description", description);
       formData.append("venue", venue);
+      formData.append("price", price);
       formData.append("category", resolution);
       formData.append("isFeatured", String(isFeatured));
       formData.append("isPrivate", String(isPrivate));
@@ -564,6 +567,25 @@ const UploadProjectMain = ({ id }: { id?: string }) => {
                     onChange={e => setVenue(e.target.value)}
                     placeholder="e.g. Rosewood Estate, London"
                     className="w-full bg-white border border-[#E0D8C3] p-4 pl-12 text-sm font-semibold text-gray-700 placeholder-gray-300 focus:outline-none focus:border-[#B08D2C]"
+                  />
+                </div>
+              </div>
+
+              {/* Project Price */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                  Project Price (LKR)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#B08D2C] font-bold">
+                    LKR
+                  </span>
+                  <input
+                    type="number"
+                    value={price}
+                    onChange={e => setPrice(e.target.value)}
+                    placeholder="e.g. 85000"
+                    className="w-full bg-white border border-[#E0D8C3] p-4 pl-14 text-sm font-semibold text-gray-700 placeholder-gray-300 focus:outline-none focus:border-[#B08D2C]"
                   />
                 </div>
               </div>

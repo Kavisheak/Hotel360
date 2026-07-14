@@ -93,9 +93,18 @@ const PendingBookings = () => {
 
               {/* Top Badges */}
               <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                <span className="bg-white/90 backdrop-blur-md text-[#7C6A2E] text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
-                  Pending
-                </span>
+                <div className="flex flex-col gap-2">
+                  <span className="bg-white/90 backdrop-blur-md text-[#7C6A2E] text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm w-fit">
+                    Pending
+                  </span>
+                  {(row.vendors?.decorator?.status === 'Declined' || 
+                    row.vendors?.dj?.status === 'Declined' || 
+                    row.vendors?.videographer?.status === 'Declined') && (
+                    <span className="bg-red-500/90 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm w-fit animate-pulse shadow-red-500/50">
+                      Vendor Declined
+                    </span>
+                  )}
+                </div>
                 <span className="bg-black/50 backdrop-blur-md text-white text-[10px] font-mono tracking-wider px-2 py-1 rounded">
                   {((row.id || row._id) as string).split('-')[1] || (row.id || row._id)}
                 </span>
