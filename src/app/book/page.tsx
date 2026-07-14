@@ -72,8 +72,6 @@ export default function BookPage() {
     cakePackage: string;
     florist: string | null;
     floristPackage: string;
-  }>({ 
-    decorator: "none", 
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -149,8 +147,7 @@ export default function BookPage() {
   };
 
   const getMenuPricePerGuest = () => {
-    if (menu === "custom") return 6500;
-    return 3500; // signature
+    return 0; // Food and Catering removed from flow
   };
 
   const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
@@ -159,15 +156,12 @@ export default function BookPage() {
     
     if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
       const pkgName = vendors[`${category}Package`];
-
-    if (category === "decorator") {
-      const pkgName = vendors[`decoratorPackage`];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
 
       const v = globalVendors.find(v => v.id === vendorId);
       if (!v) return 0;
 
-      const pkg = v.packages.find(p => p.name === pkgName);
+      const pkg = v.packages?.find(p => p.name === pkgName);
       if (pkg) {
         const numericStr = pkg.price.replace(/[^0-9]/g, "");
         return numericStr ? parseInt(numericStr, 10) : 0;
@@ -207,8 +201,6 @@ export default function BookPage() {
     getVendorCost("cake") + 
     getVendorCost("florist");
 
-  let addonsCost = getVendorCost("decorator") + getVendorCost("dj") + getVendorCost("videographer");
-
   if (menu === "custom") {
     // Add cost of selected custom menu items * guest count
     const customMenuCost = cartMenu.addedOptionalItems.reduce((total, item) => total + item.price, 0);
@@ -244,6 +236,7 @@ export default function BookPage() {
       paymentMethod: contactInfo.paymentMethod,
       menuType: menu,
       customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
+      customMenuSurcharge: menu === "custom" ? (cartMenu.addedOptionalItems.reduce((total, item) => total + item.price, 0) * guestCount) : 0,
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
@@ -437,12 +430,6 @@ export default function BookPage() {
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
                   <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
-                  {[1, 2, 3].map((step) => (
-                    <div 
-                      key={step} 
-                {/* Stepper Indicator */}
-                <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
-                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
                   {[1, 2, 3, 4].map((step) => (
                     <div
                       key={step}
@@ -453,9 +440,6 @@ export default function BookPage() {
                         {step}
                       </div>
                       <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
-                        {step === 1 && "Design & Vendors"}
-                        {step === 2 && "Review"}
-                        {step === 3 && "Pay"}
                         {step === 1 && "Event Details"}
                         {step === 2 && "Vendors"}
                         {step === 3 && "Menu"}
@@ -463,14 +447,11 @@ export default function BookPage() {
                       </span>
                     </div>
                   ))}
-                </div>
-
-                {/* Step 1: Event Details */}
+                </div>                {/* Step 1: Event Details */}
                 {currentStep === 1 && (
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
                       <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
-                      <select 
                       <select
                         value={eventType}
                         onChange={(e) => setEventType(e.target.value)}
@@ -497,81 +478,6 @@ export default function BookPage() {
                     />
                     <div className="h-px bg-[#D4C9A8] w-full"></div>
                     <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
-                    <BookingVendorSelector vendors={vendors} onChange={setVendors} />
-                  </div>
-                )}
-
-                {/* Step 2: Booking Review */}
-                {currentStep === 2 && (
-                  <div className="space-y-6 animate-fadeIn bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
-                    <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Event Date:</span>
-                        <span className="font-bold text-[#1A1512] dark:text-white">
-                          {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Timeslot & Duration:</span>
-                        <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
-                      </div>
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Guests & Catering:</span>
-                        <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests • {menu} Menu</span>
-                      </div>
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Venue Package:</span>
-                        <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
-                      </div>
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Selected Artisans:</span>
-                        <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
-                          <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
-                          <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
-                          <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
-                      <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
-                        • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
-                        • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
-                        • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-4">
-                      <input 
-                        type="checkbox" 
-                        id="termsAgree" 
-                        checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                        className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
-                      />
-                      <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
-                        I review and agree to the EASCC Cancellation Cutoff Policy and Event Booking Terms.
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Checkout */}
-                {currentStep === 3 && (
-                    <TimeRangeSelector
-                      startTime={startTime}
-                      endTime={endTime}
-                      onChange={(start, end) => {
-                        setStartTime(start);
-                        setEndTime(end);
-                      }}
-                    />
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
-                    <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
                   </div>
                 )}
 
@@ -591,9 +497,65 @@ export default function BookPage() {
                   </div>
                 )}
 
-                {/* Step 4: Checkout */}
+                {/* Step 4: Checkout (Review & Pay) */}
                 {currentStep === 4 && (
-                  <div className="animate-fadeIn">
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
+                      <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Event Date:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">
+                            {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Timeslot & Duration:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Total Guests:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Venue Package:</span>
+                          <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                          <span className="text-gray-500">Selected Artisans:</span>
+                          <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
+                            <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
+                            <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
+                            <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
+                            <p>Photographer: {vendors.photographer !== "none" ? "Selected" : "None"}</p>
+                            <p>Florist: {vendors.florist !== "none" ? "Selected" : "None"}</p>
+                            <p>Cake: {vendors.cake !== "none" ? "Selected" : "None"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                        <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
+                          • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
+                          • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
+                          • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-4">
+                        <input 
+                          type="checkbox" 
+                          id="termsAgree" 
+                          checked={termsAccepted}
+                          onChange={(e) => setTermsAccepted(e.target.checked)}
+                          className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
+                        />
+                        <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
+                          I review and agree to the EASCC Cancellation Cutoff Policy and Event Booking Terms.
+                        </label>
+                      </div>
+                    </div>
                     <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
                   </div>
                 )}
@@ -601,7 +563,6 @@ export default function BookPage() {
                 {/* Navigation Buttons */}
                 <div className="flex items-center justify-between pt-8">
                   {currentStep > 1 ? (
-                    <button 
                     <button
                       onClick={handleBack}
                       className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
@@ -610,17 +571,8 @@ export default function BookPage() {
                     </button>
                   ) : <div></div>}
 
-                  {currentStep < 3 && (
-                    <button 
-                      onClick={handleNext}
-                      disabled={currentStep === 2 && !termsAccepted}
-                      className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
-                        currentStep === 2 && !termsAccepted 
-                          ? 'bg-gray-400 cursor-not-allowed opacity-50' 
-                          : 'bg-[#C69C6D] hover:bg-[#B58B5C]'
-                      }`}
                   {currentStep < 4 && (
-                    <button
+                    <button 
                       onClick={handleNext}
                       className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
                     >
@@ -628,7 +580,6 @@ export default function BookPage() {
                     </button>
                   )}
                 </div>
-            </>
               </>
             )}
 

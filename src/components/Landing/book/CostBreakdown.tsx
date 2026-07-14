@@ -54,14 +54,16 @@ export default function CostBreakdown({
           </div>
         )}
 
-        <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
-          <span>Food & Catering ({costBreakdown.guestCount} guests):</span>
-          <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.foodCost)}</span>
-        </div>
+        {costBreakdown.foodCost > 0 && (
+          <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
+            <span>Food & Catering ({costBreakdown.guestCount} guests):</span>
+            <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.foodCost)}</span>
+          </div>
+        )}
 
         {costBreakdown.addonsCost > 0 && (
           <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
-            <span>Vendors & Custom Menu:</span>
+            <span>Vendors:</span>
             <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.addonsCost)}</span>
           </div>
         )}

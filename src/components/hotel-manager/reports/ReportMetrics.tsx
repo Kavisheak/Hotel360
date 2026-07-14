@@ -7,7 +7,7 @@ import { bookingAPI } from '../../../lib/api';
 const ReportMetrics = () => {
   const [metrics, setMetrics] = useState([
     {
-      title: 'Booked Contract Value',
+      title: 'Total Contract Value',
       icon: <Banknote size={16} className="text-[#B08D2C]" />,
       value: 'LKR 0',
       trend: '+12.4% vs last year',
