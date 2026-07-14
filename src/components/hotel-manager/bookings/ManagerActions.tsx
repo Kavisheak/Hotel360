@@ -17,6 +17,12 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
   const [isLoading, setIsLoading] = useState(false);
   const [isRecordingPayment, setIsRecordingPayment] = useState(false);
 
+  const eventDate = new Date(booking.date || new Date());
+  const deadlineDate = new Date(eventDate);
+  // Deadline for balance payment is the event date itself
+  const deadlineString = deadlineDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const isPastDeadline = new Date() > deadlineDate;
+
   const handleRecordPayment = async (type: 'deposit' | 'balance') => {
     setIsRecordingPayment(true);
     const id = booking.bookingRef || booking._id || booking.id;
@@ -188,12 +194,19 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
 
           <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
             <span className="text-gray-500">Balance:</span>
-            <span className={`font-bold ${booking.balanceAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
-              {booking.balanceAmount > 0 
-                ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
-                : `Pending: LKR ${(booking.totalCost - booking.depositAmount).toLocaleString()}`
-              }
-            </span>
+            <div className="text-right">
+              <span className={`font-bold ${booking.balanceAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
+                {booking.balanceAmount > 0 
+                  ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
+                  : `Pending: LKR ${(booking.totalCost - booking.depositAmount).toLocaleString()}`
+                }
+              </span>
+              {(!booking.balanceAmount || booking.balanceAmount === 0) && booking.depositAmount > 0 && (
+                <div className={`text-[9px] mt-1 font-semibold ${isPastDeadline ? 'text-red-500' : 'text-gray-400'}`}>
+                  Due: {deadlineString} {isPastDeadline && '(Overdue)'}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Action Button */}

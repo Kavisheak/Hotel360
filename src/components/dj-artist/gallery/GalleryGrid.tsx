@@ -35,7 +35,6 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
     if (!confirm("Are you sure you want to delete this gallery item?")) return;
     try {
       await djAPI.deleteGalleryItem(id);
-      setPreviewItem(null);
       refresh();
     } catch (e) {
       console.error(e);

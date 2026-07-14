@@ -78,13 +78,12 @@ const PaymentMetrics = () => {
           growthStr = "+100% vs last month";
         }
 
-        const target = 10000000; // 10M LKR target
-        const pctTarget = Math.min(100, Math.round((revenue / target) * 100));
+        const pctTarget = bookedContractValue > 0 ? Math.min(100, Math.round((revenue / bookedContractValue) * 100)) : 0;
 
         setMetrics({
           monthlyRevenue: revenue,
           outstandingBalance: outstandingBalance,
-          forecast: revenue > 0 ? revenue * 12 : 512000,
+          forecast: bookedContractValue,
           growthStr,
           isPositive,
           pctTarget,
@@ -118,14 +117,14 @@ const PaymentMetrics = () => {
       <p className="text-[10px] font-semibold text-gray-400 mt-1.5 tracking-widest uppercase">Waiting for payment</p>
     </div>
 
-    {/* Annual Forecast — dark gold card */}
+    {/* Total Contract Value — dark gold card */}
     <div className="relative bg-[#7C6A2E] rounded-xl p-5 shadow-sm overflow-hidden">
       {/* Decorative circle */}
       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/5" />
       <div className="absolute -right-2 -bottom-4 w-16 h-16 rounded-full bg-white/5" />
       <div className="flex items-center gap-2 mb-3">
         <TrendingUp size={18} className="text-[#F9DD76]" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#F9DD76]">Annual Forecast</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#F9DD76]">Total Contract Value</p>
       </div>
       <p className="text-2xl font-serif font-bold text-white relative z-10">{formatCurrency(metrics.forecast)}</p>
       {/* Progress bar */}
@@ -133,7 +132,7 @@ const PaymentMetrics = () => {
         <div className="w-full bg-white/20 rounded-full h-1.5">
           <div className="bg-[#F9DD76] h-1.5 rounded-full transition-all duration-700" style={{ width: `${metrics.pctTarget}%` }} />
         </div>
-        <p className="text-[10px] text-[#F9DD76]/80 mt-1.5 text-right tracking-widest">{metrics.pctTarget}% Target</p>
+        <p className="text-[10px] text-[#F9DD76]/80 mt-1.5 text-right tracking-widest">{metrics.pctTarget}% Collected</p>
       </div>
     </div>
   </div>

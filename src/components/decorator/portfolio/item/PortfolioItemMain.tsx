@@ -241,6 +241,10 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Style</div>
                   <div className="text-sm font-serif font-bold text-gray-800">{item.servicesProvided?.[0]?.replace(/([A-Z])/g, ' $1') || "Premium"}</div>
                 </div>
+                <div>
+                  <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Cultural Style</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{item.culturalStyle || "Western / Modern"}</div>
+                </div>
                 {item.price ? (
                   <div className="col-span-2 pt-2 border-t border-[#F2EDE0]">
                     <div className="text-[9px] font-bold tracking-widest text-[#B08D2C] uppercase mb-1">Project Value</div>

@@ -138,10 +138,10 @@ export const decoratorAPI = {
   getProfile: () => apiFetch("/api/decorator/overview/profile"),
   getAssignedBookings: () => apiFetch("/api/decorator/bookings"),
   getBookingById: (id: string) => apiFetch(`/api/decorator/bookings/${id}`),
-  updateBookingStatus: (id: string, status: string) =>
+  updateBookingStatus: (id: string, status: string, options?: any) =>
     apiFetch(`/api/decorator/bookings/${id}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...options }),
     }),
   updateChecklist: (id: string, checklist: any[]) =>
     apiFetch(`/api/decorator/bookings/${id}/checklist`, {
@@ -175,7 +175,7 @@ export const videographerAPI = {
   getProfile: () => apiFetch("/api/videographer/profile"),
   getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
   getBookingById: (id: string) => apiFetch(`/api/videographer/bookings/${id}`),
-  updateBookingStatus: (id: string, status: string) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateBookingStatus: (id: string, status: string, options?: any) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status, ...options }) }),
   updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
   uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
     method: "POST",
@@ -199,10 +199,10 @@ export const djAPI = {
   getOverview: () => apiFetch("/api/dj-artist/overview"),
   getAssignedBookings: () => apiFetch("/api/dj-artist/bookings"),
   getBookingById: (id: string) => apiFetch(`/api/dj-artist/bookings/${id}`),
-  updateBookingStatus: (id: string, status: string) =>
+  updateBookingStatus: (id: string, status: string, options?: any) =>
     apiFetch(`/api/dj-artist/bookings/${id}/status`, {
       method: "PUT",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...options }),
     }),
   updateChecklist: (id: string, checklist: any[]) =>
     apiFetch(`/api/dj-artist/bookings/${id}/checklist`, {

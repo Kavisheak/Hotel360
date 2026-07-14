@@ -6,7 +6,6 @@ import { initialTiers, initialFees, type Tier, type SupplementalFee } from './pa
 import { packageAPI } from '@/lib/api';
 import PackagesHeader from './PackagesHeader';
 import TierConfigurations from './TierConfigurations';
-import SupplementalFees from './SupplementalFees';
 import GlobalParameters from './GlobalParameters';
 import { PackagePreview, PriceLockReminder } from './PackageSidePanels';
 import Sidebar from '@/components/hotel-manager/overview/Sidebar';
@@ -17,7 +16,6 @@ const PackagesMain = () => {
   const [fees, setFees] = useState<SupplementalFee[]>(initialFees);
   const [deposit, setDeposit] = useState(25);
   const [taxRate, setTaxRate] = useState('7.5');
-  const [currency, setCurrency] = useState('USD ($) - US Dollar');
   const [enforcement, setEnforcement] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -66,7 +64,6 @@ const PackagesMain = () => {
         if (s.fees && s.fees.length > 0) setFees(s.fees);
         if (s.deposit !== undefined) setDeposit(s.deposit);
         if (s.taxRate !== undefined) setTaxRate(s.taxRate);
-        if (s.currency) setCurrency(s.currency);
         if (s.enforcement !== undefined) setEnforcement(s.enforcement);
       }
     } catch (err) {
@@ -113,10 +110,8 @@ const PackagesMain = () => {
 
       // Publish global settings
       const settingsPayload = {
-        fees,
         deposit,
         taxRate,
-        currency,
         enforcement,
       };
       const settingsRes = await packageAPI.updateSettings(settingsPayload);
@@ -236,7 +231,6 @@ const PackagesMain = () => {
             {/* Left Column */}
             <div className="space-y-6">
               <TierConfigurations tiers={tiers} onPriceChange={handlePriceChange} onEdit={setTierToEdit} />
-              <SupplementalFees fees={fees} onFeeChange={handleFeeChange} />
             </div>
 
             {/* Right Sidebar Panel */}
@@ -246,8 +240,6 @@ const PackagesMain = () => {
                 onDepositChange={setDeposit}
                 taxRate={taxRate}
                 onTaxRateChange={setTaxRate}
-                currency={currency}
-                onCurrencyChange={setCurrency}
                 enforcement={enforcement}
                 onEnforcementToggle={() => setEnforcement(e => !e)}
               />

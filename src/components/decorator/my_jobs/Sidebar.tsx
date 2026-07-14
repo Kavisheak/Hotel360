@@ -81,7 +81,6 @@ const Sidebar = () => {
     { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/decorator/schedule' },
     { icon: <FolderHeart size={20} />, label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
     { icon: <BarChart3 size={20} />, label: 'RATINGS', href: '/decorator/ratings' },
-    { icon: <Clock size={20} />, label: 'HISTORY', href: '/decorator/history' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/decorator/settings' },
   ];
 
