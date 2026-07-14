@@ -30,6 +30,13 @@ export interface Vendor {
   specialties: string[];
   description: string;
   portfolio: string[];
+  portfolioItems?: {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    media: { url: string; isCover: boolean; designType: string }[];
+  }[];
   packages: VendorPackage[];
   reviews: VendorReview[];
   location?: string;
@@ -69,7 +76,10 @@ export const useVendorStore = create<VendorState>((set, get) => ({
       let fetchedData: Vendor[] = [];
 
       if (responseData.success && responseData.data && responseData.data.length > 0) {
-        fetchedData = [...responseData.data];
+        fetchedData = responseData.data.map((v: any) => ({
+          ...v,
+          id: v.id || v._id || "",
+        }));
       } else {
         // Fallback mock data if database is empty
         fetchedData = [

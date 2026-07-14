@@ -32,7 +32,15 @@ export default function AuthPage() {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [errors, setErrors] = useState<{email?: string, phone?: string, regEmail?: string}>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    phone?: string;
+    regEmail?: string;
+    firstName?: string;
+    lastName?: string;
+    regPassword?: string;
+    confirmPassword?: string;
+  }>({});
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   // Toggle mode
@@ -130,6 +138,14 @@ export default function AuthPage() {
     let hasError = false;
     const newErrors: typeof errors = {};
     
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required.";
+      hasError = true;
+    }
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required.";
+      hasError = true;
+    }
     if (!validateEmail(regEmail)) {
       newErrors.regEmail = "Please enter a valid email address.";
       hasError = true;
@@ -138,18 +154,21 @@ export default function AuthPage() {
       newErrors.phone = "Please enter a valid Sri Lankan phone number.";
       hasError = true;
     }
+    if (!regPassword) {
+      newErrors.regPassword = "Password is required.";
+      hasError = true;
+    } else if (!isStrongPassword) {
+      newErrors.regPassword = "Password does not meet strength requirements.";
+      setShowPasswordRequirements(true);
+      hasError = true;
+    }
+    if (regPassword !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+      hasError = true;
+    }
+
     if (hasError) {
       setErrors(newErrors);
-      return;
-    }
-
-    if (!isStrongPassword) {
-      setShowPasswordRequirements(true);
-      return;
-    }
-
-    if (regPassword !== confirmPassword) {
-      alert("Passwords do not match");
       return;
     }
 
@@ -444,9 +463,13 @@ export default function AuthPage() {
                         autoComplete="off"
                         className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
+                        onChange={(e) => {
+                          setFirstName(e.target.value);
+                          if (errors.firstName) setErrors({ ...errors, firstName: undefined });
+                        }}
                       />
                     </div>
+                    {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName}</p>}
                   </div>
 
                   {/* Last Name */}
@@ -464,9 +487,13 @@ export default function AuthPage() {
                         autoComplete="off"
                         className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
+                        onChange={(e) => {
+                          setLastName(e.target.value);
+                          if (errors.lastName) setErrors({ ...errors, lastName: undefined });
+                        }}
                       />
                     </div>
+                    {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName}</p>}
                   </div>
                 </div>
 
@@ -543,7 +570,10 @@ export default function AuthPage() {
                       autoComplete="new-password"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
+                      onChange={(e) => {
+                        setRegPassword(e.target.value);
+                        if (errors.regPassword) setErrors({ ...errors, regPassword: undefined });
+                      }}
                     />
                     <button 
                       type="button" 
@@ -553,6 +583,7 @@ export default function AuthPage() {
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                  {errors.regPassword && <p className="text-red-500 text-[10px] mt-1">{errors.regPassword}</p>}
                 </div>
 
                 {/* Confirm Password */}
@@ -570,7 +601,10 @@ export default function AuthPage() {
                       autoComplete="new-password"
                       className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                      }}
                     />
                     <button 
                       type="button" 
@@ -580,6 +614,7 @@ export default function AuthPage() {
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                  {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-1">{errors.confirmPassword}</p>}
                 </div>
 
                 {/* Password strength indicators */}

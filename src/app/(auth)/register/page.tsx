@@ -11,16 +11,36 @@ import { validateEmail, validatePhone } from "@/lib/validation";
 export default function RegisterPage() {
   const router = useRouter();
   const { user, fetchUser, isLoading } = useAuthStore();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    phone?: string;
+    firstName?: string;
+    lastName?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrors({});
     let hasError = false;
     const newErrors: typeof errors = {};
 
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required.";
+      hasError = true;
+    }
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required.";
+      hasError = true;
+    }
     if (!validateEmail(email)) {
       newErrors.email = "Please enter a valid email address.";
       hasError = true;
@@ -29,12 +49,39 @@ export default function RegisterPage() {
       newErrors.phone = "Please enter a valid Sri Lankan phone number.";
       hasError = true;
     }
+    if (!password) {
+      newErrors.password = "Password is required.";
+      hasError = true;
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters.";
+      hasError = true;
+    }
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+      hasError = true;
+    }
 
     if (hasError) {
       setErrors(newErrors);
       return;
     }
-    // Proceed with registration
+
+    const { authAPI } = await import("@/lib/api");
+    const { ok, data } = await authAPI.signup({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email,
+      phone,
+      password
+    });
+
+    if (!ok) {
+      alert(data?.message || "Failed to create account");
+      return;
+    }
+
+    await fetchUser(true);
+    router.replace("/");
   };
 
   useEffect(() => {
@@ -145,8 +192,14 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     placeholder="John"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      if (errors.firstName) setErrors({ ...errors, firstName: undefined });
+                    }}
                     className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
+                  {errors.firstName && <p className="text-red-500 text-[14px] mt-2">{errors.firstName}</p>}
                 </div>
 
                 <div>
@@ -157,8 +210,14 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      if (errors.lastName) setErrors({ ...errors, lastName: undefined });
+                    }}
                     className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
+                  {errors.lastName && <p className="text-red-500 text-[14px] mt-2">{errors.lastName}</p>}
                 </div>
               </div>
 
@@ -208,16 +267,25 @@ export default function RegisterPage() {
 
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errors.password) setErrors({ ...errors, password: undefined });
+                    }}
                     className="input-glow w-full h-[74px] px-5 pr-14 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                   />
 
                   {/* Simple Eye Icon */}
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A67C52] text-xl cursor-pointer hover:scale-110 transition-transform">
-                    👁
+                  <span 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A67C52] text-xl cursor-pointer hover:scale-110 transition-transform select-none"
+                  >
+                    {showPassword ? "👁️" : "👁️‍🗨️"}
                   </span>
                 </div>
+                {errors.password && <p className="text-red-500 text-[14px] mt-2">{errors.password}</p>}
               </div>
 
               {/* Confirm Password */}
@@ -229,8 +297,14 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                  }}
                   className="input-glow w-full h-[74px] px-5 border border-[#D4C9A8] bg-[#fafaf5] outline-none text-[24px] text-[#5b6470] transition-all duration-300"
                 />
+                {errors.confirmPassword && <p className="text-red-500 text-[14px] mt-2">{errors.confirmPassword}</p>}
               </div>
 
               {/* Terms */}

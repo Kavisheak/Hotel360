@@ -24,7 +24,7 @@ function VendorsContent() {
   const [priceFilter, setPriceFilter] = useState("all");
   const [styleFilter, setStyleFilter] = useState("all");
   const [settingFilter, setSettingFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState<"all" | "decorators" | "videographers" | "djs" | "photographers" | "cake" | "florists">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "decorators" | "videographers" | "djs">("all");
 
   const [viewMode, setViewMode] = useState<"gallery" | "cards">("gallery");
 
@@ -45,7 +45,7 @@ function VendorsContent() {
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam && ["all", "decorators", "videographers", "djs", "photographers", "cake", "florists"].includes(tabParam)) {
+    if (tabParam && ["all", "decorators", "videographers", "djs"].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [searchParams]);

@@ -60,6 +60,11 @@
   100% { background-position: 200% center; }
 }
 
+@keyframes slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
 @keyframes glowPulse {
   0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
   50% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.45); }

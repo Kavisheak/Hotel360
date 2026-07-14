@@ -113,8 +113,16 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
           phone={getClientPhone(booking)} 
           email={getClientEmail(booking)} 
           clientAvatar={booking.customerId?.avatar}
-          inspirationImage="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80" 
-          inspirationCaption={`${getPackageName(booking, 'decorator')} package at ${VENUE_NAME}.`}
+          inspirationImage={
+            booking.vendors?.decorator?.requestedDesignId?.media?.find((m: any) => m.isCover)?.url || 
+            booking.vendors?.decorator?.requestedDesignId?.media?.[0]?.url || 
+            "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80"
+          }
+          inspirationCaption={
+            booking.vendors?.decorator?.requestedDesignId?.title 
+              ? `Client Requested Design: ${booking.vendors.decorator.requestedDesignId.title}`
+              : `${getPackageName(booking, 'decorator')} package at ${VENUE_NAME}.`
+          }
         />
 
         {/* Package components checklist & tasks */}

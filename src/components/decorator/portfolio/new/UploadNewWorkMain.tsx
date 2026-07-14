@@ -24,6 +24,7 @@ interface MediaItem {
   src: string;
   isCover: boolean;
   file?: File;
+  designType?: 'stage' | 'hall' | 'entrance' | 'general';
 }
 
 const UploadNewWorkMain = () => {
@@ -58,7 +59,8 @@ const UploadNewWorkMain = () => {
     {
       id: 'default-cover',
       src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuCfX9L3XMXwbyx-3xt7_xIG01gsPmoROSGT9wIDStPdNJQK0ZTkGVtC7hzQatoWsrzhGeEs_PbmGwEAU_wBGAIxbMH6rQJy2SeTZlmi_x3DN4TOzgnt6yCW9ITuf7O_WLkEzTf7DhsB2-CQZimJY8FsR0H00Cj3w53859VbGZPDPtiuMwIQRyzUXOofRgTbG8_B4UJAVNNYI4Utz8gnTo3m4_sgcs70QwEh_bzkC-_drFgKsADPUta3GJ03g8KAhLPRj-LqWkpso',
-      isCover: true
+      isCover: true,
+      designType: 'general'
     }
   ]);
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
@@ -78,7 +80,8 @@ const UploadNewWorkMain = () => {
             id: `uploaded-${Date.now()}-${idx}`,
             src: reader.result as string,
             isCover: prev.filter(i => i.id !== 'default-cover').length === 0 && idx === 0,
-            file: file
+            file: file,
+            designType: 'general'
           }
         ]);
       };
@@ -153,11 +156,14 @@ const UploadNewWorkMain = () => {
         formData.append("coverImageName", coverItem.file.name);
       }
 
+      const designTypes: string[] = [];
       mediaList.forEach(item => {
         if (item.file) {
           formData.append("media", item.file);
+          designTypes.push(item.designType || 'general');
         }
       });
+      formData.append("designTypes", JSON.stringify(designTypes));
 
       const res = await decoratorAPI.createPortfolioItem(formData);
       if (res.ok) {
@@ -298,39 +304,54 @@ const UploadNewWorkMain = () => {
                 {mediaList.map((item) => (
                   <div
                     key={item.id}
-                    className={`w-28 h-28 flex-shrink-0 bg-white border ${item.isCover ? 'border-[#B08D2C]' : 'border-[#E0D8C3]'
-                      } relative group overflow-hidden`}
+                    className={`w-32 flex-shrink-0 bg-white border ${item.isCover ? 'border-[#B08D2C]' : 'border-[#E0D8C3]'
+                      } relative group flex flex-col shadow-sm`}
                   >
-                    <img
-                      className="w-full h-full object-cover"
-                      src={item.src}
-                      alt="Thumbnail upload preview"
-                    />
+                    <div className="h-24 w-full relative overflow-hidden">
+                      <img
+                        className="w-full h-full object-cover"
+                        src={item.src}
+                        alt="Thumbnail upload preview"
+                      />
 
-                    {/* Delete action overlay */}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
-                      <button
-                        onClick={() => handleRemoveMedia(item.id)}
-                        className="p-1.5 bg-[#93000a] text-white rounded-full hover:scale-110 transition-transform"
-                        title="Delete Image"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                      {!item.isCover && (
+                      {/* Delete action overlay */}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
                         <button
-                          onClick={() => handleSetCover(item.id)}
-                          className="p-1.5 bg-[#7C6A2E] text-white rounded-full hover:scale-110 transition-transform text-[8px] font-bold tracking-wider uppercase px-2"
+                          onClick={() => handleRemoveMedia(item.id)}
+                          className="p-1.5 bg-[#93000a] text-white rounded-full hover:scale-110 transition-transform"
+                          title="Delete Image"
                         >
-                          Cover
+                          <Trash2 size={12} />
                         </button>
+                        {!item.isCover && (
+                          <button
+                            onClick={() => handleSetCover(item.id)}
+                            className="p-1.5 bg-[#7C6A2E] text-white rounded-full hover:scale-110 transition-transform text-[8px] font-bold tracking-wider uppercase px-2"
+                          >
+                            Cover
+                          </button>
+                        )}
+                      </div>
+
+                      {item.isCover && (
+                        <div className="absolute top-1 left-1 bg-[#B08D2C] text-white text-[8px] px-1.5 py-0.5 font-bold uppercase tracking-wider shadow-sm">
+                          Cover
+                        </div>
                       )}
                     </div>
-
-                    {item.isCover && (
-                      <div className="absolute bottom-1 right-1 bg-[#B08D2C] text-white text-[8px] px-1.5 py-0.5 font-bold uppercase tracking-wider shadow-sm">
-                        Cover
-                      </div>
-                    )}
+                    
+                    <select
+                      value={item.designType || 'general'}
+                      onChange={(e) => {
+                        setMediaList(prev => prev.map(m => m.id === item.id ? { ...m, designType: e.target.value as any } : m))
+                      }}
+                      className="w-full h-7 text-[9px] bg-[#FAF6EE] text-[#7C6A2E] font-bold border-t border-[#E0D8C3] outline-none px-1 uppercase tracking-wider cursor-pointer text-center"
+                    >
+                      <option value="general">General</option>
+                      <option value="stage">Stage</option>
+                      <option value="hall">Hall</option>
+                      <option value="entrance">Entrance</option>
+                    </select>
                   </div>
                 ))}
 
