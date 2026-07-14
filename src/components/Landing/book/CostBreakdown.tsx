@@ -9,7 +9,6 @@ interface CostBreakdownProps {
   costBreakdown: {
     basePrice: number;
     extraHoursPremium: number;
-    foodCost: number;
     guestCount: number;
     timeslotPremium: number;
     addonsCost: number;
@@ -51,13 +50,6 @@ export default function CostBreakdown({
           <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
             <span>Timeslot Premium ({selectedTimeslot.toUpperCase()}):</span>
             <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.timeslotPremium)}</span>
-          </div>
-        )}
-
-        {costBreakdown.foodCost > 0 && (
-          <div className="flex justify-between items-center border-b border-[#E8DFC9] dark:border-gray-800 pb-4">
-            <span>Food & Catering ({costBreakdown.guestCount} guests):</span>
-            <span className="font-bold text-[#1A1512] dark:text-white">{formatCurrency(costBreakdown.foodCost)}</span>
           </div>
         )}
 

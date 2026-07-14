@@ -11,13 +11,13 @@ import TimeRangeSelector from "@/components/landing/book/TimeRangeSelector";
 import PackageSelector from "@/components/landing/book/PackageSelector";
 import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
-import BookingMenuSelector from "@/components/landing/book/BookingMenuSelector";
 import BookingForm from "@/components/landing/book/BookingForm";
 import BookingHistory from "@/components/landing/book/BookingHistory";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
+import type { Vendor, VendorPackage } from "@/store/vendorStore";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI } from "@/lib/api";
@@ -34,6 +34,9 @@ export default function BookPage() {
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(true);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
@@ -55,8 +58,6 @@ export default function BookPage() {
   }, [user]);
 
   const cartVendors = useVendorCartStore((state) => state.vendors);
-  const cartMenu = useVendorCartStore((state) => state.menuSelection);
-  const setMenuTypeStore = useVendorCartStore((state) => state.setMenuType);
   const setStoreVendor = useVendorCartStore((state) => state.setVendor);
 
   const [vendors, setLocalVendors] = useState<{
@@ -84,61 +85,40 @@ export default function BookPage() {
     cake: "none",
     cakePackage: "none",
     florist: "none",
-    floristPackage: "none"
+    floristPackage: "none",
   });
-
-  const [menu, setMenu] = useState<"signature" | "custom">(
-    (cartMenu.type === "signature" || cartMenu.type === "custom") ? cartMenu.type : "signature"
-  );
-
-  const handleMenuChange = (newMenu: "signature" | "custom") => {
-    setMenu(newMenu);
-    if (newMenu === "signature" || newMenu === "custom") {
-      setMenuTypeStore(newMenu);
-    }
-  };
 
   const setVendors = (newVendors: typeof vendors) => {
     setLocalVendors(newVendors);
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
-    if (newVendors.photographer !== cartVendors.photographer) setStoreVendor("photographer", newVendors.photographer);
-    if (newVendors.cake !== cartVendors.cake) setStoreVendor("cake", newVendors.cake);
-    if (newVendors.florist !== cartVendors.florist) setStoreVendor("florist", newVendors.florist);
   };
 
   // Read URL params on mount
   useEffect(() => {
-      if (typeof window !== "undefined") {
-        const searchParams = new URLSearchParams(window.location.search);
-        const preDecorator = searchParams.get("decorator");
-        const preDj = searchParams.get("dj");
-        const preVid = searchParams.get("videographer");
-        const prePhoto = searchParams.get("photographer");
-        const preCake = searchParams.get("cake");
-        const preFlorist = searchParams.get("florist");
-        const prePackage = searchParams.get("package");
-  
-        if (preDecorator || preDj || preVid || prePhoto || preCake || preFlorist) {
-          setVendors({
-            ...vendors,
-            decorator: preDecorator || "none",
-            dj: preDj || "none",
-            videographer: preVid || "none",
-            photographer: prePhoto || "none",
-            cake: preCake || "none",
-            florist: preFlorist || "none"
-          });
-        }
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const preDecorator = searchParams.get("decorator");
+      const preDj = searchParams.get("dj");
+      const preVid = searchParams.get("videographer");
+      const prePackage = searchParams.get("package");
+
+      if (preDecorator || preDj || preVid) {
+        setVendors({
+          ...vendors,
+          decorator: preDecorator || "none",
+          dj: preDj || "none",
+          videographer: preVid || "none",
+        });
+      }
 
       if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
         setSelectedPackage(prePackage);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-
 
   const getBasePrice = () => {
     if (selectedPackage === "silver") return 1800000;
@@ -146,34 +126,33 @@ export default function BookPage() {
     return 3400000;
   };
 
-  const getMenuPricePerGuest = () => {
-    return 0; // Food and Catering removed from flow
-  };
-
   const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
-    if (vendorId === "none" || vendorId === "custom_preference") return 0;
+    if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
     
     if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
-      const pkgName = vendors[`${category}Package`];
+      const pkgName = vendors[`${category}Package` as keyof typeof vendors];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
+    }
 
-      const v = globalVendors.find(v => v.id === vendorId);
+    const pkgName = vendors[`${category}Package` as keyof typeof vendors];
+    if (pkgName && pkgName !== "none" && pkgName !== "Custom Preferences") {
+      const v = globalVendors.find((v: Vendor) => v.id === vendorId);
       if (!v) return 0;
 
-      const pkg = v.packages?.find(p => p.name === pkgName);
+      const pkg = v.packages?.find((p: VendorPackage) => p.name === pkgName);
       if (pkg) {
         const numericStr = pkg.price.replace(/[^0-9]/g, "");
         return numericStr ? parseInt(numericStr, 10) : 0;
       }
       return 0;
-    } else {
-      // For DJ and Videographer, use startingPrice since they typically don't have package selection currently
-      const v = globalVendors.find(v => v.id === vendorId);
-      if (!v) return 0;
-      const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
-      return numericStr ? parseInt(numericStr, 10) : 0;
     }
+
+    // Fallback: use starting price
+    const v = globalVendors.find((v: Vendor) => v.id === vendorId);
+    if (!v) return 0;
+    const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
+    return numericStr ? parseInt(numericStr, 10) : 0;
   };
 
   const calculateDuration = () => {
@@ -183,16 +162,14 @@ export default function BookPage() {
     let hours = endH - startH;
     let mins = endM - startM;
     if (mins < 0) { hours -= 1; mins += 60; }
-    return hours + (mins / 60);
+    return hours + mins / 60;
   };
 
   const durationHours = calculateDuration();
-
-  const basePrice = getBasePrice(); // Fixed Hall Price
+  const basePrice = getBasePrice();
   const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
-  const foodCost = guestCount * getMenuPricePerGuest();
-  const timeslotPremium = 0; // Removing timeslot premium since we use pure time range
-  
+  const timeslotPremium = 0;
+
   let addonsCost = 
     getVendorCost("decorator") + 
     getVendorCost("dj") + 
@@ -201,23 +178,20 @@ export default function BookPage() {
     getVendorCost("cake") + 
     getVendorCost("florist");
 
-  if (menu === "custom") {
-    // Add cost of selected custom menu items * guest count
-    const customMenuCost = cartMenu.addedOptionalItems.reduce((total, item) => total + item.price, 0);
-    addonsCost += (customMenuCost * guestCount);
-  }
+  const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
 
-  const grandTotal = basePrice + extraHoursPremium + foodCost + timeslotPremium + addonsCost;
+  const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
 
-  const formatCurrency = (val: number) => {
-    return "LKR " + val.toLocaleString();
-  };
-
-  const addBooking = useBookingStore(state => state.addBooking);
-  const clearCart = useVendorCartStore(state => state.clearCart);
+  const addBooking = useBookingStore((state) => state.addBooking);
+  const clearCart = useVendorCartStore((state) => state.clearCart);
 
   const handleFinalizeBooking = async (contactInfo: any) => {
-    const eventTypeName = selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration";
+    const eventTypeName =
+      selectedPackage === "silver"
+        ? "Classic Silver Package"
+        : selectedPackage === "diamond"
+        ? "Luxury Diamond Gala"
+        : "Grand Gold Celebration";
 
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
@@ -226,17 +200,14 @@ export default function BookPage() {
       email: contactInfo.email,
       phone: contactInfo.phone,
       alternativePhone: contactInfo.alternativePhone || "",
-      eventType: eventType,
+      eventType,
       eventName: eventTypeName,
       date: dateString,
       timeslot: `${startTime} - ${endTime}`,
-      durationHours: durationHours,
+      durationHours,
       guests: guestCount,
       packageId: selectedPackage,
       paymentMethod: contactInfo.paymentMethod,
-      menuType: menu,
-      customMenuItems: menu === "custom" ? cartMenu.addedOptionalItems.map(item => item.name) : [],
-      customMenuSurcharge: menu === "custom" ? (cartMenu.addedOptionalItems.reduce((total, item) => total + item.price, 0) * guestCount) : 0,
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
@@ -248,41 +219,41 @@ export default function BookPage() {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
           status: vendors.decorator !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : ""
+          packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : "",
         },
         dj: {
           vendorId: vendors.dj !== "none" ? vendors.dj : null,
           status: vendors.dj !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.djPackage !== "none" ? vendors.djPackage : ""
+          packageName: vendors.djPackage !== "none" ? vendors.djPackage : "",
         },
         videographer: {
           vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
           status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : ""
+          packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
         },
         photographer: {
           vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
           status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : ""
+          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : "",
         },
         cake: {
           vendorId: vendors.cake !== "none" ? vendors.cake : null,
           status: vendors.cake !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : ""
+          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : "",
         },
         florist: {
           vendorId: vendors.florist !== "none" ? vendors.florist : null,
           status: vendors.florist !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : ""
+          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : "",
         }
-      }
+      },
     };
 
     try {
       const res = await customerBookingAPI.createBooking(bookingPayload);
       if (res.ok && res.data.success) {
         clearCart();
-        return true; // Success
+        return true;
       } else {
         alert(res.data.message || "Failed to create booking");
         return false;
@@ -292,10 +263,6 @@ export default function BookPage() {
       return false;
     }
   };
-
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
     if (!holdExpiresAt) return;
@@ -309,6 +276,7 @@ export default function BookPage() {
       }
     }, 1000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdExpiresAt, selectedDate]);
 
   const handleHoldExpired = async () => {
@@ -319,6 +287,8 @@ export default function BookPage() {
     }
     setCurrentStep(1);
   };
+
+  const TOTAL_STEPS = 4;
 
   const handleNext = async () => {
     if (isGuest) {
@@ -347,7 +317,7 @@ export default function BookPage() {
         return;
       }
     }
-    setCurrentStep(prev => Math.min(prev + 1, 3));
+    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
   };
 
   const handleStepClick = async (step: number) => {
@@ -356,7 +326,7 @@ export default function BookPage() {
       return;
     }
     if (step < currentStep) {
-      if ((currentStep === 2 || currentStep === 3) && step === 1) {
+      if ((currentStep === 2 || currentStep === 3 || currentStep === 4) && step === 1) {
         setHoldExpiresAt(null);
         setTimeLeft(0);
         if (selectedDate) {
@@ -369,17 +339,26 @@ export default function BookPage() {
   };
 
   const handleBack = async () => {
-    if (currentStep === 2 || currentStep === 3) {
-      setHoldExpiresAt(null);
-      setTimeLeft(0);
-      try {
-        const dateString = new Date(selectedDate).toISOString();
-        await customerBookingAPI.releaseHold({ date: dateString });
-      } catch (e) {
-        console.error("Failed to release hold on back navigation:", e);
+    if (currentStep === 2 || currentStep === 3 || currentStep === 4) {
+      if (currentStep === 2) {
+        setHoldExpiresAt(null);
+        setTimeLeft(0);
+        try {
+          const dateString = new Date(selectedDate).toISOString();
+          await customerBookingAPI.releaseHold({ date: dateString });
+        } catch (e) {
+          console.error("Failed to release hold on back navigation:", e);
+        }
       }
     }
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const STEP_LABELS: Record<number, string> = {
+    1: "Event Details",
+    2: "Vendors",
+    3: "Review",
+    4: "Checkout",
   };
 
   return (
@@ -418,6 +397,7 @@ export default function BookPage() {
               <BookingHistory />
             ) : (
               <>
+                {/* Hold countdown banner */}
                 {holdExpiresAt && timeLeft > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 px-4 py-3 rounded-sm flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-6 animate-pulse">
                     <span>⚠️ Temporary reservation active. Secure your event date before the hold expires!</span>
@@ -429,29 +409,44 @@ export default function BookPage() {
 
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
-                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
+                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2" />
                   {[1, 2, 3, 4].map((step) => (
                     <div
                       key={step}
                       onClick={() => handleStepClick(step)}
-                      className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === step ? 'text-[#1A1512] dark:text-white' : currentStep > step ? 'text-[#A6955C]' : 'text-gray-400'}`}
+                      className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${
+                        currentStep === step
+                          ? "text-[#1A1512] dark:text-white"
+                          : currentStep > step
+                          ? "text-[#A6955C]"
+                          : "text-gray-400"
+                      }`}
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${currentStep === step ? 'border-[#C69C6D] text-[#C69C6D]' : currentStep > step ? 'border-[#A6955C] bg-[#A6955C] text-white' : 'border-gray-300 dark:border-gray-700'}`}>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
+                          currentStep === step
+                            ? "border-[#C69C6D] text-[#C69C6D]"
+                            : currentStep > step
+                            ? "border-[#A6955C] bg-[#A6955C] text-white"
+                            : "border-gray-300 dark:border-gray-700"
+                        }`}
+                      >
                         {step}
                       </div>
                       <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
-                        {step === 1 && "Event Details"}
-                        {step === 2 && "Vendors"}
-                        {step === 3 && "Menu"}
-                        {step === 4 && "Checkout"}
+                        {STEP_LABELS[step]}
                       </span>
                     </div>
                   ))}
-                </div>                {/* Step 1: Event Details */}
+                </div>                
+
+                {/* Step 1: Event Details */}
                 {currentStep === 1 && (
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
-                      <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">Event Type</label>
+                      <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">
+                        Event Type
+                      </label>
                       <select
                         value={eventType}
                         onChange={(e) => setEventType(e.target.value)}
@@ -465,19 +460,21 @@ export default function BookPage() {
                         <option value="Other">Other Event</option>
                       </select>
                     </div>
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <div className="h-px bg-[#D4C9A8] w-full" />
                     <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
-                    <TimeRangeSelector 
-                      startTime={startTime} 
-                      endTime={endTime} 
+                    <div className="h-px bg-[#D4C9A8] w-full" />
+                    <TimeRangeSelector
+                      startTime={startTime}
+                      endTime={endTime}
                       onChange={(start, end) => {
                         setStartTime(start);
                         setEndTime(end);
-                      }} 
+                      }}
                     />
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
+                    <div className="h-px bg-[#D4C9A8] w-full" />
                     <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
+                    <div className="h-px bg-[#D4C9A8] w-full" />
+                    <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
                   </div>
                 )}
 
@@ -488,16 +485,92 @@ export default function BookPage() {
                   </div>
                 )}
 
-                {/* Step 3: Food Menu Customization */}
+                {/* Step 3: Review */}
                 {currentStep === 3 && (
-                  <div className="space-y-8 animate-fadeIn">
-                    <BookingMenuSelector menu={menu} onChange={handleMenuChange} />
-                    <div className="h-px bg-[#D4C9A8] w-full"></div>
-                    <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
+                  <div className="space-y-6 animate-fadeIn bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
+                    <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Booking</h3>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Event Date:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">
+                          {selectedDate
+                            ? new Date(selectedDate).toLocaleDateString(undefined, {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })
+                            : "Not selected"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Timeslot &amp; Duration:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">
+                          {startTime} - {endTime} ({durationHours} hrs)
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Guests:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white">
+                          {guestCount} Guests
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Venue Package:</span>
+                        <span className="font-bold text-[#1A1512] dark:text-white capitalize">
+                          {selectedPackage} Package
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
+                        <span className="text-gray-500">Selected Vendors:</span>
+                        <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1 text-xs">
+                          {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
+                            const id = vendors[cat];
+                            if (!id || id === "none") return null;
+                            const v = globalVendors.find((v: Vendor) => v.id === id);
+                            return <p key={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}: {v ? v.name : "Selected"}</p>;
+                          })}
+                          {(["decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).every(
+                            (cat) => !vendors[cat] || vendors[cat] === "none"
+                          ) && <p className="text-gray-400 font-normal">No vendors selected</p>}
+                        </div>
+                      </div>
+                      <div className="flex justify-between pb-3 text-sm font-bold">
+                        <span className="text-[#1A1512] dark:text-white">Estimated Total:</span>
+                        <span className="text-[#C69C6D] text-base">{formatCurrency(grandTotal)}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                      <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">
+                        Cancellation Policy
+                      </h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                        &bull; <strong>More than 30 days before event:</strong> Free cancellation from your dashboard.
+                        <br />
+                        &bull; <strong>14–30 days before event:</strong> Cancellation requires Manager review.
+                        <br />
+                        &bull; <strong>Less than 14 days:</strong> Cancellation not possible via portal. Contact hotel directly.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4">
+                      <input
+                        type="checkbox"
+                        id="termsAgree"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
+                      />
+                      <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
+                        I have reviewed and agree to the EASCC Cancellation Policy and Event Booking Terms.
+                      </label>
+                    </div>
                   </div>
                 )}
 
-                {/* Step 4: Checkout (Review & Pay) */}
+                {/* Step 4: Checkout */}
                 {currentStep === 4 && (
                   <div className="space-y-6 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
@@ -569,12 +642,19 @@ export default function BookPage() {
                     >
                       &larr; Previous Step
                     </button>
-                  ) : <div></div>}
+                  ) : (
+                    <div />
+                  )}
 
-                  {currentStep < 4 && (
-                    <button 
+                  {currentStep < TOTAL_STEPS && (
+                    <button
                       onClick={handleNext}
-                      className="px-8 py-3 bg-[#C69C6D] text-white text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
+                      disabled={currentStep === 3 && !termsAccepted}
+                      className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
+                        currentStep === 3 && !termsAccepted
+                          ? "bg-gray-400 cursor-not-allowed opacity-50"
+                          : "bg-[#C69C6D] hover:bg-[#B58B5C]"
+                      }`}
                     >
                       Next Step &rarr;
                     </button>
@@ -585,7 +665,7 @@ export default function BookPage() {
 
           </div>
 
-          {/* Right Column: Sticky Cost Breakdown & Trust Flags */}
+          {/* Right Column: Sticky Cost Breakdown */}
           {activeTab === "new" && (
             <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
               <CostBreakdown
@@ -594,11 +674,10 @@ export default function BookPage() {
                 costBreakdown={{
                   basePrice,
                   extraHoursPremium,
-                  foodCost,
                   guestCount,
                   timeslotPremium,
                   addonsCost,
-                  grandTotal
+                  grandTotal,
                 }}
                 formatCurrency={formatCurrency}
               />
@@ -607,8 +686,6 @@ export default function BookPage() {
           )}
 
         </div>
-
-
       </main>
 
       <Footer />
