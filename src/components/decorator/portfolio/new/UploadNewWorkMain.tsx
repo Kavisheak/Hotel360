@@ -38,6 +38,7 @@ const UploadNewWorkMain = () => {
   const [venue, setVenue] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('installations');
+  const [culturalStyle, setCulturalStyle] = useState('Western / Modern');
 
   // Services checklist
   const [services, setServices] = useState({
@@ -137,6 +138,7 @@ const UploadNewWorkMain = () => {
       formData.append("venue", venue);
       formData.append("price", price);
       formData.append("category", category);
+      formData.append("culturalStyle", culturalStyle);
       formData.append("isFeatured", String(isFeatured));
       formData.append("isPrivate", String(isPrivate));
       
@@ -415,6 +417,22 @@ const UploadNewWorkMain = () => {
                     onFocus={openDatePicker}
                     className="w-full bg-white border border-[#E0D8C3] p-4 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer min-h-[3rem] relative z-[1] [color-scheme:light] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-90 [&::-webkit-calendar-picker-indicator]:scale-125"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                    Cultural Style
+                  </label>
+                  <select
+                    value={culturalStyle}
+                    onChange={(e) => setCulturalStyle(e.target.value)}
+                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
+                  >
+                    <option value="Western / Modern">Western / Modern</option>
+                    <option value="Sinhala Traditional">Sinhala Traditional</option>
+                    <option value="Tamil Traditional">Tamil Traditional</option>
+                    <option value="Muslim Traditional">Muslim Traditional</option>
+                    <option value="Mixed / Fusion">Mixed / Fusion</option>
+                  </select>
                 </div>
               </div>
 

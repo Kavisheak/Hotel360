@@ -283,7 +283,7 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
                 <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
               </h3>
 
-              <RecentFeedback reviews={reviews} />
+              <RecentFeedback reviews={reviews} loading={false} />
 
             </div>
           </div>
