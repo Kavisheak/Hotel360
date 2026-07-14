@@ -273,10 +273,24 @@ export const customerBookingAPI = {
   getMyBookings: () => apiFetch("/api/customer/bookings"),
   swapVendor: (id: string, body: any) =>
     apiFetch(`/api/customer/bookings/${id}/swap-vendor`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(body),
     }),
   getAvailability: () => apiFetch("/api/customer/bookings/availability"),
+  createHold: (body: { date: string }) =>
+    apiFetch("/api/customer/bookings/hold", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  releaseHold: (body: { date: string }) =>
+    apiFetch("/api/customer/bookings/hold", {
+      method: "DELETE",
+      body: JSON.stringify(body),
+    }),
+  cancelBooking: (id: string) =>
+    apiFetch(`/api/customer/bookings/${id}/cancel`, {
+      method: "POST",
+    }),
 };
 
 export const vendorAPI = {

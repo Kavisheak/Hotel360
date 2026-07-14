@@ -4,6 +4,7 @@ import React from "react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useAuthStore } from "@/store/authStore";
 import { Plus, CheckCircle2, ChefHat, Info } from "lucide-react";
 import Image from "next/image";
 
@@ -143,6 +144,21 @@ export default function MenuBuilderPage() {
   const removedDefaultItems = menuSelection.removedDefaultItems || [];
   const addedOptionalItems = menuSelection.addedOptionalItems || [];
 
+  const { fetchUser, user } = useAuthStore();
+  const [isGuest, setIsGuest] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  React.useEffect(() => {
+    if (user && (user.role.toLowerCase() === "customer" || user.role.toLowerCase() === "decorator")) {
+      setIsGuest(false);
+    } else {
+      setIsGuest(true);
+    }
+  }, [user]);
+
   const calculateOptionalTotal = () => {
     return addedOptionalItems.reduce((sum, item) => sum + item.price, 0);
   };
@@ -240,16 +256,18 @@ export default function MenuBuilderPage() {
                             {item.name}
                           </span>
                         </div>
-                        <button 
-                          onClick={() => toggleDefaultItem(item.id)}
-                          className={`text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-sm border transition-all shrink-0 ml-4 ${
-                            isRemoved 
-                              ? 'border-gray-300 text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-[#333]' 
-                              : 'border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/10'
-                          }`}
-                        >
-                          {isRemoved ? '+ Restore' : '- Remove'}
-                        </button>
+                        {!isGuest && (
+                          <button 
+                            onClick={() => toggleDefaultItem(item.id)}
+                            className={`text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-sm border transition-all shrink-0 ml-4 ${
+                              isRemoved 
+                                ? 'border-gray-300 text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-[#333]' 
+                                : 'border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/10'
+                            }`}
+                          >
+                            {isRemoved ? '+ Restore' : '- Remove'}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -296,16 +314,18 @@ export default function MenuBuilderPage() {
                             </span>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => toggleOptionalItem({ id: item.id, name: item.name, price: item.price })}
-                          className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all shrink-0 ml-4 ${
-                            isAdded 
-                              ? 'bg-[#A67C52] border-[#A67C52] text-white' 
-                              : 'bg-transparent border-gray-300 dark:border-gray-700 text-gray-400 hover:border-[#A67C52] hover:text-[#A67C52]'
-                          }`}
-                        >
-                          {isAdded ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                        </button>
+                        {!isGuest && (
+                          <button 
+                            onClick={() => toggleOptionalItem({ id: item.id, name: item.name, price: item.price })}
+                            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all shrink-0 ml-4 ${
+                              isAdded 
+                                ? 'bg-[#A67C52] border-[#A67C52] text-white' 
+                                : 'bg-transparent border-gray-300 dark:border-gray-700 text-gray-400 hover:border-[#A67C52] hover:text-[#A67C52]'
+                            }`}
+                          >
+                            {isAdded ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -318,15 +338,26 @@ export default function MenuBuilderPage() {
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-[#C9A84C] shrink-0 mt-0.5" />
               <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
-                Upgrades are calculated on a per-guest basis. Final pricing will be automatically reflected in your Booking Summary.
+                {isGuest 
+                  ? "Sign in to customize this menu and start booking your dream event." 
+                  : "Upgrades are calculated on a per-guest basis. Final pricing will be automatically reflected in your Booking Summary."}
               </p>
             </div>
-            <button 
-              onClick={() => window.location.href = '/book'}
-              className="bg-[#C9A84C] text-[#2C1E14] dark:text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-colors rounded-sm shadow-md whitespace-nowrap"
-            >
-              Return to Booking
-            </button>
+            {isGuest ? (
+              <button 
+                onClick={() => window.location.href = '/login'}
+                className="bg-[#C9A84C] text-[#2C1E14] dark:text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-colors rounded-sm shadow-md whitespace-nowrap"
+              >
+                Sign In to Customize
+              </button>
+            ) : (
+              <button 
+                onClick={() => window.location.href = '/book'}
+                className="bg-[#C9A84C] text-[#2C1E14] dark:text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-colors rounded-sm shadow-md whitespace-nowrap"
+              >
+                Return to Booking
+              </button>
+            )}
           </div>
         </div>
 

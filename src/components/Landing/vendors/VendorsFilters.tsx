@@ -8,8 +8,12 @@ interface VendorsFiltersProps {
   setRatingFilter: (r: number) => void;
   priceFilter: string;
   setPriceFilter: (p: string) => void;
-  activeTab: "all" | "decorators" | "djs" | "others";
-  setActiveTab: (t: "all" | "decorators" | "djs" | "others") => void;
+  styleFilter: string;
+  setStyleFilter: (s: string) => void;
+  settingFilter: string;
+  setSettingFilter: (s: string) => void;
+  activeTab: "all" | "decorators" | "videographers" | "djs" | "photographers" | "cake" | "florists";
+  setActiveTab: (t: "all" | "decorators" | "videographers" | "djs" | "photographers" | "cake" | "florists") => void;
   filteredCount: number;
 }
 
@@ -20,6 +24,10 @@ export default function VendorsFilters({
   setRatingFilter,
   priceFilter,
   setPriceFilter,
+  styleFilter,
+  setStyleFilter,
+  settingFilter,
+  setSettingFilter,
   activeTab,
   setActiveTab,
   filteredCount
@@ -32,13 +40,13 @@ export default function VendorsFilters({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             
             {/* Live Search Input */}
-            <div className="lg:col-span-5 relative">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Search Vendor</label>
+            <div className="lg:col-span-3 relative">
+              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Search Portfolio</label>
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by name, specialties, keyword..."
+                  placeholder="Keyword search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 font-sans input-glow"
@@ -47,28 +55,28 @@ export default function VendorsFilters({
             </div>
 
             {/* Rating Filter Select */}
-            <div className="lg:col-span-3">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Minimum Rating</label>
+            <div className="lg:col-span-2">
+              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Min Rating</label>
               <select
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(Number(e.target.value))}
                 className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
               >
-                <option value="0">All Approved Ratings</option>
-                <option value="4.5">⭐⭐⭐⭐★ 4.5+ Stars</option>
-                <option value="4.8">⭐⭐⭐⭐⭐ 4.8+ Stars</option>
+                <option value="0">All Ratings</option>
+                <option value="4.5">⭐ 4.5+ Stars</option>
+                <option value="4.8">⭐ 4.8+ Stars</option>
               </select>
             </div>
 
             {/* Price Level Tier Selector */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Budget Tier</label>
               <div className="grid grid-cols-4 bg-white dark:bg-[#1A1A1A] border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 rounded-sm p-1">
                 {["all", "premium", "luxury", "elite"].map((tier) => (
                   <button
                     key={tier}
                     onClick={() => setPriceFilter(tier)}
-                    className={`py-1.5 text-[10px] uppercase font-bold tracking-wider transition-all rounded-sm btn-interactive ${
+                    className={`py-1.5 text-[9px] uppercase font-bold tracking-wider transition-all rounded-sm btn-interactive ${
                       priceFilter === tier
                         ? "bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A] shadow-md"
                         : "bg-transparent text-gray-600 dark:text-gray-500 hover:text-[#2C1E14] dark:hover:text-white"
@@ -80,6 +88,35 @@ export default function VendorsFilters({
               </div>
             </div>
 
+            {/* Style Selector */}
+            <div className="lg:col-span-2">
+              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Artistic Style</label>
+              <select
+                value={styleFilter}
+                onChange={(e) => setStyleFilter(e.target.value)}
+                className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
+              >
+                <option value="all">All Styles</option>
+                <option value="luxury">Luxury / Fine Art</option>
+                <option value="modern">Modern / Editorial</option>
+                <option value="traditional">Traditional / Classic</option>
+              </select>
+            </div>
+
+            {/* Setting Selector */}
+            <div className="lg:col-span-2">
+              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Venue Setting</label>
+              <select
+                value={settingFilter}
+                onChange={(e) => setSettingFilter(e.target.value)}
+                className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
+              >
+                <option value="all">Any Setting</option>
+                <option value="indoor">Indoor Spaces</option>
+                <option value="outdoor">Outdoor Gardens</option>
+              </select>
+            </div>
+
           </div>
         </div>
       </section>
@@ -88,15 +125,18 @@ export default function VendorsFilters({
       <section className="max-w-7xl mx-auto px-6 pt-10 section-reveal stagger-1">
         <div className="flex flex-wrap gap-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 pb-4 justify-center md:justify-start">
           {[
-            { id: "all", label: "All Vetted Partners" },
-            { id: "decorators", label: "Bespoke Decorators" },
-            { id: "djs", label: "DJ Artists & Entertainment" },
-            { id: "others", label: "Other Services & Visuals" }
+            { id: "all", label: "All Portfolio Works" },
+            { id: "decorators", label: "Floral & Stages" },
+            { id: "videographers", label: "Cinematography" },
+            { id: "djs", label: "DJs & Entertainment" },
+            { id: "photographers", label: "Photographers" },
+            { id: "cake", label: "Cake Artisans" },
+            { id: "florists", label: "Florists" }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-6 py-2.5 text-xs font-bold tracking-widest uppercase transition-all duration-300 border-b-2 relative ${
+              className={`px-4 py-2.5 text-[10px] font-bold tracking-widest uppercase transition-all duration-300 border-b-2 relative ${
                 activeTab === tab.id
                   ? "border-[#D4AF37] dark:border-[#C9A84C] text-[#2C1E14] dark:text-white bg-transparent font-extrabold"
                   : "border-transparent text-gray-500 hover:text-[#2C1E14] dark:hover:text-white"
