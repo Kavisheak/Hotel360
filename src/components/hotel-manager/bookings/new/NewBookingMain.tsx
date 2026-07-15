@@ -12,7 +12,7 @@ import TimeRangeSelector from "@/components/landing/book/TimeRangeSelector";
 import PackageSelector from "@/components/landing/book/PackageSelector";
 import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
-
+import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import type { Vendor, VendorPackage } from "@/store/vendorStore";
 import { bookingAPI } from "@/lib/api";
@@ -35,6 +35,8 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
+  const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
+  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
 
   useEffect(() => {
     fetchVendors();
@@ -65,6 +67,11 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
     const vendorId = vendors[category];
     if (vendorId === "none" || vendorId === "custom_preference" || !vendorId) return 0;
+
+    // Check if there is a specific requested design price first
+    if (requestedDesignPrices && requestedDesignPrices[category] !== undefined && requestedDesignPrices[category] !== null) {
+      return requestedDesignPrices[category] as number;
+    }
 
     const pkgName = vendors[`${category}Package` as keyof typeof vendors];
     if (pkgName && pkgName !== "none" && pkgName !== "Custom Preferences") {
@@ -150,6 +157,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   
   const [cashConfirmed, setCashConfirmed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{email?: string, phone?: string, alternativePhone?: string}>({});
 
   const handleFinalizeBooking = async (e: React.FormEvent) => {
@@ -221,22 +229,25 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       videographerCost: getVendorCost("videographer"),
       totalCost: grandTotal,
       depositAmount: grandTotal * 0.3,
-      balanceAmount: grandTotal * 0.7,
+      balanceAmount: 0,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
           status: vendors.decorator !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : "",
+          requestedDesignId: requestedDesigns.decorator || null,
         },
         dj: {
           vendorId: vendors.dj !== "none" ? vendors.dj : null,
           status: vendors.dj !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.djPackage !== "none" ? vendors.djPackage : "",
+          requestedDesignId: requestedDesigns.dj || null,
         },
         videographer: {
           vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
           status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
+          requestedDesignId: requestedDesigns.videographer || null,
         },
       },
     };
@@ -244,12 +255,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     try {
       const res = await bookingAPI.createBooking(bookingPayload);
       if (res.ok && res.data.success) {
-        alert("Booking created successfully!");
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          router.push("/hotel-manager/bookings");
-        }
+        setShowSuccessModal(true);
       } else {
         alert(res.data.message || "Failed to create booking.");
       }
@@ -684,6 +690,34 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
 
         </div>
       </main>
+
+      {/* Premium Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center rounded-sm">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Lock size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Created Successfully!</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              The new booking has been added to the system and the requested artisans have been notified.
+            </p>
+            <button 
+              onClick={() => {
+                setShowSuccessModal(false);
+                if (onSuccess) {
+                  onSuccess();
+                } else {
+                  router.push("/hotel-manager/bookings");
+                }
+              }}
+              className="w-full bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] text-black px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm rounded-sm"
+            >
+              Continue to Bookings
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
