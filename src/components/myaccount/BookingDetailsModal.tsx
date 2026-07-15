@@ -5,7 +5,7 @@ import {
   X, CalendarDays, Clock, Users, Package, 
   MapPin, Phone, Mail, User, Receipt,
   CheckCircle2, AlertCircle, CreditCard,
-  Music, Camera, Paintbrush
+  Music, Camera, Paintbrush, Award
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
 import { customerBookingAPI, accountAPI } from "@/lib/api";
@@ -253,7 +253,10 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       {[
                         { key: "decorator", icon: Paintbrush, label: "Decorator" },
                         { key: "dj", icon: Music, label: "DJ & Entertainment" },
-                        { key: "videographer", icon: Camera, label: "Photography & Videography" }
+                        { key: "videographer", icon: Camera, label: "Videography" },
+                        { key: "photographer", icon: Camera, label: "Photography" },
+                        { key: "cake", icon: Award, label: "Cake & Desserts" },
+                        { key: "florist", icon: Paintbrush, label: "Florist" }
                       ].map(({ key, icon: Icon, label }) => {
                         const vendor = booking.vendors[key as keyof typeof booking.vendors] as any;
                         if (!vendor || vendor.status === "NotRequired") return null;
@@ -270,7 +273,9 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                               </div>
                               <div>
                                 <p className="text-xs font-bold text-[#1A1512] dark:text-gray-200">{label}</p>
-                                <p className="text-[10px] text-gray-500 mt-0.5">{vendor.packageName || "Custom Service"}</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">
+                                  {vendor.requestedDesignId ? "Portfolio Design Requested" : (vendor.packageName || "Custom Service")}
+                                </p>
                               </div>
                             </div>
                             <div className="text-right">
@@ -283,7 +288,10 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       })}
                       {(!booking.vendors.decorator || booking.vendors.decorator.status === "NotRequired") && 
                        (!booking.vendors.dj || booking.vendors.dj.status === "NotRequired") && 
-                       (!booking.vendors.videographer || booking.vendors.videographer.status === "NotRequired") && (
+                       (!booking.vendors.videographer || booking.vendors.videographer.status === "NotRequired") && 
+                       (!booking.vendors.photographer || booking.vendors.photographer.status === "NotRequired") && 
+                       (!booking.vendors.cake || booking.vendors.cake.status === "NotRequired") && 
+                       (!booking.vendors.florist || booking.vendors.florist.status === "NotRequired") && (
                         <p className="text-sm text-gray-500 italic">No external vendors selected for this event.</p>
                       )}
                     </div>

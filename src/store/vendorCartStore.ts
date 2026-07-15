@@ -10,6 +10,7 @@ export interface MenuItemSelection {
 interface VendorCartState {
   vendors: Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>;
   requestedDesigns: Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>;
+  requestedDesignPrices: Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", number | null>;
   menuSelection: {
     type: "signature" | "custom" | "none";
     items: MenuItemSelection[]; // legacy
@@ -28,7 +29,7 @@ interface VendorCartState {
   toggleDefaultItem: (itemId: string) => void;
   toggleOptionalItem: (item: MenuItemSelection) => void;
   clearCart: () => void;
-  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others", portfolioItemId?: string) => void;
+  toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others", portfolioItemId?: string, portfolioPrice?: number) => void;
   isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others") => boolean;
 }
 
@@ -51,6 +52,14 @@ export const useVendorCartStore = create<VendorCartState>()(
         cake: null,
         florist: null
       } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>,
+      requestedDesignPrices: {
+        decorator: null,
+        dj: null,
+        videographer: null,
+        photographer: null,
+        cake: null,
+        florist: null
+      } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", number | null>,
       vendorPackages: {
         decorator: "none",
         photographer: "none",
@@ -163,6 +172,14 @@ export const useVendorCartStore = create<VendorCartState>()(
             cake: null,
             florist: null
           } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", string | null>,
+          requestedDesignPrices: {
+            decorator: null,
+            dj: null,
+            videographer: null,
+            photographer: null,
+            cake: null,
+            florist: null
+          } as Record<"decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist", number | null>,
           vendorPackages: {
             decorator: "none",
             photographer: "none",
@@ -177,7 +194,7 @@ export const useVendorCartStore = create<VendorCartState>()(
           },
           favoriteVendors: [],
         }),
-      toggleVendorInEventPlan: (id, category, portfolioItemId) => {
+      toggleVendorInEventPlan: (id, category, portfolioItemId, portfolioPrice) => {
         set((state) => {
           let storeCategory: keyof VendorCartState["vendors"];
           if (category === "decorators") storeCategory = "decorator";
@@ -197,6 +214,10 @@ export const useVendorCartStore = create<VendorCartState>()(
             requestedDesigns: {
               ...state.requestedDesigns,
               [storeCategory]: isCurrentlySelected ? null : (portfolioItemId || null)
+            },
+            requestedDesignPrices: {
+              ...state.requestedDesignPrices,
+              [storeCategory]: isCurrentlySelected ? null : (portfolioPrice || null)
             }
           };
         });

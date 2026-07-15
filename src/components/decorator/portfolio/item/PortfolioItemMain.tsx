@@ -48,14 +48,18 @@ const PortfolioItemMain = ({ itemId }: PortfolioItemMainProps) => {
         setItem(foundItem);
       }
 
-      // Fetch specific rating for this project if it was auto-created from a booking
-      if (foundItem && foundItem.bookingId) {
+      // Fetch specific rating for this project if it was auto-created from a booking OR if it was a requested design
+      if (foundItem) {
         const resRatings = await decoratorAPI.getRatings();
         if (resRatings.ok && resRatings.data?.data) {
           const allReviews = resRatings.data.data.reviews || [];
-          const specificReview = allReviews.find((r: any) => 
-            r.bookingId === foundItem.bookingId || r.bookingId?._id === foundItem.bookingId
-          );
+          const specificReview = allReviews.find((r: any) => {
+            const isAutoCreatedMatch = 
+              (foundItem.bookingId && (r.bookingId === foundItem.bookingId || r.bookingId?._id === foundItem.bookingId));
+            const isRequestedDesignMatch = 
+              (r.bookingId?.vendors?.decorator?.requestedDesignId === foundItem._id || r.bookingId?.vendors?.decorator?.requestedDesignId?._id === foundItem._id);
+            return isAutoCreatedMatch || isRequestedDesignMatch;
+          });
           setReviews(specificReview ? [specificReview] : []);
         }
       } else {

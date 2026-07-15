@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import BookHero from "@/components/landing/book/BookHero";
@@ -61,6 +62,7 @@ export default function BookPage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Validation errors
   const [errors, setErrors] = useState<{
@@ -95,6 +97,19 @@ export default function BookPage() {
       setLastName(user.lastName || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
+      
+      if (user.savedCards && user.savedCards.length > 0) {
+        const defaultCard = user.savedCards.find((c: any) => c.isDefault) || user.savedCards[0];
+        if (defaultCard) {
+          setCardNumber(defaultCard.cardNumber || "");
+          setCardExpiry(defaultCard.expiry || "");
+          setCardCvc("***");
+          
+          if (defaultCard.cardNumber?.startsWith("4")) setPaymentMethod("Visa");
+          else if (defaultCard.cardNumber?.startsWith("5")) setPaymentMethod("MasterCard");
+          else if (defaultCard.cardNumber?.startsWith("3")) setPaymentMethod("Stripe");
+        }
+      }
     } else {
       setIsGuest(true);
     }
@@ -168,6 +183,9 @@ export default function BookPage() {
       const preDj = searchParams.get("dj");
       const preVid = searchParams.get("videographer");
       const prePackage = searchParams.get("package");
+      const preDecorator = searchParams.get("decorator") || searchParams.get("decorators");
+      const preDj = searchParams.get("dj") || searchParams.get("djs");
+      const preVid = searchParams.get("videographer") || searchParams.get("videographers");
 
       if (preDecorator || preDj || preVid) {
         setVendors({
@@ -193,10 +211,20 @@ export default function BookPage() {
     return 3400000;
   };
 
+  const addBooking = useBookingStore((state) => state.addBooking);
+  const clearCart = useVendorCartStore((state) => state.clearCart);
+  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
+  const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
+
   const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
     if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
     
+    // Check if there is a specific requested design price first
+    if (requestedDesignPrices && requestedDesignPrices[category] !== undefined && requestedDesignPrices[category] !== null) {
+      return requestedDesignPrices[category] as number;
+    }
+
     if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
       const pkgName = vendors[`${category}Package` as keyof typeof vendors];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
@@ -253,10 +281,6 @@ export default function BookPage() {
 
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
 
-  const addBooking = useBookingStore((state) => state.addBooking);
-  const clearCart = useVendorCartStore((state) => state.clearCart);
-  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
-
   const handleFinalizeBooking = async (contactInfo: any) => {
     const eventTypeName =
       selectedPackage === "silver"
@@ -283,10 +307,10 @@ export default function BookPage() {
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
-      totalCost: bookingTotal,
       photographerCost: getVendorCost("photographer"),
       cakeCost: getVendorCost("cake"),
       floristCost: getVendorCost("florist"),
+      totalCost: bookingTotal,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
@@ -378,8 +402,7 @@ export default function BookPage() {
     });
     setIsProcessing(false);
     if (success) {
-      alert("30% Deposit Paid! Booking Confirmed. Check your dashboard for details.");
-      router.push("/customer/myaccount?tab=bookings");
+      setShowSuccessModal(true);
     }
   };
 
@@ -777,7 +800,29 @@ export default function BookPage() {
                           <button
                             key={method}
                             type="button"
-                            onClick={() => setPaymentMethod(method)}
+                            onClick={() => {
+                              setPaymentMethod(method);
+                              if (user && user.savedCards && user.savedCards.length > 0) {
+                                let targetCard = null;
+                                if (method === "Visa") {
+                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("4"));
+                                } else if (method === "MasterCard") {
+                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("5"));
+                                } else if (method === "Stripe") {
+                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("3"));
+                                }
+                                
+                                if (targetCard) {
+                                  setCardNumber(targetCard.cardNumber || "");
+                                  setCardExpiry(targetCard.expiry || "");
+                                  setCardCvc("***");
+                                } else {
+                                  setCardNumber("");
+                                  setCardExpiry("");
+                                  setCardCvc("");
+                                }
+                              }
+                            }}
                             className={`px-4 py-2 rounded-sm border text-xs font-bold tracking-wider transition-all duration-200 ${
                               paymentMethod === method
                                 ? "bg-[#FAF6EE] dark:bg-white/10 border-[#C9A84C] text-[#805D3A] dark:text-[#C9A84C] shadow-sm"
@@ -905,6 +950,26 @@ export default function BookPage() {
                   </div>
                 )}
 
+<<<<<<< HEAD
+=======
+                      {/* Terms Agree checkbox */}
+                      <div className="flex items-center gap-3 pt-2">
+                        <input
+                          type="checkbox"
+                          id="termsAgree"
+                          checked={termsAccepted}
+                          onChange={(e) => setTermsAccepted(e.target.checked)}
+                          className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
+                        />
+                        <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
+                          I have reviewed and agree to the EASCC Cancellation Policy and Event Booking Terms.
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+>>>>>>> 579e805ef0f09cabac689a982831955a62d8e95b
                 {/* Step 4: Checkout */}
                 {currentStep === 4 && (
                   <div className="space-y-6 animate-fadeIn">
@@ -962,6 +1027,11 @@ export default function BookPage() {
                         </label>
                       </div>
                     </div>
+<<<<<<< HEAD
+=======
+
+                    <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
+>>>>>>> 579e805ef0f09cabac689a982831955a62d8e95b
                   </div>
                 )}
 
@@ -1080,6 +1150,30 @@ export default function BookPage() {
       </main>
 
       <Footer />
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <CheckCircle2 size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Confirmed!</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              Your 30% deposit has been successfully processed. The artisan team has been notified and your date is secured.
+            </p>
+            <button 
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push("/customer/myaccount?tab=bookings");
+              }}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
 
       <DateRequiredModal
         isOpen={isDateModalOpen}
