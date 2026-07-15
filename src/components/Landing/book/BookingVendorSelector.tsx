@@ -14,6 +14,12 @@ interface VendorsState {
   djPackage: string;
   videographer: string | null;
   videographerPackage: string;
+  photographer: string | null;
+  photographerPackage: string;
+  cake: string | null;
+  cakePackage: string;
+  florist: string | null;
+  floristPackage: string;
 }
 
 interface BookingVendorSelectorProps {
@@ -101,7 +107,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                 <div 
                   key={idx}
                   onClick={() => {
-                    const storeCategory = activeCategorySelection === "decorator" ? "decorator" : (activeCategorySelection === "dj" ? "dj" : "videographer");
+                    const storeCategory = activeCategorySelection as keyof VendorsState;
                     useVendorCartStore.setState((state) => ({
                       vendors: {
                         ...state.vendors,

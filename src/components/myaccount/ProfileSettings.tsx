@@ -36,7 +36,7 @@ export default function ProfileSettings() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+  const [errors, setErrors] = useState<{email?: string, phone?: string, firstName?: string, lastName?: string, address?: string, city?: string}>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -55,12 +55,28 @@ export default function ProfileSettings() {
     let hasError = false;
     const newErrors: typeof errors = {};
 
+    if (!profile.firstName.trim()) {
+      newErrors.firstName = "First name is required.";
+      hasError = true;
+    }
+    if (!profile.lastName.trim()) {
+      newErrors.lastName = "Last name is required.";
+      hasError = true;
+    }
     if (!validateEmail(profile.email)) {
       newErrors.email = "Please enter a valid email address.";
       hasError = true;
     }
     if (!validatePhone(profile.phone)) {
       newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+    if (!profile.address.trim()) {
+      newErrors.address = "Address is required.";
+      hasError = true;
+    }
+    if (!profile.city.trim()) {
+      newErrors.city = "City is required.";
       hasError = true;
     }
 
@@ -210,6 +226,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("firstName", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName}</p>}
           </div>
           <div>
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Last Name</label>
@@ -218,6 +235,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("lastName", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName}</p>}
           </div>
           <div>
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Email Address</label>
@@ -246,6 +264,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("address", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.address && <p className="text-red-500 text-[10px] mt-1">{errors.address}</p>}
           </div>
           <div className="md:col-span-2">
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">City / Region</label>
@@ -254,6 +273,7 @@ export default function ProfileSettings() {
               onChange={(e) => handleChange("city", e.target.value)}
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
+            {errors.city && <p className="text-red-500 text-[10px] mt-1">{errors.city}</p>}
           </div>
         </div>
 

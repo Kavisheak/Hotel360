@@ -47,6 +47,12 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
+    photographer: string | null;
+    photographerPackage: string;
+    cake: string | null;
+    cakePackage: string;
+    florist: string | null;
+    floristPackage: string;
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -54,6 +60,12 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none",
+    photographer: "none",
+    photographerPackage: "none",
+    cake: "none",
+    cakePackage: "none",
+    florist: "none",
+    floristPackage: "none",
   });
 
   const getBasePrice = () => {
@@ -150,7 +162,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   
   const [cashConfirmed, setCashConfirmed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [errors, setErrors] = useState<{email?: string, phone?: string, alternativePhone?: string}>({});
+  const [errors, setErrors] = useState<{clientName?: string, email?: string, phone?: string, alternativePhone?: string}>({});
 
   const handleFinalizeBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +184,11 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     setErrors({});
     let hasError = false;
     const newErrors: typeof errors = {};
+
+    if (!formData.clientName.trim()) {
+      newErrors.clientName = "Client name is required.";
+      hasError = true;
+    }
 
     if (!validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address.";
@@ -459,20 +476,22 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                     <div>
                       <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Full Name</label>
                       <input 
-                        required
                         type="text" 
                         placeholder="e.g. John & Sarah"
                         className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
                         value={formData.clientName}
-                        onChange={e => setFormData({...formData, clientName: e.target.value})}
+                        onChange={e => {
+                          setFormData({...formData, clientName: e.target.value});
+                          if (errors.clientName) setErrors({ ...errors, clientName: undefined });
+                        }}
                       />
+                      {errors.clientName && <p className="text-red-500 text-[10px] mt-1">{errors.clientName}</p>}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Email Address</label>
                         <input 
-                          required
                           type="email"
                           placeholder="client@example.com"
                           className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
@@ -487,7 +506,6 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                       <div>
                         <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Phone Number</label>
                         <input 
-                          required
                           type="tel"
                           placeholder="+94 77 ..."
                           className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"

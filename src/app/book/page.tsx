@@ -127,6 +127,9 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
+    if (newVendors.photographer !== cartVendors.photographer) setStoreVendor("photographer", newVendors.photographer);
+    if (newVendors.cake !== cartVendors.cake) setStoreVendor("cake", newVendors.cake);
+    if (newVendors.florist !== cartVendors.florist) setStoreVendor("florist", newVendors.florist);
   };
 
   // Sync global cartVendors store with local vendors state
@@ -139,6 +142,12 @@ export default function BookPage() {
       djPackage: "none",
       videographer: cartVendors.videographer || "none",
       videographerPackage: "none",
+      photographer: cartVendors.photographer || "none",
+      photographerPackage: "none",
+      cake: cartVendors.cake || "none",
+      cakePackage: "none",
+      florist: cartVendors.florist || "none",
+      floristPackage: "none",
     });
   }, [cartVendors]);
 
@@ -147,6 +156,9 @@ export default function BookPage() {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const prePackage = searchParams.get("package");
+      const preDecorator = searchParams.get("decorator");
+      const preDj = searchParams.get("dj");
+      const preVid = searchParams.get("videographer");
 
       if (preDecorator || preDj || preVid) {
         setVendors({
@@ -256,7 +268,7 @@ export default function BookPage() {
       durationHours,
       guests: guestCount,
       packageId: selectedPackage,
-      paymentMethod: contactInfo.paymentMethod,
+      paymentMethod: "Card", // Backend schema expects "Card" or "Manual"
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
@@ -264,7 +276,6 @@ export default function BookPage() {
       photographerCost: getVendorCost("photographer"),
       cakeCost: getVendorCost("cake"),
       floristCost: getVendorCost("florist"),
-      totalCost: grandTotal,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
@@ -730,18 +741,6 @@ export default function BookPage() {
                             }}
                           />
                           {errors.billingPostalCode && <p className="text-red-500 text-[10px] mt-1">{errors.billingPostalCode}</p>}
-                      <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                        <span className="text-gray-500">Selected Vendors:</span>
-                        <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1 text-xs">
-                          {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
-                            const id = vendors[cat];
-                            if (!id || id === "none") return null;
-                            const v = globalVendors.find((v: Vendor) => v.id === id);
-                            return <p key={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}: {v ? v.name : "Selected"}</p>;
-                          })}
-                          {(["decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).every(
-                            (cat) => !vendors[cat] || vendors[cat] === "none"
-                          ) && <p className="text-gray-400 font-normal">No vendors selected</p>}
                         </div>
                       </div>
                       <div>
@@ -927,70 +926,15 @@ export default function BookPage() {
                         <input
                           type="checkbox"
                           id="termsAgree"
-                {/* Step 4: Checkout */}
-                {currentStep === 4 && (
-                  <div className="space-y-6 animate-fadeIn">
-                    <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
-                      <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
-                      <div className="space-y-4">
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Event Date:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">
-                            {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Timeslot & Duration:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Total Guests:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Venue Package:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Selected Artisans:</span>
-                          <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
-                            <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
-                            <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
-                            <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
-                            <p>Photographer: {vendors.photographer !== "none" ? "Selected" : "None"}</p>
-                            <p>Florist: {vendors.florist !== "none" ? "Selected" : "None"}</p>
-                            <p>Cake: {vendors.cake !== "none" ? "Selected" : "None"}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
-                        <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
-                          • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
-                          • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
-                          • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-4">
-                        <input 
-                          type="checkbox" 
-                          id="termsAgree" 
                           checked={termsAccepted}
                           onChange={(e) => setTermsAccepted(e.target.checked)}
                           className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
                         />
                         <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
-                          I have reviewed and agree to the EASCC Cancellation Policy and Event Booking Terms.
-                        </label>
-                      </div>
-                    </div>
                           I review and agree to the EASCC Cancellation Cutoff Policy and Event Booking Terms.
                         </label>
                       </div>
                     </div>
-                    <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
                   </div>
                 )}
 
