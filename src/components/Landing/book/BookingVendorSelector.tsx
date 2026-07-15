@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Palette, Music, Video, Camera, Cake, Flower2, Plus, ArrowRight, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
 import { useVendorStore } from "@/store/vendorStore";
+import { useVendorCartStore } from "@/store/vendorCartStore";
 
 interface VendorsState {
   decorator: string | null;
@@ -23,6 +24,7 @@ interface BookingVendorSelectorProps {
 export default function BookingVendorSelector({ vendors, onChange }: BookingVendorSelectorProps) {
   const router = useRouter();
   const { vendors: globalVendors } = useVendorStore();
+  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
 
   const [activeCategorySelection, setActiveCategorySelection] = useState<string | null>(null);
 
@@ -54,14 +56,29 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   if (activeCategorySelection) {
     const selectedCatConfig = categories.find(c => c.key === activeCategorySelection);
     const categoryVendors = globalVendors.filter(v => v.category === selectedCatConfig?.path);
-    const portfolioItems = categoryVendors.flatMap(v => 
-      (v.portfolio || []).map(img => ({
+    const portfolioItems = categoryVendors.flatMap(v => {
+      if (v.portfolioItems && v.portfolioItems.length > 0) {
+        return v.portfolioItems.map(item => {
+          const coverMedia = item.media.find(m => m.isCover) || item.media[0];
+          return {
+            vendorId: v.id,
+            vendorName: v.name,
+            image: coverMedia ? coverMedia.url : "",
+            title: item.title,
+            portfolioItemId: item.id,
+            defaultPackage: v.packages?.[0]?.name || "none"
+          };
+        });
+      }
+      return (v.portfolio || []).map((img, idx) => ({
         vendorId: v.id,
         vendorName: v.name,
         image: img,
+        title: `Design #${idx + 1}`,
+        portfolioItemId: `legacy-${idx}`,
         defaultPackage: v.packages?.[0]?.name || "none"
-      }))
-    );
+      }));
+    });
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -84,6 +101,17 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                 <div 
                   key={idx}
                   onClick={() => {
+                    const storeCategory = activeCategorySelection === "decorator" ? "decorator" : (activeCategorySelection === "dj" ? "dj" : "videographer");
+                    useVendorCartStore.setState((state) => ({
+                      vendors: {
+                        ...state.vendors,
+                        [storeCategory]: item.vendorId
+                      },
+                      requestedDesigns: {
+                        ...state.requestedDesigns,
+                        [storeCategory]: item.portfolioItemId
+                      }
+                    }));
                     onChange({
                       ...vendors,
                       [activeCategorySelection]: item.vendorId,
@@ -124,79 +152,193 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
           const selectedVendor = getVendorDetails(selectedVendorId);
           const isSelected = selectedVendorId && selectedVendorId !== "none";
 
-          return (
-            <div 
-              key={cat.key}
-              className={`border p-5 rounded-sm transition-all duration-300 flex flex-col justify-between ${
-                isSelected 
-                  ? "border-[#C9A84C] bg-[#FAF6EE] dark:bg-[#1A1A1A] shadow-md ring-1 ring-[#C9A84C]/30" 
-                  : "border-[#E8DFC9] dark:border-gray-800 bg-white dark:bg-[#111111] hover:border-[#C9A84C]/50"
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${
-                    isSelected ? "bg-[#C9A84C]/10 border-[#C9A84C]/30 text-[#C9A84C]" : "bg-gray-50 dark:bg-[#1A1A1A] border-gray-200 dark:border-gray-800 text-gray-400"
-                  }`}>
+          const selectedDesignId = requestedDesigns[cat.key as "decorator" | "dj" | "videographer"];
+          let selectedDesign: { image: string; title: string } | null = null;
+          
+          if (selectedDesignId && selectedVendor) {
+            if (selectedVendor.portfolioItems) {
+              const item = selectedVendor.portfolioItems.find(p => p.id === selectedDesignId);
+              if (item) {
+                const coverMedia = item.media.find(m => m.isCover) || item.media[0];
+                const rawUrl = coverMedia ? coverMedia.url : "";
+                selectedDesign = {
+                  image: rawUrl.startsWith("http") ? rawUrl : `${API_URL}${rawUrl}`,
+                  title: item.title
+                };
+              }
+            }
+            if (!selectedDesign && selectedVendor.portfolio) {
+              const idx = parseInt(selectedDesignId.replace("legacy-", ""), 10);
+              if (!isNaN(idx) && selectedVendor.portfolio[idx]) {
+                const rawUrl = selectedVendor.portfolio[idx];
+                selectedDesign = {
+                  image: rawUrl.startsWith("http") ? rawUrl : `${API_URL}${rawUrl}`,
+                  title: `Inspiration Design #${idx + 1}`
+                };
+              }
+            }
+          }
+          if (!isSelected) {
+            return (
+              <div 
+                key={cat.key}
+                className="border border-[#E8DFC9] dark:border-gray-800 bg-white dark:bg-[#111111] rounded-lg shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 h-full hover:border-[#C9A84C]/50"
+              >
+                {/* Card Header: not selected */}
+                <div className="bg-[#FAF6EE]/30 dark:bg-white/5 px-5 py-4 border-b border-[#E8DFC9]/40 dark:border-gray-800 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-[#111] border border-dashed border-gray-300 dark:border-gray-800 flex items-center justify-center text-gray-400">
                     {cat.icon}
                   </div>
                   <div>
-                    <h4 className={`text-sm font-bold uppercase tracking-wider ${isSelected ? 'text-[#1A1512] dark:text-white' : 'text-gray-500'}`}>
+                    <h4 className="text-sm font-bold font-serif tracking-wider text-gray-400 dark:text-gray-500 uppercase leading-none">
                       {cat.label}
                     </h4>
-                    {isSelected ? (
-                      <span className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1 mt-0.5">
-                        <CheckCircle2 className="w-3 h-3" /> Selected
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-gray-400 mt-0.5">Not selected</span>
-                    )}
+                    <span className="text-[9px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-bold block mt-1.5">
+                      Not Selected
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Content area */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-6">
+                  <p className="text-xs text-gray-400 italic">
+                    Explore and select a bespoke {cat.label.toLowerCase()} design to add to your luxury event plan.
+                  </p>
+                  
+                  <button 
+                    onClick={() => handleExplore(cat.key)}
+                    className="w-full bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors rounded-md flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    Select By Design <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div 
+              key={cat.key}
+              className="border border-[#E8DFC9] dark:border-gray-800 bg-white dark:bg-[#111111] rounded-lg shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 ring-1 ring-[#C9A84C]/20 shadow-md"
+            >
+              {/* Card Header: warm cream background */}
+              <div className="bg-[#FAF6EE] dark:bg-[#1C1812] px-5 py-4 border-b border-[#E8DFC9]/40 dark:border-gray-800 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#111] border border-[#E8DFC9] flex items-center justify-center text-[#805D3A] dark:text-[#C9A84C]">
+                  {cat.icon}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold font-serif tracking-wider text-[#1A1512] dark:text-white uppercase leading-none">
+                    {cat.label === "DJ Artist" ? "DJ Artist" : cat.label.toUpperCase()}
+                  </h4>
+                  <div className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/30 px-2 py-0.5 rounded-full mt-1.5">
+                    <CheckCircle2 className="w-3 h-3 text-green-600 dark:text-green-400" />
+                    <span className="text-[9px] text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">Selected</span>
                   </div>
                 </div>
               </div>
 
-              {isSelected && selectedVendor ? (
-                <div className="flex items-center gap-3 bg-white dark:bg-[#0A0A0A] p-2.5 rounded-sm border border-[#E8DFC9] dark:border-gray-800 mb-4">
-                  <img src={selectedVendor.image} alt={selectedVendor.name} className="w-12 h-12 rounded-sm object-cover" />
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-bold text-[#1A1512] dark:text-white truncate">{selectedVendor.name}</span>
-                    <span className="text-[10px] text-gray-500 truncate">{vendors[`${cat.key}Package` as keyof VendorsState] !== "none" ? vendors[`${cat.key}Package` as keyof VendorsState] : "Custom Package"}</span>
-                  </div>
-                </div>
-              ) : isSelected && selectedVendorId === "custom_preference" ? (
-                <div className="flex items-center gap-3 bg-[#FFF8E6] dark:bg-[#2A2312] p-2.5 rounded-sm border border-[#C9A84C]/30 mb-4">
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-bold text-[#8C6D23] dark:text-[#D4AF37]">Custom Preference</span>
-                    <span className="text-[10px] text-gray-600 dark:text-gray-400">Using outside vendor</span>
-                  </div>
-                </div>
-              ) : null}
+              {/* Card Content area */}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                {selectedVendor ? (
+                  <div className="space-y-4">
+                    <div className="flex gap-4">
+                      {/* Vendor Image */}
+                      <img 
+                        src={selectedVendor.image.startsWith('http') ? selectedVendor.image : `${API_URL}${selectedVendor.image}`} 
+                        alt={selectedVendor.name} 
+                        className="w-20 h-20 rounded-lg object-cover border border-[#E8DFC9]/50 dark:border-gray-800" 
+                      />
+                      {/* Vendor Info Text */}
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <h5 className="text-base font-bold text-[#1A1512] dark:text-white leading-tight">
+                            {selectedVendor.name}
+                          </h5>
+                          <p className="text-xs text-gray-500 mt-1 font-medium">
+                            {vendors[`${cat.key}Package` as keyof VendorsState] !== "none" ? vendors[`${cat.key}Package` as keyof VendorsState] : "Custom Package"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 mt-2 text-xs">
+                          {/* Rating */}
+                          <div className="flex items-center text-[#C9A84C] font-semibold">
+                            <span className="text-sm mr-1">★</span>
+                            <span>{selectedVendor.rating || "4.9"}</span>
+                            <span className="text-gray-400 font-normal ml-1">({selectedVendor.reviewsCount || "120"} reviews)</span>
+                          </div>
+                          {/* Verified badge */}
+                          <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span className="text-[10px] uppercase tracking-wide">Verified</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="flex items-center gap-2 mt-auto">
-                {isSelected ? (
-                  <>
-                    <button 
-                      onClick={() => handleExplore(cat.key)}
-                      className="flex-1 bg-white dark:bg-[#0A0A0A] border border-[#C9A84C] text-[#C9A84C] py-2 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] hover:text-white transition-colors rounded-sm text-center"
-                    >
-                      Change
-                    </button>
-                    <button 
-                      onClick={() => handleRemove(cat.key as keyof VendorsState)}
-                      className="px-3 py-2 border border-red-200 dark:border-red-900/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
-                      title="Remove Vendor"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
+                    {/* Selected Inspiration Design (For Decorator) */}
+                    {cat.key === "decorator" && selectedDesign && (
+                      <div className="bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-gray-800 p-3 rounded-lg flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={selectedDesign.image} 
+                            alt={selectedDesign.title} 
+                            className="w-12 h-12 rounded-md object-cover border border-[#E8DFC9]/30" 
+                          />
+                          <div>
+                            <span className="text-[9px] uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold block">
+                              Selected Inspiration Design
+                            </span>
+                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200 block">
+                              {selectedDesign.title}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* View Design button */}
+                        <button 
+                          onClick={() => {
+                            window.open(selectedDesign!.image, "_blank");
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 border border-[#C9A84C] text-[#C9A84C] bg-white dark:bg-transparent rounded-md text-[10px] font-bold tracking-wider hover:bg-[#C9A84C]/10 transition-colors uppercase cursor-pointer"
+                        >
+                          👁️ View Design
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : selectedVendorId === "custom_preference" ? (
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 rounded-lg bg-[#FAF6EE] dark:bg-[#1A1A1A] border border-[#C9A84C]/30 flex items-center justify-center text-2xl">
+                      👑
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h5 className="text-base font-bold text-[#8C6D23] dark:text-[#D4AF37]">
+                          Custom Preference
+                        </h5>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Using outside artisan provider
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Card Actions Row */}
+                <div className="flex items-center gap-3 pt-2">
                   <button 
                     onClick={() => handleExplore(cat.key)}
-                    className="w-full bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors rounded-sm flex items-center justify-center gap-2"
+                    className="flex-1 border border-[#C9A84C] text-[#C9A84C] bg-white dark:bg-transparent hover:bg-[#C9A84C]/10 py-2.5 text-[10px] uppercase font-bold tracking-widest rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    Select By Design <ArrowRight className="w-3 h-3" />
+                    ✏️ Change
                   </button>
-                )}
+                  <button 
+                    onClick={() => handleRemove(cat.key as keyof VendorsState)}
+                    className="px-4 py-2.5 border border-red-200 hover:border-red-300 dark:border-red-950/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors rounded-md flex items-center justify-center cursor-pointer"
+                    title="Remove Vendor"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           );

@@ -210,8 +210,8 @@ const NewVendorMain = () => {
                           }}
                           className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
                         />
-                        {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                       </div>
+                      {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                     </div>
                   </div>
                 </div>

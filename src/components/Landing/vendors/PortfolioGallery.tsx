@@ -1,8 +1,154 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Vendor } from "./types";
+import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useToastStore } from "@/store/toastStore";
+
+const PortfolioCard = ({ portfolio, router }: any) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const { item, vendorId, vendorName, category } = portfolio;
+  
+  // Hook into the stores for reactivity
+  const cartVendors = useVendorCartStore((state) => state.vendors);
+  const toggleVendorInEventPlan = useVendorCartStore((state) => state.toggleVendorInEventPlan);
+  const addToast = useToastStore((state) => state.addToast);
+  
+  let storeCategory: keyof typeof cartVendors = "decorator";
+  if (category === "decorators") storeCategory = "decorator";
+  else if (category === "djs") storeCategory = "dj";
+  else if (category === "videographers") storeCategory = "videographer";
+  else if (category === "photographers") storeCategory = "photographer";
+  else if (category === "cake") storeCategory = "cake";
+  else if (category === "florists") storeCategory = "florist";
+
+  const isSelected = cartVendors[storeCategory] === vendorId;
+  const currentVendorInSlot = cartVendors[storeCategory];
+
+  // Get formatted URLs for all media
+  const mediaList = item.media.map((m: any) => {
+    const isCloudinary = m.url.includes("cloudinary");
+    return isCloudinary ? m.url : (m.url.startsWith("http") ? m.url : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${m.url}`);
+  });
+
+  useEffect(() => {
+    if (mediaList.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % mediaList.length);
+      }, 3500);
+      return () => clearInterval(interval);
+    }
+  }, [mediaList.length]);
+
+  return (
+    <div 
+      className="relative group overflow-hidden cursor-pointer rounded-sm shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gray-100 dark:bg-gray-800 break-inside-avoid"
+      onClick={() => router.push(`/customer/vendorProfile/${vendorId}`)}
+    >
+      {/* Carousel Container */}
+      <div className="relative w-full h-[400px] overflow-hidden rounded-sm bg-black">
+        {mediaList.length === 1 ? (
+          <div className="w-full h-full relative">
+            <img 
+              src={mediaList[0]} 
+              alt={`Portfolio from ${vendorName}`}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+            />
+            {/* Display the design type label if available */}
+            {item.media[0]?.designType && item.media[0].designType !== 'general' && (
+               <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-white/20 shadow-lg z-20">
+                 {item.media[0].designType} Design
+               </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {mediaList.map((src: string, i: number) => (
+              <div 
+                key={i} 
+                className="absolute top-0 left-0 w-full h-full transition-transform duration-1000 ease-in-out"
+                style={{ transform: `translateX(${(i - currentIndex) * 100}%)` }}
+              >
+                 <img 
+                  src={src} 
+                  alt={`Portfolio from ${vendorName}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                {/* Display the design type label if available */}
+                {item.media[i]?.designType && item.media[i].designType !== 'general' && (
+                   <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-white/20 shadow-lg z-20">
+                     {item.media[i].designType} Design
+                   </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+        
+        {/* Pagination Dots */}
+        {mediaList.length > 1 && (
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1 z-20">
+            {mediaList.map((_: any, idx: number) => (
+              <div 
+                key={idx} 
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-4 bg-[#C9A84C]' : 'w-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 z-30">
+        <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-1 backdrop-blur-sm border border-white/20">{vendorName}</span>
+        <span className="text-[#C9A84C] font-serif italic text-sm mb-4 text-center px-4">{item.title}</span>
+        
+        <div className="flex flex-col gap-2 items-center">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              
+              if (!isSelected && currentVendorInSlot && currentVendorInSlot !== "none" && currentVendorInSlot !== "custom_preference" && currentVendorInSlot !== vendorId) {
+                const proceed = window.confirm(`You already have a ${storeCategory} in your event plan. Do you want to replace them with ${vendorName}?`);
+                if (!proceed) return;
+              }
+
+              toggleVendorInEventPlan(vendorId, category as any, item._id || item.id);
+              
+              if (!isSelected) {
+                // Add a small delay to allow the cart state to update before showing toast
+                setTimeout(() => {
+                  addToast({
+                    type: "success",
+                    message: `${vendorName} added to your event plan!`
+                  });
+                }, 100);
+              }
+            }}
+            className={`px-4 py-2 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-md ${
+              isSelected 
+                ? "bg-red-500 hover:bg-red-600 text-white" 
+                : "bg-[#C9A84C] hover:bg-[#B58B5C] text-white"
+            }`}
+          >
+            {isSelected ? "Remove from Plan" : "Add to Event Plan"}
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/customer/vendorProfile/${vendorId}`);
+            }}
+            className="px-4 py-2 border border-white text-white hover:bg-white hover:text-black text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-sm"
+          >
+            View Profile
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface PortfolioGalleryProps {
   filteredVendors: Vendor[];
@@ -13,11 +159,26 @@ export default function PortfolioGallery({ filteredVendors }: PortfolioGalleryPr
 
   // Flatten portfolios
   const portfolioItems = filteredVendors.flatMap(vendor => {
-    return (vendor.portfolio || []).map(url => ({
+    if (vendor.portfolioItems && vendor.portfolioItems.length > 0) {
+      return vendor.portfolioItems.map((item: any) => ({
+        vendorId: vendor.id,
+        vendorName: vendor.name,
+        category: vendor.category,
+        item: item
+      }));
+    }
+    // Fallback for mock data or legacy items
+    return (vendor.portfolio || []).map((url, idx) => ({
       vendorId: vendor.id,
       vendorName: vendor.name,
       category: vendor.category,
-      url,
+      item: { 
+        id: `legacy-${idx}`, 
+        title: "Portfolio Image", 
+        description: "", 
+        price: 0, 
+        media: [{url, isCover: true, designType: 'general'}] 
+      }
     }));
   });
 
@@ -41,56 +202,10 @@ export default function PortfolioGallery({ filteredVendors }: PortfolioGalleryPr
           <p className="text-gray-500 font-serif italic">No backend added portfolio images found for the selected filters.</p>
         </div>
       ) : (
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
-          {portfolioItems.map((item, index) => {
-            const isCloudinary = item.url.includes("cloudinary");
-            const fullUrl = isCloudinary ? item.url : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${item.url}`;
-            // If it's an absolute url starting with http, just use it
-            const src = item.url.startsWith("http") ? item.url : fullUrl;
-
-            return (
-              <div 
-                key={`${item.vendorId}-${index}`} 
-                className="relative group overflow-hidden cursor-pointer rounded-sm shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gray-100 dark:bg-gray-800 break-inside-avoid"
-                onClick={() => router.push(`/customer/vendorProfile/${item.vendorId}`)}
-              >
-                <img 
-                  src={src} 
-                  alt={`Portfolio from ${item.vendorName}`}
-                  className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
-                  <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-3 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
-                  <div className="flex flex-col gap-2 items-center">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const categoryKey = item.category === "decorators" ? "decorator" : 
-                                            item.category === "videographers" ? "videographer" : 
-                                            item.category === "photographers" ? "photographer" :
-                                            item.category === "florists" ? "florist" :
-                                            item.category === "djs" ? "dj" : item.category;
-                        router.push(`/book?${categoryKey}=${item.vendorId}`);
-                      }}
-                      className="px-4 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-md"
-                    >
-                      Select This Design
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/customer/vendorProfile/${item.vendorId}`);
-                      }}
-                      className="px-4 py-2 border border-white text-white hover:bg-white hover:text-black text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-sm"
-                    >
-                      View Profile
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {portfolioItems.map((portfolio, index) => (
+            <PortfolioCard key={`${portfolio.vendorId}-${portfolio.item.id || index}`} portfolio={portfolio} router={router} />
+          ))}
         </div>
       )}
     </section>

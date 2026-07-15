@@ -40,6 +40,7 @@ export interface Vendor {
   availableIslandWide?: boolean;
   contactPhone?: string;
   contactEmail?: string;
+  portfolioItems?: any[];
 }
 
 

@@ -25,6 +25,10 @@ const DetailMiddle = ({
     ? (clientAvatar.startsWith('http') ? clientAvatar : `${API_BASE}${clientAvatar}`)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=F2EADA&color=7C6A2E`;
 
+  const finalInspirationImage = inspirationImage.startsWith('http')
+    ? inspirationImage
+    : `${API_BASE}${inspirationImage}`;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       {/* Client Profile (1/3 width on desktop) */}
@@ -81,7 +85,7 @@ const DetailMiddle = ({
 
         <div className="relative overflow-hidden w-full h-64 sm:h-72 lg:h-80 group">
           <img
-            src={inspirationImage}
+            src={finalInspirationImage}
             alt="Visual Inspiration"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
