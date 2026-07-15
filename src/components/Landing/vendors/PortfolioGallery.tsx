@@ -122,7 +122,7 @@ const PortfolioCard = ({ portfolio, router }: any) => {
                 if (!proceed) return;
               }
 
-              toggleVendorInEventPlan(vendorId, category as any, item._id || item.id);
+              toggleVendorInEventPlan(vendorId, category as any, item._id || item.id, item.price);
               
               if (!isSelected) {
                 // Add a small delay to allow the cart state to update before showing toast
@@ -171,7 +171,10 @@ export default function PortfolioGallery({ filteredVendors }: PortfolioGalleryPr
         vendorId: vendor.id,
         vendorName: vendor.name,
         category: vendor.category,
-        item: item
+        item: {
+          ...item,
+          price: item.price > 0 ? item.price : (parseInt(vendor.startingPrice?.replace(/[^0-9]/g, "")) || 0)
+        }
       }));
     }
     // Fallback for mock data or legacy items
@@ -183,7 +186,7 @@ export default function PortfolioGallery({ filteredVendors }: PortfolioGalleryPr
         id: `legacy-${idx}`, 
         title: "Portfolio Image", 
         description: "", 
-        price: 0, 
+        price: parseInt(vendor.startingPrice?.replace(/[^0-9]/g, "")) || 0, 
         media: [{url, isCover: true, designType: 'general'}] 
       }
     }));

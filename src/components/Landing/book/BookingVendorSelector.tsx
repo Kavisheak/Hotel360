@@ -31,6 +31,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   const router = useRouter();
   const { vendors: globalVendors } = useVendorStore();
   const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
+  const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
 
   const [activeCategorySelection, setActiveCategorySelection] = useState<string | null>(null);
 
@@ -69,20 +70,24 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
           return {
             vendorId: v.id,
             vendorName: v.name,
+            vendorRating: v.rating,
             image: coverMedia ? coverMedia.url : "",
             title: item.title,
             portfolioItemId: item.id,
-            defaultPackage: v.packages?.[0]?.name || "none"
+            defaultPackage: v.packages?.[0]?.name || "none",
+            price: item.price > 0 ? item.price : (parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0)
           };
         });
       }
       return (v.portfolio || []).map((img, idx) => ({
         vendorId: v.id,
         vendorName: v.name,
+        vendorRating: v.rating,
         image: img,
         title: `Design #${idx + 1}`,
         portfolioItemId: `legacy-${idx}`,
-        defaultPackage: v.packages?.[0]?.name || "none"
+        defaultPackage: v.packages?.[0]?.name || "none",
+        price: parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0
       }));
     });
 
@@ -116,6 +121,10 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                       requestedDesigns: {
                         ...state.requestedDesigns,
                         [storeCategory]: item.portfolioItemId
+                      },
+                      requestedDesignPrices: {
+                        ...state.requestedDesignPrices,
+                        [storeCategory]: item.price
                       }
                     }));
                     onChange({
@@ -128,9 +137,18 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   className="relative break-inside-avoid rounded-sm overflow-hidden group cursor-pointer border border-[#E8DFC9] dark:border-gray-800 mb-4 bg-[#FDF9F1] dark:bg-[#111]"
                 >
                   <img src={imgUrl} alt={item.vendorName} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
-                    <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-3 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
-                    <button className="px-6 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 p-4 text-center">
+                    <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-2 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
+                    
+                    <div className="flex items-center gap-2 mb-2 text-xs">
+                      <span className="text-[#C9A84C]">★ {item.vendorRating !== undefined && item.vendorRating !== null ? item.vendorRating : 0}</span>
+                    </div>
+
+                    {item.price > 0 && (
+                      <span className="text-white font-bold text-sm mb-4">LKR {item.price.toLocaleString()}</span>
+                    )}
+
+                    <button className="px-6 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-lg">
                       Select This Design
                     </button>
                   </div>
@@ -163,7 +181,12 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
           
           if (selectedDesignId && selectedVendor) {
             if (selectedVendor.portfolioItems) {
-              const item = selectedVendor.portfolioItems.find(p => p.id === selectedDesignId);
+              const item = selectedVendor.portfolioItems.find(p => 
+                p.id === selectedDesignId || 
+                (p as any)._id === selectedDesignId ||
+                p.id?.toString() === selectedDesignId?.toString() ||
+                (p as any)._id?.toString() === selectedDesignId?.toString()
+              );
               if (item) {
                 const coverMedia = item.media.find(m => m.isCover) || item.media[0];
                 const rawUrl = coverMedia ? coverMedia.url : "";
@@ -268,8 +291,8 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                           {/* Rating */}
                           <div className="flex items-center text-[#C9A84C] font-semibold">
                             <span className="text-sm mr-1">★</span>
-                            <span>{selectedVendor.rating || "4.9"}</span>
-                            <span className="text-gray-400 font-normal ml-1">({selectedVendor.reviewsCount || "120"} reviews)</span>
+                            <span>{selectedVendor.rating !== undefined && selectedVendor.rating !== null ? selectedVendor.rating : 0}</span>
+                            <span className="text-gray-400 font-normal ml-1">({selectedVendor.reviewsCount !== undefined && selectedVendor.reviewsCount !== null ? selectedVendor.reviewsCount : 0} reviews)</span>
                           </div>
                           {/* Verified badge */}
                           <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold gap-1">
@@ -280,8 +303,8 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                       </div>
                     </div>
 
-                    {/* Selected Inspiration Design (For Decorator) */}
-                    {cat.key === "decorator" && selectedDesign && (
+                    {/* Selected Inspiration Design */}
+                    {selectedDesign && (
                       <div className="bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-gray-800 p-3 rounded-lg flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <img 
@@ -296,6 +319,11 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                             <span className="text-sm font-bold text-gray-800 dark:text-gray-200 block">
                               {selectedDesign.title}
                             </span>
+                            {requestedDesignPrices && requestedDesignPrices[cat.key as keyof typeof requestedDesignPrices] !== undefined && requestedDesignPrices[cat.key as keyof typeof requestedDesignPrices] !== null ? (
+                              <span className="text-xs font-bold text-[#C9A84C] mt-1 block">
+                                LKR {(requestedDesignPrices[cat.key as keyof typeof requestedDesignPrices] as number).toLocaleString()}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         
