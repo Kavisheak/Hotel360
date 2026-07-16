@@ -3,14 +3,7 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 
-const payments = [
-  { id: '#EV-2093', venue: 'The Plaza Suite', amount: '$1,200', confirmed: false },
-  { id: '#EV-2104', venue: 'Vintage Vineyard', amount: '$4,500', confirmed: false },
-  { id: '#EV-2111', venue: 'Skyline Lounge',  amount: '$850',   confirmed: false },
-  { id: '#EV-2118', venue: 'Garden Terrace',  amount: '$2,100', confirmed: false },
-];
-
-const CashPayments = () => {
+const CashPayments = ({ payments = [] }: { payments: any[] }) => {
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
@@ -38,15 +31,16 @@ const CashPayments = () => {
       </div>
 
       {/* Payment rows */}
-      <div className="space-y-3 flex-1">
-        {payments.map((p) => (
-          <div
-            key={p.id}
+      <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] pr-2">
+        {payments.length > 0 ? (
+          payments.map((p) => (
+            <div
+              key={p.id}
             className="flex items-center justify-between bg-[#FAF8F2] border border-[#E0D8C3] px-4 py-3 rounded-sm"
           >
             <div>
-              <p className="text-xs font-bold text-[#7C6A2E]">{p.id}</p>
-              <p className="text-[10px] text-gray-500 font-semibold">{p.venue} · {p.amount}</p>
+              <p className="text-xs font-bold text-[#7C6A2E]">{p.bookingRef}</p>
+              <p className="text-[10px] text-gray-500 font-semibold">{p.eventType} · LKR {p.amount.toLocaleString()}</p>
             </div>
             <button
               onClick={() => toggle(p.id)}
@@ -59,7 +53,10 @@ const CashPayments = () => {
               <Check size={14} />
             </button>
           </div>
-        ))}
+        ))
+        ) : (
+          <p className="text-xs text-gray-500 italic">No cash payments pending.</p>
+        )}
       </div>
 
       {/* Footer link */}

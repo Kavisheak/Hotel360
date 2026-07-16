@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { Star, Filter } from 'lucide-react';
-import { type Role, avgRating } from './staffData';
+import { type Role } from './types';
 
 interface StaffFiltersProps {
   activeRole: Role;
   onRoleChange: (role: Role) => void;
+  avgRating: string;
 }
 
 const roleTabs: { key: Role; label: string }[] = [
@@ -17,7 +18,7 @@ const roleTabs: { key: Role; label: string }[] = [
   { key: 'djs',           label: 'DJ ARTISTS'     },
 ];
 
-const StaffFilters = ({ activeRole, onRoleChange }: StaffFiltersProps) => {
+const StaffFilters = ({ activeRole, onRoleChange, avgRating }: StaffFiltersProps) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       {/* Role Tabs + Filter Icon */}

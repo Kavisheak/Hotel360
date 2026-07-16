@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Star, Pencil, RotateCcw, UserMinus, UserPlus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { type StaffMember, statusConfig } from './staffData';
+import { type StaffMember, statusConfig } from './types';
 
 interface StaffTableProps {
   members: StaffMember[];
@@ -10,9 +10,10 @@ interface StaffTableProps {
   totalPages: number;
   totalCount: number;
   onPageChange: (page: number) => void;
+  onToggleStatus?: (id: string) => void;
 }
 
-const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange }: StaffTableProps) => {
+const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange, onToggleStatus }: StaffTableProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] overflow-x-auto">
       {/* Gold Column Header Row */}
@@ -34,8 +35,9 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
               {/* Staff Member */}
               <div className="flex items-center gap-3 min-w-0">
                 <img
-                  src={member.avatar}
+                  src={member.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'}
                   alt={member.name}
+                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'; }}
                   className="w-10 h-10 rounded-sm object-cover border border-[#E0D8C3] shrink-0"
                 />
                 <div className="min-w-0">
@@ -75,11 +77,11 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
                   <RotateCcw size={15} />
                 </button>
                 {member.status === 'suspended' ? (
-                  <button className="p-1.5 text-gray-400 hover:text-green-600 transition-colors" title="Reactivate">
+                  <button onClick={() => onToggleStatus && onToggleStatus(member.id.toString())} className="p-1.5 text-gray-400 hover:text-green-600 transition-colors" title="Reactivate">
                     <UserPlus size={15} />
                   </button>
                 ) : (
-                  <button className="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Suspend">
+                  <button onClick={() => onToggleStatus && onToggleStatus(member.id.toString())} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Suspend">
                     <UserMinus size={15} />
                   </button>
                 )}
