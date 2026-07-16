@@ -307,3 +307,18 @@ export const vendorAPI = {
       body: JSON.stringify({ vendorId: id }),
     }),
 };
+
+// ─── Super Admin API ─────────────────────────────────────────────────────────────
+export const superAdminAPI = {
+  getOverview: () => apiFetch("/api/super-admin/overview"),
+  getStaff: () => apiFetch("/api/super-admin/users"),
+  createStaff: (data: any) =>
+    apiFetch("/api/super-admin/users/create", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  toggleStaffStatus: (id: string) =>
+    apiFetch(`/api/super-admin/users/${id}/status`, {
+      method: "PUT",
+    }),
+};
