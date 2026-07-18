@@ -1,5 +1,5 @@
-import React from 'react';
-import { Phone, Mail } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DetailMiddleProps {
   clientName: string;
@@ -7,7 +7,8 @@ interface DetailMiddleProps {
   phone: string;
   email: string;
   clientAvatar?: string;
-  inspirationImage: string;
+  inspirationImages?: string[];
+  inspirationImage?: string; // Fallback for backward compatibility
   inspirationCaption: string;
 }
 
@@ -17,17 +18,33 @@ const DetailMiddle = ({
   phone,
   email,
   clientAvatar,
+  inspirationImages = [],
   inspirationImage,
   inspirationCaption,
 }: DetailMiddleProps) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const avatarUrl = clientAvatar
     ? (clientAvatar.startsWith('http') ? clientAvatar : `${API_BASE}${clientAvatar}`)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=F2EADA&color=7C6A2E`;
 
-  const finalInspirationImage = inspirationImage.startsWith('http')
-    ? inspirationImage
-    : `${API_BASE}${inspirationImage}`;
+  // Combine inspirationImages and inspirationImage into a single array
+  const allImages = inspirationImages.length > 0 
+    ? inspirationImages 
+    : (inspirationImage ? [inspirationImage] : ["https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80"]);
+
+  const currentImage = allImages[currentImageIndex];
+  const finalInspirationImage = currentImage?.startsWith('http')
+    ? currentImage
+    : `${API_BASE}${currentImage}`;
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -87,10 +104,34 @@ const DetailMiddle = ({
           <img
             src={finalInspirationImage}
             alt="Visual Inspiration"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500"
           />
+          
+          {/* Navigation Arrows */}
+          {allImages.length > 1 && (
+            <>
+              <button 
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button 
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronRight size={20} />
+              </button>
+              
+              {/* Image Counter */}
+              <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full">
+                {currentImageIndex + 1} / {allImages.length}
+              </div>
+            </>
+          )}
+
           {/* Transparent elegant text overlay at the bottom */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5">
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5 pointer-events-none">
             <p className="text-white text-xs sm:text-sm font-serif italic text-center tracking-wide">
               {inspirationCaption}
             </p>

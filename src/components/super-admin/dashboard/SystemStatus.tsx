@@ -1,12 +1,12 @@
 import React from 'react';
 
-const statusItems = [
-  { label: 'API Gateway',      detail: 'Uptime 99.98%', color: 'bg-green-500' },
-  { label: 'Database Engine',  detail: 'Latency 24ms',  color: 'bg-green-500' },
-  { label: 'CDN Cluster',      detail: '14 Edge Nodes',  color: 'bg-yellow-500' },
-];
+const SystemStatus = ({ status }: { status: any }) => {
+  const statusItems = [
+    { label: 'API Gateway',      detail: status?.apiGateway || 'Uptime 99.98%', color: 'bg-green-500' },
+    { label: 'Database Engine',  detail: status?.databaseEngine || 'Latency 24ms',  color: 'bg-green-500' },
+    { label: 'CDN Cluster',      detail: status?.cdnCluster || '14 Edge Nodes',  color: 'bg-yellow-500' },
+  ];
 
-const SystemStatus = () => {
   return (
     <div className="border border-[#E0D8C3] bg-[#FAF8F2] px-6 sm:px-8 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="flex flex-wrap gap-6 sm:gap-10">

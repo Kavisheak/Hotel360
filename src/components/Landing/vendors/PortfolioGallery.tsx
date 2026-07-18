@@ -16,15 +16,22 @@ const PortfolioCard = ({ portfolio, router }: any) => {
   const addToast = useToastStore((state) => state.addToast);
   
   let storeCategory: keyof typeof cartVendors = "decorator";
-  if (category === "decorators") storeCategory = "decorator";
-  else if (category === "djs") storeCategory = "dj";
-  else if (category === "videographers") storeCategory = "videographer";
-  else if (category === "photographers") storeCategory = "photographer";
-  else if (category === "cake") storeCategory = "cake";
-  else if (category === "florists") storeCategory = "florist";
+  const catLower = (category || "").toLowerCase();
+  if (catLower.includes("decorator")) storeCategory = "decorator";
+  else if (catLower.includes("dj")) storeCategory = "dj";
+  else if (catLower.includes("videograph")) storeCategory = "videographer";
+  else if (catLower.includes("photograph")) storeCategory = "photographer";
+  else if (catLower.includes("cake")) storeCategory = "cake";
+  else if (catLower.includes("florist")) storeCategory = "florist";
 
   const isSelected = cartVendors[storeCategory] === vendorId;
   const currentVendorInSlot = cartVendors[storeCategory];
+  
+  // A helper to know if a slot actually has a real vendor selected
+  const hasVendorInSlot = currentVendorInSlot && 
+    currentVendorInSlot !== "none" && 
+    currentVendorInSlot !== "null" && 
+    currentVendorInSlot !== "custom_preference";
 
   // Get formatted URLs for all media
   const mediaList = item.media.map((m: any) => {
@@ -110,7 +117,7 @@ const PortfolioCard = ({ portfolio, router }: any) => {
             onClick={(e) => {
               e.stopPropagation();
               
-              if (!isSelected && currentVendorInSlot && currentVendorInSlot !== "none" && currentVendorInSlot !== "custom_preference" && currentVendorInSlot !== vendorId) {
+              if (!isSelected && hasVendorInSlot && currentVendorInSlot !== vendorId) {
                 const proceed = window.confirm(`You already have a ${storeCategory} in your event plan. Do you want to replace them with ${vendorName}?`);
                 if (!proceed) return;
               }

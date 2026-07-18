@@ -113,9 +113,10 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
           phone={getClientPhone(booking)} 
           email={getClientEmail(booking)} 
           clientAvatar={booking.customerId?.avatar}
+          inspirationImages={
+            booking.vendors?.decorator?.requestedDesignId?.media?.map((m: any) => m.url)
+          }
           inspirationImage={
-            booking.vendors?.decorator?.requestedDesignId?.media?.find((m: any) => m.isCover)?.url || 
-            booking.vendors?.decorator?.requestedDesignId?.media?.[0]?.url || 
             "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80"
           }
           inspirationCaption={

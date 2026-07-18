@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { X, Check } from 'lucide-react';
-import { staffData } from './staffData';
 
 interface ChangeManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
+  staffData?: any[];
 }
 
-const ChangeManagerModal = ({ isOpen, onClose }: ChangeManagerModalProps) => {
-  const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null);
+const ChangeManagerModal = ({ isOpen, onClose, staffData = [] }: ChangeManagerModalProps) => {
+  const [selectedManagerId, setSelectedManagerId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  // Find all managers
-  const availableManagers = staffData.filter(m => m.roleCategory === 'managers');
+  // Find all managers dynamically
+  const availableManagers = staffData.filter(m => m.role === 'manager');
 
   const handleConfirm = () => {
     if (!selectedManagerId) return;
@@ -39,8 +39,8 @@ const ChangeManagerModal = ({ isOpen, onClose }: ChangeManagerModalProps) => {
             Select an existing manager from the directory to elevate to the Lead Manager role. They will gain primary dashboard access and approval authority.
           </p>
 
-          <div className="space-y-3 max-h-60 overflow-y-auto">
-            {availableManagers.map(manager => (
+          <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+            {availableManagers.length > 0 ? availableManagers.map(manager => (
               <div 
                 key={manager.id}
                 onClick={() => setSelectedManagerId(manager.id)}
@@ -51,7 +51,7 @@ const ChangeManagerModal = ({ isOpen, onClose }: ChangeManagerModalProps) => {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <img src={manager.avatar} alt={manager.name} className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
+                  <img src={manager.avatar} alt={manager.name} onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'; }} className="w-10 h-10 rounded-full object-cover border border-[#E0D8C3]" />
                   <div>
                     <p className="text-sm font-bold text-gray-800">{manager.name}</p>
                     <p className="text-[10px] text-gray-500 uppercase tracking-widest">{manager.roleBadge}</p>
@@ -63,7 +63,9 @@ const ChangeManagerModal = ({ isOpen, onClose }: ChangeManagerModalProps) => {
                   </div>
                 )}
               </div>
-            ))}
+            )) : (
+              <p className="text-xs text-gray-500 italic">No alternative managers available.</p>
+            )}
           </div>
         </div>
 

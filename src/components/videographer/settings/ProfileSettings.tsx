@@ -11,7 +11,7 @@ const ProfileSettings = () => {
   const { user, fetchUser, updateUser } = useAuthStore();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string, phone?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string, phone?: string, fullName?: string }>({});
   const [message, setMessage] = useState('');
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -99,6 +99,10 @@ const ProfileSettings = () => {
     let hasError = false;
     const newErrors: typeof errors = {};
 
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required.";
+      hasError = true;
+    }
     if (!validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address.";
       hasError = true;
@@ -222,6 +226,7 @@ const ProfileSettings = () => {
               onChange={handleChange}
               className="w-full px-4 py-2.5 text-xs border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C]"
             />
+            {errors.fullName && <p className="text-red-500 text-[10px] mt-1">{errors.fullName}</p>}
           </div>
 
           <div>

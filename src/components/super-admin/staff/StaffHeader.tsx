@@ -3,9 +3,10 @@ import { Download, UserRoundPlus, UserCog } from 'lucide-react';
 
 interface StaffHeaderProps {
   onOpenChangeManager: () => void;
+  onOpenRegisterStaff: () => void;
 }
 
-const StaffHeader = ({ onOpenChangeManager }: StaffHeaderProps) => {
+const StaffHeader = ({ onOpenChangeManager, onOpenRegisterStaff }: StaffHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
       {/* Title & Subtitle */}
@@ -31,7 +32,7 @@ const StaffHeader = ({ onOpenChangeManager }: StaffHeaderProps) => {
           <UserCog size={13} />
           CHANGE LEAD MANAGER
         </button>
-        <button className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 transition-colors shadow-sm">
+        <button onClick={onOpenRegisterStaff} className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 transition-colors shadow-sm">
           <UserRoundPlus size={13} />
           REGISTER STAFF MEMBER
         </button>
