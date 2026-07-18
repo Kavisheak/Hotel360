@@ -179,13 +179,10 @@ export default function BookPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
-      const preDecorator = searchParams.get("decorator");
-      const preDj = searchParams.get("dj");
-      const preVid = searchParams.get("videographer");
-      const prePackage = searchParams.get("package");
       const preDecorator = searchParams.get("decorator") || searchParams.get("decorators");
       const preDj = searchParams.get("dj") || searchParams.get("djs");
       const preVid = searchParams.get("videographer") || searchParams.get("videographers");
+      const prePackage = searchParams.get("package");
 
       if (preDecorator || preDj || preVid) {
         setVendors({
@@ -946,12 +943,6 @@ export default function BookPage() {
                           &bull; <strong>Less than 14 days:</strong> Cancellation not possible via portal. Contact hotel directly.
                         </p>
                       </div>
-                    </div>
-                  </div>
-                )}
-
-<<<<<<< HEAD
-=======
                       {/* Terms Agree checkbox */}
                       <div className="flex items-center gap-3 pt-2">
                         <input
@@ -968,8 +959,6 @@ export default function BookPage() {
                     </div>
                   </div>
                 )}
-
->>>>>>> 579e805ef0f09cabac689a982831955a62d8e95b
                 {/* Step 4: Checkout */}
                 {currentStep === 4 && (
                   <div className="space-y-6 animate-fadeIn">
@@ -1027,11 +1016,8 @@ export default function BookPage() {
                         </label>
                       </div>
                     </div>
-<<<<<<< HEAD
-=======
 
                     <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
->>>>>>> 579e805ef0f09cabac689a982831955a62d8e95b
                   </div>
                 )}
 
