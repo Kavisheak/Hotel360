@@ -9,6 +9,7 @@ import Header from '@/components/super-admin/dashboard/Header';
 import Footer from '@/components/super-admin/dashboard/Footer';
 import ChangeManagerModal from './ChangeManagerModal';
 import RegisterStaffModal from './RegisterStaffModal';
+import EditStaffModal from './EditStaffModal';
 import { superAdminAPI } from '@/lib/api';
 
 const StaffMain = () => {
@@ -16,6 +17,8 @@ const StaffMain = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isManagerModalOpen, setIsManagerModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [memberToEdit, setMemberToEdit] = useState<any>(null);
   const [staffData, setStaffData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -109,13 +112,17 @@ const StaffMain = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B08D2C]"></div>
           </div>
         ) : (
-          <StaffTable
-            members={paginated}
-            currentPage={currentPage}
+          <StaffTable 
+            members={paginated} 
+            currentPage={currentPage} 
             totalPages={totalPages}
             totalCount={totalCount}
             onPageChange={setCurrentPage}
             onToggleStatus={handleStatusToggle}
+            onEdit={(member) => {
+              setMemberToEdit(member);
+              setIsEditModalOpen(true);
+            }}
           />
         )}
       </div>
@@ -132,6 +139,13 @@ const StaffMain = () => {
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={fetchStaff}
+      />
+
+      <EditStaffModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={fetchStaff}
+        member={memberToEdit}
       />
     </div>
   );

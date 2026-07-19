@@ -1,24 +1,32 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
 
-const RevenueCard = ({ totalRevenue, revenueGrowth }: { totalRevenue: number; revenueGrowth: number }) => {
+const RevenueCard = ({ totalRevenue, thisMonthRevenue, revenueGrowth }: { totalRevenue: number; thisMonthRevenue: number; revenueGrowth: number }) => {
+  // Let's assume a realistic monthly goal of LKR 50,000,000
+  const monthlyGoal = 50000000;
+  const progressPercentage = Math.min((thisMonthRevenue / monthlyGoal) * 100, 100);
+
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-8 flex flex-col justify-between">
       <div>
-        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4">
-          Total Revenue (All Time)
+        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4 flex justify-between">
+          <span>Total Revenue (All Time)</span>
+          <span className="text-[#B08D2C]">{progressPercentage.toFixed(1)}% of Monthly Target</span>
         </p>
         <h2 className="text-4xl sm:text-5xl font-serif font-bold text-[#3D3000] mb-4">
-          LKR {totalRevenue.toLocaleString()}
+          LKR {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
         </h2>
         <div className={`flex items-center gap-2 ${revenueGrowth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
           <TrendingUp size={16} className={revenueGrowth < 0 ? "rotate-180" : ""} />
           <span className="text-sm font-bold">{revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}% vs last month</span>
         </div>
       </div>
-      {/* Mini sparkline bar */}
-      <div className="mt-6 h-2 bg-[#F2EADA] rounded-full overflow-hidden">
-        <div className="h-full w-[72%] bg-gradient-to-r from-[#B08D2C] to-[#E9C340] rounded-full" />
+      {/* Dynamic sparkline bar */}
+      <div className="mt-6 h-2 bg-[#F2EADA] rounded-full overflow-hidden" title={`LKR ${thisMonthRevenue.toLocaleString()} / ${monthlyGoal.toLocaleString()}`}>
+        <div 
+          className="h-full bg-gradient-to-r from-[#B08D2C] to-[#E9C340] rounded-full transition-all duration-1000 ease-out" 
+          style={{ width: `${progressPercentage}%` }} 
+        />
       </div>
     </div>
   );
@@ -79,10 +87,22 @@ const BookingChart = ({ bookingTraffic, bookingTrafficMonthly }: { bookingTraffi
   );
 };
 
-const OverviewCards = ({ totalRevenue, revenueGrowth, bookingTraffic, bookingTrafficMonthly }: { totalRevenue: number; revenueGrowth: number; bookingTraffic: any[]; bookingTrafficMonthly: any[] }) => {
+const OverviewCards = ({ 
+  totalRevenue, 
+  thisMonthRevenue,
+  revenueGrowth, 
+  bookingTraffic, 
+  bookingTrafficMonthly 
+}: { 
+  totalRevenue: number; 
+  thisMonthRevenue: number;
+  revenueGrowth: number; 
+  bookingTraffic: any[]; 
+  bookingTrafficMonthly: any[] 
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-      <RevenueCard totalRevenue={totalRevenue} revenueGrowth={revenueGrowth} />
+      <RevenueCard totalRevenue={totalRevenue} thisMonthRevenue={thisMonthRevenue} revenueGrowth={revenueGrowth} />
       <BookingChart bookingTraffic={bookingTraffic} bookingTrafficMonthly={bookingTrafficMonthly} />
     </div>
   );

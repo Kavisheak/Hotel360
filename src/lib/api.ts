@@ -311,6 +311,9 @@ export const vendorAPI = {
 // ─── Super Admin API ─────────────────────────────────────────────────────────────
 export const superAdminAPI = {
   getOverview: () => apiFetch("/api/super-admin/overview"),
+  getFinancials: () => apiFetch("/api/super-admin/financials"),
+  getConfigHealth: () => apiFetch("/api/super-admin/config/health"),
+  approveRefund: (id: string) => apiFetch(`/api/super-admin/financials/refund/${id}`, { method: 'PUT' }),
   getStaff: () => apiFetch("/api/super-admin/users"),
   createStaff: (data: any) =>
     apiFetch("/api/super-admin/users/create", {
@@ -320,5 +323,10 @@ export const superAdminAPI = {
   toggleStaffStatus: (id: string) =>
     apiFetch(`/api/super-admin/users/${id}/status`, {
       method: "PUT",
+    }),
+  updateStaff: (id: string, data: any) =>
+    apiFetch(`/api/super-admin/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
     }),
 };
