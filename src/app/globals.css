@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:is(.dark, .dark *));
 
+@layer base {
+  button {
+    cursor: pointer;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

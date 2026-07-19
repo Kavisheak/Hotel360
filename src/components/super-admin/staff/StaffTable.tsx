@@ -11,9 +11,10 @@ interface StaffTableProps {
   totalCount: number;
   onPageChange: (page: number) => void;
   onToggleStatus?: (id: string) => void;
+  onEdit?: (member: StaffMember) => void;
 }
 
-const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange, onToggleStatus }: StaffTableProps) => {
+const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange, onToggleStatus, onEdit }: StaffTableProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] overflow-x-auto">
       {/* Gold Column Header Row */}
@@ -70,7 +71,7 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
 
               {/* Action Icons */}
               <div className="flex items-center gap-2">
-                <button className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Edit">
+                <button onClick={() => onEdit && onEdit(member)} className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Edit">
                   <Pencil size={15} />
                 </button>
                 <button className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="View History">
