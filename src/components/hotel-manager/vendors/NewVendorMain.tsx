@@ -15,12 +15,13 @@ const NewVendorMain = () => {
     email: '',
     phone: '',
     role: 'decorator',
-    password: ''
+    password: '',
+    ownerNic: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{name: string, email: string} | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{email?: string, phone?: string}>({});
+  const [errors, setErrors] = useState<{email?: string, phone?: string, ownerNic?: string}>({});
 
   const generatePassword = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
@@ -43,6 +44,12 @@ const NewVendorMain = () => {
     }
     if (!validatePhone(formData.phone)) {
       newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+    
+    const nicRegex = /^(?:[0-9]{9}[vVxX]|[0-9]{12})$/;
+    if (!nicRegex.test(formData.ownerNic)) {
+      newErrors.ownerNic = "Invalid NIC format (e.g., 123456789V or 199012345678).";
       hasError = true;
     }
 
@@ -173,6 +180,22 @@ const NewVendorMain = () => {
                         className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Owner NIC</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={formData.ownerNic}
+                      onChange={(e) => {
+                        setFormData({...formData, ownerNic: e.target.value});
+                        if (errors.ownerNic) setErrors({ ...errors, ownerNic: undefined });
+                      }}
+                      placeholder="e.g. 123456789V or 199012345678"
+                      className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-[#FDF9F1]"
+                    />
+                    {errors.ownerNic && <p className="text-red-500 text-[10px] mt-1">{errors.ownerNic}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

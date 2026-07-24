@@ -134,19 +134,44 @@ const VendorsListMain = () => {
   });
 
   return (
-    <div className="p-6 lg:p-10 max-w-[1400px] mx-auto bg-[#FDF9F1]">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+    <div className="p-6 lg:p-10 max-w-[1400px] mx-auto bg-[#FDF9F1] space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Vendor Directory</h1>
-          <p className="text-gray-500 text-sm">Manage external service providers and their access to the portal.</p>
+          <h1 className="text-3xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Vendor Directory & Performance</h1>
+          <p className="text-gray-500 text-sm">Manage vendor registrations, monitor performance metrics, and assign package preferences.</p>
         </div>
         
         <Link 
           href="/hotel-manager/vendors/new"
-          className="bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors shadow-sm"
+          className="bg-[#1E56A0] hover:bg-[#15417E] text-white px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors shadow-sm"
         >
-          <Plus size={16} /> Add New Vendor
+          <Plus size={16} /> Register New Vendor
         </Link>
+      </div>
+
+      {/* Performance Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Acceptance Rate</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">96.4%</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">High assignment reliability</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Response Time</p>
+          <p className="text-2xl font-bold text-[#1E56A0] mt-1">1.2 Hours</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Fast confirmation window</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Overall Provider Rating</p>
+          <p className="text-2xl font-bold text-amber-500 mt-1">★ 4.85 / 5.0</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Based on customer reviews</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Vendor Cancellation Rate</p>
+          <p className="text-2xl font-bold text-rose-600 mt-1">0.8%</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Well within threshold</p>
+        </div>
       </div>
 
       <div className="bg-white border border-[#E0D8C3] shadow-sm rounded-sm mb-8">

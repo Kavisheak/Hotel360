@@ -216,74 +216,35 @@ const EditPortfolioModal = ({ item, onClose, onSuccess }: EditPortfolioModalProp
           {/* TEXT DETAILS SECTION */}
           <section className="space-y-6">
             <h3 className="text-lg font-serif font-bold text-[#7C6A2E] flex items-center gap-2 border-b border-[#E0D8C3] pb-2">
-              <MapPin size={18} /> Edit Project Details
+              <Sparkles size={18} /> Edit Project Details
             </h3>
             
             <div className="space-y-4">
               <input type="text" value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="Project Title" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
               
+              <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price (LKR)" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
+              
               <div className="grid grid-cols-2 gap-4">
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] cursor-pointer bg-white">
-                  <option value="tablescapes">GRAND TABLE-SCAPES</option>
-                  <option value="installations">FLORAL INSTALLATIONS</option>
-                  <option value="lighting">LIGHTING DESIGN</option>
-                  <option value="stages">STAGE SETUPS</option>
+                <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] cursor-pointer bg-white">
+                  <option value="Grand Wedding">Grand Wedding</option>
+                  <option value="Corporate Gala">Corporate Gala</option>
+                  <option value="Intimate Reception">Intimate Reception</option>
+                  <option value="Cultural Celebration">Cultural Celebration</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Reception">Reception</option>
+                  <option value="Engagement">Engagement</option>
+                  <option value="Homecoming">Homecoming</option>
                 </select>
-                <div className="flex gap-4">
-                  <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
-                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price (LKR)" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
-                </div>
+                <select value={culturalStyle} onChange={(e) => setCulturalStyle(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] cursor-pointer bg-white">
+                  <option value="Western / Modern">Western / Modern</option>
+                  <option value="Sinhala Traditional">Sinhala Traditional</option>
+                  <option value="Tamil Traditional">Tamil Traditional</option>
+                  <option value="Muslim Traditional">Muslim Traditional</option>
+                  <option value="Mixed / Fusion">Mixed / Fusion</option>
+                </select>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
-                <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="Event Type (e.g. Grand Wedding)" className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C]" />
-              </div>
-              
-              <select value={culturalStyle} onChange={(e) => setCulturalStyle(e.target.value)} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] cursor-pointer bg-white">
-                <option value="Western / Modern">Western / Modern (Cultural Style)</option>
-                <option value="Sinhala Traditional">Sinhala Traditional</option>
-                <option value="Tamil Traditional">Tamil Traditional</option>
-                <option value="Muslim Traditional">Muslim Traditional</option>
-                <option value="Mixed / Fusion">Mixed / Fusion</option>
-              </select>
               
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={4} className="w-full border border-[#E0D8C3] p-4 text-sm font-semibold focus:outline-none focus:border-[#B08D2C] resize-none" />
-
-              <div className="border-t border-[#E0D8C3] pt-6 mt-6">
-                <h4 className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-4">Services Provided</h4>
-                <div className="flex flex-wrap gap-4 mb-6">
-                  {Object.entries({
-                    floralArt: 'Floral Art',
-                    lightingDesign: 'Lighting Design',
-                    stageConcept: 'Stage Concept',
-                    tableScapes: 'Table Scapes',
-                    entranceDecor: 'Entrance Decor'
-                  }).map(([key, label]) => (
-                    <label key={key} className="flex items-center space-x-2 cursor-pointer bg-white border border-[#E0D8C3] px-3 py-2 text-xs font-semibold text-gray-700 hover:border-[#B08D2C] transition-colors">
-                      <input 
-                        type="checkbox" 
-                        checked={services[key as keyof typeof services]} 
-                        onChange={(e) => setServices(prev => ({ ...prev, [key]: e.target.checked }))} 
-                        className="accent-[#B08D2C] w-3 h-3 cursor-pointer" 
-                      />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <h4 className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-4">Configuration & Visibility</h4>
-                <div className="flex flex-wrap gap-6">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="accent-[#B08D2C] w-4 h-4 cursor-pointer" />
-                    <span className="text-sm font-semibold text-gray-700">Feature this Masterpiece</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="accent-[#B08D2C] w-4 h-4 cursor-pointer" />
-                    <span className="text-sm font-semibold text-gray-700">Mark as Private</span>
-                  </label>
-                </div>
-              </div>
             </div>
           </section>
 

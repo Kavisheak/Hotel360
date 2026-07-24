@@ -63,102 +63,193 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   if (activeCategorySelection) {
     const selectedCatConfig = categories.find(c => c.key === activeCategorySelection);
     const categoryVendors = globalVendors.filter(v => v.category === selectedCatConfig?.path);
-    const portfolioItems = categoryVendors.flatMap(v => {
-      if (v.portfolioItems && v.portfolioItems.length > 0) {
-        return v.portfolioItems.map(item => {
-          const coverMedia = item.media.find(m => m.isCover) || item.media[0];
-          return {
-            vendorId: v.id,
-            vendorName: v.name,
-            vendorRating: v.rating,
-            image: coverMedia ? coverMedia.url : "",
-            title: item.title,
-            portfolioItemId: item.id,
-            defaultPackage: v.packages?.[0]?.name || "none",
-            price: item.price > 0 ? item.price : (parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0)
-          };
-        });
-      }
-      return (v.portfolio || []).map((img, idx) => ({
-        vendorId: v.id,
-        vendorName: v.name,
-        vendorRating: v.rating,
-        image: img,
-        title: `Design #${idx + 1}`,
-        portfolioItemId: `legacy-${idx}`,
-        defaultPackage: v.packages?.[0]?.name || "none",
-        price: parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0
-      }));
-    });
+    
+    if (activeCategorySelection === "decorator") {
+      const portfolioItems = categoryVendors.flatMap(v => {
+        if (v.portfolioItems && v.portfolioItems.length > 0) {
+          return v.portfolioItems.map(item => {
+            const coverMedia = item.media.find(m => m.isCover) || item.media[0];
+            return {
+              vendorId: v.id,
+              vendorName: v.name,
+              vendorRating: v.rating,
+              image: coverMedia ? coverMedia.url : "",
+              title: item.title,
+              portfolioItemId: item.id,
+              defaultPackage: v.packages?.[0]?.name || "none",
+              price: item.price > 0 ? item.price : (parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0)
+            };
+          });
+        }
+        return (v.portfolio || []).map((img, idx) => ({
+          vendorId: v.id,
+          vendorName: v.name,
+          vendorRating: v.rating,
+          image: img,
+          title: `Design #${idx + 1}`,
+          portfolioItemId: `legacy-${idx}`,
+          defaultPackage: v.packages?.[0]?.name || "none",
+          price: parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0
+        }));
+      });
 
-    return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-        <div className="flex items-center justify-between border-b border-[#C9A84C]/20 pb-4 mb-4">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setActiveCategorySelection(null)} className="text-gray-500 hover:text-[#C9A84C] transition-colors cursor-pointer">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Select {selectedCatConfig?.label} Design</h3>
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center justify-between border-b border-[#C9A84C]/20 pb-4 mb-4">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setActiveCategorySelection(null)} className="text-gray-500 hover:text-[#C9A84C] transition-colors cursor-pointer">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Select {selectedCatConfig?.label} Design</h3>
+            </div>
           </div>
-        </div>
-        
-        {portfolioItems.length === 0 ? (
-           <p className="text-gray-500 italic text-center py-10">No portfolio designs available for this category.</p>
-        ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-            {portfolioItems.map((item, idx) => {
-              const imgUrl = item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`;
-              return (
-                <div 
-                  key={idx}
-                  onClick={() => {
-                    const storeCategory = activeCategorySelection as keyof VendorsState;
-                    useVendorCartStore.setState((state) => ({
-                      vendors: {
-                        ...state.vendors,
-                        [storeCategory]: item.vendorId
-                      },
-                      requestedDesigns: {
-                        ...state.requestedDesigns,
-                        [storeCategory]: item.portfolioItemId
-                      },
-                      requestedDesignPrices: {
-                        ...state.requestedDesignPrices,
-                        [storeCategory]: item.price
-                      }
-                    }));
-                    onChange({
-                      ...vendors,
-                      [activeCategorySelection]: item.vendorId,
-                      [`${activeCategorySelection}Package`]: item.defaultPackage
-                    } as any);
-                    setActiveCategorySelection(null);
-                  }}
-                  className="relative break-inside-avoid rounded-sm overflow-hidden group cursor-pointer border border-[#E8DFC9] dark:border-gray-800 mb-4 bg-[#FDF9F1] dark:bg-[#111]"
-                >
-                  <img src={imgUrl} alt={item.vendorName} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 p-4 text-center">
-                    <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-2 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
-                    
-                    <div className="flex items-center gap-2 mb-2 text-xs">
-                      <span className="text-[#C9A84C]">★ {item.vendorRating !== undefined && item.vendorRating !== null ? item.vendorRating : 0}</span>
+          
+          {portfolioItems.length === 0 ? (
+             <p className="text-gray-500 italic text-center py-10">No portfolio designs available for this category.</p>
+          ) : (
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+              {portfolioItems.map((item, idx) => {
+                const imgUrl = item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`;
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => {
+                      const storeCategory = activeCategorySelection as keyof VendorsState;
+                      useVendorCartStore.setState((state) => ({
+                        vendors: {
+                          ...state.vendors,
+                          [storeCategory]: item.vendorId
+                        },
+                        requestedDesigns: {
+                          ...state.requestedDesigns,
+                          [storeCategory]: item.portfolioItemId
+                        },
+                        requestedDesignPrices: {
+                          ...state.requestedDesignPrices,
+                          [storeCategory]: item.price
+                        }
+                      }));
+                      onChange({
+                        ...vendors,
+                        [activeCategorySelection]: item.vendorId,
+                        [`${activeCategorySelection}Package`]: item.defaultPackage
+                      } as any);
+                      setActiveCategorySelection(null);
+                    }}
+                    className="relative break-inside-avoid rounded-sm overflow-hidden group cursor-pointer border border-[#E8DFC9] dark:border-gray-800 mb-4 bg-[#FDF9F1] dark:bg-[#111]"
+                  >
+                    <img src={imgUrl} alt={item.vendorName} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 p-4 text-center">
+                      <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-2 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
+                      
+                      <div className="flex items-center gap-2 mb-2 text-xs">
+                        <span className="text-[#C9A84C]">★ {item.vendorRating !== undefined && item.vendorRating !== null ? item.vendorRating : 0}</span>
+                      </div>
+
+                      {item.price > 0 && (
+                        <span className="text-white font-bold text-sm mb-4">LKR {item.price.toLocaleString()}</span>
+                      )}
+
+                      <button className="px-6 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-lg">
+                        Select This Design
+                      </button>
                     </div>
-
-                    {item.price > 0 && (
-                      <span className="text-white font-bold text-sm mb-4">LKR {item.price.toLocaleString()}</span>
-                    )}
-
-                    <button className="px-6 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-lg">
-                      Select This Design
-                    </button>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center justify-between border-b border-[#C9A84C]/20 pb-4 mb-4">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setActiveCategorySelection(null)} className="text-gray-500 hover:text-[#C9A84C] transition-colors cursor-pointer">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Select {selectedCatConfig?.label}</h3>
+            </div>
           </div>
-        )}
-      </div>
-    );
+          
+          {categoryVendors.length === 0 ? (
+             <p className="text-gray-500 italic text-center py-10">No vendors available for this category.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categoryVendors.map((vendor, idx) => {
+                const imgUrl = vendor.image.startsWith('http') ? vendor.image : `${API_URL}${vendor.image}`;
+                const defaultPackage = vendor.packages?.[0]?.name || "none";
+                const price = parseInt(vendor.startingPrice.replace(/[^0-9]/g, "")) || 0;
+
+                return (
+                  <div 
+                    key={idx}
+                    className="border border-[#E8DFC9] dark:border-gray-800 bg-white dark:bg-[#111111] rounded-lg shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 h-full hover:border-[#C9A84C]/50"
+                  >
+                    <div className="p-5 flex-1 flex flex-col">
+                      <div className="flex items-center gap-4 mb-4">
+                        <img 
+                          src={imgUrl} 
+                          alt={vendor.name} 
+                          className="w-16 h-16 rounded-full object-cover border border-[#E8DFC9]/50 dark:border-gray-800" 
+                        />
+                        <div>
+                          <h4 className="text-lg font-bold font-serif text-[#1A1512] dark:text-white leading-tight">
+                            {vendor.name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1 text-xs">
+                            <span className="text-[#C9A84C]">★ {vendor.rating !== undefined && vendor.rating !== null ? vendor.rating : 0}</span>
+                            <span className="text-gray-400">({vendor.reviewsCount || 0} reviews)</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-auto pt-4 border-t border-[#E8DFC9]/30 dark:border-gray-800">
+                        {price > 0 && (
+                          <div className="flex justify-between items-center mb-4 text-sm">
+                            <span className="text-gray-500">Starting from</span>
+                            <span className="font-bold text-[#1A1512] dark:text-white">LKR {price.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <button 
+                          onClick={() => {
+                            const storeCategory = activeCategorySelection as keyof VendorsState;
+                            useVendorCartStore.setState((state) => ({
+                              vendors: {
+                                ...state.vendors,
+                                [storeCategory]: vendor.id
+                              },
+                              requestedDesigns: {
+                                ...state.requestedDesigns,
+                                [storeCategory]: null
+                              },
+                              requestedDesignPrices: {
+                                ...state.requestedDesignPrices,
+                                [storeCategory]: null
+                              }
+                            }));
+                            onChange({
+                              ...vendors,
+                              [activeCategorySelection]: vendor.id,
+                              [`${activeCategorySelection}Package`]: defaultPackage
+                            } as any);
+                            setActiveCategorySelection(null);
+                          }}
+                          className="w-full bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors rounded-md cursor-pointer"
+                        >
+                          Select Vendor
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
   }
 
   return (
@@ -231,14 +322,14 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                 {/* Card Content area */}
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-6">
                   <p className="text-xs text-gray-400 italic">
-                    Explore and select a bespoke {cat.label.toLowerCase()} design to add to your luxury event plan.
+                    Explore and select a bespoke {cat.label.toLowerCase()} {cat.key === "decorator" ? "design" : "professional"} to add to your luxury event plan.
                   </p>
                   
                   <button 
                     onClick={() => handleExplore(cat.key)}
                     className="w-full bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors rounded-md flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Select By Design <ArrowRight className="w-3 h-3" />
+                    {cat.key === "decorator" ? "Select By Design" : "Select Vendor"} <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
               </div>

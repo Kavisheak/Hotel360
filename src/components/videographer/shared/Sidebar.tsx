@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, Calendar, BookOpen, Star, ImageIcon,
   Settings, HelpCircle, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, CalendarClock
+  PanelLeftClose, PanelLeftOpen, CalendarClock, DollarSign, Video
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { authAPI } from '@/lib/api';
 
@@ -49,6 +49,7 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, clearUser } = useAuthStore();
 
   useEffect(() => {
@@ -67,13 +68,14 @@ const Sidebar = () => {
     e.preventDefault();
     await authAPI.signout();
     clearUser();
-    window.location.replace('/login');
+    router.replace('/login');
   };
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW',  href: '/videographer' },
-    { icon: <Calendar size={20} />,   label: 'SCHEDULE',  href: '/videographer/performance' },
     { icon: <BookOpen size={20} />,   label: 'BOOKINGS',  href: '/videographer/events-bookings' },
+    { icon: <Video size={20} />,      label: 'DELIVERABLES', href: '/videographer/deliverables' },
+    { icon: <DollarSign size={20} />, label: 'PAYOUTS',   href: '/videographer/payouts' },
     { icon: <Star size={20} />,       label: 'RATINGS',   href: '/videographer/ratings' },
     { icon: <ImageIcon size={20} />,  label: 'GALLERY',   href: '/videographer/gallery' },
     { icon: <Settings size={20} />,   label: 'SETTINGS',  href: '/videographer/settings' },

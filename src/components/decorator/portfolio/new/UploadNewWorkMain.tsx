@@ -410,21 +410,7 @@ const UploadNewWorkMain = () => {
                     <option>Cultural Celebration</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                    Portfolio Category
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-white border border-[#E0D8C3] p-4 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer"
-                  >
-                    <option value="tablescapes">GRAND TABLE-SCAPES</option>
-                    <option value="installations">FLORAL INSTALLATIONS</option>
-                    <option value="lighting">LIGHTING DESIGN</option>
-                    <option value="stages">STAGE SETUPS</option>
-                  </select>
-                </div>
+
                 <div className="space-y-2">
                   <label htmlFor="decorator-event-date" className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
                     Date of Event
@@ -473,38 +459,19 @@ const UploadNewWorkMain = () => {
             </div>
           </section>
 
-          {/* SECTION 3: METADATA & TAGS */}
+          {/* SECTION 3: METADATA & PRICING */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-t border-[#E0D8C3] pt-12">
             <div className="lg:col-span-4">
               <h3 className="text-lg font-serif font-bold text-[#7C6A2E] mb-2 flex items-center gap-2">
-                <MapPin size={18} className="text-[#B08D2C]" />
-                Refined Details
+                <Sparkles size={18} className="text-[#B08D2C]" />
+                Investment &amp; Pricing
               </h3>
               <p className="text-xs text-gray-500 font-medium leading-relaxed">
-                Categorize your work to help future clients discover your expertise in specific venues and services.
+                Specify the project price to help clients understand your package tiers.
               </p>
             </div>
 
             <div className="lg:col-span-8 space-y-6">
-              {/* Venue Location */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                  Venue Location
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#B08D2C]">
-                    <MapPin size={16} />
-                  </span>
-                  <input
-                    type="text"
-                    value={venue}
-                    onChange={(e) => setVenue(e.target.value)}
-                    placeholder="e.g. Grand Majestic Hall"
-                    className="w-full bg-white border border-[#E0D8C3] p-4 pl-12 text-sm font-semibold text-gray-700 placeholder-gray-300 focus:outline-none focus:border-[#B08D2C]"
-                  />
-                </div>
-              </div>
-
               {/* Project Price */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
@@ -523,166 +490,8 @@ const UploadNewWorkMain = () => {
                   />
                 </div>
               </div>
-
-              {/* Services Provided */}
-              <div className="space-y-4">
-                <label className="block text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                  Services Provided
-                </label>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Floral Art */}
-                  <label className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-5 h-5 border border-[#B08D2C] flex items-center justify-center bg-white shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={services.floralArt}
-                        onChange={(e) => setServices({ ...services, floralArt: e.target.checked })}
-                        className="hidden peer"
-                      />
-                      <div className={`w-3 h-3 bg-[#B08D2C] transition-transform ${services.floralArt ? 'scale-100' : 'scale-0'
-                        }`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 group-hover:text-[#7C6A2E] transition-colors uppercase tracking-wider">
-                      Floral Art
-                    </span>
-                  </label>
-
-                  {/* Lighting Design */}
-                  <label className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-5 h-5 border border-[#B08D2C] flex items-center justify-center bg-white shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={services.lightingDesign}
-                        onChange={(e) => setServices({ ...services, lightingDesign: e.target.checked })}
-                        className="hidden peer"
-                      />
-                      <div className={`w-3 h-3 bg-[#B08D2C] transition-transform ${services.lightingDesign ? 'scale-100' : 'scale-0'
-                        }`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 group-hover:text-[#7C6A2E] transition-colors uppercase tracking-wider">
-                      Lighting Design
-                    </span>
-                  </label>
-
-                  {/* Stage Concept */}
-                  <label className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-5 h-5 border border-[#B08D2C] flex items-center justify-center bg-white shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={services.stageConcept}
-                        onChange={(e) => setServices({ ...services, stageConcept: e.target.checked })}
-                        className="hidden peer"
-                      />
-                      <div className={`w-3 h-3 bg-[#B08D2C] transition-transform ${services.stageConcept ? 'scale-100' : 'scale-0'
-                        }`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 group-hover:text-[#7C6A2E] transition-colors uppercase tracking-wider">
-                      Stage Concept
-                    </span>
-                  </label>
-
-                  {/* Table Scapes */}
-                  <label className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-5 h-5 border border-[#B08D2C] flex items-center justify-center bg-white shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={services.tableScapes}
-                        onChange={(e) => setServices({ ...services, tableScapes: e.target.checked })}
-                        className="hidden peer"
-                      />
-                      <div className={`w-3 h-3 bg-[#B08D2C] transition-transform ${services.tableScapes ? 'scale-100' : 'scale-0'
-                        }`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 group-hover:text-[#7C6A2E] transition-colors uppercase tracking-wider">
-                      Table Scapes
-                    </span>
-                  </label>
-
-                  {/* Entrance Decor */}
-                  <label className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-5 h-5 border border-[#B08D2C] flex items-center justify-center bg-white shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={services.entranceDecor}
-                        onChange={(e) => setServices({ ...services, entranceDecor: e.target.checked })}
-                        className="hidden peer"
-                      />
-                      <div className={`w-3 h-3 bg-[#B08D2C] transition-transform ${services.entranceDecor ? 'scale-100' : 'scale-0'
-                        }`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 group-hover:text-[#7C6A2E] transition-colors uppercase tracking-wider">
-                      Entrance Decor
-                    </span>
-                  </label>
-                </div>
-              </div>
             </div>
           </section>
-
-          {/* SECTION 4: VISIBILITY SETTINGS */}
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-t border-[#E0D8C3] pt-12">
-            <div className="lg:col-span-4">
-              <h3 className="text-lg font-serif font-bold text-[#7C6A2E] mb-2 flex items-center gap-2">
-                <EyeOff size={18} className="text-[#B08D2C]" />
-                Curation &amp; Privacy
-              </h3>
-              <p className="text-xs text-gray-500 font-medium leading-relaxed">
-                Manage how this project is showcased to the world.
-              </p>
-            </div>
-
-            <div className="lg:col-span-8 flex flex-col gap-6">
-              {/* Featured Toggler card */}
-              <div className="flex items-center justify-between p-6 bg-white border border-[#E0D8C3] shadow-sm">
-                <div>
-                  <span className="text-sm font-serif font-bold text-gray-900 block mb-1">Featured on Profile</span>
-                  <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase">Pin this work to your top 5 highlight reel</span>
-                </div>
-                <div className="relative inline-block w-12 shrink-0 select-none transition duration-200 ease-in">
-                  <input
-                    type="checkbox"
-                    id="toggle-featured"
-                    checked={isFeatured}
-                    onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="toggle-featured"
-                    className={`block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-250 ${isFeatured ? 'bg-[#B08D2C]' : 'bg-gray-200'
-                      }`}
-                  >
-                    <span className={`block w-6 h-6 rounded-full bg-white border border-gray-300 transform transition-transform duration-250 ${isFeatured ? 'translate-x-6 border-[#B08D2C]' : 'translate-x-0'
-                      }`} />
-                  </label>
-                </div>
-              </div>
-
-              {/* Privacy Toggler card */}
-              <div className="flex items-center justify-between p-6 bg-white border border-[#E0D8C3] shadow-sm">
-                <div>
-                  <span className="text-sm font-serif font-bold text-gray-900 block mb-1">Client Privacy</span>
-                  <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase">Hide sensitive vendor or guest details</span>
-                </div>
-                <div className="relative inline-block w-12 shrink-0 select-none transition duration-200 ease-in">
-                  <input
-                    type="checkbox"
-                    id="toggle-privacy"
-                    checked={isPrivate}
-                    onChange={(e) => setIsPrivate(e.target.checked)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="toggle-privacy"
-                    className={`block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-250 ${isPrivate ? 'bg-[#B08D2C]' : 'bg-gray-200'
-                      }`}
-                  >
-                    <span className={`block w-6 h-6 rounded-full bg-white border border-gray-300 transform transition-transform duration-250 ${isPrivate ? 'translate-x-6 border-[#B08D2C]' : 'translate-x-0'
-                      }`} />
-                  </label>
-                </div>
-              </div>
-            </div>
           </section>
         </div>
       </div>

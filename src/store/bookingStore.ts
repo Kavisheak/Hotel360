@@ -58,6 +58,21 @@ export interface Booking {
       status: "Pending" | "Accepted" | "Declined" | "NotRequired";
       packageName: string;
     };
+    photographer?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    cake?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
+    florist?: {
+      vendorId: string | null;
+      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      packageName: string;
+    };
     // Legacy fields for backward compatibility during transition
     decoratorId?: string;
     videographerId?: string;
@@ -71,6 +86,9 @@ export interface Booking {
     decoratorCost: number;
     videographerCost: number;
     djCost: number;
+    photographerCost?: number;
+    cakeCost?: number;
+    floristCost?: number;
   };
   createdAt: string;
   feedback?: Feedback;

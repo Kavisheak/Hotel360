@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, CalendarDays, CalendarCheck, CreditCard,
-  BarChart3, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, Plus, Package, Users, Shield, User
+  LayoutGrid, CalendarCheck, Building2, Users, Package,
+  Receipt, BarChart3, Image as ImageIcon, Settings, LogOut, Menu, X,
+  PanelLeftClose, PanelLeftOpen, HelpCircle, User, Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -26,17 +26,17 @@ const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onCli
     href={href}
     onClick={onClick}
     title={isCollapsed ? label : undefined}
-    className={`flex items-center rounded-md transition-all duration-200 ${
-      isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+    className={`flex items-center rounded-lg transition-all duration-200 ${
+      isCollapsed ? 'justify-center p-2.5' : 'space-x-3.5 px-3.5 py-2.5'
     } ${
       active
-        ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm font-bold'
-        : 'text-gray-600 hover:bg-[#F2EADA]'
+        ? 'bg-[#E3EDFA] text-[#1E56A0] font-bold shadow-xs'
+        : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900'
     }`}
   >
-    <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
+    <span className={active ? 'text-[#1E56A0]' : 'text-gray-500'}>{icon}</span>
     {!isCollapsed && (
-      <span className={`text-sm font-semibold tracking-wide ${active ? 'font-bold' : ''}`}>
+      <span className={`text-sm tracking-tight capitalize ${active ? 'font-bold text-[#1D4ED8]' : 'font-medium text-gray-700'}`}>
         {label}
       </span>
     )}
@@ -62,7 +62,6 @@ const ManagerSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     setMounted(true);
@@ -77,13 +76,15 @@ const ManagerSidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />,    label: 'DASHBOARD',  href: '/hotel-manager' },
-    { icon: <CalendarCheck size={20} />, label: 'BOOKINGS',   href: '/hotel-manager/bookings' },
-    { icon: <CalendarDays size={20} />,  label: 'CALENDAR',   href: '/hotel-manager/calendar' },
-    { icon: <CreditCard size={20} />,    label: 'PAYMENTS',   href: '/hotel-manager/payments' },
-    { icon: <Package size={20} />,       label: 'PACKAGES',   href: '/hotel-manager/packages' },
-    { icon: <Users size={20} />,         label: 'VENDORS',    href: '/hotel-manager/vendors' },
-    { icon: <BarChart3 size={20} />,     label: 'REPORTS',    href: '/hotel-manager/reports' },
+    { icon: <LayoutGrid size={20} />,    label: 'Overview',           href: '/hotel-manager' },
+    { icon: <CalendarCheck size={20} />, label: 'Bookings',           href: '/hotel-manager/bookings' },
+    { icon: <Building2 size={20} />,     label: 'Halls',              href: '/hotel-manager/halls' },
+    { icon: <Users size={20} />,         label: 'Vendors',            href: '/hotel-manager/vendors' },
+    { icon: <Package size={20} />,       label: 'Packages',           href: '/hotel-manager/packages' },
+    { icon: <Receipt size={20} />,       label: 'Payments & refunds', href: '/hotel-manager/payments' },
+    { icon: <BarChart3 size={20} />,     label: 'Reports',            href: '/hotel-manager/reports' },
+    { icon: <ImageIcon size={20} />,     label: 'Content',            href: '/hotel-manager/content' },
+    { icon: <Settings size={20} />,      label: 'Settings',           href: '/hotel-manager/settings' },
   ];
 
   const handleLogout = async (e: any) => {
@@ -94,7 +95,7 @@ const ManagerSidebar = () => {
       console.error("Logout failed:", error);
     } finally {
       clearUser();
-      window.location.replace('/login');
+      router.replace('/login');
     }
   };
 
