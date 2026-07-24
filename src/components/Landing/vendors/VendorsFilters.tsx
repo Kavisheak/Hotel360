@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Award } from "lucide-react";
+import { Search, ChevronDown, MapPin, X, Palette, Camera, Music } from "lucide-react";
 
 interface VendorsFiltersProps {
   searchQuery: string;
@@ -12,8 +12,14 @@ interface VendorsFiltersProps {
   setStyleFilter: (s: string) => void;
   settingFilter: string;
   setSettingFilter: (s: string) => void;
-  activeTab: "all" | "decorators" | "videographers" | "djs";
-  setActiveTab: (t: "all" | "decorators" | "videographers" | "djs") => void;
+  availabilityFilter: string;
+  setAvailabilityFilter: (a: string) => void;
+  locationFilter: string;
+  setLocationFilter: (l: string) => void;
+  sortBy: string;
+  setSortBy: (s: string) => void;
+  activeTab: string;
+  setActiveTab: (t: string) => void;
   filteredCount: number;
 }
 
@@ -24,138 +30,99 @@ export default function VendorsFilters({
   setRatingFilter,
   priceFilter,
   setPriceFilter,
-  styleFilter,
-  setStyleFilter,
-  settingFilter,
-  setSettingFilter,
+  availabilityFilter,
+  setAvailabilityFilter,
+  locationFilter,
+  setLocationFilter,
+  sortBy,
+  setSortBy,
   activeTab,
   setActiveTab,
   filteredCount
 }: VendorsFiltersProps) {
+  
+  const handleClearAll = () => {
+    setSearchQuery("");
+    setRatingFilter(0);
+    setPriceFilter("all");
+    setAvailabilityFilter("all");
+    setLocationFilter("all");
+    setSortBy("rating");
+    setActiveTab("all");
+  };
+
   return (
-    <>
-      {/* Search & Filter System Controls Container */}
-      <section className="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
-        <div className="bg-white dark:bg-[#111111] border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-6 shadow-2xl rounded-sm section-reveal hover-glow transition-all duration-300">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            
-            {/* Live Search Input */}
-            <div className="lg:col-span-3 relative">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Search Portfolio</label>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Keyword search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 font-sans input-glow"
-                />
-              </div>
-            </div>
+    <div className="sticky top-[80px] z-[55] bg-[#FDFBF7]/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-sm py-5 pb-3 transition-all w-full">
+      <div className="max-w-7xl mx-auto px-6">
+        
+        {/* Top Row: Search & Main Categories */}
+        <div className="flex flex-col lg:flex-row items-center gap-4 mb-5">
+          
+          {/* Search Input */}
+          <div className="relative flex-1 w-full lg:min-w-[300px]">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search vendors, styles, services..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-[#111111] text-sm text-[#2C1E14] dark:text-white border border-gray-200 dark:border-zinc-800 rounded-full outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 shadow-sm transition-all placeholder:text-gray-400"
+            />
+          </div>
 
-            {/* Rating Filter Select */}
-            <div className="lg:col-span-2">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Min Rating</label>
-              <select
-                value={ratingFilter}
-                onChange={(e) => setRatingFilter(Number(e.target.value))}
-                className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
-              >
-                <option value="0">All Ratings</option>
-                <option value="4.5">⭐ 4.5+ Stars</option>
-                <option value="4.8">⭐ 4.8+ Stars</option>
-              </select>
-            </div>
+          {/* Category Tabs (Decorator, Videographer, DJ) */}
+          <div className="flex items-center gap-1.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-zinc-800 rounded-full p-1.5 shadow-sm overflow-x-auto hide-scrollbar w-full lg:w-auto">
+             <button 
+               onClick={() => setActiveTab("all")} 
+               className={`px-5 py-2.5 text-xs font-bold rounded-full flex items-center gap-2 transition-all flex-shrink-0 ${activeTab === 'all' ? 'bg-amber-50 dark:bg-[#C9A84C]/10 text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'}`}
+             >
+                All Vendors
+             </button>
+             <button 
+               onClick={() => setActiveTab("decorators")} 
+               className={`px-5 py-2.5 text-xs font-bold rounded-full flex items-center gap-2 transition-all flex-shrink-0 ${activeTab === 'decorators' ? 'bg-amber-50 dark:bg-[#C9A84C]/10 text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'}`}
+             >
+                <Palette className="w-3.5 h-3.5" />
+                Decorator
+             </button>
+             <button 
+               onClick={() => setActiveTab("videographers")} 
+               className={`px-5 py-2.5 text-xs font-bold rounded-full flex items-center gap-2 transition-all flex-shrink-0 ${activeTab === 'videographers' ? 'bg-amber-50 dark:bg-[#C9A84C]/10 text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'}`}
+             >
+                <Camera className="w-3.5 h-3.5" />
+                Videographer
+             </button>
+             <button 
+               onClick={() => setActiveTab("djs")} 
+               className={`px-5 py-2.5 text-xs font-bold rounded-full flex items-center gap-2 transition-all flex-shrink-0 ${activeTab === 'djs' ? 'bg-amber-50 dark:bg-[#C9A84C]/10 text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800'}`}
+             >
+                <Music className="w-3.5 h-3.5" />
+                DJ
+             </button>
+          </div>
 
-            {/* Price Level Tier Selector */}
-            <div className="lg:col-span-3">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Budget Tier</label>
-              <div className="grid grid-cols-4 bg-white dark:bg-[#1A1A1A] border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 rounded-sm p-1">
-                {["all", "premium", "luxury", "elite"].map((tier) => (
-                  <button
-                    key={tier}
-                    onClick={() => setPriceFilter(tier)}
-                    className={`py-1.5 text-[9px] uppercase font-bold tracking-wider transition-all rounded-sm btn-interactive ${
-                      priceFilter === tier
-                        ? "bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-[#1A1A1A] shadow-md"
-                        : "bg-transparent text-gray-600 dark:text-gray-500 hover:text-[#2C1E14] dark:hover:text-white"
-                    }`}
-                  >
-                    {tier}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Style Selector */}
-            <div className="lg:col-span-2">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Artistic Style</label>
-              <select
-                value={styleFilter}
-                onChange={(e) => setStyleFilter(e.target.value)}
-                className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
-              >
-                <option value="all">All Styles</option>
-                <option value="luxury">Luxury / Fine Art</option>
-                <option value="modern">Modern / Editorial</option>
-                <option value="traditional">Traditional / Classic</option>
-              </select>
-            </div>
-
-            {/* Setting Selector */}
-            <div className="lg:col-span-2">
-              <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Venue Setting</label>
-              <select
-                value={settingFilter}
-                onChange={(e) => setSettingFilter(e.target.value)}
-                className="w-full bg-white dark:bg-[#1A1A1A] text-sm text-[#2C1E14] dark:text-white border border-[#D4C9A8]/50 dark:border-[#C9A84C]/30 p-2.5 outline-none focus:border-[#D4AF37] dark:focus:border-[#C9A84C] transition-all rounded-sm font-sans input-glow"
-              >
-                <option value="all">Any Setting</option>
-                <option value="indoor">Indoor Spaces</option>
-                <option value="outdoor">Outdoor Gardens</option>
-              </select>
-            </div>
-
+          {/* Location Dropdown */}
+          <div className="relative w-full lg:w-auto">
+             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
+               <MapPin className="w-4 h-4"/>
+             </div>
+             <select
+               value={locationFilter}
+               onChange={(e) => setLocationFilter(e.target.value)}
+               className="w-full lg:w-auto appearance-none pl-12 pr-12 py-3.5 bg-white dark:bg-[#111111] text-sm font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-zinc-800 rounded-full outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 shadow-sm cursor-pointer"
+             >
+               <option value="all">All Locations</option>
+               <option value="colombo">Colombo</option>
+               <option value="kandy">Kandy</option>
+               <option value="galle">Galle</option>
+             </select>
+             <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
         </div>
-      </section>
 
-      {/* Primary Category Selector Tab List */}
-      <section className="max-w-7xl mx-auto px-6 pt-10 section-reveal stagger-1">
-        <div className="flex flex-wrap gap-4 border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 pb-4 justify-center md:justify-start">
-          {[
-            { id: "all", label: "All Portfolio Works" },
-            { id: "decorators", label: "Floral & Stages" },
-            { id: "videographers", label: "Cinematography" },
-            { id: "djs", label: "DJs & Entertainment" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 text-[10px] font-bold tracking-widest uppercase transition-all duration-300 border-b-2 relative ${
-                activeTab === tab.id
-                  ? "border-[#D4AF37] dark:border-[#C9A84C] text-[#2C1E14] dark:text-white bg-transparent font-extrabold"
-                  : "border-transparent text-gray-500 hover:text-[#2C1E14] dark:hover:text-white"
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D4AF37] dark:bg-[#C9A84C]"></span>
-              )}
-            </button>
-          ))}
-        </div>
 
-        {/* Dynamic Count Banner */}
-        <div className="mt-4 flex items-center justify-between text-xs text-gray-600 dark:text-gray-500 font-light">
-          <p>Showing {filteredCount} elite partners matching your filters</p>
-          <div className="flex items-center gap-1.5 text-[#C9A84C]">
-            <Award className="w-3.5 h-3.5" />
-            <span className="font-semibold uppercase tracking-wider text-[10px]">100% Quality Vetted</span>
-          </div>
-        </div>
-      </section>
-    </>
+
+      </div>
+    </div>
   );
 }

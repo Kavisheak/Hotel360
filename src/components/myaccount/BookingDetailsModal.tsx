@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
 import { customerBookingAPI, accountAPI } from "@/lib/api";
+import EscrowTracker from "./EscrowTracker";
+
+import ReplacementVendorModal from "../decorator/my_jobs/ReplacementVendorModal";
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -30,27 +33,67 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const [isPaying, setIsPaying] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState<"deposit" | "balance" | null>(null);
 
+  // Credit replacement states
+  const [activeCredits, setActiveCredits] = useState<any[]>([]);
+  const [isRefundingCredit, setIsRefundingCredit] = useState(false);
+  const [showReplacementCategory, setShowReplacementCategory] = useState<string | null>(null);
+
   // Form State for Autofill
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
 
   useEffect(() => {
-    // Fetch saved payment methods to autofill
     const fetchCards = async () => {
       const { ok, data } = await accountAPI.getPaymentMethods();
       if (ok && data.savedCards && data.savedCards.length > 0) {
         const primaryCard = data.savedCards.find((c: any) => c.isDefault) || data.savedCards[0];
         setCardNumber(primaryCard.cardNumber || "");
         setExpiry(primaryCard.expiry || "");
-        // CVV is usually not saved for security, but if you want to leave it empty or prefill:
         setCvv("");
       }
     };
+
+    const fetchCredits = async () => {
+      if (!booking) return;
+      const bId = booking._id || booking.id;
+      if (!bId) return;
+      try {
+        const res = await customerBookingAPI.getActiveCredits(bId);
+        if (res.ok && res.data?.data) {
+          setActiveCredits(res.data.data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch credits:", e);
+      }
+    };
+
     if (isOpen) {
       fetchCards();
+      fetchCredits();
     }
-  }, [isOpen]);
+  }, [isOpen, booking]);
+
+  const handleManualCreditRefund = async (creditId: string, amount: number) => {
+    if (!booking) return;
+    const bId = booking._id || booking.id!;
+    if (confirm(`Are you sure you want to request an immediate LKR ${amount.toLocaleString()} refund instead of selecting a replacement vendor?`)) {
+      setIsRefundingCredit(true);
+      try {
+        const res = await customerBookingAPI.refundCreditManual(bId, creditId);
+        if (res.ok) {
+          alert(`LKR ${amount.toLocaleString()} advance refund processed successfully!`);
+          window.location.reload();
+        } else {
+          alert(res.data?.message || "Failed to process refund.");
+        }
+      } catch (e: any) {
+        alert(e.message || "Server error while processing refund.");
+      } finally {
+        setIsRefundingCredit(false);
+      }
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -82,9 +125,18 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const balanceDue = Math.max(0, (booking.totalCost || 0) - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0));
 
   const eventDate = new Date(booking.date);
-  // Payment deadline is the event date itself
-  const paymentDeadlineString = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  
+  // 70% Balance is due 7 days before event date
+  const balanceDueDate = new Date(eventDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const balanceDeadlineString = balanceDueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Vendor confirmation status check
+  const vendorCategories = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
+  const pendingVendors = booking.vendors ? vendorCategories.filter(cat => {
+    const v = (booking.vendors as any)[cat];
+    return v && v.vendorId && v.status === "Pending";
+  }) : [];
+  const allVendorsConfirmed = pendingVendors.length === 0 && (booking.status === "Confirmed" || booking.status === "Completed");
+
   const cancelDeadlineDate = new Date(eventDate);
   cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 14);
   const handleCancelClick = async () => {
@@ -177,6 +229,40 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
               {/* Left Column (Event Details) */}
               <div className="lg:col-span-2 space-y-6">
                 
+                {/* Active Booking Credits Banner */}
+                {activeCredits.map((credit: any) => (
+                  <div key={credit._id} className="p-4 bg-[#FFFDF7] dark:bg-amber-950/20 border-2 border-amber-400 dark:border-amber-600 rounded-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded border border-amber-300">
+                          ⚠️ {credit.category.toUpperCase()} DECLINED &bull; REPLACEMENT CREDIT ACTIVE
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-900 dark:text-amber-200 mt-1.5 leading-relaxed">
+                        Your {credit.category} declined. You have <strong className="text-amber-950 dark:text-amber-100 font-bold font-mono">LKR {credit.creditAmount.toLocaleString()}</strong> credit — pick a replacement or request a refund.
+                      </p>
+                      <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Expires on: {new Date(credit.expiresAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <button
+                        onClick={() => setShowReplacementCategory(credit.category)}
+                        className="px-3.5 py-2 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-xs transition-colors"
+                      >
+                        Pick a Replacement
+                      </button>
+                      <button
+                        onClick={() => handleManualCreditRefund(credit._id, credit.creditAmount)}
+                        disabled={isRefundingCredit}
+                        className="px-3.5 py-2 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-[10px] font-bold uppercase tracking-widest rounded transition-colors disabled:opacity-50"
+                      >
+                        Request Refund Instead
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
                 {/* Event Info Card */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
@@ -297,6 +383,11 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </div>
                   </div>
                 )}
+
+                {/* Real-time Escrow Allocations */}
+                <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
+                  <EscrowTracker bookingId={booking._id || booking.id!} />
+                </div>
               </div>
  
               {/* Right Column (Client & Pricing) */}
@@ -365,24 +456,47 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       )}
                       
                       {/* Vendor costs if they exist */}
-                      {((booking.pricingBreakdown.decoratorCost || 0) + (booking.pricingBreakdown.djCost || 0) + (booking.pricingBreakdown.videographerCost || 0)) > 0 && (
+                      {((booking.pricingBreakdown.decoratorCost || 0) + 
+                        (booking.pricingBreakdown.djCost || 0) + 
+                        (booking.pricingBreakdown.videographerCost || 0) +
+                        (booking.pricingBreakdown.photographerCost || 0) +
+                        (booking.pricingBreakdown.cakeCost || 0) +
+                        (booking.pricingBreakdown.floristCost || 0)) > 0 && (
                         <div className="pt-2 mt-2 border-t border-dashed border-[#E8DFC9] dark:border-gray-800">
                           {(booking.pricingBreakdown.decoratorCost || 0) > 0 && (
-                            <div className="flex justify-between text-gray-500">
+                            <div className="flex justify-between text-gray-500 font-sans">
                               <span>Decorator</span>
                               <span>{formatCurrency(booking.pricingBreakdown.decoratorCost)}</span>
                             </div>
                           )}
                           {(booking.pricingBreakdown.djCost || 0) > 0 && (
-                            <div className="flex justify-between text-gray-500 mt-1">
+                            <div className="flex justify-between text-gray-500 mt-1 font-sans">
                               <span>DJ / Entertainment</span>
                               <span>{formatCurrency(booking.pricingBreakdown.djCost)}</span>
                             </div>
                           )}
                           {(booking.pricingBreakdown.videographerCost || 0) > 0 && (
-                            <div className="flex justify-between text-gray-500 mt-1">
-                              <span>Photography</span>
+                            <div className="flex justify-between text-gray-500 mt-1 font-sans">
+                              <span>Videography</span>
                               <span>{formatCurrency(booking.pricingBreakdown.videographerCost)}</span>
+                            </div>
+                          )}
+                          {(booking.pricingBreakdown.photographerCost || 0) > 0 && (
+                            <div className="flex justify-between text-gray-500 mt-1 font-sans">
+                              <span>Photography</span>
+                              <span>{formatCurrency(booking.pricingBreakdown.photographerCost || 0)}</span>
+                            </div>
+                          )}
+                          {(booking.pricingBreakdown.cakeCost || 0) > 0 && (
+                            <div className="flex justify-between text-gray-500 mt-1 font-sans">
+                              <span>Cake & Desserts</span>
+                              <span>{formatCurrency(booking.pricingBreakdown.cakeCost || 0)}</span>
+                            </div>
+                          )}
+                          {(booking.pricingBreakdown.floristCost || 0) > 0 && (
+                            <div className="flex justify-between text-gray-500 mt-1 font-sans">
+                              <span>Florist</span>
+                              <span>{formatCurrency(booking.pricingBreakdown.floristCost || 0)}</span>
                             </div>
                           )}
                         </div>
@@ -494,16 +608,28 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                           <CreditCard className="w-4 h-4" /> Pay 30% Advance ({formatCurrency((booking.totalCost || 0) * 0.3)})
                         </button>
                       ) : booking.depositAmount > 0 && balanceDue > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" ? (
-                        <div className="mt-4">
+                        <div className="mt-4 space-y-2">
                           <button 
                             onClick={() => setShowPaymentForm("balance")}
-                            className="w-full bg-emerald-600 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                            disabled={!allVendorsConfirmed}
+                            className={`w-full py-2.5 rounded text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                              allVendorsConfirmed 
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                                : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border border-gray-300 dark:border-gray-700"
+                            }`}
                           >
                             <CreditCard className="w-4 h-4" /> Pay 70% Balance ({formatCurrency(balanceDue)})
                           </button>
-                          <p className="text-center text-[10px] text-gray-500 mt-2">
-                            Payment deadline is <strong className="text-red-500">{paymentDeadlineString}</strong> (Event Date).
-                          </p>
+                          <div className="text-center space-y-1">
+                            <p className="text-[10px] text-gray-500">
+                              Upcoming Balance Due Date: <strong className="text-amber-600 dark:text-amber-400">{balanceDeadlineString}</strong> (7 Days Before Event)
+                            </p>
+                            {!allVendorsConfirmed && (
+                              <p className="text-[9px] text-red-500 font-medium">
+                                ⚠️ Balance payment activates once venue and all vendors ({pendingVendors.join(", ")}) confirm participation.
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ) : null}
                     </>
@@ -524,6 +650,23 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
           </div>
         </motion.div>
       </div>
+
+      {/* Replacement Vendor Selection Modal */}
+      {showReplacementCategory && (
+        <ReplacementVendorModal
+          isOpen={!!showReplacementCategory}
+          bookingId={booking._id || booking.id!}
+          category={showReplacementCategory}
+          creditAmount={
+            activeCredits.find((c) => c.category === showReplacementCategory)?.creditAmount || 0
+          }
+          onClose={() => setShowReplacementCategory(null)}
+          onSuccess={(msg) => {
+            alert(msg);
+            window.location.reload();
+          }}
+        />
+      )}
     </AnimatePresence>,
     document.body
   );

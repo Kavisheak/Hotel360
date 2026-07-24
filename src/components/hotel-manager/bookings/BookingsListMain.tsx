@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Filter, CalendarDays, ChevronRight, Plus } from 'lucide-react';
+import { Search, Filter, CalendarDays, ChevronRight, Plus, ShieldAlert, Lock, AlertCircle, RefreshCw, X } from 'lucide-react';
 import { bookingAPI } from '@/lib/api';
 import NewBookingMain from './new/NewBookingMain';
 
@@ -10,10 +10,38 @@ const BookingsListMain = () => {
   const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [activeTab, setActiveTab] = useState<'all' | 'disputes'>('all');
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(10);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+
+  // Maintenance Block Form State
+  const [blockHallName, setBlockHallName] = useState('Grand Royal Ballroom');
+  const [blockReason, setBlockReason] = useState('Scheduled Ceiling Maintenance & AC Servicing');
+  const [blockStartDate, setBlockStartDate] = useState('2026-08-01');
+  const [blockEndDate, setBlockEndDate] = useState('2026-08-03');
+
+  // Customer Disputes Mock Data
+  const [disputes, setDisputes] = useState([
+    {
+      id: 'DISP-101',
+      bookingRef: 'LG-2026-0042',
+      clientName: 'Saman Perera',
+      issue: 'Requested venue package downgrade after deposit payment.',
+      status: 'Under Review',
+      date: '2026-07-15'
+    },
+    {
+      id: 'DISP-102',
+      bookingRef: 'LG-2026-0089',
+      clientName: 'Fatimah Nazeer',
+      issue: 'Dispute over videographer assignment availability window.',
+      status: 'Pending Resolution',
+      date: '2026-07-16'
+    }
+  ]);
 
   // Reset pagination when search or filter changes
   useEffect(() => {
@@ -34,7 +62,7 @@ const BookingsListMain = () => {
           id: b._id,
           bookingRef: b.bookingRef || b._id,
           clientName: b.clientName,
-          date: new Date(b.date).toLocaleDateString(), // 'date' not 'eventDate'
+          date: new Date(b.date).toLocaleDateString(),
           createdAt: b.createdAt || new Date(0).toISOString(),
           eventType: b.eventType,
           status: b.status,
@@ -60,28 +88,63 @@ const BookingsListMain = () => {
 
   const paginatedBookings = filteredBookings.slice(0, visibleCount);
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'Pending': return 'bg-[#F9DD76] text-[#7C6A2E]';
-      case 'Confirmed': return 'bg-green-100 text-green-700';
-      case 'Rejected': return 'bg-red-50 text-red-600 border border-red-200';
-      case 'Completed': return 'bg-gray-100 text-gray-700';
-      case 'DepositPaid': return 'bg-blue-100 text-blue-700';
-      case 'BalancePaid': return 'bg-indigo-100 text-indigo-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'Held':
+      case 'HOLD':
+        return 'bg-amber-100 text-amber-800 border border-amber-300 font-bold';
+      case 'Pending':
+        return 'bg-blue-100 text-[#1E56A0] border border-blue-200 font-bold';
+      case 'Confirmed':
+      case 'DepositPaid':
+      case 'BalancePaid':
+        return 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold';
+      case 'Cancelled':
+      case 'Rejected':
+        return 'bg-rose-100 text-rose-800 border border-rose-200 font-bold';
+      case 'Completed':
+        return 'bg-gray-100 text-gray-700 font-bold';
+      default:
+        return 'bg-gray-100 text-gray-700 font-bold';
     }
   };
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-screen bg-[#FDF9F1]">
       <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex justify-between items-center px-4 lg:px-6 h-16 pl-14 lg:pl-6">
-        <h2 className="font-serif italic text-[#7C6A2E] text-xl font-semibold tracking-wide">All Bookings</h2>
-        <button 
-          onClick={() => setIsNewBookingOpen(true)}
-          className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-4 py-2 rounded text-xs font-bold tracking-widest uppercase transition-colors shadow-sm"
-        >
-          <Plus size={14} /> New Booking
-        </button>
+        <div className="flex items-center gap-4">
+          <h2 className="font-serif italic text-[#7C6A2E] text-xl font-semibold tracking-wide">Bookings Control Center</h2>
+          <div className="flex bg-gray-200/60 p-1 rounded-lg text-xs font-semibold">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1 rounded-md transition ${activeTab === 'all' ? 'bg-white text-[#1E56A0] font-bold shadow-xs' : 'text-gray-600'}`}
+            >
+              All Bookings
+            </button>
+            <button
+              onClick={() => setActiveTab('disputes')}
+              className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${activeTab === 'disputes' ? 'bg-white text-rose-700 font-bold shadow-xs' : 'text-gray-600'}`}
+            >
+              <ShieldAlert size={13} />
+              Disputes ({disputes.length})
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setIsBlockModalOpen(true)}
+            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded text-xs font-bold tracking-wider transition-colors shadow-xs"
+          >
+            <Lock size={14} /> Block Hall
+          </button>
+          <button 
+            onClick={() => setIsNewBookingOpen(true)}
+            className="flex items-center gap-2 bg-[#1E56A0] hover:bg-[#15417E] text-white px-4 py-2 rounded text-xs font-bold tracking-widest uppercase transition-colors shadow-xs"
+          >
+            <Plus size={14} /> New Booking
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 px-4 lg:px-6 py-6 w-full max-w-[1400px] mx-auto">
@@ -161,7 +224,7 @@ const BookingsListMain = () => {
                         {b.eventType}
                       </td>
                       <td className="px-6 py-4 flex flex-col gap-1 items-start">
-                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded ${getStatusColor(b.status)}`}>
+                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded ${getStatusBadge(b.status)}`}>
                           {b.status === "DepositPaid" ? "DEPOSIT PAID" : b.status === "BalancePaid" ? "BALANCE PAID" : b.status}
                         </span>
                         {(b.vendors?.decorator?.status === 'Declined' || 
@@ -200,6 +263,63 @@ const BookingsListMain = () => {
           )}
         </div>
       </main>
+
+      {/* Block Hall Availability Modal */}
+      {isBlockModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-gray-200">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-amber-700">
+                <Lock className="w-5 h-5" />
+                <h3 className="font-bold text-base text-gray-900">Block Hall Availability</h3>
+              </div>
+              <button onClick={() => setIsBlockModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+
+            <p className="text-xs text-gray-500">Manually lock dates for hall maintenance, structural renovations, or private non-customer events.</p>
+
+            <form onSubmit={(e) => { e.preventDefault(); alert('Hall availability blocked successfully!'); setIsBlockModalOpen(false); }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">Select Hall / Space</label>
+                <select 
+                  value={blockHallName}
+                  onChange={(e) => setBlockHallName(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-xs"
+                >
+                  <option value="Grand Royal Ballroom">Grand Royal Ballroom</option>
+                  <option value="Executive Conference Suite">Executive Conference Suite</option>
+                  <option value="Courtyard Garden Terrace">Courtyard Garden Terrace</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-gray-700 mb-1">Start Date</label>
+                  <input type="date" value={blockStartDate} onChange={e => setBlockStartDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700 mb-1">End Date</label>
+                  <input type="date" value={blockEndDate} onChange={e => setBlockEndDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">Reason / Notes</label>
+                <textarea rows={2} value={blockReason} onChange={e => setBlockReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t">
+                <button type="button" onClick={() => setIsBlockModalOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg">
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg">
+                  Confirm Hall Lock
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* New Booking Modal Popup */}
       {isNewBookingOpen && (

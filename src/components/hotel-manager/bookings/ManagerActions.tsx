@@ -7,7 +7,7 @@ import { bookingAPI } from '../../../lib/api';
 // Hardcoded statusHistory removed.
 
 const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpdate?: () => void }) => {
-  const [status, setStatus] = useState<'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED'>(
+  const [status, setStatus] = useState<string>(
     booking.status ? booking.status.toUpperCase() : 'PENDING'
   );
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -81,6 +81,8 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     }
   };
 
+  const isPendingStatus = status === 'PENDING' || status === 'PENDING CONFIRMATION' || booking.status === 'Pending Confirmation';
+
   return (
     <div className="space-y-4">
       {/* Action Buttons */}
@@ -89,14 +91,14 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           Manager Actions
         </h4>
 
-        {status === 'PENDING' && !showRejectForm && (
+        {isPendingStatus && !showRejectForm && (
           <>
             <button
               onClick={handleApprove}
               disabled={isLoading}
               className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest mb-3 transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#B08D2C] hover:bg-[#9B7A20]'} text-white shadow-sm`}
             >
-              <CheckCircle2 size={16} /> {isLoading ? 'Processing...' : 'Approve Booking'}
+              <CheckCircle2 size={16} /> {isLoading ? 'Processing...' : 'Approve Venue Booking & Release 30% Advance'}
             </button>
             <button
               onClick={() => setShowRejectForm(true)}
@@ -107,7 +109,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           </>
         )}
 
-        {showRejectForm && status === 'PENDING' && (
+        {showRejectForm && isPendingStatus && (
           <div className="bg-[#FAF6EE] border border-[#E0D8C3] p-4 rounded-lg animate-fadeIn">
             <h5 className="text-[10px] font-bold uppercase tracking-widest text-red-600 mb-2">Mandatory Rejection Reason</h5>
             <textarea 

@@ -49,6 +49,12 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
+    photographer: string | null;
+    photographerPackage: string;
+    cake: string | null;
+    cakePackage: string;
+    florist: string | null;
+    floristPackage: string;
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -56,6 +62,12 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none",
+    photographer: "none",
+    photographerPackage: "none",
+    cake: "none",
+    cakePackage: "none",
+    florist: "none",
+    floristPackage: "none",
   });
 
   const getBasePrice = () => {
@@ -64,7 +76,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     return 3400000;
   };
 
-  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
+  const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
     if (vendorId === "none" || vendorId === "custom_preference" || !vendorId) return 0;
 
@@ -109,7 +121,10 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   let addonsCost =
     getVendorCost("decorator") +
     getVendorCost("dj") +
-    getVendorCost("videographer");
+    getVendorCost("videographer") +
+    getVendorCost("photographer") +
+    getVendorCost("cake") +
+    getVendorCost("florist");
 
   const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
@@ -227,6 +242,9 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
+      photographerCost: getVendorCost("photographer"),
+      cakeCost: getVendorCost("cake"),
+      floristCost: getVendorCost("florist"),
       totalCost: grandTotal,
       depositAmount: grandTotal * 0.3,
       balanceAmount: 0,
@@ -249,6 +267,21 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
           requestedDesignId: requestedDesigns.videographer || null,
         },
+        photographer: {
+          vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
+          status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : "",
+        },
+        cake: {
+          vendorId: vendors.cake !== "none" ? vendors.cake : null,
+          status: vendors.cake !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : "",
+        },
+        florist: {
+          vendorId: vendors.florist !== "none" ? vendors.florist : null,
+          status: vendors.florist !== "none" ? "Pending" : "NotRequired",
+          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : "",
+        }
       },
     };
 
@@ -418,13 +451,13 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                   <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
                     <span className="text-gray-500">Selected Vendors:</span>
                     <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1 text-xs">
-                      {([ "decorator", "dj", "videographer"] as const).map((cat) => {
+                      {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
                         const id = vendors[cat];
                         if (!id || id === "none") return null;
                         const v = globalVendors.find((v: Vendor) => v.id === id);
                         return <p key={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}: {v ? v.name : "Selected"}</p>;
                       })}
-                      {(["decorator", "dj", "videographer"] as const).every(
+                      {(["decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).every(
                         (cat) => !vendors[cat] || vendors[cat] === "none"
                       ) && <p className="text-gray-400 font-normal">No vendors selected</p>}
                     </div>

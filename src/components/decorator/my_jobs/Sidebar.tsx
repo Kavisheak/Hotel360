@@ -56,7 +56,7 @@ const Sidebar = () => {
       console.error(e);
     } finally {
       clearUser();
-      window.location.replace('/login');
+      router.replace('/login');
     }
   };
 
@@ -76,9 +76,8 @@ const Sidebar = () => {
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/decorator/overview' },
-    { icon: <User size={20} />, label: 'MY JOBS', href: '/decorator/my-jobs' },
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/decorator/bookings' },
-    { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/decorator/schedule' },
+    { icon: <User size={20} />, label: 'MY JOBS', href: '/decorator/my-jobs' },
     { icon: <FolderHeart size={20} />, label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
     { icon: <BarChart3 size={20} />, label: 'RATINGS', href: '/decorator/ratings' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/decorator/settings' },

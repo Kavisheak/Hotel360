@@ -35,8 +35,43 @@ const VenueConfiguration = () => {
           </div>
         </div>
         <div>
-          <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Deposit (%)</label>
+          <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Deposit Required (%)</label>
           <input type="text" defaultValue="30" className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+        </div>
+      </div>
+
+      {/* Business Policy Rules */}
+      <div className="mb-8 border-t border-b border-[#E0D8C3] py-6 space-y-6">
+        <h4 className="text-xs font-bold uppercase tracking-widest text-gray-800">Business Policy Rules & Cancellation Tiers</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Booking Hold Duration</label>
+            <div className="relative">
+              <input type="text" defaultValue="48" className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] text-gray-400">Hours</span>
+            </div>
+            <p className="text-[9px] text-gray-400 mt-1">Unpaid holds auto-expire after this duration.</p>
+          </div>
+
+          <div>
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Vendor Commission Rate</label>
+            <div className="relative">
+              <input type="text" defaultValue="10" className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] text-gray-400">% Fee</span>
+            </div>
+            <p className="text-[9px] text-gray-400 mt-1">Commission deducted from vendor payouts.</p>
+          </div>
+
+          <div>
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Cancellation Refund Tiers</label>
+            <select className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-[#B08D2C]">
+              <option value="tiered">Tiered (Over 30d: 100%, 14-30d: 50%, Under 14d: 0%)</option>
+              <option value="strict">Strict (Over 30d: 50%, Under 30d: 0%)</option>
+              <option value="flexible">Flexible (Over 7d: 100%, Under 7d: 50%)</option>
+            </select>
+            <p className="text-[9px] text-gray-400 mt-1">Refund policy applied upon customer cancellation.</p>
+          </div>
         </div>
       </div>
       

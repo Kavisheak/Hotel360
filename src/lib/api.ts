@@ -131,6 +131,44 @@ export const paymentAPI = {
   getAllPayments: () => apiFetch("/api/payments"),
   confirmPayment: (id: string) =>
     apiFetch(`/api/payments/${id}/confirm`, { method: "PUT" }),
+  getEscrowBalances: () => apiFetch("/api/payments/escrows"),
+  getFinancialsReport: () => apiFetch("/api/payments/financials"),
+  getEscrowLedger: () => apiFetch("/api/payments/escrow/ledger"),
+  getPayoutQueue: () => apiFetch("/api/payments/escrow/queue"),
+  holdPayout: (escrowId: string, reason?: string) =>
+    apiFetch(`/api/payments/escrow/${escrowId}/hold`, {
+      method: "PUT",
+      body: JSON.stringify({ reason }),
+    }),
+  releaseHeldPayout: (escrowId: string) =>
+    apiFetch(`/api/payments/escrow/${escrowId}/release-hold`, { method: "PUT" }),
+  getRefundQueue: () => apiFetch("/api/payments/refunds"),
+  approveRefund: (refundRequestId: string, amount?: number) =>
+    apiFetch(`/api/payments/refunds/${refundRequestId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    }),
+  denyRefund: (refundRequestId: string, reason: string) =>
+    apiFetch(`/api/payments/refunds/${refundRequestId}/deny`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  getCommissionSettings: () => apiFetch("/api/payments/commission-settings"),
+  updateCommissionSettings: (body: any) =>
+    apiFetch("/api/payments/commission-settings", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+};
+
+export const disputeAPI = {
+  getMessages: (bookingId: string, itemType: string) =>
+    apiFetch(`/api/disputes/${bookingId}/${itemType}/messages`),
+  sendMessage: (bookingId: string, itemType: string, body: { message: string; attachments?: string[] }) =>
+    apiFetch(`/api/disputes/${bookingId}/${itemType}/messages`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const decoratorAPI = {
@@ -168,35 +206,57 @@ export const decoratorAPI = {
     apiFetch(`/api/decorator/portfolio/${id}`, { method: "DELETE" }),
   getRatings: () => apiFetch("/api/decorator/ratings"),
   updateProfile: (body: any) => apiFetch("/api/decorator/profile", { method: "PUT", body: JSON.stringify(body) }),
-};
-
-export const videographerAPI = {
-  getOverview: () => apiFetch("/api/videographer/overview"),
-  getProfile: () => apiFetch("/api/videographer/profile"),
-  getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
-  getBookingById: (id: string) => apiFetch(`/api/videographer/bookings/${id}`),
-  updateBookingStatus: (id: string, status: string, options?: any) => apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status, ...options }) }),
-  updateChecklist: (id: string, checklist: any[]) => apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
-  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
-    method: "POST",
-    body: formData,
-  }),
-  getPortfolioItems: () => apiFetch("/api/videographer/portfolio"),
-  createPortfolioItem: (formData: FormData) => apiFetch("/api/videographer/portfolio", {
-    method: "POST",
-    body: formData,
-  }),
-  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/videographer/portfolio/${id}`, {
-    method: "PUT",
-    body: formData,
-  }),
-  deletePortfolioItem: (id: string) => apiFetch(`/api/videographer/portfolio/${id}`, { method: "DELETE" }),
-  getRatings: () => apiFetch("/api/videographer/ratings"),
-  updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
+  getJobs: (status: string = "upcoming", page: number = 1, limit: number = 10) =>
+    apiFetch(`/api/decorator/jobs?status=${status}&page=${page}&limit=${limit}`),
+  getJobById: (id: string) => apiFetch(`/api/decorator/jobs/${id}`),
+  markJobComplete: (id: string) => apiFetch(`/api/decorator/jobs/${id}/mark-complete`, { method: "POST" }),
+  getPendingRequests: () => apiFetch("/api/decorator/bookings/pending"),
+  acceptRequest: (id: string) => apiFetch(`/api/decorator/bookings/${id}/accept`, { method: "POST" }),
+  declineRequest: (id: string, reason: string) =>
+    apiFetch(`/api/decorator/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
+  getSchedule: (month?: number, year?: number) =>
+    apiFetch(`/api/decorator/schedule?month=${month || ""}&year=${year || ""}`),
+  createBlock: (body: { startDate: string; endDate: string; reason?: string }) =>
+    apiFetch("/api/decorator/schedule/block", { method: "POST", body: JSON.stringify(body) }),
+  deleteBlock: (id: string) => apiFetch(`/api/decorator/schedule/block/${id}`, { method: "DELETE" }),
+  getAlbums: (status?: string) =>
+    apiFetch(`/api/decorator/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
+  getAlbumById: (id: string) => apiFetch(`/api/decorator/portfolio/albums/${id}`),
+  createAlbum: (body: { title: string; linkedBookingId?: string; price?: number }) =>
+    apiFetch("/api/decorator/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
+  updateAlbum: (id: string, body: any) =>
+    apiFetch(`/api/decorator/portfolio/albums/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteAlbum: (id: string) =>
+    apiFetch(`/api/decorator/portfolio/albums/${id}`, { method: "DELETE" }),
+  uploadAlbumImages: (id: string, formData: FormData) =>
+    apiFetch(`/api/decorator/portfolio/albums/${id}/images`, { method: "POST", body: formData }),
+  updateImage: (id: string, body: any) =>
+    apiFetch(`/api/decorator/portfolio/images/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteImage: (id: string) =>
+    apiFetch(`/api/decorator/portfolio/images/${id}`, { method: "DELETE" }),
 };
 
 export const djAPI = {
   getOverview: () => apiFetch("/api/dj-artist/overview"),
+  getPendingRequests: () => apiFetch("/api/dj-artist/bookings/pending"),
+  acceptRequest: (id: string) => apiFetch(`/api/dj-artist/bookings/${id}/accept`, { method: "POST" }),
+  declineRequest: (id: string, reason: string) =>
+    apiFetch(`/api/dj-artist/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
+  getJobs: (status?: string) => apiFetch(`/api/dj-artist/jobs?status=${status || "upcoming"}`),
+  getSchedule: (month?: number, year?: number) =>
+    apiFetch(`/api/dj-artist/schedule?month=${month || ""}&year=${year || ""}`),
+  createBlock: (body: { startDate: string; endDate: string; reason?: string }) =>
+    apiFetch("/api/dj-artist/schedule/block", { method: "POST", body: JSON.stringify(body) }),
+  deleteBlock: (id: string) => apiFetch(`/api/dj-artist/schedule/block/${id}`, { method: "DELETE" }),
+  getAlbums: (status?: string) =>
+    apiFetch(`/api/dj-artist/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
+  createAlbum: (body: { title: string; linkedBookingId?: string }) =>
+    apiFetch("/api/dj-artist/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
+  uploadAlbumMedia: (id: string, body: any) =>
+    apiFetch(`/api/dj-artist/portfolio/albums/${id}/media`, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
   getAssignedBookings: () => apiFetch("/api/dj-artist/bookings"),
   getBookingById: (id: string) => apiFetch(`/api/dj-artist/bookings/${id}`),
   updateBookingStatus: (id: string, status: string, options?: any) =>
@@ -234,6 +294,58 @@ export const djAPI = {
     }),
   deleteGalleryItem: (id: string) =>
     apiFetch(`/api/dj-artist/gallery/${id}`, { method: "DELETE" }),
+};
+
+export const videographerAPI = {
+  getOverview: () => apiFetch("/api/videographer/overview"),
+  getPendingRequests: () => apiFetch("/api/videographer/bookings/pending"),
+  acceptRequest: (id: string) => apiFetch(`/api/videographer/bookings/${id}/accept`, { method: "POST" }),
+  declineRequest: (id: string, reason: string) =>
+    apiFetch(`/api/videographer/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
+  getJobs: (status?: string) => apiFetch(`/api/videographer/jobs?status=${status || "upcoming"}`),
+  getDeliverables: () => apiFetch("/api/videographer/deliverables"),
+  submitDeliverable: (bookingId: string, body: any) =>
+    apiFetch(`/api/videographer/deliverables/${bookingId}/deliver`, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
+  getSchedule: (month?: number, year?: number) =>
+    apiFetch(`/api/videographer/schedule?month=${month || ""}&year=${year || ""}`),
+  createBlock: (body: { startDate: string; endDate: string; reason?: string }) =>
+    apiFetch("/api/videographer/schedule/block", { method: "POST", body: JSON.stringify(body) }),
+  deleteBlock: (id: string) => apiFetch(`/api/videographer/schedule/block/${id}`, { method: "DELETE" }),
+  getAlbums: (status?: string) =>
+    apiFetch(`/api/videographer/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
+  createAlbum: (body: { title: string; linkedBookingId?: string }) =>
+    apiFetch("/api/videographer/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
+  uploadAlbumMedia: (id: string, body: any) =>
+    apiFetch(`/api/videographer/portfolio/albums/${id}/media`, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
+  getProfile: () => apiFetch("/api/videographer/profile"),
+  getAssignedBookings: () => apiFetch("/api/videographer/bookings"),
+  getBookingById: (id: string) => apiFetch(`/api/videographer/bookings/${id}`),
+  updateBookingStatus: (id: string, status: string, options?: any) =>
+    apiFetch(`/api/videographer/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status, ...options }) }),
+  updateChecklist: (id: string, checklist: any[]) =>
+    apiFetch(`/api/videographer/bookings/${id}/checklist`, { method: "PUT", body: JSON.stringify({ checklist }) }),
+  uploadCompletionPhotos: (id: string, formData: FormData) => apiFetch(`/api/videographer/bookings/${id}/upload`, {
+    method: "POST",
+    body: formData,
+  }),
+  getPortfolioItems: () => apiFetch("/api/videographer/portfolio"),
+  createPortfolioItem: (formData: FormData) => apiFetch("/api/videographer/portfolio", {
+    method: "POST",
+    body: formData,
+  }),
+  updatePortfolioItem: (id: string, formData: FormData) => apiFetch(`/api/videographer/portfolio/${id}`, {
+    method: "PUT",
+    body: formData,
+  }),
+  deletePortfolioItem: (id: string) => apiFetch(`/api/videographer/portfolio/${id}`, { method: "DELETE" }),
+  getRatings: () => apiFetch("/api/videographer/ratings"),
+  updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
 
 export const accountAPI = {
@@ -296,6 +408,30 @@ export const customerBookingAPI = {
     apiFetch(`/api/customer/bookings/${id}/cancel`, {
       method: "POST",
     }),
+  getEscrowTracker: (id: string) => apiFetch(`/api/customer/bookings/${id}/escrow-tracker`),
+  getBookingCredits: () => apiFetch("/api/customer/bookings/credits"),
+  getTransactionHistory: () => apiFetch("/api/customer/bookings/transactions"),
+  acknowledgeDeliverable: (id: string) =>
+    apiFetch(`/api/customer/bookings/${id}/deliverable/acknowledge`, { method: "PUT" }),
+  requestManualRefund: (body: { bookingId: string; itemType: string; reason: string; requestedAmount: number }) =>
+    apiFetch("/api/customer/bookings/refunds/request", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getActiveCredits: (bookingId: string) => apiFetch(`/api/customer/bookings/${bookingId}/credits`),
+  replaceVendorWithCredit: (bookingId: string, body: { vendorCategory: string; newVendorId: string }) =>
+    apiFetch(`/api/customer/bookings/${bookingId}/replace-vendor`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  refundCreditManual: (bookingId: string, creditId: string) =>
+    apiFetch(`/api/customer/bookings/${bookingId}/credits/${creditId}/refund`, {
+      method: "POST",
+    }),
+};
+
+export const vendorPaymentAPI = {
+  getExpectedPayouts: () => apiFetch("/api/vendor/bookings/payouts"),
 };
 
 export const vendorAPI = {
@@ -306,6 +442,10 @@ export const vendorAPI = {
       method: "POST",
       body: JSON.stringify({ vendorId: id }),
     }),
+  checkVendorAvailability: (vendorId: string, date: string) =>
+    apiFetch(`/api/customer/vendors/${vendorId}/availability?date=${date}`),
+  getPublicVendorPortfolio: (vendorId: string) =>
+    apiFetch(`/api/customer/vendors/${vendorId}/portfolio`),
 };
 
 // ─── Super Admin API ─────────────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { djAPI } from "@/lib/api";
 import { getImageUrl } from "@/lib/utils";
+import AddPortfolioModal from "@/components/shared/AddPortfolioModal";
+import DeleteConfirmationModal from "@/components/shared/DeleteConfirmationModal";
 import RatingsStats from "../ratings/RatingsStats";
 import RecentFeedback from "../ratings/RecentFeedback";
 
@@ -21,6 +23,9 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = items.filter((item) => {
     const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
@@ -31,13 +36,17 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this gallery item?")) return;
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
     try {
-      await djAPI.deleteGalleryItem(id);
+      await djAPI.deleteGalleryItem(itemToDelete);
       refresh();
+      setItemToDelete(null);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to delete gallery item:", e);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -60,7 +69,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
         </div>
 
         <button
-          onClick={() => router.push("/dj-artist/gallery/new")}
+          onClick={() => setIsAddModalOpen(true)}
           className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start md:mt-2"
         >
           <Upload size={16} />
@@ -116,13 +125,33 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
           const imgUrl = coverMedia ? (rawUrl.startsWith("http") ? rawUrl : `${API_URL}${rawUrl}`) : "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
 
           return (
-            <Link 
-              href={`/dj-artist/gallery/${item._id}`}
+            <div
               key={item._id}
-              className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
+              className="relative flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
             >
+              <Link href={`/dj-artist/gallery/${item._id}`} className="absolute inset-0 z-0" />
+              
+              {/* Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setItemToDelete(item._id);
+                }}
+                className="absolute top-4 right-4 z-20 bg-white/90 text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                title="Delete Portfolio Item"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+
               {/* Image Container with Absolute Badge */}
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden z-10 pointer-events-none">
                 {/* Category Badge */}
                 <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
                   {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "PERFORMANCE"}
@@ -140,7 +169,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
               </div>
 
               {/* Card Details Panel */}
-              <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
+              <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0] z-10 pointer-events-none">
                 <div>
                   <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
                     {item.title}
@@ -157,15 +186,15 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
 
                   {/* Description */}
                   <p className="text-xs text-gray-500 font-medium leading-relaxed mb-6 line-clamp-2">
-                    {item.description || "A high-energy live performance featuring seamless mixing and curated playlists."}
+                    {item.description || "A high-energy performance captured live, featuring dynamic crowd interactions and premium sound."}
                   </p>
                 </div>
 
                 {/* Bottom Panel */}
                 <div className="flex items-center justify-between pt-4 border-t border-[#F2EDE0] text-[9px] font-bold tracking-[0.15em] uppercase">
-                  {/* Event Location/Year */}
+                  {/* Event Year */}
                   <span className="text-gray-400">
-                    {item.venue || 'Elite Venue'}
+                    PREMIUM · {new Date(item.eventDate || new Date()).getFullYear()}
                   </span>
 
                   {/* View Case Link */}
@@ -175,7 +204,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
@@ -186,6 +215,14 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
           LOAD MORE PROJECTS
         </button>
       </div>
+
+      {/* Add Portfolio Modal */}
+      <AddPortfolioModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        vendorType="dj"
+        onSubmitSuccess={refresh}
+      />
     </div>
   );
 };

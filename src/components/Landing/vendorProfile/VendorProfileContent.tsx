@@ -1,10 +1,13 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check } from "lucide-react";
+import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check, X, Phone, Mail, AlertTriangle, MessageSquare } from "lucide-react";
+import { useVendorCartStore } from "@/store/vendorCartStore";
+import { useVendorStore } from "@/store/vendorStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface VendorProfileContentProps {
   vendor: Vendor;
@@ -13,10 +16,89 @@ interface VendorProfileContentProps {
 
 export default function VendorProfileContent({ vendor, isBooking = false }: VendorProfileContentProps) {
   const router = useRouter();
+  const { vendors: allVendors } = useVendorStore();
+  const { vendors: cartVendors, setVendor } = useVendorCartStore();
+
   const [activeTab, setActiveTab] = useState<"portfolio" | "packages" | "reviews" | "availability" | "about">("portfolio");
 
-  const handleSelectVendor = () => {
-    router.push(`/book?${vendor.category}=${vendor.id}`);
+  // Selection state
+  const storeCat = getStoreCategory(vendor.category);
+  const isSelected = cartVendors[storeCat] === vendor.id;
+
+  // Modals state
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+  const [existingVendorName, setExistingVendorName] = useState("");
+  
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [inquiryText, setInquiryText] = useState("Hi! I would like to check your rates and availability for my upcoming event at EASCC. Looking forward to hearing from you.");
+  const [inquirySent, setInquirySent] = useState(false);
+  const [isInquiring, setIsInquiring] = useState(false);
+
+  // Dynamic backend published portfolio state
+  const [dynamicAlbums, setDynamicAlbums] = useState<any[] | null>(null);
+  const [selectedBackendAlbum, setSelectedBackendAlbum] = useState<any | null>(null);
+
+  React.useEffect(() => {
+    if (activeTab === "portfolio" && vendor.id) {
+      fetchPublicPortfolio();
+    }
+  }, [activeTab, vendor.id]);
+
+  const fetchPublicPortfolio = async () => {
+    try {
+      const { vendorAPI } = await import("@/lib/api");
+      const res = await vendorAPI.getPublicVendorPortfolio(vendor.id);
+      if (res.ok && res.data?.data && res.data.data.length > 0) {
+        setDynamicAlbums(res.data.data);
+      } else {
+        setDynamicAlbums([]);
+      }
+    } catch (e) {
+      console.error("Fetch public portfolio error:", e);
+      setDynamicAlbums([]);
+    }
+  };
+
+  function getStoreCategory(category: string): "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist" {
+    if (category === "decorators") return "decorator";
+    if (category === "djs") return "dj";
+    if (category === "videographers") return "videographer";
+    if (category === "photographers") return "photographer";
+    if (category === "cake") return "cake";
+    if (category === "florists") return "florist";
+    return "decorator";
+  }
+
+  const handleSelectVendorClick = () => {
+    const existingId = cartVendors[storeCat];
+
+    if (existingId === vendor.id) {
+      // Deselect
+      setVendor(storeCat, null);
+      return;
+    }
+
+    if (existingId) {
+      const existing = allVendors.find(v => v.id === existingId);
+      setExistingVendorName(existing ? existing.name : "another provider");
+      setReplaceModalOpen(true);
+    } else {
+      // Select directly
+      setVendor(storeCat, vendor.id);
+    }
+  };
+
+  const confirmReplace = () => {
+    setVendor(storeCat, vendor.id);
+    setReplaceModalOpen(false);
+  };
+
+  const sendInquiry = () => {
+    setIsInquiring(true);
+    setTimeout(() => {
+      setIsInquiring(false);
+      setInquirySent(true);
+    }, 1200);
   };
 
   const tabs = [
@@ -107,22 +189,115 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
 
           {/* PORTFOLIO TAB */}
           {activeTab === "portfolio" && (
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {vendor.portfolio.map((img, i) => (
-                <div key={i} className="relative break-inside-avoid bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group mb-4">
-                  <img 
-                    src={img} 
-                    alt={`${vendor.name} portfolio ${i + 1}`}
-                    className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <button className="px-4 py-2 border border-white/50 text-white text-[10px] uppercase font-bold tracking-widest backdrop-blur-sm rounded-sm hover:bg-white hover:text-black transition-colors">
-                      View Full
-                    </button>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              {selectedBackendAlbum ? (
+                /* Selected Album Detail View */
+                <div>
+                  <div className="flex items-center justify-between mb-4 border-b border-[#E8DFC9] pb-3">
+                    <div>
+                      <button
+                        onClick={() => setSelectedBackendAlbum(null)}
+                        className="text-xs font-bold uppercase tracking-wider text-[#C69C6D] hover:underline mb-1 flex items-center gap-1"
+                      >
+                        &larr; Back to All Albums
+                      </button>
+                      <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white font-bold">
+                        {selectedBackendAlbum.title}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {selectedBackendAlbum.photoCount || selectedBackendAlbum.images?.length || 0} Showcase Photos
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(selectedBackendAlbum.images || []).map((img: any, i: number) => (
+                      <div key={i} className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-white/10 rounded-sm overflow-hidden shadow-xs group">
+                        <div className="aspect-4/3 overflow-hidden relative">
+                          <img
+                            src={typeof img === 'string' ? img : img.url}
+                            alt={img.caption || `Album photo ${i + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                        {img.caption && (
+                          <div className="p-3 bg-white dark:bg-[#111315]">
+                            <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{img.caption}</p>
+                            {img.tags && img.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {img.tags.map((t: string) => (
+                                  <span key={t} className="text-[9px] font-bold uppercase tracking-wider bg-[#FAF6EE] text-[#A6955C] px-1.5 py-0.5 rounded border border-[#E8DFC9]">
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ) : dynamicAlbums && dynamicAlbums.length > 0 ? (
+                /* Published Albums Cards Grid */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {dynamicAlbums.map((alb) => (
+                    <div
+                      key={alb._id}
+                      onClick={() => setSelectedBackendAlbum(alb)}
+                      className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="relative aspect-16/10 bg-[#FAF6EE] dark:bg-black overflow-hidden">
+                          {alb.coverUrl ? (
+                            <img
+                              src={alb.coverUrl}
+                              alt={alb.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs uppercase font-bold">
+                              No Cover Photo
+                            </div>
+                          )}
+                          <span className="absolute top-3 right-3 bg-[#C69C6D] text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-xs">
+                            {alb.photoCount || alb.images?.length || 0} Photos
+                          </span>
+                        </div>
+
+                        <div className="p-4">
+                          <h4 className="font-serif font-bold text-lg text-[#1A1512] dark:text-white group-hover:text-[#C69C6D] transition-colors truncate">
+                            {alb.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Published Showcase Album
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-2.5 bg-[#FAF6EE] dark:bg-black border-t border-[#E8DFC9] dark:border-white/10 text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#C69C6D]">
+                          Explore Album &rarr;
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Static Portfolio Fallback Grid */
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+                  {vendor.portfolio.map((img, i) => (
+                    <div key={i} className="relative break-inside-avoid bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group mb-4">
+                      <img 
+                        src={img} 
+                        alt={`${vendor.name} portfolio ${i + 1}`}
+                        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -312,15 +487,24 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
               <p className="text-sm text-gray-500">Our team is here to help you create unforgettable moments.</p>
             </div>
           </div>
-          {isBooking ? (
-            <button onClick={handleSelectVendor} className="w-full md:w-auto bg-[#C69C6D] text-white px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#B58B5C] transition-colors shrink-0 shadow-md flex items-center gap-2 justify-center">
-              <Check className="w-4 h-4" /> Select This Vendor
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+            <button 
+              onClick={handleSelectVendorClick} 
+              className={`w-full sm:w-auto px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-md flex items-center gap-2 justify-center
+                ${isSelected 
+                  ? 'bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
+                  : 'bg-[#C69C6D] text-white border border-[#C69C6D] hover:bg-[#B58B5C] hover:border-[#B58B5C]'}`}
+            >
+              {isSelected ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+              {isSelected ? "Deselect Vendor" : "Select This Vendor"}
             </button>
-          ) : (
-            <button className="w-full md:w-auto bg-[#C69C6D] text-white px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#B58B5C] transition-colors shrink-0 shadow-md">
+            <button 
+              onClick={() => setContactModalOpen(true)} 
+              className="w-full sm:w-auto border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:border-[#C69C6D] hover:text-[#C69C6D] transition-colors"
+            >
               Contact Vendor
             </button>
-          )}
+          </div>
         </div>
 
       </div>
@@ -330,7 +514,14 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
         <div className="space-y-6 sticky top-28">
           <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-6 rounded-sm shadow-sm space-y-6">
             <div>
-              <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-4">Vendor Summary</h4>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Vendor Summary</h4>
+                {isSelected && (
+                  <span className="bg-[#C9A84C] text-black text-[8px] uppercase tracking-widest font-extrabold px-2 py-0.5 rounded-sm flex items-center gap-0.5">
+                    <Check className="w-2.5 h-2.5" strokeWidth={3} /> Selected
+                  </span>
+                )}
+              </div>
               <ul className="space-y-3 text-sm">
                 <li className="flex justify-between border-b border-[#E8DFC9] dark:border-white/10 pb-3">
                   <span className="text-gray-500">Category</span>
@@ -357,15 +548,24 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
               </ul>
             </div>
             
-            {isBooking ? (
-              <button onClick={handleSelectVendor} className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" /> Select This Vendor
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleSelectVendorClick} 
+                className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-md flex items-center justify-center gap-2
+                  ${isSelected 
+                    ? 'bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
+                    : 'bg-[#C69C6D] text-white border border-[#C69C6D] hover:bg-[#B58B5C]'}`}
+              >
+                {isSelected ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                {isSelected ? "Deselect Vendor" : "Select This Vendor"}
               </button>
-            ) : (
-              <button className="w-full bg-[#C69C6D] text-white py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm shadow-md hover:bg-[#B58B5C] transition-colors">
+              <button 
+                onClick={() => setContactModalOpen(true)} 
+                className="w-full border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:border-[#C69C6D] hover:text-[#C69C6D] transition-colors"
+              >
                 Contact Vendor
               </button>
-            )}
+            </div>
           </div>
 
           {/* Features Checklist */}
@@ -393,6 +593,135 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
           </div>
         </div>
       </div>
+
+      {/* Vendor Replacement Confirmation Modal */}
+      <AnimatePresence>
+        {replaceModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setReplaceModalOpen(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-[#1A1A1A] p-8 max-w-md w-full rounded-sm shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-[#E8DFC9] dark:border-[#C9A84C]/30 text-center z-10"
+            >
+              <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle className="w-8 h-8 text-amber-500" />
+              </div>
+              <h3 className="font-serif text-2xl text-[#2C1E14] dark:text-white mb-3">Replace Selected Partner?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                You already have <strong className="text-black dark:text-white">"{existingVendorName}"</strong> selected in this category. Would you like to confirm and replace them with <strong className="text-black dark:text-white">"{vendor.name}"</strong>?
+              </p>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setReplaceModalOpen(false)}
+                  className="flex-1 py-3 border border-[#E8DFC9] dark:border-gray-700 text-[#1A1512] dark:text-gray-300 text-xs uppercase font-bold tracking-widest hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmReplace}
+                  className="flex-1 py-3 bg-[#C9A84C] text-black text-xs uppercase font-bold tracking-widest hover:bg-opacity-95 transition-colors rounded-sm"
+                >
+                  Confirm & Replace
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Contact Vendor Modal */}
+      <AnimatePresence>
+        {contactModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setContactModalOpen(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-[#111111] p-8 max-w-lg w-full rounded-sm shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-[#E8DFC9] dark:border-[#C9A84C]/30 z-10 flex flex-col"
+            >
+              <button 
+                onClick={() => setContactModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {!inquirySent ? (
+                <>
+                  <h3 className="font-serif text-2xl text-[#2C1E14] dark:text-white mb-6 border-b border-[#E8DFC9] dark:border-zinc-800 pb-3">Contact Partner</h3>
+                  
+                  <div className="flex gap-4 items-center mb-6 bg-[#FAF6EE] dark:bg-black p-4 border border-[#E8DFC9]/50 dark:border-white/5">
+                    <img src={vendor.avatar || vendor.image} className="w-16 h-16 rounded-full object-cover border border-[#C9A84C]" alt={vendor.name} />
+                    <div className="text-left">
+                      <h4 className="font-serif text-lg text-black dark:text-white font-bold">{vendor.name}</h4>
+                      <p className="text-xs text-gray-500 mt-1">{vendor.categoryLabel} • {vendor.location || "Colombo, LK"}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 mb-6">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1 flex items-center gap-2.5 text-xs text-gray-600 dark:text-gray-300">
+                        <Phone className="w-4 h-4 text-[#C9A84C]" />
+                        <span>{vendor.contactPhone || "+94 77 123 4567"}</span>
+                      </div>
+                      <div className="flex-1 flex items-center gap-2.5 text-xs text-gray-600 dark:text-gray-300">
+                        <Mail className="w-4 h-4 text-[#C9A84C]" />
+                        <span>{vendor.contactEmail || `hello@${vendor.id}.com`}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-[#A67C52] font-bold mb-2">Message Inquiry</label>
+                      <textarea
+                        rows={4}
+                        value={inquiryText}
+                        onChange={(e) => setInquiryText(e.target.value)}
+                        className="w-full bg-white dark:bg-[#1A1A1A] text-xs text-black dark:text-white border border-[#E8DFC9] dark:border-[#C9A84C]/30 p-3 outline-none focus:border-[#C9A84C] rounded-sm font-sans"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={sendInquiry}
+                    disabled={isInquiring}
+                    className="w-full py-3.5 bg-[#C9A84C] text-black text-xs uppercase font-bold tracking-widest hover:bg-opacity-90 transition-all rounded-sm flex items-center justify-center gap-2"
+                  >
+                    {isInquiring ? "Sending inquiry..." : "Send Event Inquiry"}
+                  </button>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-8 h-8 text-emerald-500" strokeWidth={3} />
+                  </div>
+                  <h3 className="font-serif text-2xl text-[#2C1E14] dark:text-white mb-3">Inquiry Sent Successfully!</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 leading-relaxed px-4">
+                    Your inquiry has been successfully transmitted to <strong className="text-black dark:text-white">{vendor.name}</strong>. The partner will get back to you shortly via contact phone or email.
+                  </p>
+                  <button 
+                    onClick={() => setContactModalOpen(false)}
+                    className="px-8 py-3 bg-[#C9A84C] text-black text-xs uppercase font-bold tracking-widest hover:bg-opacity-95 transition-colors rounded-sm"
+                  >
+                    Back to Profile
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

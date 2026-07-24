@@ -14,6 +14,7 @@ import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
 import BookingHistory from "@/components/landing/book/BookingHistory";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
+import BookingForm from "@/components/landing/book/BookingForm";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
@@ -142,6 +143,9 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
+    if (newVendors.photographer !== cartVendors.photographer) setStoreVendor("photographer", newVendors.photographer);
+    if (newVendors.cake !== cartVendors.cake) setStoreVendor("cake", newVendors.cake);
+    if (newVendors.florist !== cartVendors.florist) setStoreVendor("florist", newVendors.florist);
   };
 
   // Sync global cartVendors store with local vendors state
@@ -154,6 +158,12 @@ export default function BookPage() {
       djPackage: "none",
       videographer: cartVendors.videographer || "none",
       videographerPackage: "none",
+      photographer: cartVendors.photographer || "none",
+      photographerPackage: storePackages.photographer || "none",
+      cake: cartVendors.cake || "none",
+      cakePackage: storePackages.cake || "none",
+      florist: cartVendors.florist || "none",
+      floristPackage: storePackages.florist || "none",
     });
   }, [cartVendors]);
 
@@ -450,16 +460,43 @@ export default function BookPage() {
       }
 
       // Card details validation
+      const cardNumClean = cardNumber.replace(/\D/g, "");
       if (!cardNumber.trim()) {
         newErrors.cardNumber = "Card number is required.";
         hasError = true;
+      } else if (cardNumClean.length < 13 || cardNumClean.length > 19) {
+        newErrors.cardNumber = "Invalid card number.";
+        hasError = true;
       }
+
       if (!cardExpiry.trim()) {
         newErrors.cardExpiry = "Expiry date is required.";
         hasError = true;
+      } else if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(cardExpiry.trim())) {
+        newErrors.cardExpiry = "Format must be MM/YY.";
+        hasError = true;
+      } else {
+        let [monthStr, yearStr] = cardExpiry.includes('/') 
+          ? cardExpiry.split('/') 
+          : [cardExpiry.slice(0, 2), cardExpiry.slice(2, 4)];
+        const month = parseInt(monthStr.trim(), 10);
+        const year = parseInt(yearStr.trim(), 10);
+        const now = new Date();
+        const currentYear = parseInt(now.getFullYear().toString().slice(-2), 10);
+        const currentMonth = now.getMonth() + 1;
+        
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+          newErrors.cardExpiry = "Card has expired.";
+          hasError = true;
+        }
       }
+
+      const cvcClean = cardCvc.replace(/\D/g, "");
       if (!cardCvc.trim()) {
         newErrors.cardCvc = "CVC is required.";
+        hasError = true;
+      } else if (cvcClean.length < 3 || cvcClean.length > 4) {
+        newErrors.cardCvc = "Invalid CVC.";
         hasError = true;
       }
 
