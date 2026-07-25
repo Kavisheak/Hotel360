@@ -93,8 +93,10 @@ const BookingsListMain = () => {
       case 'Held':
       case 'HOLD':
         return 'bg-amber-100 text-amber-800 border border-amber-300 font-bold';
+      case 'Pending Hall Confirmation':
+      case 'Pending Confirmation':
       case 'Pending':
-        return 'bg-blue-100 text-[#1E56A0] border border-blue-200 font-bold';
+        return 'bg-amber-100 text-amber-800 border border-amber-300 font-bold';
       case 'Confirmed':
       case 'DepositPaid':
       case 'BalancePaid':
@@ -174,6 +176,7 @@ const BookingsListMain = () => {
                 className="border border-[#E0D8C3] py-2 px-4 rounded text-sm text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E]"
               >
                 <option value="All">All Statuses</option>
+                <option value="Pending Hall Confirmation">Pending Hall Confirmation</option>
                 <option value="Pending">Pending Approval</option>
                 <option value="Confirmed">Confirmed</option>
                 <option value="DepositPaid">Deposit Paid</option>

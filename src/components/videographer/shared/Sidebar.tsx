@@ -74,7 +74,6 @@ const Sidebar = () => {
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW',  href: '/videographer' },
     { icon: <BookOpen size={20} />,   label: 'BOOKINGS',  href: '/videographer/events-bookings' },
-    { icon: <Video size={20} />,      label: 'DELIVERABLES', href: '/videographer/deliverables' },
     { icon: <DollarSign size={20} />, label: 'PAYOUTS',   href: '/videographer/payouts' },
     { icon: <Star size={20} />,       label: 'RATINGS',   href: '/videographer/ratings' },
     { icon: <ImageIcon size={20} />,  label: 'GALLERY',   href: '/videographer/gallery' },

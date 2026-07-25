@@ -115,6 +115,11 @@ export const bookingAPI = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+  rejectBooking: (id: string, body: any) =>
+    apiFetch(`/api/bookings/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   assignArtisans: (id: string, body: any) =>
     apiFetch(`/api/bookings/${id}/assign`, {
       method: "PUT",
@@ -222,7 +227,7 @@ export const decoratorAPI = {
   getAlbums: (status?: string) =>
     apiFetch(`/api/decorator/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
   getAlbumById: (id: string) => apiFetch(`/api/decorator/portfolio/albums/${id}`),
-  createAlbum: (body: { title: string; linkedBookingId?: string; price?: number }) =>
+  createAlbum: (body: { title: string; linkedBookingId?: string; price?: number; [key: string]: any }) =>
     apiFetch("/api/decorator/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
   updateAlbum: (id: string, body: any) =>
     apiFetch(`/api/decorator/portfolio/albums/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
@@ -303,12 +308,6 @@ export const videographerAPI = {
   declineRequest: (id: string, reason: string) =>
     apiFetch(`/api/videographer/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
   getJobs: (status?: string) => apiFetch(`/api/videographer/jobs?status=${status || "upcoming"}`),
-  getDeliverables: () => apiFetch("/api/videographer/deliverables"),
-  submitDeliverable: (bookingId: string, body: any) =>
-    apiFetch(`/api/videographer/deliverables/${bookingId}/deliver`, {
-      method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
-    }),
   getSchedule: (month?: number, year?: number) =>
     apiFetch(`/api/videographer/schedule?month=${month || ""}&year=${year || ""}`),
   createBlock: (body: { startDate: string; endDate: string; reason?: string }) =>

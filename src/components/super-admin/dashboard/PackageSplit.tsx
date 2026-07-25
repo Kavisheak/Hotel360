@@ -21,7 +21,7 @@ const DonutChart = ({ packages, total, topPct, topPkg }: any) => {
 
   return (
     <svg viewBox="0 0 160 160" className="w-40 h-40">
-      {segments.map((seg, i) => (
+      {segments.map((seg: any, i: number) => (
         <circle
           key={i}
           cx={cx}

@@ -50,6 +50,7 @@ export default function AddPortfolioModal({
   const [culturalStyle, setCulturalStyle] = useState("Western / Modern");
   const [description, setDescription] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
+  const [eventLocation, setEventLocation] = useState("EASCC Main Hall");
 
   // Media State
   const [coverImage, setCoverImage] = useState<MediaUploadItem | null>(null);

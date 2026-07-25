@@ -14,6 +14,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   completed: { bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-400", label: "Completed" },
   pending: { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", label: "Pending" },
   cancelled: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "Cancelled" },
+  rejected: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "Rejected by Hall" },
   cancellationrequested: { bg: "bg-orange-50 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-400", label: "Cancellation Pending Approval" },
 };
 
@@ -159,10 +160,10 @@ export default function BookingHistory() {
                     <span className="text-gray-500 font-medium text-xs font-sans">Hall</span>
                     <span className={`text-xs font-bold ${
                       booking.status === "Confirmed" ? "text-emerald-600" : 
-                      booking.status === "Cancelled" ? "text-red-500" : 
+                      booking.status === "Cancelled" || booking.status === "Rejected" ? "text-red-500" : 
                       "text-amber-500"
                     }`}>
-                      {booking.status === "CancellationRequested" ? "Cancellation Pending" : booking.status}
+                      {booking.status === "CancellationRequested" ? "Cancellation Pending" : booking.status === "Pending Hall Confirmation" ? "Awaiting Hall Confirmation" : booking.status}
                     </span>
                   </div>
 
@@ -174,6 +175,7 @@ export default function BookingHistory() {
                     const vStatus = vendor.status || "Pending";
                     const isAccepted = vStatus === "Accepted";
                     const isDeclined = vStatus === "Declined";
+                    const isAwaitingHall = vStatus === "Awaiting Hall Confirmation";
 
                     const labels: Record<string, string> = {
                       decorator: "Decorator",
@@ -196,9 +198,12 @@ export default function BookingHistory() {
                       const creditVal = Math.round(cost * 1.08 * 0.3);
                       statusText = `Credit — LKR ${creditVal.toLocaleString()}`;
                       textColorClass = "text-amber-600";
+                    } else if (isAwaitingHall) {
+                      statusText = "Awaiting Hall";
+                      textColorClass = "text-amber-500";
                     } else if (vStatus === "Pending") {
-                      statusText = "Pending";
-                      textColorClass = "text-gray-500";
+                      statusText = "Pending Vendor";
+                      textColorClass = "text-amber-600 font-semibold";
                     }
 
                     return (
@@ -221,7 +226,7 @@ export default function BookingHistory() {
                   </button>
 
                   {/* Replace vendor */}
-                  {!["Completed", "Cancelled"].includes(booking.status) && (
+                  {!["Completed", "Cancelled", "Rejected"].includes(booking.status) && (
                     <button 
                       onClick={() => {
                         setSwapModalState({

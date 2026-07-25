@@ -26,11 +26,11 @@ const BookingsHeader = ({ booking }: { booking: any }) => (
       {/* Status + Date badges */}
       <div className="flex items-center gap-3 shrink-0">
         <div className={`border px-3 py-2 text-center ${
-          booking.status === 'Pending' ? 'bg-[#F2EADA] border-[#E0D8C3] text-[#7C6A2E]' :
+          booking.status === 'Pending' || booking.status === 'Pending Hall Confirmation' || booking.status === 'Pending Confirmation' ? 'bg-[#F2EADA] border-[#E0D8C3] text-[#7C6A2E]' :
           booking.status === 'Confirmed' ? 'bg-green-50 border-green-200 text-green-700' :
           'bg-white border-gray-200 text-gray-700'
         }`}>
-          <p className="text-[9px] font-bold uppercase tracking-widest">{booking.status}</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest">{booking.status === 'Pending Hall Confirmation' ? 'Awaiting Hall' : booking.status}</p>
           <p className="text-[9px] font-bold uppercase tracking-widest">Status</p>
         </div>
         <div className="bg-white border border-[#E0D8C3] px-3 py-2 flex items-center gap-2">
