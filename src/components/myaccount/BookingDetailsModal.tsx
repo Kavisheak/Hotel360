@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
 import { customerBookingAPI, accountAPI } from "@/lib/api";
+import { startPayHerePayment } from "@/utils/payhere";
 import EscrowTracker from "./EscrowTracker";
 
 import ReplacementVendorModal from "../decorator/my_jobs/ReplacementVendorModal";
@@ -108,14 +109,16 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   const handlePayment = async (type: "deposit" | "balance") => {
     setIsPaying(true);
-    const res = await customerBookingAPI.recordPayment(booking._id || booking.id!, { paymentType: type });
-    setIsPaying(false);
-    if (res.ok) {
-      alert(`${type === "deposit" ? "30% Advance" : "70% Balance"} paid successfully!`);
-      window.location.reload();
-    } else {
-      alert(res.data?.message || "Payment failed. Please try again.");
-    }
+    await startPayHerePayment({
+      bookingId: booking._id || booking.id!,
+      paymentType: type,
+      onSuccess: () => {
+        setIsPaying(false);
+        window.location.reload();
+      },
+      onDismiss: () => setIsPaying(false),
+      onError: () => setIsPaying(false),
+    });
   };
 
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();

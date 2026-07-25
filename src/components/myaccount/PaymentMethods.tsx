@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { CreditCard, Plus, Trash2, Star, ShieldCheck, Loader2, DollarSign, Calendar, FileText, Download } from "lucide-react";
 import { accountAPI, customerBookingAPI } from "@/lib/api";
+import { startPayHerePayment } from "@/utils/payhere";
 import EscrowTracker from "./EscrowTracker";
 import BookingCreditsList from "./BookingCreditsList";
 import RefundRequestModal from "./RefundRequestModal";
@@ -97,21 +98,17 @@ export default function PaymentMethods() {
   };
 
   const handlePayBalance = async (bookingId: string) => {
-    try {
-      setIsPayingBalance(true);
-      const { ok, data } = await customerBookingAPI.recordPayment(bookingId, { paymentType: "balance" });
-      if (ok) {
-        alert("70% balance payment processed successfully and held in escrow!");
+    setIsPayingBalance(true);
+    await startPayHerePayment({
+      bookingId,
+      paymentType: "balance",
+      onSuccess: () => {
+        setIsPayingBalance(false);
         handleRefreshAll();
-      } else {
-        alert(data.message || "Failed to process balance payment.");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Error occurred during balance payment.");
-    } finally {
-      setIsPayingBalance(false);
-    }
+      },
+      onDismiss: () => setIsPayingBalance(false),
+      onError: () => setIsPayingBalance(false),
+    });
   };
 
   const getCardType = (number: string) => {
