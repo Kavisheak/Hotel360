@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Circle, Flag, Send } from 'lucide-react';
 import { bookingAPI } from '../../../lib/api';
+import HallRejectReasonModal from './HallRejectReasonModal';
 
 // Hardcoded statusHistory removed.
 
@@ -10,6 +11,13 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
   const [status, setStatus] = useState<string>(
     booking.status ? booking.status.toUpperCase() : 'PENDING'
   );
+
+  useEffect(() => {
+    if (booking.status) {
+      setStatus(booking.status.toUpperCase());
+    }
+  }, [booking.status]);
+
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState(booking.rejectionReason || '');
   const [rejectError, setRejectError] = useState('');
@@ -49,18 +57,14 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     }
   };
 
-  const handleRejectSubmit = async () => {
-    if (rejectReason.trim().length < 10) {
-      setRejectError('Please provide a detailed reason (min 10 chars).');
-      return;
-    }
-    setRejectError('');
+  const handleRejectConfirm = async (reason: string, note?: string) => {
     setIsLoading(true);
     const id = booking.bookingRef || booking._id || booking.id;
-    const res = await bookingAPI.updateBookingStatus(id, { status: 'Rejected', rejectionReason: rejectReason });
+    const res = await bookingAPI.rejectBooking(id, { reason, note });
     setIsLoading(false);
     if (res.ok) {
       setStatus('REJECTED');
+      setRejectReason(reason);
       setShowRejectForm(false);
       if (onStatusUpdate) onStatusUpdate();
     } else {
@@ -81,7 +85,13 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     }
   };
 
-  const isPendingStatus = status === 'PENDING' || status === 'PENDING CONFIRMATION' || booking.status === 'Pending Confirmation';
+  const isPendingStatus = 
+    status === 'PENDING' || 
+    status === 'PENDING CONFIRMATION' || 
+    status === 'PENDING HALL CONFIRMATION' || 
+    booking.status === 'Pending' || 
+    booking.status === 'Pending Confirmation' ||
+    booking.status === 'Pending Hall Confirmation';
 
   return (
     <div className="space-y-4">
@@ -91,51 +101,31 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           Manager Actions
         </h4>
 
-        {isPendingStatus && !showRejectForm && (
+        {isPendingStatus && (
           <>
             <button
               onClick={handleApprove}
               disabled={isLoading}
               className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest mb-3 transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#B08D2C] hover:bg-[#9B7A20]'} text-white shadow-sm`}
             >
-              <CheckCircle2 size={16} /> {isLoading ? 'Processing...' : 'Approve Venue Booking & Release 30% Advance'}
+              <CheckCircle2 size={16} /> {isLoading ? 'Processing...' : 'Approve Hall & Activate Vendors'}
             </button>
             <button
               onClick={() => setShowRejectForm(true)}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all border bg-white border-[#E0D8C3] text-gray-600 hover:border-red-400 hover:text-red-500 hover:bg-red-50"
             >
-              <XCircle size={16} /> Reject Request
+              <XCircle size={16} /> Reject Hall (100% Refund)
             </button>
           </>
         )}
 
-        {showRejectForm && isPendingStatus && (
-          <div className="bg-[#FAF6EE] border border-[#E0D8C3] p-4 rounded-lg animate-fadeIn">
-            <h5 className="text-[10px] font-bold uppercase tracking-widest text-red-600 mb-2">Mandatory Rejection Reason</h5>
-            <textarea 
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="State the reason for rejection (e.g., date conflict, capacity limit)..."
-              className="w-full border border-[#E0D8C3] px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-red-400 bg-white rounded mb-2 resize-none h-20"
-            />
-            {rejectError && <p className="text-[9px] text-red-500 mb-2 font-bold">{rejectError}</p>}
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowRejectForm(false)}
-                className="flex-1 py-2 border border-[#E0D8C3] text-gray-600 text-[10px] font-bold uppercase tracking-widest rounded bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleRejectSubmit}
-                disabled={isLoading}
-                className={`flex-1 flex items-center justify-center gap-1 py-2 ${isLoading ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'} text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm`}
-              >
-                <Send size={12} /> {isLoading ? '...' : 'Submit'}
-              </button>
-            </div>
-          </div>
-        )}
+        <HallRejectReasonModal
+          isOpen={showRejectForm}
+          clientName={booking.clientName || "Customer"}
+          isSubmitting={isLoading}
+          onClose={() => setShowRejectForm(false)}
+          onConfirm={handleRejectConfirm}
+        />
 
         {status === 'CONFIRMED' && (
           <>
@@ -256,7 +246,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
               </div>
               <div>
                 <p className={`text-xs font-semibold ${i === 0 ? 'text-gray-800' : 'text-gray-500'}`}>
-                  {s.status === 'Pending' ? 'Pending Approval' : 
+                  {s.status === 'Pending' || s.status === 'Pending Hall Confirmation' ? 'Pending Hall Approval' : 
                    s.status === 'Confirmed' ? 'Booking Confirmed' : 
                    s.status === 'Completed' ? 'Event Completed' : 
                    s.status === 'Rejected' ? 'Booking Rejected' : s.status}

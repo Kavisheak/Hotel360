@@ -146,7 +146,7 @@ export default function VendorCards({
     if (vendor.portfolioItems && vendor.portfolioItems.length > 0) {
       vendor.portfolioItems.forEach((pi) => {
         if (pi.media && Array.isArray(pi.media)) {
-          pi.media.forEach((m) => {
+          pi.media.forEach((m: any) => {
             if (m.url) images.push(m.url);
           });
         }

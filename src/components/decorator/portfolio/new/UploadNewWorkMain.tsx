@@ -492,7 +492,6 @@ const UploadNewWorkMain = () => {
               </div>
             </div>
           </section>
-          </section>
         </div>
       </div>
 

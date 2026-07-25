@@ -23,6 +23,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
   confirmed: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", border: "border-emerald-200 dark:border-emerald-800" },
   completed: { bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-400", border: "border-blue-200 dark:border-blue-800" },
   pending: { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800" },
+  "pending hall confirmation": { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800" },
+  "pending confirmation": { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800" },
   cancelled: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", border: "border-red-200 dark:border-red-800" },
   rejected: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", border: "border-red-200 dark:border-red-800" },
   cancellationrequested: { bg: "bg-orange-50 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-400", border: "border-orange-200 dark:border-orange-800" },
@@ -137,6 +139,10 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   }) : [];
   const allVendorsConfirmed = pendingVendors.length === 0 && (booking.status === "Confirmed" || booking.status === "Completed");
 
+  const isHallConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
+  const isHallRejected = booking.status === "Rejected";
+  const isHallPending = booking.status === "Pending Hall Confirmation" || booking.status === "Pending Confirmation" || booking.status === "Pending";
+
   const cancelDeadlineDate = new Date(eventDate);
   cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 14);
   const handleCancelClick = async () => {
@@ -229,6 +235,24 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
               {/* Left Column (Event Details) */}
               <div className="lg:col-span-2 space-y-6">
                 
+                {/* Rejected Hall Banner */}
+                {isHallRejected && (
+                  <div className="p-4 bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-600 rounded-lg shadow-sm flex flex-col gap-2 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-900/50 px-2 py-0.5 rounded border border-red-300">
+                        ✗ BOOKING REJECTED BY VENUE MANAGER
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-900 dark:text-red-200 leading-relaxed">
+                      Your hall reservation request could not be accommodated. <strong>Reason:</strong> "{booking.rejectionReason || "Venue unavailable for requested date"}".
+                    </p>
+                    <div className="p-2.5 bg-white/80 dark:bg-black/40 border border-red-200 dark:border-red-800 rounded text-[11px] text-red-800 dark:text-red-300 font-medium flex items-center justify-between">
+                      <span>💰 <strong>100% Refund Status:</strong> Processed & Issued Back to Customer</span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 rounded">Fully Refunded</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Active Booking Credits Banner */}
                 {activeCredits.map((credit: any) => (
                   <div key={credit._id} className="p-4 bg-[#FFFDF7] dark:bg-amber-950/20 border-2 border-amber-400 dark:border-amber-600 rounded-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
@@ -262,6 +286,78 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </div>
                   </div>
                 ))}
+
+                {/* Two-Stage Progress Flow */}
+                <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
+                  <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Booking Approval Progress
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Stage 1 Card */}
+                    <div className={`p-4 rounded-lg border transition-all ${
+                      isHallConfirmed 
+                        ? "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800" 
+                        : isHallRejected
+                        ? "bg-red-50/60 dark:bg-red-950/20 border-red-300 dark:border-red-800"
+                        : "bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 shadow-sm"
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Stage 1</span>
+                        <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded ${
+                          isHallConfirmed 
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" 
+                            : isHallRejected
+                            ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 animate-pulse"
+                        }`}>
+                          {isHallConfirmed ? "Hall Approved ✓" : isHallRejected ? "Hall Rejected ✗" : "Awaiting Hall Confirmation"}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#1A1512] dark:text-white uppercase tracking-wider">1. Venue Manager Review</h4>
+                      <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                        {isHallConfirmed 
+                          ? "Hall allocation confirmed by Venue Manager." 
+                          : isHallRejected
+                          ? "Hall allocation rejected. 100% deposit refunded."
+                          : "Venue manager is currently reviewing your hall allocation request."}
+                      </p>
+                    </div>
+
+                    {/* Stage 2 Card */}
+                    <div className={`p-4 rounded-lg border transition-all ${
+                      !isHallConfirmed 
+                        ? "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 opacity-60" 
+                        : pendingVendors.length > 0
+                        ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 shadow-sm"
+                        : "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800"
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Stage 2</span>
+                        <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded ${
+                          !isHallConfirmed 
+                            ? "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                            : pendingVendors.length > 0
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 animate-pulse"
+                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                        }`}>
+                          {!isHallConfirmed 
+                            ? "Locked (Pending Stage 1)" 
+                            : pendingVendors.length > 0 
+                            ? "Awaiting Vendor Confirmation" 
+                            : "Vendors Confirmed ✓"}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#1A1512] dark:text-white uppercase tracking-wider">2. Vendor Responses</h4>
+                      <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                        {!isHallConfirmed 
+                          ? "Vendor requests will be activated automatically once hall allocation is approved." 
+                          : pendingVendors.length > 0
+                          ? `Awaiting confirmation from selected service provider(s).`
+                          : "All selected service providers have accepted your event."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Event Info Card */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
@@ -348,11 +444,12 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         if (!vendor || vendor.status === "NotRequired") return null;
                         
                         const vStatus = vendor.status || "Pending";
-                        const isDeclined = vStatus === "Declined";
+                        const isDeclined = vStatus === "Declined" || vStatus === "Expired";
                         const isAccepted = vStatus === "Accepted";
+                        const isAwaitingHall = vStatus === "Awaiting Hall Confirmation";
                         
                         return (
-                          <div key={key} className={`flex items-center justify-between p-3 rounded-md border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/30' : 'bg-gray-50 border-gray-100 dark:bg-[#222] dark:border-gray-800'}`}>
+                          <div key={key} className={`flex items-center justify-between p-3 rounded-md border ${isDeclined ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/30' : isAwaitingHall ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-950/10 dark:border-amber-900/30' : 'bg-gray-50 border-gray-100 dark:bg-[#222] dark:border-gray-800'}`}>
                             <div className="flex items-center gap-3">
                               <div className={`p-2 rounded-full ${isDeclined ? 'bg-red-100 text-red-600 dark:bg-red-900/30' : 'bg-white dark:bg-[#111] shadow-sm text-gray-500'}`}>
                                 <Icon className="w-4 h-4" />
