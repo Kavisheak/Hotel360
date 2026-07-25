@@ -350,7 +350,7 @@ export default function PaymentMethods() {
                           }`}
                         >
                           {isPayingBalance ? <Loader2 className="w-3 animate-spin" /> : <DollarSign className="w-3.5 h-3.5" />}
-                          Pay Balance
+                          Pay Balance via PayHere 🇱🇰
                         </button>
                       );
                     })()}

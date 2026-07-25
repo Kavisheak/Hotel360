@@ -339,7 +339,7 @@ export default function BookPage() {
       const res = await customerBookingAPI.createBooking(bookingPayload);
       if (res.ok && res.data.success) {
         clearCart();
-        return true;
+        return res.data.data?._id || res.data.data?.id || true;
       } else {
         alert(res.data.message || "Failed to create booking");
         return false;
@@ -380,16 +380,39 @@ export default function BookPage() {
       return;
     }
     setIsProcessing(true);
-    const success = await handleFinalizeBooking({
+    const bookingResult = await handleFinalizeBooking({
       firstName,
       lastName,
       email,
       phone,
       paymentMethod,
     });
-    setIsProcessing(false);
-    if (success) {
+    
+    if (typeof bookingResult === "string") {
+      // Launch official PayHere Checkout Modal for 30% Advance Deposit
+      const { startPayHerePayment } = await import("@/utils/payhere");
+      await startPayHerePayment({
+        bookingId: bookingResult,
+        paymentType: "deposit",
+        onSuccess: () => {
+          setIsProcessing(false);
+          setShowSuccessModal(true);
+        },
+        onDismiss: () => {
+          setIsProcessing(false);
+          alert("Payment window closed. Your event reservation is saved! You can complete your 30% advance deposit anytime from your My Account -> Bookings dashboard.");
+          router.push("/customer/myaccount");
+        },
+        onError: () => {
+          setIsProcessing(false);
+          router.push("/customer/myaccount");
+        }
+      });
+    } else if (bookingResult) {
+      setIsProcessing(false);
       setShowSuccessModal(true);
+    } else {
+      setIsProcessing(false);
     }
   };
 
@@ -456,47 +479,6 @@ export default function BookPage() {
       }
       if (!billingPostalCode.trim()) {
         newErrors.billingPostalCode = "Postal code is required.";
-        hasError = true;
-      }
-
-      // Card details validation
-      const cardNumClean = cardNumber.replace(/\D/g, "");
-      if (!cardNumber.trim()) {
-        newErrors.cardNumber = "Card number is required.";
-        hasError = true;
-      } else if (cardNumClean.length < 13 || cardNumClean.length > 19) {
-        newErrors.cardNumber = "Invalid card number.";
-        hasError = true;
-      }
-
-      if (!cardExpiry.trim()) {
-        newErrors.cardExpiry = "Expiry date is required.";
-        hasError = true;
-      } else if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(cardExpiry.trim())) {
-        newErrors.cardExpiry = "Format must be MM/YY.";
-        hasError = true;
-      } else {
-        let [monthStr, yearStr] = cardExpiry.includes('/') 
-          ? cardExpiry.split('/') 
-          : [cardExpiry.slice(0, 2), cardExpiry.slice(2, 4)];
-        const month = parseInt(monthStr.trim(), 10);
-        const year = parseInt(yearStr.trim(), 10);
-        const now = new Date();
-        const currentYear = parseInt(now.getFullYear().toString().slice(-2), 10);
-        const currentMonth = now.getMonth() + 1;
-        
-        if (year < currentYear || (year === currentYear && month < currentMonth)) {
-          newErrors.cardExpiry = "Card has expired.";
-          hasError = true;
-        }
-      }
-
-      const cvcClean = cardCvc.replace(/\D/g, "");
-      if (!cardCvc.trim()) {
-        newErrors.cardCvc = "CVC is required.";
-        hasError = true;
-      } else if (cvcClean.length < 3 || cvcClean.length > 4) {
-        newErrors.cardCvc = "Invalid CVC.";
         hasError = true;
       }
 
@@ -807,98 +789,63 @@ export default function BookPage() {
                       </div>
                     </div>
 
-                    {/* Advance Payment Card */}
+                    {/* Advance Payment — Professional PayHere Gateway Style */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
-                      <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
-                        Advance payment — 30% deposit
-                      </h3>
-                      
-                      {/* Tabs */}
-                      <div className="flex flex-wrap gap-3 pb-2">
-                        {(["Visa", "MasterCard", "PayPal", "Stripe"] as const).map((method) => (
-                          <button
-                            key={method}
-                            type="button"
-                            onClick={() => {
-                              setPaymentMethod(method);
-                              if (user && user.savedCards && user.savedCards.length > 0) {
-                                let targetCard = null;
-                                if (method === "Visa") {
-                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("4"));
-                                } else if (method === "MasterCard") {
-                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("5"));
-                                } else if (method === "Stripe") {
-                                  targetCard = user.savedCards.find((c: any) => c.cardNumber?.startsWith("3"));
-                                }
-                                
-                                if (targetCard) {
-                                  setCardNumber(targetCard.cardNumber || "");
-                                  setCardExpiry(targetCard.expiry || "");
-                                  setCardCvc("***");
-                                } else {
-                                  setCardNumber("");
-                                  setCardExpiry("");
-                                  setCardCvc("");
-                                }
-                              }
-                            }}
-                            className={`px-4 py-2 rounded-sm border text-xs font-bold tracking-wider transition-all duration-200 ${
-                              paymentMethod === method
-                                ? "bg-[#FAF6EE] dark:bg-white/10 border-[#C9A84C] text-[#805D3A] dark:text-[#C9A84C] shadow-sm"
-                                : "bg-transparent border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                            }`}
-                          >
-                            💳 {method}
-                          </button>
-                        ))}
+                      <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4">
+                        <div>
+                          <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white flex items-center gap-2">
+                            Advance Payment — 30% Deposit
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Powered by PayHere Gateway 🇱🇰 (Approved by Central Bank of Sri Lanka)
+                          </p>
+                        </div>
+                        <div className="px-3 py-1 bg-[#C9A84C]/15 border border-[#C9A84C]/30 rounded text-[#C9A84C] font-mono font-bold text-sm">
+                          {formatCurrency(depositToday)}
+                        </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Card number</label>
-                          <input
-                            type="text"
-                            placeholder="4242 4242 4242 4242"
-                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
-                            value={cardNumber}
-                            onChange={(e) => {
-                              setCardNumber(e.target.value);
-                              if (errors.cardNumber) setErrors({ ...errors, cardNumber: undefined });
-                            }}
-                          />
-                          {errors.cardNumber && <p className="text-red-500 text-[10px] mt-1">{errors.cardNumber}</p>}
+                      {/* Payment Method Selector Badges */}
+                      <div className="space-y-3">
+                        <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold">
+                          Select Gateway Payment Option
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[
+                            { id: "Visa", label: "Visa / MC / Amex", icon: "💳", desc: "Cards & Debit" },
+                            { id: "MasterCard", label: "Frimi / Genie", icon: "📱", desc: "Mobile Apps" },
+                            { id: "PayPal", label: "Sampath Vishwa", icon: "🏛️", desc: "Internet Bank" },
+                            { id: "Stripe", label: "Koko Pay", icon: "🛍️", desc: "3 Instalments" },
+                          ].map((option) => (
+                            <div
+                              key={option.id}
+                              onClick={() => setPaymentMethod(option.id as any)}
+                              className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${
+                                paymentMethod === option.id
+                                  ? "bg-[#FAF6EE] dark:bg-amber-950/20 border-[#C9A84C] shadow-sm ring-1 ring-[#C9A84C]/50"
+                                  : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/40"
+                              }`}
+                            >
+                              <div className="text-lg mb-1">{option.icon}</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-white">{option.label}</div>
+                              <div className="text-[10px] text-gray-500">{option.desc}</div>
+                            </div>
+                          ))}
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Expiry</label>
-                            <input
-                              type="text"
-                              placeholder="MM/YY"
-                              className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
-                              value={cardExpiry}
-                              onChange={(e) => {
-                                setCardExpiry(e.target.value);
-                                if (errors.cardExpiry) setErrors({ ...errors, cardExpiry: undefined });
-                              }}
-                            />
-                            {errors.cardExpiry && <p className="text-red-500 text-[10px] mt-1">{errors.cardExpiry}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">CVC</label>
-                            <input
-                              type="password"
-                              placeholder="123"
-                              maxLength={4}
-                              className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
-                              value={cardCvc}
-                              onChange={(e) => {
-                                setCardCvc(e.target.value);
-                                if (errors.cardCvc) setErrors({ ...errors, cardCvc: undefined });
-                              }}
-                            />
-                            {errors.cardCvc && <p className="text-red-500 text-[10px] mt-1">{errors.cardCvc}</p>}
-                          </div>
+                      </div>
+
+                      {/* PayHere Security Guarantee Banner */}
+                      <div className="bg-[#FAF6EE]/50 dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800 p-4 rounded-lg flex items-start gap-3.5">
+                        <div className="w-8 h-8 rounded-full bg-[#C9A84C]/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-base">🔒</span>
+                        </div>
+                        <div className="text-xs space-y-1 text-gray-600 dark:text-gray-300">
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            256-Bit Encrypted Gateway Redirect
+                          </p>
+                          <p className="leading-relaxed text-[11px]">
+                            To guarantee PCI-DSS bank-grade security, you do not enter card numbers or bank credentials on our website. Upon clicking <strong>Confirm &amp; Pay Advance</strong> on the final step, the official <strong>PayHere Checkout Modal</strong> will open securely to process your 30% advance of <strong>{formatCurrency(depositToday)}</strong>.
+                          </p>
                         </div>
                       </div>
                     </div>
