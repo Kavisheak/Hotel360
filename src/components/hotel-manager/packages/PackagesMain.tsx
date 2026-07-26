@@ -345,13 +345,38 @@ const PackagesMain = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Surcharge</label>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Surcharge (LKR)</label>
                   <input 
                     type="number" 
                     value={tierToEdit.guestSurcharge || 0}
                     onChange={(e) => setTierToEdit({...tierToEdit, guestSurcharge: Number(e.target.value)})}
                     className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
                   />
+                </div>
+              </div>
+
+              {/* Vendor Interchangeability & Package Visibility */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-blue-50/60 border border-blue-200 rounded-lg">
+                <div>
+                  <label className="block text-[10px] font-bold text-[#1E56A0] tracking-widest uppercase mb-1.5">Vendor Interchangeability</label>
+                  <select 
+                    className="w-full border border-blue-300 px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#1E56A0] bg-white rounded"
+                  >
+                    <option value="interchangeable">Interchangeable (Customer Choice)</option>
+                    <option value="fixed">Fixed (Pre-assigned Vendors Only)</option>
+                  </select>
+                  <p className="text-[9px] text-gray-500 mt-1">Controls if clients can swap decorators/DJs in booking steps.</p>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[#1E56A0] tracking-widest uppercase mb-1.5">Package Visibility</label>
+                  <select 
+                    className="w-full border border-blue-300 px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#1E56A0] bg-white rounded"
+                  >
+                    <option value="public">Public (Visible on Portal)</option>
+                    <option value="draft">Draft (Manager Only)</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                  <p className="text-[9px] text-gray-500 mt-1">Controls public availability in the customer booking flow.</p>
                 </div>
               </div>
 

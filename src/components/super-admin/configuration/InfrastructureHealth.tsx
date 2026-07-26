@@ -1,9 +1,10 @@
 import React from 'react';
 import { Columns, Database, Cpu } from 'lucide-react';
 
-const InfrastructureHealth = () => {
-  // Dummy values for bar chart heights
-  const trafficBars = [40, 50, 45, 60, 55, 75, 70, 65, 50, 45, 55, 65, 70, 80, 75, 60, 55, 70, 75, 80, 85, 78, 65, 55];
+const InfrastructureHealth = ({ data }: { data?: any }) => {
+  // Use real data if available, fallback to dummy values while loading
+  const trafficBars = data?.trafficBars || [40, 50, 45, 60, 55, 75, 70, 65, 50, 45, 55, 65, 70, 80, 75, 60, 55, 70, 75, 80, 85, 78, 65, 55];
+  const maxTraffic = Math.max(...trafficBars, 100); // Ensure a sensible maximum scale
 
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm flex flex-col justify-between h-full space-y-6">
@@ -27,7 +28,7 @@ const InfrastructureHealth = () => {
               Database Engine
             </span>
             <span className="block text-xl font-serif font-bold text-gray-800">
-              99.98%
+              {data?.uptimePercentage || 99.98}%
             </span>
             <span className="block text-[8px] text-gray-400">
               Uptime (Last 30 Days)
@@ -45,7 +46,7 @@ const InfrastructureHealth = () => {
               API Gateway
             </span>
             <span className="block text-xl font-serif font-bold text-gray-800">
-              42ms
+              {data?.avgLatency || 42}ms
             </span>
             <span className="block text-[8px] text-gray-400">
               Average Latency
@@ -60,16 +61,19 @@ const InfrastructureHealth = () => {
       {/* Traffic Bar Chart */}
       <div className="space-y-3">
         <div className="h-16 flex items-end gap-[3px] bg-[#FAF6EE]/30 p-2 border border-[#E0D8C3]/50">
-          {trafficBars.map((height, idx) => (
-            <div
-              key={idx}
-              className={`flex-1 transition-all duration-300 ${
-                idx === 14 || idx === 19 ? 'bg-[#7C6A2E]' : 'bg-[#A48F40]/40 hover:bg-[#A48F40]'
-              }`}
-              style={{ height: `${height}%` }}
-              title={`Hour ${idx + 1}: ${height}% Capacity`}
-            />
-          ))}
+          {trafficBars.map((count: number, idx: number) => {
+            const height = (count / maxTraffic) * 100;
+            return (
+              <div
+                key={idx}
+                className={`flex-1 transition-all duration-300 ${
+                  idx === trafficBars.length - 1 ? 'bg-[#7C6A2E]' : 'bg-[#A48F40]/40 hover:bg-[#A48F40]'
+                }`}
+                style={{ height: `${Math.max(height, 5)}%` }} // Minimum height of 5% for visibility
+                title={`Hour ${idx + 1}: ${count} Requests`}
+              />
+            );
+          })}
         </div>
         <div className="flex justify-between items-center text-[8px] font-bold tracking-widest text-gray-400 uppercase">
           <span>24 Hours Ago</span>

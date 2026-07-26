@@ -1,7 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/super-admin/dashboard/Sidebar';
+import { superAdminAPI } from '@/lib/api';
 import ConfigHeader from './ConfigHeader';
 import VirtualExperience from './VirtualExperience';
 import AISentiment from './AISentiment';
@@ -9,6 +10,25 @@ import PlatformSecurity from './PlatformSecurity';
 import InfrastructureHealth from './InfrastructureHealth';
 
 const ConfigMain = () => {
+  const [healthData, setHealthData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await superAdminAPI.getConfigHealth();
+        if (res.ok) {
+          setHealthData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch health data", err);
+      }
+    };
+    fetchHealth();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleDiscard = () => {
     alert('Configuration changes discarded.');
   };
@@ -70,7 +90,7 @@ const ConfigMain = () => {
               </div>
               {/* Row 2 Right - Infrastructure Health (5/12 or 6/12) */}
               <div className="xl:col-span-6">
-                <InfrastructureHealth />
+                <InfrastructureHealth data={healthData} />
               </div>
             </div>
           </div>

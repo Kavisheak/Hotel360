@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import Link from 'next/link';
 
 const CashPayments = ({ payments = [] }: { payments: any[] }) => {
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
@@ -60,9 +61,9 @@ const CashPayments = ({ payments = [] }: { payments: any[] }) => {
       </div>
 
       {/* Footer link */}
-      <button className="mt-4 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#B08D2C] transition-colors self-center">
+      <Link href="/super-admin/financials" className="mt-4 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#B08D2C] transition-colors self-center text-center block w-full">
         VIEW ALL QUEUE
-      </button>
+      </Link>
     </div>
   );
 };

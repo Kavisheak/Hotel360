@@ -105,6 +105,10 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
           status = "reserved";
         } else if (dateStringMatch.status === "pending") {
           status = "pending";
+        } else if (dateStringMatch.status === "held") {
+          status = "held";
+        } else if (dateStringMatch.status === "blocked") {
+          status = "blocked";
         }
       }
 
@@ -185,6 +189,10 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
             cellStyle = "bg-[#FFF0F0] dark:bg-[#2A1111] text-[#D94F4F] border border-[#FFD6D6] dark:border-red-900/50 cursor-not-allowed";
           } else if (dayObj.status === "pending") {
             cellStyle = "bg-[#FFF8E6] dark:bg-[#2A1A00] text-[#D49B35] border border-[#FFE8B3] dark:border-orange-900/50 hover:border-[#A6955C] cursor-pointer transition-colors";
+          } else if (dayObj.status === "held") {
+            cellStyle = "bg-amber-50 dark:bg-amber-950/30 text-amber-700 border border-amber-300 dark:border-amber-900 cursor-not-allowed";
+          } else if (dayObj.status === "blocked") {
+            cellStyle = "bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 cursor-not-allowed";
           }
 
           if (isSelected && (dayObj.status === "available" || dayObj.status === "pending")) {
@@ -208,6 +216,12 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
               )}
               {dayObj.status === "pending" && (
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-[#D49B35]">PENDING</span>
+              )}
+              {dayObj.status === "held" && (
+                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-amber-600">HELD</span>
+              )}
+              {dayObj.status === "blocked" && (
+                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-400">BLOCKED</span>
               )}
               {dayObj.holidayName && (
                 <span className={`text-[7px] uppercase tracking-widest font-bold mt-0.5 max-w-full truncate px-1 text-center ${dayObj.status === "available" || dayObj.status === "pending" ? "text-green-600 dark:text-green-500" : "text-gray-500 opacity-70"}`} title={dayObj.holidayName}>

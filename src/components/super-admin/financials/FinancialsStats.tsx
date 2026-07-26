@@ -1,7 +1,16 @@
 import React from 'react';
 import { Banknote, TrendingUp, FileText } from 'lucide-react';
 
-const FinancialsStats = () => {
+interface FinancialsStatsProps {
+  totalRevenueYTD?: number;
+  monthlyTargetProgress?: number;
+  outstandingBalances?: number;
+  outstandingContracts?: number;
+}
+
+const FinancialsStats = ({ totalRevenueYTD = 0, monthlyTargetProgress = 0, outstandingBalances = 0, outstandingContracts = 0 }: FinancialsStatsProps) => {
+  const monthlyGoal = 5000000; // Example goal
+  const progressPercentage = Math.min((monthlyTargetProgress / monthlyGoal) * 100, 100);
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       {/* Total Revenue */}
@@ -11,7 +20,7 @@ const FinancialsStats = () => {
           <Banknote className="text-[#7C6A2E]" size={18} />
         </div>
         <div>
-          <h2 className="text-3xl font-serif font-bold text-[#7C6A2E]">€482,900.00</h2>
+          <h2 className="text-3xl font-serif font-bold text-[#7C6A2E]">LKR {totalRevenueYTD.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</h2>
           <div className="flex items-center gap-1 mt-2">
             <TrendingUp size={12} className="text-green-600" />
             <p className="text-[10px] font-bold text-green-600">+12.4% from last period</p>
@@ -27,11 +36,11 @@ const FinancialsStats = () => {
         </div>
         <div>
           <div className="w-full bg-[#E0D8C3] h-1.5 mb-4">
-            <div className="bg-[#7C6A2E] h-1.5 w-[78%]"></div>
+            <div className="bg-[#7C6A2E] h-1.5 transition-all duration-1000" style={{ width: `${progressPercentage}%` }}></div>
           </div>
           <div className="flex justify-between items-end">
-            <h2 className="text-xl font-serif text-gray-800">€62,400.00</h2>
-            <p className="text-[10px] text-gray-500 font-medium">78% of Target</p>
+            <h2 className="text-xl font-serif text-gray-800">LKR {monthlyTargetProgress.toLocaleString()}</h2>
+            <p className="text-[10px] text-gray-500 font-medium">{progressPercentage.toFixed(1)}% of Target</p>
           </div>
         </div>
       </div>
@@ -43,8 +52,8 @@ const FinancialsStats = () => {
           <FileText className="text-[#7C6A2E]" size={18} />
         </div>
         <div>
-          <h2 className="text-3xl font-serif font-bold text-gray-800">€18,250.00</h2>
-          <p className="text-[10px] italic text-gray-500 mt-2">12 contracts awaiting final payment</p>
+          <h2 className="text-3xl font-serif font-bold text-gray-800">LKR {outstandingBalances.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</h2>
+          <p className="text-[10px] italic text-gray-500 mt-2">{outstandingContracts} contracts awaiting final payment</p>
         </div>
       </div>
     </div>

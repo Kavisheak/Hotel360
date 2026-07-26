@@ -52,7 +52,13 @@ const MainContent = () => {
         ) : data ? (
           <>
             {/* Row 1: Revenue + Booking Chart */}
-            <OverviewCards totalRevenue={data.totalRevenue} revenueGrowth={data.revenueGrowth} bookingTraffic={data.bookingTraffic} bookingTrafficMonthly={data.bookingTrafficMonthly} />
+            <OverviewCards 
+              totalRevenue={data.totalRevenue} 
+              thisMonthRevenue={data.thisMonthRevenue}
+              revenueGrowth={data.revenueGrowth} 
+              bookingTraffic={data.bookingTraffic} 
+              bookingTrafficMonthly={data.bookingTrafficMonthly} 
+            />
 
             {/* Row 2: Top Providers + Package Split + Cash Payments */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">

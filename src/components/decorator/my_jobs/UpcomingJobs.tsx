@@ -28,12 +28,15 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
     setShowModal(true);
   };
 
+  const [declineReason, setDeclineReason] = useState('');
+
   const confirmStatusChange = async () => {
     try {
       setIsUpdating(true);
-      const res = await decoratorAPI.updateBookingStatus(booking._id, modalStatus);
+      const res = await decoratorAPI.updateBookingStatus(booking._id, modalStatus, { declineReason });
       if (res.ok) {
         setShowModal(false);
+        setDeclineReason('');
         onRefresh?.();
       } else {
         alert(res.data?.message || 'Failed to update status');
@@ -44,6 +47,14 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
       setIsUpdating(false);
     }
   };
+
+  // 48-hour response countdown logic
+  const createdAtTime = new Date(booking.createdAt || Date.now()).getTime();
+  const expiresTime = createdAtTime + 48 * 60 * 60 * 1000;
+  const nowTime = Date.now();
+  const diffMs = Math.max(0, expiresTime - nowTime);
+  const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+  const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
   const progressPercent = booking.vendors?.decorator?.progress || 0;
   let progressDots = 0;
@@ -70,6 +81,11 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
                   {getClientDisplayName(booking)} · {booking.eventType}
                 </p>
                 <span className="text-[9px] font-bold tracking-widest text-gray-500 uppercase">{status}</span>
+                {isPending && (
+                  <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                    ⏰ {hoursLeft}h {minsLeft}m to respond
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-gray-500">
                 <span className="flex items-center gap-1">
@@ -135,15 +151,28 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
             <h3 className="text-2xl font-serif text-gray-800 tracking-tight mb-2">
               {modalStatus === 'Accepted' ? 'Accept Event Request?' : 'Decline Event Request?'}
             </h3>
-            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+            <p className="text-sm text-gray-500 mb-4 leading-relaxed">
               You are about to {modalStatus === 'Accepted' ? 'accept' : 'decline'} the request for{' '}
               <strong className="text-gray-800">{getClientDisplayName(booking)}</strong>.
             </p>
+            {modalStatus === 'Declined' && (
+              <div className="w-full mb-6 text-left">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600 block mb-1">
+                  Reason for declining (required):
+                </label>
+                <textarea
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="e.g. Schedule conflict, date unavailable..."
+                  className="w-full bg-white border border-[#E0D8C3] rounded p-2.5 text-xs text-gray-800 outline-none focus:border-[#7C6A2E] h-20"
+                />
+              </div>
+            )}
             <div className="flex w-full gap-3">
               <button onClick={() => setShowModal(false)} disabled={isUpdating} className="flex-1 border border-[#E0D8C3] text-gray-500 py-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-50">
                 Cancel
               </button>
-              <button onClick={confirmStatusChange} disabled={isUpdating} className={`flex-1 py-3 text-white text-xs font-bold tracking-widest uppercase ${modalStatus === 'Accepted' ? 'bg-[#7C6A2E]' : 'bg-red-500'}`}>
+              <button onClick={confirmStatusChange} disabled={isUpdating || (modalStatus === 'Declined' && !declineReason.trim())} className={`flex-1 py-3 text-white text-xs font-bold tracking-widest uppercase disabled:opacity-50 ${modalStatus === 'Accepted' ? 'bg-[#7C6A2E]' : 'bg-red-500'}`}>
                 {isUpdating ? 'Processing...' : `Confirm ${modalStatus}`}
               </button>
             </div>

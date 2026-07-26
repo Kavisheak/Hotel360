@@ -55,8 +55,8 @@ const DjSidebar = () => {
     } catch (e) {
       console.error('Logout error:', e);
     } finally {
-      clearUser();       // ← clear Zustand store so navbar updates
-      window.location.replace('/login');
+      clearUser();
+      router.replace('/login');
     }
   };
 
@@ -74,9 +74,8 @@ const DjSidebar = () => {
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/dj-artist/overview' },
-    { icon: <User size={20} />, label: 'MY JOBS', href: '/dj-artist/my-jobs' },
-    { icon: <Calendar size={20} />, label: 'SCHEDULE', href: '/dj-artist/performance' },
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
+    { icon: <User size={20} />, label: 'MY JOBS', href: '/dj-artist/my-jobs' },
     { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
     { icon: <ImageIcon size={20} />, label: 'GALLERY', href: '/dj-artist/gallery' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/dj-artist/settings' },

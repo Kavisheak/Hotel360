@@ -12,6 +12,8 @@ export interface AuthUser {
   avatar?: string;
   role: string;
   isVerified: boolean;
+  shopName?: string;
+  ownerNic?: string;
   twoFactorEnabled?: boolean;
   preferences?: any;
   notifications?: any;
@@ -74,7 +76,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   })),
 
   clearUser: () => {
-    set({ user: null, error: null, hasFetched: false, isFetching: false });
+    set({ user: null, error: null, hasFetched: true, isFetching: false, isLoading: false });
     import("./vendorCartStore").then(({ useVendorCartStore }) => {
       useVendorCartStore.getState().clearCart();
     });

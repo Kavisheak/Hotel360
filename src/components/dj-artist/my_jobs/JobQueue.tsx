@@ -6,35 +6,51 @@ import PreparationChecklist from './PreparationChecklist';
 import LastCompleted from './LastCompleted';
 import { djAPI } from '@/lib/api';
 
-const JobQueue = () => {
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+interface JobQueueProps {
+  externalBookings?: any[];
+  loadingExternal?: boolean;
+  onRefresh?: () => void;
+}
+
+const JobQueue: React.FC<JobQueueProps> = ({ externalBookings, loadingExternal, onRefresh }) => {
+  const [internalBookings, setInternalBookings] = useState<any[]>([]);
+  const [internalLoading, setInternalLoading] = useState(true);
   const [manualPriorityId, setManualPriorityId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (!externalBookings) {
+      fetchBookings();
+    }
+  }, [externalBookings]);
 
   const fetchBookings = async () => {
     try {
       const res = await djAPI.getAssignedBookings();
       if (res.ok && res.data?.data) {
         const sorted = res.data.data.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        setBookings(sorted);
+        setInternalBookings(sorted);
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      setInternalLoading(false);
     }
   };
+
+  const handleRefresh = () => {
+    if (onRefresh) onRefresh();
+    else fetchBookings();
+  };
+
+  const bookings = externalBookings || internalBookings;
+  const loading = loadingExternal !== undefined ? loadingExternal : internalLoading;
 
   if (loading) {
     return <div className="text-[#7C6A2E] animate-pulse">Loading job queue...</div>;
   }
 
   // Active jobs are those not completed/cancelled by overall status, and DJ Artist status is not Completed
-  let activeJobs = bookings.filter(b => 
+  let activeJobs = bookings.filter((b: any) => 
     b.status !== 'Completed' && 
     b.status !== 'Cancelled' && 
     b.status !== 'Rejected' &&
@@ -52,15 +68,15 @@ const JobQueue = () => {
   
   const currentPriority = activeJobs[0];
   const upcomingJobs = activeJobs.slice(1);
-  const completedJobs = bookings.filter(b => b.vendors?.dj?.status === 'Completed' || b.status === 'Completed');
+  const completedJobs = bookings.filter((b: any) => b.vendors?.dj?.status === 'Completed' || b.status === 'Completed');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-      <div className="lg:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="space-y-8">
         <div>
           <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">Current Priority</h3>
           {currentPriority ? (
-            <CurrentPriority booking={currentPriority} onRefresh={fetchBookings} />
+            <CurrentPriority booking={currentPriority} onRefresh={handleRefresh} />
           ) : (
             <div className="bg-white border border-[#E0D8C3] p-8 text-center text-gray-500 text-sm font-serif italic">
               No current priority jobs assigned.
@@ -72,11 +88,11 @@ const JobQueue = () => {
           <div>
             <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-3">Upcoming Jobs</h3>
             <div className="space-y-2">
-            {upcomingJobs.map((job) => (
+            {upcomingJobs.map((job: any) => (
               <UpcomingJobs 
                 key={job._id} 
                 booking={job} 
-                onRefresh={fetchBookings}
+                onRefresh={handleRefresh}
                 onMakePriority={setManualPriorityId}
               />
             ))}
@@ -89,7 +105,7 @@ const JobQueue = () => {
         <div>
           <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">Preparation Checklist</h3>
           {currentPriority ? (
-            <PreparationChecklist booking={currentPriority} onRefresh={fetchBookings} />
+            <PreparationChecklist booking={currentPriority} onRefresh={handleRefresh} />
           ) : (
              <div className="bg-white border border-[#E0D8C3] p-8 text-center text-gray-500 text-sm font-serif italic">
                No active checklists.

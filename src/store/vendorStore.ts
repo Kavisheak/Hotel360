@@ -197,10 +197,9 @@ export const useVendorStore = create<VendorState>((set, get) => ({
       const hasFlorist = fetchedData.some(v => v.category === "florists");
       if (!hasFlorist) fetchedData.push(...mockFlorists);
 
-      // Filter out hardcoded/Unsplash portfolios, keeping only Cloudinary (backend uploaded) portfolios
       const cleanedData = fetchedData.map(v => ({
         ...v,
-        portfolio: (v.portfolio || []).filter(url => url.includes("cloudinary"))
+        portfolio: v.portfolio || []
       }));
 
       set({ vendors: cleanedData, isLoading: false });

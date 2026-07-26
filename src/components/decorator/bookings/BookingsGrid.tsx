@@ -102,7 +102,9 @@ const BookingsGrid = ({ bookings, loading }: BookingsGridProps) => {
               const vendorStatus = booking.vendors?.decorator?.status || 'Pending';
               const displayStatus = vendorStatus === 'Pending' ? 'ACTION REQUIRED' : vendorStatus.toUpperCase();
               
+              const designImg = booking.vendors?.decorator?.requestedDesignId?.coverUrl || booking.vendors?.decorator?.requestedDesignId?.media?.[0]?.url;
               const imgUrl = getApiImageUrl(booking.vendors?.decorator?.completionPhotos?.[0]) || 
+                (designImg ? getApiImageUrl(designImg) : null) ||
                 (idx % 2 === 0 
                   ? 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80' 
                   : 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80');
@@ -157,9 +159,30 @@ const BookingsGrid = ({ bookings, loading }: BookingsGridProps) => {
                       </div>
 
                       {/* Quote box */}
-                      <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-4 line-clamp-2">
+                      <p className="text-xs font-serif italic text-gray-500 leading-relaxed border-l-2 border-[#E0D8C3] pl-3 py-0.5 mb-3 line-clamp-2">
                         “{booking.menuType} package. {booking.guests} guests expected.”
                       </p>
+
+                      {/* Client Requested Design */}
+                      {booking.vendors?.decorator?.requestedDesignId && (
+                        <div className="flex items-center gap-2 mb-4 bg-[#FFFBF0] p-2 rounded-md border border-[#E0D8C3]">
+                          {(booking.vendors.decorator.requestedDesignId.coverUrl || booking.vendors.decorator.requestedDesignId.media?.[0]?.url) && (
+                            <img
+                              src={getApiImageUrl(booking.vendors.decorator.requestedDesignId.coverUrl || booking.vendors.decorator.requestedDesignId.media[0].url)}
+                              alt="Design"
+                              className="w-10 h-10 object-cover rounded border border-[#E0D8C3] shrink-0"
+                            />
+                          )}
+                          <div className="overflow-hidden">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[#B08D2C] block">
+                              Client Design Pick
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 truncate block">
+                              {booking.vendors.decorator.requestedDesignId.title}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* View Details Button */}

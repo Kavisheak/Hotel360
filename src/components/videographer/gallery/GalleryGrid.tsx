@@ -5,6 +5,8 @@ import { Upload, Search, ChevronDown, Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { videographerAPI } from "@/lib/api";
+import AddPortfolioModal from "@/components/shared/AddPortfolioModal";
+import DeleteConfirmationModal from "@/components/shared/DeleteConfirmationModal";
 
 interface GalleryItem {
   id: string | number;
@@ -91,41 +93,58 @@ const GalleryGrid = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchPortfolio = async () => {
+    try {
+      const { ok, data } = await videographerAPI.getPortfolioItems();
+      if (ok && data.success) {
+        const items = data.data.map((item: any) => {
+          const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const imageUrl = coverMedia?.url 
+            ? (coverMedia.url.startsWith('http') ? coverMedia.url : `${apiBase}${coverMedia.url}`)
+            : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
+
+          return {
+            id: item._id,
+            title: item.title || "Untitled Project",
+            eventType: item.eventType || "Unknown",
+            category: item.category || "cinematography",
+            year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
+            image: imageUrl,
+            description: item.description || "A professionally captured project featuring cinematic storytelling.",
+            price: item.price || 0,
+          };
+        });
+        setGalleryData(items);
+      }
+    } catch (error) {
+      console.error("Failed to fetch portfolio:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPortfolio = async () => {
-      try {
-        const { ok, data } = await videographerAPI.getPortfolioItems();
-        if (ok && data.success) {
-          const items = data.data.map((item: any) => {
-            const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            const imageUrl = coverMedia?.url 
-              ? (coverMedia.url.startsWith('http') ? coverMedia.url : `${apiBase}${coverMedia.url}`)
-              : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
-
-            return {
-              id: item._id,
-              title: item.title || "Untitled Project",
-              eventType: item.eventType || "Unknown",
-              category: item.category || "cinematography",
-              year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
-              image: imageUrl,
-              description: item.description || "A professionally captured project featuring cinematic storytelling.",
-              price: item.price || 0,
-            };
-          });
-          setGalleryData(items);
-        }
-      } catch (error) {
-        console.error("Failed to fetch portfolio:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPortfolio();
   }, []);
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      await videographerAPI.deletePortfolioItem(itemToDelete);
+      fetchPortfolio();
+      setItemToDelete(null);
+    } catch (e) {
+      console.error("Failed to delete portfolio item:", e);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const filtered = galleryData.filter((item: any) => {
     const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
@@ -152,7 +171,7 @@ const GalleryGrid = () => {
         </div>
 
         <button
-          onClick={() => router.push('/videographer/gallery/new')}
+          onClick={() => setIsAddModalOpen(true)}
           className="flex items-center justify-center space-x-2 bg-[#B08D2C] hover:bg-[#9B7A20] text-white px-6 py-3 font-semibold text-xs tracking-widest transition-colors shadow-md shrink-0 self-start md:mt-2"
         >
           <Upload size={16} />
@@ -205,13 +224,33 @@ const GalleryGrid = () => {
             </div>
           ) : (
             filtered.map((item) => (
-              <Link 
-                href={`/videographer/gallery/${item.id}`}
+              <div
                 key={item.id}
-                className="flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
+                className="relative flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
               >
+                <Link href={`/videographer/gallery/${item.id}`} className="absolute inset-0 z-0" />
+                
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setItemToDelete(item.id as string);
+                  }}
+                  className="absolute top-4 right-4 z-20 bg-white/90 text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                  title="Delete Portfolio Item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+
                 {/* Image Container with Absolute Badge */}
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden z-10 pointer-events-none">
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
                     {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "CINEMATOGRAPHY"}
@@ -226,7 +265,7 @@ const GalleryGrid = () => {
                 </div>
 
                 {/* Card Details Panel */}
-                <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0]">
+                <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-[#FCFAED]/50 border-t border-[#F2EDE0] z-10 pointer-events-none">
                   <div>
                     {/* Title */}
                     <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-[#7C6A2E] transition-colors leading-tight">
@@ -262,7 +301,7 @@ const GalleryGrid = () => {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))
           )}
         </div>
@@ -274,6 +313,22 @@ const GalleryGrid = () => {
           LOAD MORE PROJECTS
         </button>
       </div>
+
+      <AddPortfolioModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        vendorType="videographer"
+        onSubmitSuccess={fetchPortfolio}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Portfolio Project"
+        message="Are you sure you want to delete this portfolio project? All associated media will be permanently removed. This action cannot be undone."
+      />
     </div>
   );
 };

@@ -8,6 +8,9 @@ import { VENUE_NAME, getClientFirstName } from "@/lib/vendorUtils";
 interface UpcomingEventListProps {
   searchTerm?: string;
   statusFilter?: string;
+  externalBookings?: any[];
+  loadingExternal?: boolean;
+  onRefresh?: () => void;
 }
 
 function statusClass(status: string = "") {
@@ -17,9 +20,9 @@ function statusClass(status: string = "") {
   return "bg-[#EAF0F6] text-[#3F6897] border-[#DCE6EE]";
 }
 
-const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEventListProps) => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBookings, loadingExternal, onRefresh }: UpcomingEventListProps) => {
+  const [internalEvents, setInternalEvents] = useState<any[]>([]);
+  const [internalLoading, setInternalLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [modalStatus, setModalStatus] = useState("");
@@ -29,35 +32,41 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEv
     try {
       const { ok, data } = await videographerAPI.getAssignedBookings();
       if (ok && data.success) {
-        const mapped = data.data
-          .filter((b: any) => {
-            const status = b.vendors?.videographer?.status;
-            const isFuture = new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0));
-            return status !== 'Declined' && status !== 'NotRequired' && isFuture;
-          })
-          .map((b: any) => ({
-            _id: b._id,
-            title: (`${b.eventType} for ${getClientFirstName(b)}`).toUpperCase(),
-            type: b.vendors?.videographer?.packageName || "Custom Package",
-            date: new Date(b.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
-            time: b.timeslot || "TBD",
-            venue: VENUE_NAME,
-            status: b.vendors?.videographer?.status || "Pending",
-            clientName: b.clientName,
-            eventType: b.eventType
-          }));
-        setEvents(mapped);
+        setInternalEvents(data.data);
       }
     } catch (error) {
       console.error("Error fetching upcoming events:", error);
     } finally {
-      setIsLoading(false);
+      setInternalLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUpcomingEvents();
-  }, []);
+    if (!externalBookings) {
+      fetchUpcomingEvents();
+    }
+  }, [externalBookings]);
+
+  const rawBookings = externalBookings || internalEvents;
+  const isLoading = loadingExternal !== undefined ? loadingExternal : internalLoading;
+
+  const events = rawBookings
+    .filter((b: any) => {
+      const status = b.vendors?.videographer?.status;
+      const isFuture = new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0));
+      return status !== 'Declined' && status !== 'NotRequired' && isFuture;
+    })
+    .map((b: any) => ({
+      _id: b._id,
+      title: (`${b.eventType} for ${getClientFirstName(b)}`).toUpperCase(),
+      type: b.vendors?.videographer?.packageName || "Custom Package",
+      date: new Date(b.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+      time: b.timeslot || "TBD",
+      venue: VENUE_NAME,
+      status: b.vendors?.videographer?.status || "Pending",
+      clientName: b.clientName,
+      eventType: b.eventType
+    }));
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
@@ -84,7 +93,8 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEv
       const res = await videographerAPI.updateBookingStatus(selectedEventId, modalStatus);
       if (res.ok) {
         setShowModal(false);
-        fetchUpcomingEvents();
+        if (onRefresh) onRefresh();
+        else fetchUpcomingEvents();
       } else {
         alert(res.data?.message || 'Failed to update status');
       }
@@ -96,7 +106,7 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All" }: UpcomingEv
   };
 
   return (
-    <article className="border border-[#E0D8C3] bg-white p-6 shadow-sm">
+    <article className="border border-[#E0D8C3] bg-white p-6 shadow-sm h-full">
       <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-[#7C6A2E]">
         Upcoming Shoots
       </h2>

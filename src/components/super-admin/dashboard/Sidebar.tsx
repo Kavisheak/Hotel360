@@ -59,7 +59,7 @@ const Sidebar = () => {
       console.error(e);
     } finally {
       clearUser();
-      window.location.replace('/login');
+      router.replace('/login');
     }
   };
 

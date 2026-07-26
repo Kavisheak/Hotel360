@@ -81,7 +81,7 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
                   a.status === 'Declined' ? 'bg-red-100 text-red-700' :
                   'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {a.status}
+                  {a.status === 'Awaiting Hall Confirmation' ? 'Awaiting Hall' : a.status}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#B08D2C] bg-[#FDF9F1] border border-[#E0D8C3] px-2 py-1 rounded-sm">
                   {a.packageName}

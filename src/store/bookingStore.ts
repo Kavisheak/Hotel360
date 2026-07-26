@@ -32,7 +32,8 @@ export interface Booking {
   durationHours: number;
   extraHours: number;
   guests: number;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected" | "CancellationRequested";
+  status: "Pending" | "Pending Confirmation" | "Pending Hall Confirmation" | "Confirmed" | "Completed" | "Cancelled" | "Rejected" | "CancellationRequested";
+  rejectionReason?: string;
   totalCost: number;
   depositAmount: number;
   balanceAmount: number;
@@ -45,17 +46,32 @@ export interface Booking {
   vendors: {
     decorator?: {
       vendorId: string | null;
-      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
       packageName: string;
     };
     dj?: {
       vendorId: string | null;
-      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
       packageName: string;
     };
     videographer?: {
       vendorId: string | null;
-      status: "Pending" | "Accepted" | "Declined" | "NotRequired";
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
+      packageName: string;
+    };
+    photographer?: {
+      vendorId: string | null;
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
+      packageName: string;
+    };
+    cake?: {
+      vendorId: string | null;
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
+      packageName: string;
+    };
+    florist?: {
+      vendorId: string | null;
+      status: "Awaiting Hall Confirmation" | "Pending" | "Accepted" | "Declined" | "Expired" | "NotRequired";
       packageName: string;
     };
     // Legacy fields for backward compatibility during transition
@@ -71,6 +87,9 @@ export interface Booking {
     decoratorCost: number;
     videographerCost: number;
     djCost: number;
+    photographerCost?: number;
+    cakeCost?: number;
+    floristCost?: number;
   };
   createdAt: string;
   feedback?: Feedback;
