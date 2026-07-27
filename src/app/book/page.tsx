@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import BookHero from "@/components/landing/book/BookHero";
@@ -14,7 +14,6 @@ import GuestCounter from "@/components/landing/book/GuestCounter";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
 import BookingHistory from "@/components/landing/book/BookingHistory";
 import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
-import BookingForm from "@/components/landing/book/BookingForm";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
@@ -23,6 +22,33 @@ import { useBookingStore } from "@/store/bookingStore";
 import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI } from "@/lib/api";
 
+function AnimatedPrice({ value, format }: { value: number; format: (val: number) => string }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  useEffect(() => {
+    let start = displayValue;
+    const end = value;
+    if (start === end) return;
+    const duration = 800; // ms
+    const startTime = performance.now();
+    let animationFrame: number;
+    
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = progress * (2 - progress);
+      const current = Math.round(start + (end - start) * ease);
+      setDisplayValue(current);
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return <span>{format(displayValue)}</span>;
+}
+
 export default function BookPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"new" | "history">("new");
@@ -30,7 +56,7 @@ export default function BookPage() {
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [startTime, setStartTime] = useState<string>("18:00");
   const [endTime, setEndTime] = useState<string>("23:00");
-  const [selectedPackage, setSelectedPackage] = useState<string>("gold");
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [eventType, setEventType] = useState<string>("Wedding");
   const [guestCount, setGuestCount] = useState<number>(380);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
@@ -45,6 +71,8 @@ export default function BookPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [alternativePhone, setAlternativePhone] = useState("");
+  const [notes, setNotes] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
   const [billingCity, setBillingCity] = useState("");
   const [billingPostalCode, setBillingPostalCode] = useState("");
@@ -53,8 +81,18 @@ export default function BookPage() {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [walletId, setWalletId] = useState("");
+  const [vishwaUser, setVishwaUser] = useState("");
+  const [vishwaAccount, setVishwaAccount] = useState("");
+  const [kokoPhone, setKokoPhone] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successBookingRef, setSuccessBookingRef] = useState("");
+  const [successAdvancePaid, setSuccessAdvancePaid] = useState(0);
+  const [successRemainingBalance, setSuccessRemainingBalance] = useState(0);
+  const [successBookingId, setSuccessBookingId] = useState("");
+  const [paymentPendingNotice, setPaymentPendingNotice] = useState<{ bookingId: string } | null>(null);
 
   // Validation errors
   const [errors, setErrors] = useState<{
@@ -70,6 +108,18 @@ export default function BookPage() {
     cardExpiry?: string;
     cardCvc?: string;
   }>({});
+
+  const [glowHall, setGlowHall] = useState(false);
+  const [glowPackage, setGlowPackage] = useState(false);
+  const [glowDecorator, setGlowDecorator] = useState(false);
+  const [glowPhotographer, setGlowPhotographer] = useState(false);
+  const [glowDj, setGlowDj] = useState(false);
+  const [glowVideographer, setGlowVideographer] = useState(false);
+  const [glowCake, setGlowCake] = useState(false);
+  const [glowFlorist, setGlowFlorist] = useState(false);
+  const [glowGuests, setGlowGuests] = useState(false);
+  const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
+  const [mobileOpenAccordion, setMobileOpenAccordion] = useState<string | null>(null);
 
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
@@ -192,10 +242,79 @@ export default function BookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (selectedDate !== 0) {
+      setGlowHall(true);
+      const timer = setTimeout(() => setGlowHall(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    setGlowPackage(true);
+    const timer = setTimeout(() => setGlowPackage(false), 1200);
+    return () => clearTimeout(timer);
+  }, [selectedPackage]);
+
+  useEffect(() => {
+    if (vendors.decorator && vendors.decorator !== "none") {
+      setGlowDecorator(true);
+      const timer = setTimeout(() => setGlowDecorator(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.decorator]);
+
+  useEffect(() => {
+    if (vendors.photographer && vendors.photographer !== "none") {
+      setGlowPhotographer(true);
+      const timer = setTimeout(() => setGlowPhotographer(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.photographer]);
+
+  useEffect(() => {
+    if (vendors.dj && vendors.dj !== "none") {
+      setGlowDj(true);
+      const timer = setTimeout(() => setGlowDj(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.dj]);
+
+  useEffect(() => {
+    if (vendors.videographer && vendors.videographer !== "none") {
+      setGlowVideographer(true);
+      const timer = setTimeout(() => setGlowVideographer(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.videographer]);
+
+  useEffect(() => {
+    if (vendors.cake && vendors.cake !== "none") {
+      setGlowCake(true);
+      const timer = setTimeout(() => setGlowCake(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.cake]);
+
+  useEffect(() => {
+    if (vendors.florist && vendors.florist !== "none") {
+      setGlowFlorist(true);
+      const timer = setTimeout(() => setGlowFlorist(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.florist]);
+
+  useEffect(() => {
+    setGlowGuests(true);
+    const timer = setTimeout(() => setGlowGuests(false), 1200);
+    return () => clearTimeout(timer);
+  }, [guestCount]);
+
   const getBasePrice = () => {
     if (selectedPackage === "silver") return 1800000;
+    if (selectedPackage === "gold") return 3400000;
     if (selectedPackage === "diamond") return 5000000;
-    return 3400000;
+    return 0;
   };
 
   const addBooking = useBookingStore((state) => state.addBooking);
@@ -235,6 +354,15 @@ export default function BookPage() {
     if (!v) return 0;
     const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
     return numericStr ? parseInt(numericStr, 10) : 0;
+  };
+
+  const formatTimeStr = (t: string) => {
+    if (!t) return "";
+    const [h, m] = t.split(":");
+    const hr = parseInt(h);
+    const suffix = hr >= 12 ? "PM" : "AM";
+    const displayHr = hr % 12 || 12;
+    return `${displayHr}:${m} ${suffix}`;
   };
 
   const calculateDuration = () => {
@@ -366,11 +494,16 @@ export default function BookPage() {
   }, [holdExpiresAt, selectedDate]);
 
   const handleHoldExpired = async () => {
-    alert("Your 10-minute event hold has expired. The date has been released. Returning to Step 1.");
+    alert("Your 10-minute event hold has expired and the date has been released. Your package, vendor choices, and guest details have been preserved — please pick a new date to re-reserve!");
     if (selectedDate) {
       const dateString = new Date(selectedDate).toISOString();
-      await customerBookingAPI.releaseHold({ date: dateString });
+      try {
+        await customerBookingAPI.releaseHold({ date: dateString });
+      } catch (e) {}
     }
+    setSelectedDate(0);
+    setHoldExpiresAt(null);
+    setTimeLeft(0);
     setCurrentStep(1);
   };
 
@@ -379,33 +512,69 @@ export default function BookPage() {
       alert("Please accept the terms and conditions.");
       return;
     }
+    // Pre-checkout validation: re-check hold expiration immediately before initiating payment
+    if (holdExpiresAt && Date.now() >= holdExpiresAt) {
+      alert("Your temporary event date hold has expired. The reservation date has been released. Returning to Step 1 to select a date.");
+      handleHoldExpired();
+      return;
+    }
     setIsProcessing(true);
     const bookingResult = await handleFinalizeBooking({
       firstName,
       lastName,
       email,
       phone,
+      alternativePhone,
+      notes,
       paymentMethod,
     });
     
     if (typeof bookingResult === "string") {
-      // Launch official PayHere Checkout Modal for 30% Advance Deposit
+      // Hand off entirely to PayHere's official Hosted Checkout Modal
       const { startPayHerePayment } = await import("@/utils/payhere");
       await startPayHerePayment({
         bookingId: bookingResult,
         paymentType: "deposit",
         onSuccess: () => {
-          setIsProcessing(false);
-          setShowSuccessModal(true);
+          // Fetch the completed booking details to display on the success screen
+          customerBookingAPI.getMyBookings().then(res => {
+            if (res.ok && res.data?.data) {
+              const matched = res.data.data.find((b: any) => (b._id || b.id) === bookingResult);
+              if (matched) {
+                setSuccessBookingRef(matched.bookingRef);
+                setSuccessAdvancePaid(matched.depositAmount);
+                const due = Math.max(0, matched.totalCost - matched.depositAmount - matched.balanceAmount - (matched.bookingCredit || 0));
+                setSuccessRemainingBalance(due);
+                setSuccessBookingId(matched._id || matched.id);
+                setIsProcessing(false);
+                return;
+              }
+            }
+            // Fallback
+            setSuccessBookingRef(`LG-${new Date().getFullYear()}-${bookingResult.slice(-4).toUpperCase()}`);
+            setSuccessAdvancePaid(depositToday);
+            setSuccessRemainingBalance(balanceDue);
+            setSuccessBookingId(bookingResult);
+            setIsProcessing(false);
+          }).catch(() => {
+            setSuccessBookingRef(`LG-${new Date().getFullYear()}-${bookingResult.slice(-4).toUpperCase()}`);
+            setSuccessAdvancePaid(depositToday);
+            setSuccessRemainingBalance(balanceDue);
+            setSuccessBookingId(bookingResult);
+            setIsProcessing(false);
+          });
         },
         onDismiss: () => {
           setIsProcessing(false);
-          alert("Payment window closed. Your event reservation is saved! You can complete your 30% advance deposit anytime from your My Account -> Bookings dashboard.");
-          router.push("/customer/myaccount");
+          if (bookingResult) {
+            setPaymentPendingNotice({ bookingId: bookingResult });
+          }
         },
         onError: () => {
           setIsProcessing(false);
-          router.push("/customer/myaccount");
+          if (bookingResult) {
+            setPaymentPendingNotice({ bookingId: bookingResult });
+          }
         }
       });
     } else if (bookingResult) {
@@ -416,7 +585,7 @@ export default function BookPage() {
     }
   };
 
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 5;
 
   const handleNext = async () => {
     if (isGuest) {
@@ -446,8 +615,13 @@ export default function BookPage() {
       }
     }
 
-    if (currentStep === 2) {
-      // Validate Step 2 Form
+    if (currentStep === 2 && !selectedPackage) {
+      alert("Please select a venue package before proceeding to the next step.");
+      return;
+    }
+
+    if (currentStep === 4) {
+      // Validate Contact & Billing Form
       setErrors({});
       let hasError = false;
       const newErrors: typeof errors = {};
@@ -497,40 +671,117 @@ export default function BookPage() {
       return;
     }
     if (step < currentStep) {
-      if ((currentStep === 2 || currentStep === 3) && step === 1) {
-        setHoldExpiresAt(null);
-        setTimeLeft(0);
-        if (selectedDate) {
-          const dateString = new Date(selectedDate).toISOString();
-          await customerBookingAPI.releaseHold({ date: dateString }).catch(console.error);
-        }
-      }
       setCurrentStep(step);
     }
   };
 
   const handleBack = async () => {
-    if (currentStep === 2) {
-      setHoldExpiresAt(null);
-      setTimeLeft(0);
-      try {
-        const dateString = new Date(selectedDate).toISOString();
-        await customerBookingAPI.releaseHold({ date: dateString });
-      } catch (e) {
-        console.error("Failed to release hold on back navigation:", e);
-      }
-    }
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleDownloadReceipt = () => {
+    const receiptWindow = window.open("", "_blank");
+    if (receiptWindow) {
+      receiptWindow.document.write(`
+        <html>
+          <head>
+            <title>EASCCA Conference Centre - Receipt</title>
+            <style>
+              body { font-family: 'Georgia', serif; padding: 40px; color: #1a1512; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+              .header { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 20px; margin-bottom: 30px; }
+              .title { font-size: 24px; font-weight: bold; color: #805d3a; margin: 0; }
+              .meta { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px; }
+              .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              .details-table th, .details-table td { border-bottom: 1px solid #e8dfc9; padding: 12px; text-align: left; }
+              .details-table th { background: #faf6ee; color: #805d3a; font-size: 12px; text-transform: uppercase; }
+              .total-box { background: #faf6ee; border: 1px solid #c9a84c; padding: 20px; margin-top: 20px; text-align: right; }
+              .status-badge { display: inline-block; padding: 4px 12px; background: #d1fae5; color: #065f46; font-size: 12px; font-weight: bold; border-radius: 4px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="title">EASCCA CONFERENCE CENTRE</div>
+              <p style="margin: 5px 0 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #805d3a;">Official Advance Payment Receipt</p>
+            </div>
+            <div class="meta">
+              <div>
+                <strong>Booking Reference:</strong> ${successBookingRef}<br/>
+                <strong>Date:</strong> ${new Date().toLocaleDateString()}<br/>
+                <strong>Client Name:</strong> ${firstName} ${lastName}
+              </div>
+              <div style="text-align: right;">
+                <strong>Event Date:</strong> ${selectedDate ? new Date(selectedDate).toLocaleDateString() : ""}<br/>
+                <strong>Payment Gateway:</strong> PayHere 🇱🇰<br/>
+                <span class="status-badge">PAID</span>
+              </div>
+            </div>
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${eventType} Hall Rental (${selectedPackage.toUpperCase()} Package)</td>
+                  <td style="text-align:right;">${formatCurrency(basePrice)}</td>
+                </tr>
+                ${addonsCost > 0 ? `
+                <tr>
+                  <td>Selected Artisans & Add-ons</td>
+                  <td style="text-align:right;">${formatCurrency(addonsCost)}</td>
+                </tr>
+                ` : ""}
+                ${extraHoursPremium > 0 ? `
+                <tr>
+                  <td>Extra Hours Premium (${durationHours - 6} hrs)</td>
+                  <td style="text-align:right;">${formatCurrency(extraHoursPremium)}</td>
+                </tr>
+                ` : ""}
+                <tr>
+                  <td>Taxes & Fees (8%)</td>
+                  <td style="text-align:right;">${formatCurrency(taxes)}</td>
+                </tr>
+                <tr style="font-weight:bold;">
+                  <td>Total Estimated Cost</td>
+                  <td style="text-align:right;">${formatCurrency(bookingTotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="total-box">
+              <p style="margin:0 0 5px 0; font-size:12px; color:gray; text-transform:uppercase;">Advance Deposit Paid (30%)</p>
+              <h3 style="margin:0 0 10px 0; color:#805d3a; font-size:24px;">${formatCurrency(successAdvancePaid)}</h3>
+              <p style="margin:0; font-size:12px;">Remaining Balance: <strong>${formatCurrency(successRemainingBalance)}</strong></p>
+            </div>
+            <p style="text-align:center; font-size:10px; color:gray; margin-top:50px;">Thank you for reserving with EASCCA. This is a computer-generated official receipt.</p>
+          </body>
+        </html>
+      `);
+      receiptWindow.document.close();
+    }
+  };
+
   const STEP_LABELS: Record<number, string> = {
-    1: "Event & Vendors",
-    2: "Guest & Payment",
-    3: "Confirmation",
+    1: "Date & Guests",
+    2: "Venue Package",
+    3: "Select Artisans",
+    4: "Billing Details",
+    5: "Final Review",
   };
 
   return (
     <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes goldGlow {
+          0% { box-shadow: 0 0 0 0 rgba(198, 156, 109, 0.4); border-color: #c69c6d; }
+          50% { box-shadow: 0 0 15px 5px rgba(198, 156, 109, 0.6); border-color: #c69c6d; transform: scale(1.02); }
+          100% { box-shadow: 0 0 0 0 rgba(198, 156, 109, 0); border-color: #e8dfc9; }
+        }
+        .animate-gold-glow {
+          animation: goldGlow 1.2s ease-out;
+        }
+      `}} />
       <MainNavbar />
 
       <main className="flex-grow">
@@ -539,10 +790,10 @@ export default function BookPage() {
         <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
 
           {/* Left Column: Booking Form Steps */}
-          <div className={`${activeTab === "history" ? "lg:col-span-12" : "lg:col-span-8"} space-y-12 transition-all duration-500`}>
+          <div className={`${activeTab === "history" || successBookingRef ? "lg:col-span-12" : "lg:col-span-8"} space-y-12 transition-all duration-500`}>
 
             {/* Tab Switcher */}
-            {!isGuest && (
+            {!isGuest && !successBookingRef && (
               <div className="flex border-b border-[#E8DFC9] dark:border-gray-800 mb-8 overflow-x-auto hide-scrollbar">
                 <button
                   onClick={() => setActiveTab("new")}
@@ -561,7 +812,50 @@ export default function BookPage() {
               </div>
             )}
 
-            {activeTab === "history" ? (
+            {successBookingRef ? (
+              <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-8 rounded-sm text-center shadow-[0_0_30px_rgba(128,93,58,0.05)] space-y-6 max-w-xl mx-auto my-8">
+                <div className="w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <span className="text-3xl text-emerald-600 dark:text-emerald-500">✓</span>
+                </div>
+                
+                <h2 className="text-2xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C] tracking-wide">
+                  Advance Payment Successful
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your 30% advance deposit payment has been received and verified. Your event date is officially secured.
+                </p>
+
+                <div className="bg-[#FAF6EE] dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800/80 p-5 rounded-md space-y-3.5 text-sm text-left max-w-sm mx-auto font-mono">
+                  <div className="flex justify-between border-b border-[#E8DFC9]/50 dark:border-zinc-800/50 pb-2">
+                    <span className="text-gray-500">Booking Reference</span>
+                    <span className="font-bold text-gray-850 dark:text-white">{successBookingRef}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#E8DFC9]/50 dark:border-zinc-800/50 pb-2">
+                    <span className="text-gray-500">Advance Paid</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(successAdvancePaid)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Remaining Balance</span>
+                    <span className="font-bold text-gray-850 dark:text-white">{formatCurrency(successRemainingBalance)}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center">
+                  <button 
+                    onClick={() => router.push("/customer/myaccount?tab=bookings")}
+                    className="px-6 py-3 bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm shadow-sm"
+                  >
+                    View Booking
+                  </button>
+                  <button 
+                    onClick={handleDownloadReceipt}
+                    className="px-6 py-3 border border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm"
+                  >
+                    Download Receipt
+                  </button>
+                </div>
+              </div>
+            ) : activeTab === "history" ? (
               <BookingHistory />
             ) : (
               <>
@@ -578,7 +872,7 @@ export default function BookPage() {
                 {/* Stepper Indicator */}
                 <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
                   <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2" />
-                  {[1, 2, 3].map((step) => (
+                  {[1, 2, 3, 4, 5].map((step) => (
                     <div
                       key={step}
                       onClick={() => handleStepClick(step)}
@@ -608,7 +902,7 @@ export default function BookPage() {
                   ))}
                 </div>                
 
-                {/* Step 1: Event & Vendors */}
+                {/* Step 1: Date & Guests */}
                 {currentStep === 1 && (
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
@@ -640,27 +934,52 @@ export default function BookPage() {
                       }}
                     />
                     <div className="h-px bg-[#D4C9A8] dark:bg-gray-800 w-full" />
-                    <BookingVendorSelector vendors={vendors} onChange={setVendors} />
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
+                      <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
+                        Guest Count
+                      </h3>
+                      <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
+                    </div>
                   </div>
                 )}
 
-                {/* Step 2: Guest & Payment */}
+                {/* Step 2: Venue Package Selection */}
                 {currentStep === 2 && (
                   <div className="space-y-8 animate-fadeIn">
-                    {/* Package & Guest Selection */}
-                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-8">
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
                       <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
-                        Package & Guests Selection
+                        Venue Package Selection
                       </h3>
+                      <p className="text-xs text-gray-500">
+                        Based on your guest count of <strong>{guestCount}</strong>, we recommend the <strong>{guestCount <= 250 ? "Silver" : guestCount <= 450 ? "Gold" : "Diamond"}</strong> package.
+                      </p>
                       <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
-                      <div className="h-px bg-[#D4C9A8] dark:bg-gray-800 w-full" />
-                      <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
                     </div>
+                  </div>
+                )}
 
+                {/* Step 3: Select Artisans */}
+                {currentStep === 3 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
+                      <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
+                        Select Artisans & Vendors
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                        Add curated third-party vendor services to complete your event. You can also proceed without selecting them if you have alternative arrangements.
+                      </p>
+                      <BookingVendorSelector vendors={vendors} onChange={setVendors} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Billing Details */}
+                {currentStep === 4 && (
+                  <div className="space-y-8 animate-fadeIn">
                     {/* Customer Information */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
                       <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
-                        Customer information
+                        Customer Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -722,12 +1041,34 @@ export default function BookPage() {
                           {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
                         </div>
                       </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Alternative Phone (Optional)</label>
+                          <input
+                            type="tel"
+                            placeholder="0779876543"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={alternativePhone}
+                            onChange={(e) => setAlternativePhone(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Special Requests / Notes</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. wheelchair access, specific theme color"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Billing Details */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
                       <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
-                        Billing details
+                        Billing Details
                       </h3>
                       <div>
                         <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Address</label>
@@ -748,7 +1089,7 @@ export default function BookPage() {
                           <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">City</label>
                           <input
                             type="text"
-                            placeholder="Paris"
+                            placeholder="Colombo"
                             className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
                             value={billingCity}
                             onChange={(e) => {
@@ -762,7 +1103,7 @@ export default function BookPage() {
                           <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Postal code</label>
                           <input
                             type="text"
-                            placeholder="75001"
+                            placeholder="00100"
                             className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
                             value={billingPostalCode}
                             onChange={(e) => {
@@ -777,7 +1118,7 @@ export default function BookPage() {
                         <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Country</label>
                         <input
                           type="text"
-                          placeholder="France"
+                          placeholder="Sri Lanka"
                           className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
                           value={billingCountry}
                           onChange={(e) => {
@@ -788,72 +1129,11 @@ export default function BookPage() {
                         {errors.billingCountry && <p className="text-red-500 text-[10px] mt-1">{errors.billingCountry}</p>}
                       </div>
                     </div>
-
-                    {/* Advance Payment — Professional PayHere Gateway Style */}
-                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
-                      <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4">
-                        <div>
-                          <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white flex items-center gap-2">
-                            Advance Payment — 30% Deposit
-                          </h3>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Powered by PayHere Gateway 🇱🇰 (Approved by Central Bank of Sri Lanka)
-                          </p>
-                        </div>
-                        <div className="px-3 py-1 bg-[#C9A84C]/15 border border-[#C9A84C]/30 rounded text-[#C9A84C] font-mono font-bold text-sm">
-                          {formatCurrency(depositToday)}
-                        </div>
-                      </div>
-
-                      {/* Payment Method Selector Badges */}
-                      <div className="space-y-3">
-                        <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold">
-                          Select Gateway Payment Option
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {[
-                            { id: "Visa", label: "Visa / MC / Amex", icon: "💳", desc: "Cards & Debit" },
-                            { id: "MasterCard", label: "Frimi / Genie", icon: "📱", desc: "Mobile Apps" },
-                            { id: "PayPal", label: "Sampath Vishwa", icon: "🏛️", desc: "Internet Bank" },
-                            { id: "Stripe", label: "Koko Pay", icon: "🛍️", desc: "3 Instalments" },
-                          ].map((option) => (
-                            <div
-                              key={option.id}
-                              onClick={() => setPaymentMethod(option.id as any)}
-                              className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${
-                                paymentMethod === option.id
-                                  ? "bg-[#FAF6EE] dark:bg-amber-950/20 border-[#C9A84C] shadow-sm ring-1 ring-[#C9A84C]/50"
-                                  : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/40"
-                              }`}
-                            >
-                              <div className="text-lg mb-1">{option.icon}</div>
-                              <div className="text-xs font-bold text-gray-900 dark:text-white">{option.label}</div>
-                              <div className="text-[10px] text-gray-500">{option.desc}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* PayHere Security Guarantee Banner */}
-                      <div className="bg-[#FAF6EE]/50 dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800 p-4 rounded-lg flex items-start gap-3.5">
-                        <div className="w-8 h-8 rounded-full bg-[#C9A84C]/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="text-base">🔒</span>
-                        </div>
-                        <div className="text-xs space-y-1 text-gray-600 dark:text-gray-300">
-                          <p className="font-semibold text-gray-900 dark:text-white">
-                            256-Bit Encrypted Gateway Redirect
-                          </p>
-                          <p className="leading-relaxed text-[11px]">
-                            To guarantee PCI-DSS bank-grade security, you do not enter card numbers or bank credentials on our website. Upon clicking <strong>Confirm &amp; Pay Advance</strong> on the final step, the official <strong>PayHere Checkout Modal</strong> will open securely to process your 30% advance of <strong>{formatCurrency(depositToday)}</strong>.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
-                {/* Step 3: Confirmation */}
-                {currentStep === 3 && (
+                {/* Step 5: Review & Final Confirmation */}
+                {currentStep === 5 && (
                   <div className="space-y-8 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
                       <h3 className="text-xl font-serif text-[#1A1512] dark:text-white pb-3 border-b border-[#E8DFC9]/40 dark:border-gray-800">
@@ -906,7 +1186,7 @@ export default function BookPage() {
                       <div className="space-y-3">
                         <h4 className="font-bold text-[#805D3A] dark:text-[#C9A84C] uppercase tracking-wider text-[11px]">Selected Artisans</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                          {([ "decorator", "dj", "videographer"] as const).map((cat) => {
+                          {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
                             const id = vendors[cat];
                             const isNone = !id || id === "none";
                             const v = globalVendors.find((v: Vendor) => v.id === id || (v as any)._id === id);
@@ -923,6 +1203,21 @@ export default function BookPage() {
                       </div>
 
                       <div className="h-px bg-[#E8DFC9] dark:bg-gray-800 w-full" />
+
+                      {/* PayHere Security & PCI-DSS Guarantee Banner */}
+                      <div className="bg-[#FAF6EE]/50 dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800 p-4 rounded-lg flex items-start gap-3.5">
+                        <div className="w-8 h-8 rounded-full bg-[#C9A84C]/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-base">🔒</span>
+                        </div>
+                        <div className="text-xs space-y-1 text-gray-600 dark:text-gray-300">
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            PayHere Secure Hosted Checkout
+                          </p>
+                          <p className="leading-relaxed text-[11px]">
+                            Upon clicking <strong>Confirm &amp; Proceed to Payment</strong>, you will be securely redirected to the official <strong>PayHere Hosted Checkout Page</strong> to process your 30% advance of <strong>{formatCurrency(depositToday)}</strong>. No card information, bank credentials, or OTP details are entered or stored on our servers.
+                          </p>
+                        </div>
+                      </div>
 
                       {/* Cancellation Policy */}
                       <div className="p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
@@ -952,70 +1247,6 @@ export default function BookPage() {
                         </label>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Step 4: Checkout */}
-                {currentStep === 4 && (
-                  <div className="space-y-6 animate-fadeIn">
-                    <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
-                      <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Statement</h3>
-                      <div className="space-y-4">
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Event Date:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">
-                            {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Timeslot & Duration:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">{startTime} - {endTime} ({durationHours} hours)</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Total Guests:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white">{guestCount} Guests</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Venue Package:</span>
-                          <span className="font-bold text-[#1A1512] dark:text-white capitalize">{selectedPackage} Package</span>
-                        </div>
-                        <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                          <span className="text-gray-500">Selected Artisans:</span>
-                          <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1">
-                            <p>Decorator: {vendors.decorator !== "none" ? "Selected" : "None"}</p>
-                            <p>DJ Artist: {vendors.dj !== "none" ? "Selected" : "None"}</p>
-                            <p>Videographer: {vendors.videographer !== "none" ? "Selected" : "None"}</p>
-                            <p>Photographer: {vendors.photographer !== "none" ? "Selected" : "None"}</p>
-                            <p>Florist: {vendors.florist !== "none" ? "Selected" : "None"}</p>
-                            <p>Cake: {vendors.cake !== "none" ? "Selected" : "None"}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-8 p-4 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-white/10 rounded-sm">
-                        <h4 className="text-xs uppercase tracking-widest font-bold text-[#A6955C] mb-2">Cancellation Cutoff Policy</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed space-y-1">
-                          • **More than 30 days before event:** Free cancellation directly from your dashboard.<br/>
-                          • **Between 14 and 30 days before event:** Cancellation requires Manager review and approval.<br/>
-                          • **Less than 14 days before event:** Cancellation is no longer possible through the portal. Please contact the hotel directly.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-4">
-                        <input 
-                          type="checkbox" 
-                          id="termsAgree" 
-                          checked={termsAccepted}
-                          onChange={(e) => setTermsAccepted(e.target.checked)}
-                          className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
-                        />
-                        <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
-                          I have reviewed and agree to the EASCC Cancellation Policy and Event Booking Terms.
-                        </label>
-                      </div>
-                    </div>
-
-                    <BookingForm selectedDate={selectedDate} onSubmitBooking={handleFinalizeBooking} />
                   </div>
                 )}
 
@@ -1059,75 +1290,354 @@ export default function BookPage() {
           </div>
 
           {/* Right Column: Sticky Cost Breakdown / Booking Summary */}
-          {activeTab === "new" && (
-            <div className="lg:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
-              <div className="bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm shadow-[0_0_20px_rgba(128,93,58,0.05)] dark:shadow-[0_0_20px_rgba(201,168,76,0.05)] space-y-6">
-                <h3 className="text-lg font-serif font-semibold text-gray-900 dark:text-white">Booking summary</h3>
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Updates live as you choose</p>
-
-                <div className="space-y-4">
-                  {/* Package details */}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">
-                      🏢 {selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : "Grand Gold Celebration"}
-                    </span>
-                    <span className="font-bold">{formatCurrency(basePrice)}</span>
-                  </div>
-
-                  {/* Vendor additions */}
-                  {addonsCost > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">✨ Selected Artisans</span>
-                      <span className="font-bold">{formatCurrency(addonsCost)}</span>
+          {activeTab === "new" && !successBookingRef && (
+            <>
+              {/* Desktop Sticky Live Event Summary */}
+              <div className="hidden md:block md:col-span-4 space-y-6 sticky top-24 section-reveal stagger-2">
+                <div className="bg-white dark:bg-[#111111] p-6 border-2 border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-[20px] shadow-[0_4px_30px_rgba(0,0,0,0.05)] space-y-6">
+                  {/* Event Progress */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      <span>Live Event Summary</span>
+                      <span>Step {currentStep} of {TOTAL_STEPS}</span>
                     </div>
-                  )}
-
-                  {/* Extra duration */}
-                  {extraHoursPremium > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">⏳ Extra Hours Premium</span>
-                      <span className="font-bold">{formatCurrency(extraHoursPremium)}</span>
+                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#C69C6D] transition-all duration-500" 
+                        style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
+                      />
                     </div>
-                  )}
-
-                  {/* Guest count display */}
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">👥 Guests</span>
-                    <span className="font-bold">{guestCount} Guests</span>
                   </div>
 
-                  {/* Subtotal */}
-                  <div className="flex justify-between text-sm pt-2">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span className="font-bold">{formatCurrency(grandTotal)}</span>
-                  </div>
+                  <div className="h-px bg-[#E8DFC9] dark:bg-gray-800/80" />
 
-                  {/* Taxes and fees */}
-                  <div className="flex justify-between text-sm pb-3">
-                    <span className="text-gray-500">Taxes & fees</span>
-                    <span className="font-bold">{formatCurrency(taxes)}</span>
-                  </div>
 
-                  {/* Total */}
-                  <div className="flex justify-between text-sm font-bold border-t border-gray-100 dark:border-gray-800 pt-3">
-                    <span className="text-gray-900 dark:text-white">Total</span>
-                    <span className="text-[#C69C6D] text-base">{formatCurrency(bookingTotal)}</span>
-                  </div>
-
-                  {/* 30% Deposit Box */}
-                  <div className="bg-[#FAF6EE] dark:bg-white/5 p-4 rounded-sm border border-[#E8DFC9]/50 dark:border-white/10 space-y-2">
-                    <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">30% deposit today</div>
-                    <div className="text-2xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">
-                      {formatCurrency(depositToday)}
+                  {/* Package Section */}
+                  <div className={`p-4 rounded-xl border transition-all duration-300 ${
+                    selectedPackage 
+                      ? `bg-[#FAF6EE]/40 dark:bg-amber-950/5 border-[#C69C6D]/40 ${glowPackage ? 'animate-gold-glow' : ''}` 
+                      : 'bg-gray-50/50 dark:bg-zinc-900/40 border-gray-100 dark:border-zinc-800'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <Gift className="w-4 h-4 text-[#C69C6D]" />
+                        <div>
+                          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold font-sans">Package</p>
+                          <p className={`text-xs font-bold ${selectedPackage ? 'text-[#1A1512] dark:text-white capitalize' : 'text-gray-400'}`}>
+                            {selectedPackage === "silver" ? "Classic Silver Package" : selectedPackage === "diamond" ? "Luxury Diamond Gala" : selectedPackage === "gold" ? "Grand Gold Celebration" : "Choose Package"}
+                          </p>
+                        </div>
+                      </div>
+                      {selectedPackage ? (
+                        <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-350 rounded">
+                          ✓ Selected
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleStepClick(2)}
+                          className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 border border-dashed border-[#C69C6D] text-[#C69C6D] hover:bg-[#FAF6EE] rounded"
+                        >
+                          + Select
+                        </button>
+                      )}
                     </div>
-                    <div className="text-[10px] text-gray-500 leading-normal">
-                      Balance {formatCurrency(balanceDue)} due 30 days before event.
+                  </div>
+
+                  {/* Vendors Section */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold font-sans">Selected Artisans</p>
+                    <div className="space-y-2">
+                      {([
+                        { id: "decorator", label: "Decorator", icon: "🌸", glow: glowDecorator },
+                        { id: "videographer", label: "Videographer", icon: "📹", glow: glowVideographer },
+                        { id: "dj", label: "DJ Artist", icon: "🎧", glow: glowDj }
+                      ] as const).map((cat) => {
+                        const vendorId = vendors[cat.id];
+                        const isSelected = vendorId && vendorId !== "none";
+                        const vObj = globalVendors.find(v => v.id === vendorId || (v as any)._id === vendorId);
+                        
+                        if (isSelected) {
+                          return (
+                            <div key={cat.id} className={`p-3 bg-[#FAFBF7] dark:bg-zinc-900/30 border border-[#E8DFC9] dark:border-zinc-800/80 rounded-xl flex items-center justify-between transition-all duration-350 ${cat.glow ? 'animate-gold-glow' : ''}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">{cat.icon}</span>
+                                <div>
+                                  <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">{cat.label}</p>
+                                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200">
+                                    {vObj ? vObj.name : "Custom Selected"}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="text-[8px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                Selected
+                              </span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <button
+                              key={cat.id}
+                              onClick={() => handleStepClick(3)}
+                              className="w-full border border-dashed border-[#C69C6D]/45 text-[#C69C6D] hover:bg-[#FAF6EE] dark:hover:bg-[#C69C6D]/5 py-2.5 rounded-xl text-[10px] tracking-wider uppercase font-bold text-center transition-all duration-200"
+                            >
+                              + Add {cat.label}
+                            </button>
+                          );
+                        }
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-[#E8DFC9] dark:bg-gray-800/80" />
+
+                  {/* Event Details */}
+                  <div className="space-y-2 bg-[#FAF6EE]/20 dark:bg-zinc-900/20 p-4 border border-[#E8DFC9]/40 dark:border-zinc-800/60 rounded-xl text-xs space-y-3">
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                      <Calendar className="w-3.5 h-3.5 text-[#C69C6D]" />
+                      <span>
+                        <strong>Date:</strong> {selectedDate ? new Date(selectedDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : <span className="text-gray-400 font-normal">Not selected</span>}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                      <Clock className="w-3.5 h-3.5 text-[#C69C6D]" />
+                      <span>
+                        <strong>Time:</strong> {formatTimeStr(startTime)} – {formatTimeStr(endTime)} ({durationHours} hrs)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                      <Users className="w-3.5 h-3.5 text-[#C69C6D]" />
+                      <span>
+                        <strong>Guests:</strong> {guestCount} Guests
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cost Summary */}
+                  <div className="space-y-3 text-xs">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold font-sans">Cost breakdown</p>
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Hall Hold & Time Slot</span>
+                        <span className="font-medium">{formatCurrency(extraHoursPremium + timeslotPremium)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Package {selectedPackage ? `(${selectedPackage.toUpperCase()})` : "(Not Selected)"}</span>
+                        <span className="font-medium">{formatCurrency(basePrice)}</span>
+                      </div>
+                      {addonsCost > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Selected Artisans</span>
+                          <span className="font-medium">{formatCurrency(addonsCost)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Taxes & Fees (8%)</span>
+                        <span className="font-medium">{formatCurrency(taxes)}</span>
+                      </div>
+                      
+                      <div className="p-3.5 bg-[#FAF6EE] dark:bg-amber-950/20 border border-[#C69C6D]/40 rounded-xl flex justify-between items-center text-sm font-bold mt-2">
+                        <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Total</span>
+                        <span className="text-[#C69C6D] text-base">
+                          <AnimatedPrice value={bookingTotal} format={formatCurrency} />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deposit Today */}
+                  <div className="bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 border border-[#E8DFC9] dark:border-zinc-800 rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">30% Advance Deposit</p>
+                      <p className="text-lg font-serif font-bold text-[#805D3A] dark:text-[#C9A84C] mt-0.5">
+                        <AnimatedPrice value={depositToday} format={formatCurrency} />
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded font-extrabold uppercase tracking-wider block">
+                        Ready for Payment
+                      </span>
+                      <span className="text-[8px] text-gray-400 mt-1 block">Protected by Escrow</span>
                     </div>
                   </div>
                 </div>
+                <TrustDivider />
               </div>
-              <TrustDivider />
-            </div>
+
+              {/* Mobile Summary Floating Panel / Bottom Sheet */}
+              <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-[#111111] border-t-2 border-[#C69C6D] shadow-[0_-5px_30px_rgba(0,0,0,0.15)] transition-all duration-300">
+                {/* Collapsed view */}
+                {!mobileSummaryExpanded ? (
+                  <div 
+                    onClick={() => setMobileSummaryExpanded(true)}
+                    className="p-4 flex items-center justify-between cursor-pointer active:bg-gray-50/50 dark:active:bg-zinc-900/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📋</span>
+                      <div>
+                        <p className="text-xs font-serif font-bold text-gray-900 dark:text-white">Your Event Summary</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
+                          <span>Pkg {selectedPackage ? '✓' : '✗'}</span>
+                          <span>•</span>
+                          <span>{[vendors.decorator, vendors.videographer, vendors.dj].filter(v => v && v !== 'none').length} Vendors ✓</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Total</p>
+                        <p className="text-sm font-bold text-[#C69C6D]">
+                          <AnimatedPrice value={bookingTotal} format={formatCurrency} />
+                        </p>
+                      </div>
+                      <ChevronUp className="w-5 h-5 text-[#C69C6D] animate-bounce" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Backdrop */}
+                    <div 
+                      onClick={() => setMobileSummaryExpanded(false)}
+                      className="fixed inset-0 bg-black/40 z-[-1]"
+                    />
+                    
+                    {/* Expanded Bottom Sheet */}
+                    <div className="max-h-[80vh] overflow-y-auto rounded-t-[20px] p-6 space-y-6">
+                      <div className="flex items-center justify-between border-b border-gray-150 dark:border-zinc-800 pb-3">
+                        <h3 className="text-lg font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">Your Live Event Summary</h3>
+                        <button 
+                          onClick={() => setMobileSummaryExpanded(false)}
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                          <ChevronDown className="w-6 h-6" />
+                        </button>
+                      </div>
+
+                      {/* Accordion List */}
+                      <div className="space-y-3">
+                        
+
+                        {/* Package Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "package" ? null : "package")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">🎁 Package</span>
+                            <span className="text-[#C69C6D] capitalize">{selectedPackage ? `${selectedPackage} ✓` : 'Not Selected ✗'}</span>
+                          </button>
+                          {mobileOpenAccordion === "package" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs text-gray-600 dark:text-gray-400 space-y-1 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              <p><strong>Selected Package:</strong> <span className="capitalize">{selectedPackage ? `${selectedPackage} Package` : "None Selected"}</span></p>
+                              <p><strong>Menu Type Included:</strong> Standard catering set menu.</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Vendors Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "vendors" ? null : "vendors")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">🌸 Selected Artisans</span>
+                            <span className="text-[#C69C6D]">{[vendors.decorator, vendors.videographer, vendors.dj].filter(v => v && v !== 'none').length} Selected ✓</span>
+                          </button>
+                          {mobileOpenAccordion === "vendors" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs space-y-2 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              {([
+                                { id: "decorator", label: "Decorator", icon: "🌸" },
+                                { id: "videographer", label: "Videographer", icon: "📹" },
+                                { id: "dj", label: "DJ Artist", icon: "🎧" }
+                              ] as const).map((cat) => {
+                                const vendorId = vendors[cat.id];
+                                const isSelected = vendorId && vendorId !== "none";
+                                const vObj = globalVendors.find(v => v.id === vendorId || (v as any)._id === vendorId);
+                                return (
+                                  <div key={cat.id} className="flex justify-between items-center py-1">
+                                    <span className="text-gray-500">{cat.icon} {cat.label}</span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">
+                                      {isSelected ? (vObj ? vObj.name : "Custom Selected") : "Not Added"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Details/Pricing Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "pricing" ? null : "pricing")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">💰 Pricing & Details</span>
+                            <span className="text-[#C69C6D]">Breakdown ✓</span>
+                          </button>
+                          {mobileOpenAccordion === "pricing" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs text-gray-600 dark:text-gray-400 space-y-2 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              <p><strong>Date:</strong> {selectedDate ? new Date(selectedDate).toLocaleDateString() : "Pending selection"}</p>
+                              <p><strong>Time Slot:</strong> {startTime} – {endTime}</p>
+                              <p><strong>Guests:</strong> {guestCount} Guests</p>
+                              <div className="h-px bg-gray-100 dark:bg-zinc-800 my-2" />
+                              <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200 mt-1">
+                                <span>Estimated Total</span>
+                                <span className="text-[#C69C6D]">{formatCurrency(bookingTotal)}</span>
+                              </div>
+                              <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200">
+                                <span>30% Deposit Today</span>
+                                <span className="text-[#C69C6D]">{formatCurrency(depositToday)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Cost Summary Highlight */}
+                      <div className="p-4 bg-[#FAF6EE] dark:bg-amber-950/20 border border-[#C69C6D]/40 rounded-2xl flex justify-between items-center text-sm font-bold">
+                        <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Total</span>
+                        <span className="text-[#C69C6D] text-base">
+                          <AnimatedPrice value={bookingTotal} format={formatCurrency} />
+                        </span>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="space-y-3">
+                        {currentStep < TOTAL_STEPS ? (
+                          <button
+                            onClick={() => {
+                              handleNext();
+                              setMobileSummaryExpanded(false);
+                            }}
+                            className="w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] bg-[#C69C6D] hover:bg-[#B58B5C] rounded-xl shadow-md transition-colors"
+                          >
+                            Continue Booking &rarr;
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handleConfirmAndPay();
+                              setMobileSummaryExpanded(false);
+                            }}
+                            disabled={!termsAccepted || isProcessing}
+                            className={`w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] rounded-xl shadow-md transition-colors ${
+                              !termsAccepted || isProcessing
+                                ? "bg-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-[#C69C6D] hover:bg-[#B58B5C]"
+                            }`}
+                          >
+                            {isProcessing ? "Processing..." : "Confirm & Pay Deposit"}
+                          </button>
+                        )}
+                        <p className="text-center text-[9px] text-gray-500 uppercase tracking-widest flex items-center justify-center gap-1">
+                          <Lock className="w-3 h-3 text-emerald-500" /> SECURED BY PAYHERE CENTRAL BANK REGULATED Webhook
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
           )}
 
         </div>
@@ -1153,6 +1663,47 @@ export default function BookPage() {
             >
               Go to Dashboard
             </button>
+          </div>
+        </div>
+      )}
+
+      {paymentPendingNotice && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] dark:bg-[#111111] border-2 border-[#C9A84C] shadow-2xl p-8 max-w-md w-full mx-4 text-center rounded-[20px] space-y-6">
+            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">
+                Payment Not Completed
+              </h3>
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                Your booking reservation has been saved, but your <strong>30% advance deposit</strong> has not been completed yet.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
+                ⏳ Please complete your 30% advance payment within <strong>15 minutes</strong> to secure your date.
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <button 
+                onClick={() => {
+                  setPaymentPendingNotice(null);
+                  router.push("/customer/myaccount?tab=bookings");
+                }}
+                className="w-full bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] py-3.5 px-6 text-xs font-bold uppercase tracking-widest transition-colors rounded-xl shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Go to My Account & Pay Now</span> &rarr;
+              </button>
+              
+              <button 
+                onClick={() => setPaymentPendingNotice(null)}
+                className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors"
+              >
+                Close & Stay on Page
+              </button>
+            </div>
           </div>
         </div>
       )}

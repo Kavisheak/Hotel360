@@ -150,27 +150,37 @@ const VendorsListMain = () => {
         </Link>
       </div>
 
-      {/* Performance Summary Cards */}
+      {/* Performance Summary Cards - Connected to Real Backend Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Acceptance Rate</p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">96.4%</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">High assignment reliability</p>
+        <div className="bg-white p-4 rounded-xl border border-[#E0D8C3] shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Registered Artisans</p>
+          <p className="text-2xl font-bold text-[#7C6A2E] mt-1">{isLoading ? "..." : vendors.length}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Decorators, Videographers &amp; DJs</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Response Time</p>
-          <p className="text-2xl font-bold text-[#1E56A0] mt-1">1.2 Hours</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">Fast confirmation window</p>
+        <div className="bg-white p-4 rounded-xl border border-[#E0D8C3] shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Provider Ratio</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">
+            {isLoading ? "..." : `${vendors.length > 0 ? Math.round((vendors.filter(v => v.isActive !== false).length / vendors.length) * 100) : 100}%`}
+          </p>
+          <p className="text-[10px] text-gray-500 mt-0.5">
+            {vendors.filter(v => v.isActive !== false).length} active of {vendors.length} total
+          </p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Overall Provider Rating</p>
-          <p className="text-2xl font-bold text-amber-500 mt-1">★ 4.85 / 5.0</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">Based on customer reviews</p>
+        <div className="bg-white p-4 rounded-xl border border-[#E0D8C3] shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Events Assigned</p>
+          <p className="text-2xl font-bold text-[#1E56A0] mt-1">
+            {isLoading ? "..." : vendors.reduce((acc, v) => acc + (v.bookings || 0), 0)}
+          </p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Across all registered vendor accounts</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200/80 shadow-xs">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Vendor Cancellation Rate</p>
-          <p className="text-2xl font-bold text-rose-600 mt-1">0.8%</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">Well within threshold</p>
+        <div className="bg-white p-4 rounded-xl border border-[#E0D8C3] shadow-xs">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Provider Breakdown</p>
+          <p className="text-sm font-bold text-gray-700 mt-1 flex items-center gap-2">
+            <span>🌸 {vendors.filter(v => v.role === 'decorator').length}</span>
+            <span>📹 {vendors.filter(v => v.role === 'videographer').length}</span>
+            <span>🎧 {vendors.filter(v => v.role === 'dj_artist').length}</span>
+          </p>
+          <p className="text-[10px] text-gray-500 mt-1">Decorator • Videographer • DJ</p>
         </div>
       </div>
 

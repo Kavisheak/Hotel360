@@ -134,13 +134,17 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const balanceDueDate = new Date(eventDate.getTime() - 7 * 24 * 60 * 60 * 1000);
   const balanceDeadlineString = balanceDueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // Vendor confirmation status check
+  // Vendor confirmation & 7-day pre-event window status check
   const vendorCategories = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
-  const pendingVendors = booking.vendors ? vendorCategories.filter(cat => {
+  const unacceptedVendors = booking.vendors ? vendorCategories.filter(cat => {
     const v = (booking.vendors as any)[cat];
-    return v && v.vendorId && v.status === "Pending";
+    return v && v.vendorId && v.status !== "Accepted" && v.status !== "Completed" && v.status !== "NotRequired";
   }) : [];
-  const allVendorsConfirmed = pendingVendors.length === 0 && (booking.status === "Confirmed" || booking.status === "Completed");
+
+  const isSevenDaysWindowOpen = new Date().getTime() >= balanceDueDate.getTime();
+  const isVenueConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
+  const allVendorsAccepted = unacceptedVendors.length === 0;
+  const isBalancePaymentEnabled = isVenueConfirmed && allVendorsAccepted && isSevenDaysWindowOpen;
 
   const isHallConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
   const isHallRejected = booking.status === "Rejected";
@@ -330,7 +334,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     <div className={`p-4 rounded-lg border transition-all ${
                       !isHallConfirmed 
                         ? "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 opacity-60" 
-                        : pendingVendors.length > 0
+                        : unacceptedVendors.length > 0
                         ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 shadow-sm"
                         : "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800"
                     }`}>
@@ -339,13 +343,13 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded ${
                           !isHallConfirmed 
                             ? "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                            : pendingVendors.length > 0
+                            : unacceptedVendors.length > 0
                             ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 animate-pulse"
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                         }`}>
                           {!isHallConfirmed 
                             ? "Locked (Pending Stage 1)" 
-                            : pendingVendors.length > 0 
+                            : unacceptedVendors.length > 0 
                             ? "Awaiting Vendor Confirmation" 
                             : "Vendors Confirmed ✓"}
                         </span>
@@ -354,7 +358,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
                         {!isHallConfirmed 
                           ? "Vendor requests will be activated automatically once hall allocation is approved." 
-                          : pendingVendors.length > 0
+                          : unacceptedVendors.length > 0
                           ? `Awaiting confirmation from selected service provider(s).`
                           : "All selected service providers have accepted your event."}
                       </p>
@@ -700,9 +704,9 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         <div className="mt-4 space-y-2">
                           <button 
                             onClick={() => setShowPaymentForm("balance")}
-                            disabled={!allVendorsConfirmed}
+                            disabled={!isBalancePaymentEnabled}
                             className={`w-full py-2.5 rounded text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
-                              allVendorsConfirmed 
+                              isBalancePaymentEnabled 
                                 ? "bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14]" 
                                 : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border border-gray-300 dark:border-gray-700"
                             }`}
@@ -713,9 +717,19 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                             <p className="text-[10px] text-gray-500">
                               Upcoming Balance Due Date: <strong className="text-amber-600 dark:text-amber-400">{balanceDeadlineString}</strong> (7 Days Before Event)
                             </p>
-                            {!allVendorsConfirmed && (
+                            {!isVenueConfirmed && (
+                              <p className="text-[9px] text-amber-600 font-medium">
+                                ⚠️ Balance payment activates once venue manager confirms hall availability.
+                              </p>
+                            )}
+                            {isVenueConfirmed && !allVendorsAccepted && (
                               <p className="text-[9px] text-red-500 font-medium">
-                                ⚠️ Balance payment activates once venue and all vendors ({pendingVendors.join(", ")}) confirm participation.
+                                ⚠️ Balance payment activates once all selected vendors ({unacceptedVendors.join(", ")}) accept participation.
+                              </p>
+                            )}
+                            {isVenueConfirmed && allVendorsAccepted && !isSevenDaysWindowOpen && (
+                              <p className="text-[9px] text-amber-600 font-medium">
+                                ⏳ Balance payment opens 7 days prior to your event ({balanceDeadlineString}).
                               </p>
                             )}
                           </div>
