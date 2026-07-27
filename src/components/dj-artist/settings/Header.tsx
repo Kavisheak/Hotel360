@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, User, Loader2 } from 'lucide-react';
+import { User, Loader2 } from 'lucide-react';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 interface HeaderProps {
   onSave?: () => void;
@@ -24,10 +25,7 @@ const Header = ({ onSave, isSaving = false }: HeaderProps) => {
           <span className="border border-[#E0D8C3] bg-[#FAF6EE] px-3 py-1 text-[9px] font-bold tracking-[0.18em] text-[#7C6A2E] uppercase">
             Status: Available
           </span>
-          <button className="relative w-8 h-8 rounded-full bg-white border border-[#E0D8C3] flex items-center justify-center text-gray-600 hover:text-[#7C6A2E] hover:border-[#B08D2C] transition-colors">
-            <Bell size={16} />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#C75A5A]" />
-          </button>
+          <NotificationCenter role="dj_artist" />
         </div>
       </div>
 

@@ -393,6 +393,11 @@ export const customerBookingAPI = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  getPayhereHash: (id: string, body: any) =>
+    apiFetch(`/api/customer/bookings/${id}/payhere-hash`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   createHold: (body: { date: string }) =>
     apiFetch("/api/customer/bookings/hold", {
       method: "POST",

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell, HelpCircle, Search } from 'lucide-react';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
+import { Search, HelpCircle } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -22,10 +22,7 @@ const Header = () => {
 
       {/* Right: Notification, Help, Profile */}
       <div className="flex items-center gap-3">
-        <button className="relative p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 transition-colors">
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <NotificationCenter role="hotel_manager" />
         <button className="p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 transition-colors">
           <HelpCircle size={18} />
         </button>

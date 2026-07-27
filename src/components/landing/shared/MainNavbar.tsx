@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingFormStore } from "@/store/bookingFormStore";
 import SignOutModal from "./SignOutModal";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function MainNavbar() {
@@ -127,6 +128,9 @@ export default function MainNavbar() {
                 </span>
               )}
             </Link>
+
+            {/* Notification Center */}
+            {isLoggedIn && <NotificationCenter role="customer" />}
 
             {/* Contact Phone */}
             <a href="tel:+94770445434" className="hidden md:flex items-center gap-2 text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] transition-colors duration-200" style={{ fontFamily: "'Jost', sans-serif" }}>
