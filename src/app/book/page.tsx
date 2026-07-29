@@ -112,11 +112,8 @@ export default function BookPage() {
   const [glowHall, setGlowHall] = useState(false);
   const [glowPackage, setGlowPackage] = useState(false);
   const [glowDecorator, setGlowDecorator] = useState(false);
-  const [glowPhotographer, setGlowPhotographer] = useState(false);
   const [glowDj, setGlowDj] = useState(false);
   const [glowVideographer, setGlowVideographer] = useState(false);
-  const [glowCake, setGlowCake] = useState(false);
-  const [glowFlorist, setGlowFlorist] = useState(false);
   const [glowGuests, setGlowGuests] = useState(false);
   const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
   const [mobileOpenAccordion, setMobileOpenAccordion] = useState<string | null>(null);
@@ -167,12 +164,6 @@ export default function BookPage() {
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
-    photographer: string | null;
-    photographerPackage: string;
-    cake: string | null;
-    cakePackage: string;
-    florist: string | null;
-    floristPackage: string;
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -180,12 +171,6 @@ export default function BookPage() {
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none",
-    photographer: "none",
-    photographerPackage: "none",
-    cake: "none",
-    cakePackage: "none",
-    florist: "none",
-    floristPackage: "none",
   });
 
   const setVendors = (newVendors: typeof vendors) => {
@@ -193,9 +178,6 @@ export default function BookPage() {
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
     if (newVendors.videographer !== cartVendors.videographer) setStoreVendor("videographer", newVendors.videographer);
-    if (newVendors.photographer !== cartVendors.photographer) setStoreVendor("photographer", newVendors.photographer);
-    if (newVendors.cake !== cartVendors.cake) setStoreVendor("cake", newVendors.cake);
-    if (newVendors.florist !== cartVendors.florist) setStoreVendor("florist", newVendors.florist);
   };
 
   // Sync global cartVendors store with local vendors state
@@ -208,12 +190,6 @@ export default function BookPage() {
       djPackage: "none",
       videographer: cartVendors.videographer || "none",
       videographerPackage: "none",
-      photographer: cartVendors.photographer || "none",
-      photographerPackage: storePackages.photographer || "none",
-      cake: cartVendors.cake || "none",
-      cakePackage: storePackages.cake || "none",
-      florist: cartVendors.florist || "none",
-      floristPackage: storePackages.florist || "none",
     });
   }, [cartVendors]);
 
@@ -265,14 +241,6 @@ export default function BookPage() {
   }, [vendors.decorator]);
 
   useEffect(() => {
-    if (vendors.photographer && vendors.photographer !== "none") {
-      setGlowPhotographer(true);
-      const timer = setTimeout(() => setGlowPhotographer(false), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [vendors.photographer]);
-
-  useEffect(() => {
     if (vendors.dj && vendors.dj !== "none") {
       setGlowDj(true);
       const timer = setTimeout(() => setGlowDj(false), 1200);
@@ -287,22 +255,6 @@ export default function BookPage() {
       return () => clearTimeout(timer);
     }
   }, [vendors.videographer]);
-
-  useEffect(() => {
-    if (vendors.cake && vendors.cake !== "none") {
-      setGlowCake(true);
-      const timer = setTimeout(() => setGlowCake(false), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [vendors.cake]);
-
-  useEffect(() => {
-    if (vendors.florist && vendors.florist !== "none") {
-      setGlowFlorist(true);
-      const timer = setTimeout(() => setGlowFlorist(false), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [vendors.florist]);
 
   useEffect(() => {
     setGlowGuests(true);
@@ -322,7 +274,7 @@ export default function BookPage() {
   const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
   const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
 
-  const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
+  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
     const vendorId = vendors[category];
     if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
     
@@ -331,7 +283,7 @@ export default function BookPage() {
       return requestedDesignPrices[category] as number;
     }
 
-    if (category === "decorator" || category === "photographer" || category === "cake" || category === "florist") {
+    if (category === "decorator") {
       const pkgName = vendors[`${category}Package` as keyof typeof vendors];
       if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
     }
@@ -383,10 +335,7 @@ export default function BookPage() {
   let addonsCost = 
     getVendorCost("decorator") + 
     getVendorCost("dj") + 
-    getVendorCost("videographer") + 
-    getVendorCost("photographer") + 
-    getVendorCost("cake") + 
-    getVendorCost("florist");
+    getVendorCost("videographer");
 
   const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
   const taxes = Math.round(grandTotal * 0.08);
@@ -422,9 +371,6 @@ export default function BookPage() {
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
-      photographerCost: getVendorCost("photographer"),
-      cakeCost: getVendorCost("cake"),
-      floristCost: getVendorCost("florist"),
       totalCost: bookingTotal,
       vendors: {
         decorator: {
@@ -444,21 +390,6 @@ export default function BookPage() {
           status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
           requestedDesignId: requestedDesigns.videographer || null,
-        },
-        photographer: {
-          vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
-          status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : "",
-        },
-        cake: {
-          vendorId: vendors.cake !== "none" ? vendors.cake : null,
-          status: vendors.cake !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : "",
-        },
-        florist: {
-          vendorId: vendors.florist !== "none" ? vendors.florist : null,
-          status: vendors.florist !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : "",
         }
       },
     };
@@ -1186,7 +1117,7 @@ export default function BookPage() {
                       <div className="space-y-3">
                         <h4 className="font-bold text-[#805D3A] dark:text-[#C9A84C] uppercase tracking-wider text-[11px]">Selected Artisans</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                          {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
+                          {([ "decorator", "dj", "videographer"] as const).map((cat) => {
                             const id = vendors[cat];
                             const isNone = !id || id === "none";
                             const v = globalVendors.find((v: Vendor) => v.id === id || (v as any)._id === id);
