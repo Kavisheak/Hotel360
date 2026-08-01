@@ -3,7 +3,7 @@
 import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Palette, Music, Video, Camera, Cake, Flower2, Plus, ArrowRight, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
+import { Palette, Music, Video, Camera, Cake, Flower2, Plus, ArrowRight, ArrowLeft, Trash2, CheckCircle2, UploadCloud, BrainCircuit, Sparkles } from "lucide-react";
 import { useVendorStore } from "@/store/vendorStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 
@@ -29,8 +29,44 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
 
   const [activeCategorySelection, setActiveCategorySelection] = useState<string | null>(null);
 
+  // AI Matchmaker State
+  const [isAiScanning, setIsAiScanning] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAiUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsAiScanning(true);
+    setAiAnalysis(null);
+
+    const formData = new FormData();
+    formData.append("referenceImage", file);
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/ai/match-design`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiAnalysis(data.data);
+      } else {
+        alert(data.message || "Failed to analyze image.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error connecting to AI service.");
+    } finally {
+      setIsAiScanning(false);
+    }
+  };
+
   const handleExplore = (categoryKey: string) => {
     setActiveCategorySelection(categoryKey);
+    setAiAnalysis(null);
   };
 
   const handleRemove = (categoryKey: keyof VendorsState) => {
@@ -59,43 +95,105 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
     const categoryVendors = globalVendors.filter(v => v.category === selectedCatConfig?.path);
     
     if (activeCategorySelection === "decorator") {
-      const portfolioItems = categoryVendors.flatMap(v => {
-        if (v.portfolioItems && v.portfolioItems.length > 0) {
-          return v.portfolioItems.map(item => {
-            const coverMedia = item.media.find(m => m.isCover) || item.media[0];
-            return {
-              vendorId: v.id,
-              vendorName: v.name,
-              vendorRating: v.rating,
-              image: coverMedia ? coverMedia.url : "",
-              title: item.title,
-              portfolioItemId: item.id,
-              defaultPackage: v.packages?.[0]?.name || "none",
-              price: item.price > 0 ? item.price : (parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0)
-            };
-          });
-        }
-        return (v.portfolio || []).map((img, idx) => ({
-          vendorId: v.id,
-          vendorName: v.name,
-          vendorRating: v.rating,
-          image: img,
-          title: `Design #${idx + 1}`,
-          portfolioItemId: `legacy-${idx}`,
-          defaultPackage: v.packages?.[0]?.name || "none",
-          price: parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0
-        }));
-      });
+      let portfolioItems: any[] = [];
+      if (aiAnalysis && aiAnalysis.matches) {
+        portfolioItems = aiAnalysis.matches;
+      } else {
+        portfolioItems = categoryVendors.flatMap(v => {
+          if (v.portfolioItems && v.portfolioItems.length > 0) {
+            return v.portfolioItems.map(item => {
+              const coverMedia = item.media.find(m => m.isCover) || item.media[0];
+              return {
+                vendorId: v.id,
+                vendorName: v.name,
+                vendorRating: v.rating,
+                image: coverMedia ? coverMedia.url : "",
+                title: item.title,
+                portfolioItemId: item.id,
+                defaultPackage: v.packages?.[0]?.name || "none",
+                price: item.price > 0 ? item.price : (parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0)
+              };
+            });
+          }
+          return (v.portfolio || []).map((img, idx) => ({
+            vendorId: v.id,
+            vendorName: v.name,
+            vendorRating: v.rating,
+            image: img,
+            title: `Design #${idx + 1}`,
+            portfolioItemId: `legacy-${idx}`,
+            defaultPackage: v.packages?.[0]?.name || "none",
+            price: parseInt(v.startingPrice.replace(/[^0-9]/g, "")) || 0
+          }));
+        });
+      }
 
       return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="flex items-center justify-between border-b border-[#C9A84C]/20 pb-4 mb-4">
             <div className="flex items-center gap-4">
-              <button onClick={() => setActiveCategorySelection(null)} className="text-gray-500 hover:text-[#C9A84C] transition-colors cursor-pointer">
+              <button onClick={() => { setActiveCategorySelection(null); setAiAnalysis(null); }} className="text-gray-500 hover:text-[#C9A84C] transition-colors cursor-pointer">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Select {selectedCatConfig?.label} Design</h3>
             </div>
+          </div>
+
+          {/* AI MATCHMAKER UPLOAD BOX */}
+          <div className="bg-[#FAF6EE] dark:bg-[#111111] border border-dashed border-[#C9A84C]/50 rounded-lg p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              accept="image/*" 
+              onChange={handleAiUpload}
+              className="hidden" 
+            />
+            {isAiScanning ? (
+              <div className="flex flex-col items-center space-y-4 py-4 w-full">
+                <BrainCircuit className="w-12 h-12 text-[#C9A84C] animate-pulse" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-[#1A1512] dark:text-white uppercase tracking-widest">Azure AI Engine Running</h4>
+                  <p className="text-xs text-[#C9A84C] animate-pulse">Extracting visual features & matching portfolio tags...</p>
+                </div>
+                <div className="w-full max-w-md h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#C9A84C] animate-[progress_2s_ease-in-out_infinite]" style={{ width: "50%" }}></div>
+                </div>
+              </div>
+            ) : aiAnalysis ? (
+              <div className="flex flex-col items-center space-y-3 py-2 w-full">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-6 h-6" />
+                  <h4 className="font-bold uppercase tracking-widest text-sm">Visual Match Complete</h4>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                  {aiAnalysis.azureAnalysis?.tags?.map((tag: string, idx: number) => (
+                    <span key={idx} className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-sm">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+                <button onClick={() => setAiAnalysis(null)} className="mt-2 text-xs text-gray-500 hover:text-[#C9A84C] underline cursor-pointer">Clear Results</button>
+              </div>
+            ) : (
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="flex flex-col items-center space-y-3 cursor-pointer py-2"
+              >
+                <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1A1A1A] border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] group-hover:scale-110 transition-transform shadow-sm">
+                  <UploadCloud className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#1A1512] dark:text-white flex items-center justify-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#C9A84C]" />
+                    AI Visual Matchmaker
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1 max-w-sm">Have a dream stage? Upload a photo from Pinterest or Instagram and our Azure AI will find the exact match from our artisans.</p>
+                </div>
+                <button className="px-5 py-2 bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors cursor-pointer">
+                  Upload Image
+                </button>
+              </div>
+            )}
           </div>
           
           {portfolioItems.length === 0 ? (
@@ -129,10 +227,19 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                         [`${activeCategorySelection}Package`]: item.defaultPackage
                       } as any);
                       setActiveCategorySelection(null);
+                      setAiAnalysis(null);
                     }}
                     className="relative break-inside-avoid rounded-sm overflow-hidden group cursor-pointer border border-[#E8DFC9] dark:border-gray-800 mb-4 bg-[#FDF9F1] dark:bg-[#111]"
                   >
                     <img src={imgUrl} alt={item.vendorName} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" />
+                    
+                    {item.matchScore && (
+                      <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-sm shadow-lg flex items-center gap-1 z-10">
+                        <Sparkles className="w-3 h-3" />
+                        {item.matchScore}% AI Match
+                      </div>
+                    )}
+
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-colors duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 p-4 text-center">
                       <span className="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-sm mb-2 backdrop-blur-sm border border-white/20">{item.vendorName}</span>
                       
