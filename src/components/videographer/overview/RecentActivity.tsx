@@ -78,26 +78,32 @@ export default function RecentActivity() {
       <h2 className="mb-2 text-[28px] font-serif text-gray-800">Recent Activity</h2>
 
       <div className="mt-5 space-y-4">
-        {activities.map((activity) => (
-          <div key={activity.title} className="flex items-start gap-4 border-b border-[#E0D8C3] pb-4 last:border-b-0">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-[#E0D8C3] bg-[#F2EADA] text-[#7C6A2E]">
-              {activity.icon}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-gray-800">
-                  {activity.title}
-                </p>
-                <span className={`whitespace-nowrap border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${statusClass(activity.status)}`}>
-                  {activity.status}
-                </span>
+        {isLoading ? (
+          <div className="py-8 text-center text-sm font-serif italic text-gray-400">Loading activity...</div>
+        ) : activities.length === 0 ? (
+          <div className="py-8 text-center text-sm font-serif italic text-gray-500">No recent assigned bookings</div>
+        ) : (
+          activities.map((activity) => (
+            <div key={activity.title} className="flex items-start gap-4 border-b border-[#E0D8C3] pb-4 last:border-b-0">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-[#E0D8C3] bg-[#F2EADA] text-[#7C6A2E]">
+                {activity.icon}
               </div>
-              <p className="mt-1 text-[12px] text-gray-500">{activity.note}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-gray-400">{activity.date}</p>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-gray-800">
+                    {activity.title}
+                  </p>
+                  <span className={`whitespace-nowrap border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${statusClass(activity.status)}`}>
+                    {activity.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-[12px] text-gray-500">{activity.note}</p>
+                <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-gray-400">{activity.date}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <Link href="/videographer/events-bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">

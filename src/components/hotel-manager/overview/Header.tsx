@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import NewBookingMain from '../bookings/new/NewBookingMain';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 const ManagerHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -73,10 +74,8 @@ const ManagerHeader = () => {
             New Booking
           </button>
 
-          {/* Icons */}
-          <button className="p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 hover:text-[#7C6A2E] transition-colors">
-            <Bell size={18} />
-          </button>
+          {/* Notifications */}
+          <NotificationCenter role="hotel_manager" />
           <button className="p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 hover:text-[#7C6A2E] transition-colors hidden sm:block">
             <HelpCircle size={18} />
           </button>

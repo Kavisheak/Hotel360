@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, User } from 'lucide-react';
+import { User } from 'lucide-react';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 interface SettingsHeaderProps {
   onSave: () => void;
@@ -20,10 +21,7 @@ const SettingsHeader = ({ onSave, isSaving = false }: SettingsHeaderProps) => {
             <p className="text-[9px] font-bold text-gray-400 tracking-widest uppercase mt-0.5">PROFILE & PREFERENCES</p>
           </div>
         </div>
-        <button className="relative w-8 h-8 rounded-full bg-white border border-[#E0D8C3] flex items-center justify-center text-gray-600 hover:text-[#7C6A2E] hover:border-[#B08D2C] transition-colors">
-          <Bell size={16} />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#C75A5A]" />
-        </button>
+        <NotificationCenter role="decorator" />
       </div>
 
       {/* Main Header with Save Changes */}

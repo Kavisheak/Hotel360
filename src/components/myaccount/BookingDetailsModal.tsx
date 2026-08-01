@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
 import { customerBookingAPI, accountAPI } from "@/lib/api";
+import { startPayHerePayment } from "@/utils/payhere";
 import EscrowTracker from "./EscrowTracker";
 
 import ReplacementVendorModal from "../decorator/my_jobs/ReplacementVendorModal";
@@ -108,14 +109,16 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   const handlePayment = async (type: "deposit" | "balance") => {
     setIsPaying(true);
-    const res = await customerBookingAPI.recordPayment(booking._id || booking.id!, { paymentType: type });
-    setIsPaying(false);
-    if (res.ok) {
-      alert(`${type === "deposit" ? "30% Advance" : "70% Balance"} paid successfully!`);
-      window.location.reload();
-    } else {
-      alert(res.data?.message || "Payment failed. Please try again.");
-    }
+    await startPayHerePayment({
+      bookingId: booking._id || booking.id!,
+      paymentType: type,
+      onSuccess: () => {
+        setIsPaying(false);
+        window.location.reload();
+      },
+      onDismiss: () => setIsPaying(false),
+      onError: () => setIsPaying(false),
+    });
   };
 
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
@@ -131,13 +134,17 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const balanceDueDate = new Date(eventDate.getTime() - 7 * 24 * 60 * 60 * 1000);
   const balanceDeadlineString = balanceDueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // Vendor confirmation status check
+  // Vendor confirmation & 7-day pre-event window status check
   const vendorCategories = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
-  const pendingVendors = booking.vendors ? vendorCategories.filter(cat => {
+  const unacceptedVendors = booking.vendors ? vendorCategories.filter(cat => {
     const v = (booking.vendors as any)[cat];
-    return v && v.vendorId && v.status === "Pending";
+    return v && v.vendorId && v.status !== "Accepted" && v.status !== "Completed" && v.status !== "NotRequired";
   }) : [];
-  const allVendorsConfirmed = pendingVendors.length === 0 && (booking.status === "Confirmed" || booking.status === "Completed");
+
+  const isSevenDaysWindowOpen = new Date().getTime() >= balanceDueDate.getTime();
+  const isVenueConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
+  const allVendorsAccepted = unacceptedVendors.length === 0;
+  const isBalancePaymentEnabled = isVenueConfirmed && allVendorsAccepted && isSevenDaysWindowOpen;
 
   const isHallConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
   const isHallRejected = booking.status === "Rejected";
@@ -327,7 +334,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     <div className={`p-4 rounded-lg border transition-all ${
                       !isHallConfirmed 
                         ? "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 opacity-60" 
-                        : pendingVendors.length > 0
+                        : unacceptedVendors.length > 0
                         ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 shadow-sm"
                         : "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800"
                     }`}>
@@ -336,13 +343,13 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded ${
                           !isHallConfirmed 
                             ? "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                            : pendingVendors.length > 0
+                            : unacceptedVendors.length > 0
                             ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 animate-pulse"
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                         }`}>
                           {!isHallConfirmed 
                             ? "Locked (Pending Stage 1)" 
-                            : pendingVendors.length > 0 
+                            : unacceptedVendors.length > 0 
                             ? "Awaiting Vendor Confirmation" 
                             : "Vendors Confirmed ✓"}
                         </span>
@@ -351,7 +358,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
                         {!isHallConfirmed 
                           ? "Vendor requests will be activated automatically once hall allocation is approved." 
-                          : pendingVendors.length > 0
+                          : unacceptedVendors.length > 0
                           ? `Awaiting confirmation from selected service provider(s).`
                           : "All selected service providers have accepted your event."}
                       </p>
@@ -639,59 +646,48 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
 
                   {showPaymentForm ? (
-                    <div className="mt-6 bg-[#FDFBF7] dark:bg-[#1A1A1A] p-4 rounded border border-[#E8DFC9] dark:border-[#C9A84C]/30 animate-fadeIn">
-                      <h4 className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-4">Secure Payment</h4>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Card Number</label>
-                          <input 
-                            type="text" 
-                            placeholder="0000 0000 0000 0000" 
-                            className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
-                            maxLength={19} 
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Expiry</label>
-                            <input 
-                              type="text" 
-                              placeholder="MM/YY" 
-                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
-                              maxLength={5} 
-                              value={expiry}
-                              onChange={(e) => setExpiry(e.target.value)}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">CVV</label>
-                            <input 
-                              type="password" 
-                              placeholder="***" 
-                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-sm focus:border-[#C9A84C] outline-none rounded-sm font-mono" 
-                              maxLength={4} 
-                              value={cvv}
-                              onChange={(e) => setCvv(e.target.value)}
-                            />
-                          </div>
-                        </div>
+                    <div className="mt-6 bg-[#FAF6EE]/50 dark:bg-[#1A1A1A] p-5 rounded-lg border border-[#C9A84C]/50 animate-fadeIn space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-[#2C1E14] dark:text-white uppercase tracking-widest flex items-center gap-2">
+                          <span>🔒</span> PayHere Secure Gateway Checkout
+                        </h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-[#C9A84C]/20 text-[#C9A84C] rounded border border-[#C9A84C]/30">
+                          {showPaymentForm === "deposit" ? "30% Advance" : "70% Balance"}
+                        </span>
                       </div>
-                      <div className="mt-6 flex gap-3">
+                      
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        You are about to be redirected to the official <strong>PayHere 256-bit Encrypted Checkout Modal</strong>. PayHere supports Sri Lankan and international credit/debit cards, Frimi, Sampath Vishwa, Genie, and Koko Pay.
+                      </p>
+
+                      <div className="grid grid-cols-4 gap-2 py-2">
+                        {[
+                          { label: "Visa / MC", icon: "💳" },
+                          { label: "Frimi / Genie", icon: "📱" },
+                          { label: "Vishwa Bank", icon: "🏛️" },
+                          { label: "Koko Pay", icon: "🛍️" },
+                        ].map((m, idx) => (
+                          <div key={idx} className="bg-white dark:bg-black p-2 rounded border border-gray-200 dark:border-zinc-800 text-center">
+                            <div className="text-base">{m.icon}</div>
+                            <div className="text-[9px] font-bold text-gray-700 dark:text-gray-300 mt-0.5">{m.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
                         <button 
                           onClick={() => setShowPaymentForm(null)}
                           disabled={isPaying}
-                          className="flex-1 py-2.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                          className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors"
                         >
                           Cancel
                         </button>
                         <button 
                           onClick={() => handlePayment(showPaymentForm)}
                           disabled={isPaying}
-                          className="flex-1 py-2.5 bg-emerald-600 text-white rounded text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 py-2.5 bg-[#C9A84C] text-[#2C1E14] rounded text-[10px] font-bold uppercase tracking-widest hover:bg-[#B58B5C] transition-colors flex items-center justify-center gap-2 shadow-md"
                         >
-                          {isPaying ? 'Processing...' : 'Confirm & Pay'}
+                          {isPaying ? 'Connecting Gateway...' : `Launch PayHere Checkout (${showPaymentForm === "deposit" ? formatCurrency((booking.totalCost || 0) * 0.3) : formatCurrency(balanceDue)})`}
                         </button>
                       </div>
                     </div>
@@ -700,30 +696,40 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       {(!booking.depositAmount || booking.depositAmount === 0) ? (
                         <button 
                           onClick={() => setShowPaymentForm("deposit")}
-                          className="w-full mt-4 bg-emerald-600 text-white py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                          className="w-full mt-4 bg-[#C9A84C] text-[#2C1E14] py-2.5 rounded text-[10px] uppercase tracking-widest font-bold hover:bg-[#B58B5C] transition-colors flex items-center justify-center gap-2 shadow-sm"
                         >
-                          <CreditCard className="w-4 h-4" /> Pay 30% Advance ({formatCurrency((booking.totalCost || 0) * 0.3)})
+                          <CreditCard className="w-4 h-4" /> Pay 30% Advance via PayHere 🇱🇰 ({formatCurrency((booking.totalCost || 0) * 0.3)})
                         </button>
                       ) : booking.depositAmount > 0 && balanceDue > 0 && booking.status !== "Completed" && booking.status !== "Cancelled" ? (
                         <div className="mt-4 space-y-2">
                           <button 
                             onClick={() => setShowPaymentForm("balance")}
-                            disabled={!allVendorsConfirmed}
+                            disabled={!isBalancePaymentEnabled}
                             className={`w-full py-2.5 rounded text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
-                              allVendorsConfirmed 
-                                ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                              isBalancePaymentEnabled 
+                                ? "bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14]" 
                                 : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border border-gray-300 dark:border-gray-700"
                             }`}
                           >
-                            <CreditCard className="w-4 h-4" /> Pay 70% Balance ({formatCurrency(balanceDue)})
+                            <CreditCard className="w-4 h-4" /> Pay 70% Balance via PayHere 🇱🇰 ({formatCurrency(balanceDue)})
                           </button>
                           <div className="text-center space-y-1">
                             <p className="text-[10px] text-gray-500">
                               Upcoming Balance Due Date: <strong className="text-amber-600 dark:text-amber-400">{balanceDeadlineString}</strong> (7 Days Before Event)
                             </p>
-                            {!allVendorsConfirmed && (
+                            {!isVenueConfirmed && (
+                              <p className="text-[9px] text-amber-600 font-medium">
+                                ⚠️ Balance payment activates once venue manager confirms hall availability.
+                              </p>
+                            )}
+                            {isVenueConfirmed && !allVendorsAccepted && (
                               <p className="text-[9px] text-red-500 font-medium">
-                                ⚠️ Balance payment activates once venue and all vendors ({pendingVendors.join(", ")}) confirm participation.
+                                ⚠️ Balance payment activates once all selected vendors ({unacceptedVendors.join(", ")}) accept participation.
+                              </p>
+                            )}
+                            {isVenueConfirmed && allVendorsAccepted && !isSevenDaysWindowOpen && (
+                              <p className="text-[9px] text-amber-600 font-medium">
+                                ⏳ Balance payment opens 7 days prior to your event ({balanceDeadlineString}).
                               </p>
                             )}
                           </div>

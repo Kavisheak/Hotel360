@@ -14,12 +14,6 @@ interface VendorsState {
   djPackage: string;
   videographer: string | null;
   videographerPackage: string;
-  photographer: string | null;
-  photographerPackage: string;
-  cake: string | null;
-  cakePackage: string;
-  florist: string | null;
-  floristPackage: string;
 }
 
 interface BookingVendorSelectorProps {

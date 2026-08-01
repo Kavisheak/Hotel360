@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 const Header = ({ name = 'A. Malik' }: { name?: string }) => {
   const { user } = useAuthStore();
@@ -19,6 +20,7 @@ const Header = ({ name = 'A. Malik' }: { name?: string }) => {
       </div>
 
       <div className="flex items-center space-x-4">
+        <NotificationCenter role="videographer" />
         <div className="text-right">
           <p className="text-sm font-bold text-gray-800">{user?.firstName} {user?.lastName}</p>
           <p className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Lead Videographer</p>
