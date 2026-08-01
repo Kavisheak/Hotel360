@@ -30,6 +30,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
   // Deadline for balance payment is the event date itself
   const deadlineString = deadlineDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const isPastDeadline = new Date() > deadlineDate;
+  const isEventDateReached = new Date().setHours(0, 0, 0, 0) >= new Date(booking.date || new Date()).setHours(0, 0, 0, 0);
 
   const handleRecordPayment = async (type: 'deposit' | 'balance') => {
     setIsRecordingPayment(true);
@@ -89,9 +90,11 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     status === 'PENDING' || 
     status === 'PENDING CONFIRMATION' || 
     status === 'PENDING HALL CONFIRMATION' || 
+    status === 'DEPOSIT_PAID' ||
     booking.status === 'Pending' || 
     booking.status === 'Pending Confirmation' ||
-    booking.status === 'Pending Hall Confirmation';
+    booking.status === 'Pending Hall Confirmation' ||
+    booking.status === 'DEPOSIT_PAID';
 
   return (
     <div className="space-y-4">
@@ -132,14 +135,23 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
             <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest mb-4">
               <CheckCircle2 size={16} /> Booking Confirmed
             </div>
-            <button
-              onClick={handleComplete}
-              disabled={isLoading}
-              className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4E411B] hover:bg-[#342b12]'} text-white shadow-sm`}
-            >
-              <Flag size={16} /> {isLoading ? 'Processing...' : 'Mark as Completed'}
-            </button>
-            <p className="text-[9px] text-center mt-2 text-gray-500 italic">Only mark completed after the event has successfully concluded.</p>
+            {isEventDateReached ? (
+              <>
+                <button
+                  onClick={handleComplete}
+                  disabled={isLoading}
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4E411B] hover:bg-[#342b12]'} text-white shadow-sm`}
+                >
+                  <Flag size={16} /> {isLoading ? 'Processing...' : 'Mark as Completed'}
+                </button>
+                <p className="text-[9px] text-center mt-2 text-gray-500 italic">Only mark completed after the event has successfully concluded.</p>
+              </>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 p-3 rounded-lg text-center mt-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting Event Date</p>
+                <p className="text-[9px] mt-1">The option to mark this booking as completed will unlock on the event date ({deadlineString}).</p>
+              </div>
+            )}
           </>
         )}
 

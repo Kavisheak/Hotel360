@@ -7,8 +7,8 @@ interface DurationSelectorProps {
 }
 
 export default function DurationSelector({ durationHours, onChange }: DurationSelectorProps) {
-  const extraHours = Math.max(0, durationHours - 6);
-  const extraHoursCost = extraHours * 50000;
+  const extraHours = Math.max(0, durationHours - 7);
+  const extraHoursCost = extraHours * 5000;
 
   return (
     <div className="bg-white dark:bg-[#111111] p-8 border border-[#E8DFC9] dark:border-gray-800 rounded-sm shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
@@ -19,7 +19,7 @@ export default function DurationSelector({ durationHours, onChange }: DurationSe
         <div>
           <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Event Duration</h3>
           <p className="text-[11px] text-gray-500 font-light mt-1 tracking-wide">
-            Base allocation is 6 hours. Extend your celebration at LKR 50,000 per extra hour.
+            Base allocation is 7 hours. Extend your celebration at LKR 5,000 per extra hour.
           </p>
         </div>
       </div>
@@ -37,8 +37,8 @@ export default function DurationSelector({ durationHours, onChange }: DurationSe
           
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => onChange(Math.max(6, durationHours - 1))}
-              disabled={durationHours <= 6}
+              onClick={() => onChange(Math.max(7, durationHours - 1))}
+              disabled={durationHours <= 7}
               className="w-10 h-10 rounded-full border border-[#D4C9A8] dark:border-gray-700 flex items-center justify-center text-[#1A1512] dark:text-white hover:bg-[#C69C6D] hover:text-white hover:border-[#C69C6D] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               -

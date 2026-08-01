@@ -56,6 +56,18 @@ const PackagesMain = () => {
             inclusions: pkg.inclusions || { valet: false, bridal: false, led: false, catering: false }
           };
         });
+        const orderMap: Record<string, number> = { silver: 1, gold: 2, diamond: 3 };
+        backendTiers.sort((a, b) => {
+          const getOrder = (name: string) => {
+            const lower = name.toLowerCase();
+            if (lower.includes('silver')) return 1;
+            if (lower.includes('gold')) return 2;
+            if (lower.includes('diamond')) return 3;
+            return 4;
+          };
+          return getOrder(a.label) - getOrder(b.label);
+        });
+
         setTiers(backendTiers);
       }
 

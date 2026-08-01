@@ -78,7 +78,7 @@ const ManagerSidebar = () => {
   const navItems = [
     { icon: <LayoutGrid size={20} />,    label: 'Overview',           href: '/hotel-manager' },
     { icon: <CalendarCheck size={20} />, label: 'Bookings',           href: '/hotel-manager/bookings' },
-    { icon: <Building2 size={20} />,     label: 'Halls',              href: '/hotel-manager/halls' },
+    { icon: <Building2 size={20} />,     label: 'Hall',              href: '/hotel-manager/halls' },
     { icon: <Users size={20} />,         label: 'Vendors',            href: '/hotel-manager/vendors' },
     { icon: <Package size={20} />,       label: 'Packages',           href: '/hotel-manager/packages' },
     { icon: <Receipt size={20} />,       label: 'Payments & refunds', href: '/hotel-manager/payments' },

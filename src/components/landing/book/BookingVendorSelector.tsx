@@ -144,7 +144,7 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                         <span className="text-white font-bold text-sm mb-4">LKR {item.price.toLocaleString()}</span>
                       )}
 
-                      <button className="px-6 py-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-lg">
+                      <button className="w-full max-w-[85%] py-2 px-2 bg-[#C9A84C] hover:bg-[#B58B5C] text-white text-[9px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-lg text-center leading-tight">
                         Select This Design
                       </button>
                     </div>
