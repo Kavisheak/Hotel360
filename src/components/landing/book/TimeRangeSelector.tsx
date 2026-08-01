@@ -41,8 +41,8 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
     return hours + (mins / 60);
   }, [startTime, endTime]);
 
-  const extraHours = Math.max(0, durationHours - 6);
-  const extraHoursCost = extraHours * 50000;
+  const extraHours = Math.max(0, durationHours - 7);
+  const extraHoursCost = extraHours * 5000;
 
   return (
     <div className="bg-white dark:bg-[#111111] p-8 border border-[#E8DFC9] dark:border-gray-800 rounded-sm shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
@@ -53,7 +53,7 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
         <div>
           <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Event Time & Duration</h3>
           <p className="text-[11px] text-gray-500 font-light mt-1 tracking-wide">
-            Select your start and end times. Base allocation is 6 hours. Extend at LKR 50,000 per extra hour.
+            Select your start and end times. Base allocation is 7 hours. Extend at LKR 5,000 per extra hour.
           </p>
         </div>
       </div>
@@ -96,9 +96,9 @@ export default function TimeRangeSelector({ startTime, endTime, onChange }: Time
               {durationHours > 0 ? durationHours.toFixed(1) : "0"} <span className="text-[16px] text-gray-400 font-sans italic">hrs</span>
             </div>
           </div>
-          {durationHours < 6 && durationHours > 0 && (
+          {durationHours < 7 && durationHours > 0 && (
             <div className="text-sm text-amber-600 dark:text-amber-500">
-              Note: Base price covers up to 6 hours.
+              Note: Base price covers up to 7 hours.
             </div>
           )}
         </div>

@@ -20,7 +20,7 @@ import { useVendorStore } from "@/store/vendorStore";
 import type { Vendor, VendorPackage } from "@/store/vendorStore";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAuthStore } from "@/store/authStore";
-import { customerBookingAPI } from "@/lib/api";
+import { customerBookingAPI, packageAPI } from "@/lib/api";
 
 function AnimatedPrice({ value, format }: { value: number; format: (val: number) => string }) {
   const [displayValue, setDisplayValue] = useState(value);
@@ -120,9 +120,15 @@ export default function BookPage() {
 
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
+  const [dbPackages, setDbPackages] = useState<any[]>([]);
 
   useEffect(() => {
     fetchVendors();
+    packageAPI.getAllPackages().then((res) => {
+      if (res.ok && res.data?.data) {
+        setDbPackages(res.data.data);
+      }
+    });
   }, [fetchVendors]);
 
   useEffect(() => {
@@ -263,6 +269,18 @@ export default function BookPage() {
   }, [guestCount]);
 
   const getBasePrice = () => {
+    if (dbPackages && dbPackages.length > 0) {
+      const matched = dbPackages.find((pkg) => {
+        const nameLower = pkg.name.toLowerCase();
+        let slug = "gold";
+        if (nameLower.includes("silver")) slug = "silver";
+        else if (nameLower.includes("diamond")) slug = "diamond";
+        return slug === selectedPackage;
+      });
+      if (matched && matched.price) {
+        return typeof matched.price === "number" ? matched.price : parseInt(matched.price, 10);
+      }
+    }
     if (selectedPackage === "silver") return 1800000;
     if (selectedPackage === "gold") return 3400000;
     if (selectedPackage === "diamond") return 5000000;
@@ -329,7 +347,7 @@ export default function BookPage() {
 
   const durationHours = calculateDuration();
   const basePrice = getBasePrice();
-  const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
+  const extraHoursPremium = Math.max(0, durationHours - 7) * 5000;
   const timeslotPremium = 0;
 
   let addonsCost = 
@@ -670,10 +688,7 @@ export default function BookPage() {
                   <td style="text-align:right;">${formatCurrency(extraHoursPremium)}</td>
                 </tr>
                 ` : ""}
-                <tr>
-                  <td>Taxes & Fees (8%)</td>
-                  <td style="text-align:right;">${formatCurrency(taxes)}</td>
-                </tr>
+
                 <tr style="font-weight:bold;">
                   <td>Total Estimated Cost</td>
                   <td style="text-align:right;">${formatCurrency(bookingTotal)}</td>
@@ -884,7 +899,7 @@ export default function BookPage() {
                       <p className="text-xs text-gray-500">
                         Based on your guest count of <strong>{guestCount}</strong>, we recommend the <strong>{guestCount <= 250 ? "Silver" : guestCount <= 450 ? "Gold" : "Diamond"}</strong> package.
                       </p>
-                      <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
+                      <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} dbPackages={dbPackages} />
                     </div>
                   </div>
                 )}
@@ -1098,7 +1113,6 @@ export default function BookPage() {
                         <div className="space-y-2">
                           <h4 className="font-bold text-[#805D3A] dark:text-[#C9A84C] uppercase tracking-wider text-[11px]">Payment Summary</h4>
                           <p><span className="text-gray-500">Subtotal:</span> {formatCurrency(grandTotal)}</p>
-                          <p><span className="text-gray-500">Taxes &amp; Fees (8%):</span> {formatCurrency(taxes)}</p>
                           <p className="font-bold text-gray-800 dark:text-gray-200"><span className="text-gray-500 font-normal">Total:</span> {formatCurrency(bookingTotal)}</p>
                           <div className="bg-[#FAF6EE] dark:bg-white/5 p-2 rounded-sm border border-[#E8DFC9] dark:border-gray-800 space-y-1">
                             <p className="text-[11px] font-bold text-[#805D3A] dark:text-[#C9A84C]">
@@ -1361,10 +1375,7 @@ export default function BookPage() {
                           <span className="font-medium">{formatCurrency(addonsCost)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Taxes & Fees (8%)</span>
-                        <span className="font-medium">{formatCurrency(taxes)}</span>
-                      </div>
+
                       
                       <div className="p-3.5 bg-[#FAF6EE] dark:bg-amber-950/20 border border-[#C69C6D]/40 rounded-xl flex justify-between items-center text-sm font-bold mt-2">
                         <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Total</span>
