@@ -371,7 +371,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                 {/* Pending Vendor Advances */}
                 {vendorAdvances.map((adv: any) => {
                   const isPaid = adv.status === "PAID";
-                  const vendorTotal = booking.pricingBreakdown?.[`${adv.vendorRole}Cost`] || 0;
+                  const vendorTotal = (booking.pricingBreakdown as any)?.[`${adv.vendorRole}Cost`] || 0;
                   const remainingBalance = vendorTotal - adv.requestedAmount;
                   
                   return (
