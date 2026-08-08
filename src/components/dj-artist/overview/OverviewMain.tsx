@@ -11,7 +11,7 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', '
 
 function statusClass(status: string) {
   if (status === 'Accepted') return 'bg-[#E6F4EA] text-[#2E7A3E] border-[#D7ECD8]';
-  if (status === 'Pending')  return 'bg-[#F7EBD6] text-[#7C6A2E] border-[#EDE3C8]';
+  if (status === 'Pending') return 'bg-[#F7EBD6] text-[#7C6A2E] border-[#EDE3C8]';
   if (status === 'Completed') return 'bg-[#EAF0F6] text-[#3F6897] border-[#DCE6EE]';
   if (status === 'Declined') return 'bg-[#FDE8E8] text-[#9B3434] border-[#F5D4D4]';
   return 'bg-[#FFF4E6] text-[#C27D2C] border-[#F2E4C9]';
@@ -63,10 +63,10 @@ const OverviewMain = () => {
   const ratingDisplay = avgRating > 0 ? avgRating.toFixed(1) : "—";
 
   const statCards = [
-    { title: "TOTAL BOOKINGS",  value: totalBookings.toString(),  sub: "All time jobs",         icon: <Music        size={22} className="text-[#B08D2C]" /> },
-    { title: "UPCOMING EVENTS", value: upcomingCount.toString(),  sub: "Needs preparation",     icon: <Calendar     size={22} className="text-[#B08D2C]" /> },
-    { title: "COMPLETED SETS",  value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
-    { title: "AVERAGE RATING",  value: ratingDisplay,             sub: avgRating > 0 ? "★★★★★" : "No reviews yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
+    { title: "TOTAL BOOKINGS", value: totalBookings.toString(), sub: "All time jobs", icon: <Music size={22} className="text-[#B08D2C]" /> },
+    { title: "UPCOMING EVENTS", value: upcomingCount.toString(), sub: "Needs preparation", icon: <Calendar size={22} className="text-[#B08D2C]" /> },
+    { title: "COMPLETED SETS", value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
+    { title: "AVERAGE RATING", value: ratingDisplay, sub: avgRating > 0 ? "★★★★★" : "No reviews yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
   ];
 
   return (
@@ -118,26 +118,23 @@ const OverviewMain = () => {
                 const pct = maxBar > 0 ? Math.round((count / maxBar) * 100) : 0;
                 return (
                   <div key={label + idx} className="flex flex-1 flex-col items-center group cursor-pointer">
-                    <div className={`relative h-[185px] w-full rounded-t-lg overflow-hidden border shadow-inner group-hover:bg-[#FDF9F1] transition-colors ${
-                      isCurrentMonth ? 'bg-[#FEF9E8] border-[#D4B553]' : 'bg-[#FAF6EE] border-[#E7DDCC]'
-                    }`}>
+                    <div className={`relative h-[185px] w-full rounded-t-lg overflow-hidden border shadow-inner group-hover:bg-[#FDF9F1] transition-colors ${isCurrentMonth ? 'bg-[#FEF9E8] border-[#D4B553]' : 'bg-[#FAF6EE] border-[#E7DDCC]'
+                      }`}>
                       {pct > 0 && (
                         <div
-                          className={`absolute bottom-0 left-0 right-0 rounded-t-sm transition-all duration-700 ease-in-out group-hover:opacity-90 ${
-                            isCurrentMonth
+                          className={`absolute bottom-0 left-0 right-0 rounded-t-sm transition-all duration-700 ease-in-out group-hover:opacity-90 ${isCurrentMonth
                               ? 'bg-gradient-to-t from-[#B08D2C] to-[#F0C040]'
                               : pct > 60
-                              ? 'bg-gradient-to-t from-[#5E4F20] to-[#7C6A2E]'
-                              : 'bg-gradient-to-t from-[#B08D2C] to-[#D4B553]'
-                          }`}
+                                ? 'bg-gradient-to-t from-[#5E4F20] to-[#7C6A2E]'
+                                : 'bg-gradient-to-t from-[#B08D2C] to-[#D4B553]'
+                            }`}
                           style={{ height: `${pct}%` }}
                           title={`${count} booking${count !== 1 ? 's' : ''}`}
                         />
                       )}
                     </div>
-                    <span className={`text-[10px] font-bold tracking-widest mt-2 ${
-                      isCurrentMonth ? 'text-[#B08D2C] underline underline-offset-2' : 'text-[#7C6A2E]'
-                    }`}>{label}</span>
+                    <span className={`text-[10px] font-bold tracking-widest mt-2 ${isCurrentMonth ? 'text-[#B08D2C] underline underline-offset-2' : 'text-[#7C6A2E]'
+                      }`}>{label}</span>
                   </div>
                 );
               })}
@@ -174,7 +171,7 @@ const OverviewMain = () => {
                 </div>
               ))}
             </div>
-            <Link href="/dj-artist/events-bookings" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
+            <Link href="/dj-artist/my-jobs" className="mt-5 inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 transition hover:text-[#7C6A2E]">
               View all activity
             </Link>
           </article>
