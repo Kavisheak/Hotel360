@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bell, CheckSquare, ArrowRight, Loader2 } from 'lucide-react';
-import { accountAPI } from '@/lib/api';
+import { accountAPI, notificationAPI } from '@/lib/api';
 
 const timeAgo = (date: Date) => {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -31,7 +31,7 @@ export default function ConciergeAlerts() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await accountAPI.getNotificationHistory();
+      const res = await notificationAPI.getNotificationHistory();
       if (res.ok && res.data?.success) {
         setNotifications(res.data.notifications || []);
       }
@@ -44,7 +44,7 @@ export default function ConciergeAlerts() {
 
   const handleDismissNotif = async (id: string) => {
     try {
-      const res = await accountAPI.markNotificationRead(id);
+      const res = await notificationAPI.markNotificationRead(id);
       if (res.ok) {
         setNotifications(prev => prev.filter(n => n._id !== id));
       } else {
