@@ -38,6 +38,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   // Credit replacement states
   const [activeCredits, setActiveCredits] = useState<any[]>([]);
+  const [vendorAdvances, setVendorAdvances] = useState<any[]>([]);
   const [isRefundingCredit, setIsRefundingCredit] = useState(false);
   const [showReplacementCategory, setShowReplacementCategory] = useState<string | null>(null);
 
@@ -57,23 +58,29 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
       }
     };
 
-    const fetchCredits = async () => {
+    const fetchCreditsAndAdvances = async () => {
       if (!booking) return;
       const bId = booking._id || booking.id;
       if (!bId) return;
       try {
-        const res = await customerBookingAPI.getActiveCredits(bId);
-        if (res.ok && res.data?.data) {
-          setActiveCredits(res.data.data);
+        const [creditsRes, advancesRes] = await Promise.all([
+          customerBookingAPI.getActiveCredits(bId),
+          customerBookingAPI.getVendorAdvances(bId)
+        ]);
+        if (creditsRes.ok && creditsRes.data?.data) {
+          setActiveCredits(creditsRes.data.data);
+        }
+        if (advancesRes.ok && advancesRes.data?.data) {
+          setVendorAdvances(advancesRes.data.data);
         }
       } catch (e) {
-        console.error("Failed to fetch credits:", e);
+        console.error("Failed to fetch credits/advances:", e);
       }
     };
 
     if (isOpen) {
       fetchCards();
-      fetchCredits();
+      fetchCreditsAndAdvances();
     }
   }, [isOpen, booking]);
 
@@ -119,6 +126,73 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
       onDismiss: () => setIsPaying(false),
       onError: () => setIsPaying(false),
     });
+  };
+
+  const handleVendorAdvancePayment = async (advanceId: string) => {
+    setIsPaying(true);
+    try {
+      const bId = booking._id || booking.id!;
+      const res = await customerBookingAPI.payVendorAdvance(bId, advanceId);
+      if (res.ok && res.data?.data?.hash) {
+        // use payhere window
+        const payhere = (window as any).payhere;
+        if (!payhere) {
+          alert("PayHere is not loaded.");
+          setIsPaying(false);
+          return;
+        }
+
+        payhere.onCompleted = function (orderId: string) {
+          console.log("Payment completed. OrderID:" + orderId);
+          fetch(`/api/customer/bookings/${bId}/vendor-advances/${advanceId}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+          }).then(() => window.location.reload());
+        };
+
+        payhere.onDismissed = function () {
+          console.log("Payment dismissed");
+          setIsPaying(false);
+        };
+
+        payhere.onError = function (error: string) {
+          console.log("Error:" + error);
+          alert("Payment Failed: " + error);
+          setIsPaying(false);
+        };
+
+        const paymentData = res.data.data;
+        const paymentObject = {
+          sandbox: true,
+          merchant_id: paymentData.merchant_id,
+          return_url: window.location.origin + "/payment-success",
+          cancel_url: window.location.origin + "/payment-cancel",
+          notify_url: process.env.NEXT_PUBLIC_API_URL + `/api/customer/bookings/${bId}/vendor-advances/${advanceId}/notify`,
+          order_id: paymentData.order_id,
+          items: paymentData.items,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          hash: paymentData.hash,
+          first_name: paymentData.first_name,
+          last_name: paymentData.last_name,
+          email: paymentData.email,
+          phone: paymentData.phone,
+          address: "EASCC",
+          city: "Colombo",
+          country: "Sri Lanka",
+        };
+
+        payhere.startPayment(paymentObject);
+      } else {
+        alert("Failed to initiate payment: " + (res.data?.message || "Unknown error"));
+        setIsPaying(false);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error initiating payment.");
+      setIsPaying(false);
+    }
   };
 
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
@@ -293,6 +367,77 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </div>
                   </div>
                 ))}
+
+                {/* Pending Vendor Advances */}
+                {vendorAdvances.map((adv: any) => {
+                  const isPaid = adv.status === "PAID";
+                  const vendorTotal = booking.pricingBreakdown?.[`${adv.vendorRole}Cost`] || 0;
+                  const remainingBalance = vendorTotal - adv.requestedAmount;
+                  
+                  return (
+                    <div key={adv._id} className="p-4 bg-[#F8F9FA] dark:bg-gray-900/30 border border-[#E0E0E0] dark:border-gray-800 rounded-lg shadow-sm flex flex-col gap-3 animate-fadeIn">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                          Vendor Advance Payment
+                        </span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${isPaid ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-amber-100 text-amber-800 border-amber-200"}`}>
+                          Status: {isPaid ? "PAID" : "Payment Required"}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                        <div>
+                          <p className="text-gray-500 font-bold uppercase text-[9px]">Vendor</p>
+                          <p className="font-semibold text-gray-900 dark:text-white capitalize">{adv.vendorRole}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 font-bold uppercase text-[9px]">Advance Requested</p>
+                          <p className="font-mono font-bold text-indigo-700 dark:text-indigo-400">LKR {adv.requestedAmount.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 font-bold uppercase text-[9px]">Vendor Total</p>
+                          <p className="font-mono text-gray-700 dark:text-gray-300">LKR {vendorTotal.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 font-bold uppercase text-[9px]">Remaining Balance</p>
+                          <p className="font-mono text-gray-700 dark:text-gray-300">LKR {remainingBalance.toLocaleString()}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-200 dark:border-gray-800">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                          {isPaid ? (
+                            <>
+                              <Receipt size={14} /> 
+                              <span>Transaction ID: <strong className="font-mono">{adv.paymentId?.transactionId || "N/A"}</strong></span>
+                              <span className="ml-2 px-1 text-gray-300">|</span>
+                              <span className="ml-2">Payment Date: {new Date(adv.paidAt).toLocaleDateString()}</span>
+                            </>
+                          ) : (
+                            <>
+                              <CalendarDays size={14} className="text-amber-600" />
+                              <span>Payment Deadline: <strong className="text-amber-700 dark:text-amber-400">{new Date(adv.deadline).toLocaleDateString()}</strong></span>
+                            </>
+                          )}
+                        </div>
+
+                        {!isPaid ? (
+                          <button
+                            onClick={() => handleVendorAdvancePayment(adv._id)}
+                            disabled={isPaying}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                          >
+                            {isPaying ? "Processing..." : `Pay LKR ${adv.requestedAmount.toLocaleString()}`}
+                          </button>
+                        ) : (
+                          <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-widest rounded shadow-sm flex items-center gap-1.5">
+                            <CheckCircle2 size={14} /> Advance Paid
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {/* Two-Stage Progress Flow */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">

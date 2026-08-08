@@ -216,7 +216,7 @@ export const decoratorAPI = {
   getJobById: (id: string) => apiFetch(`/api/decorator/jobs/${id}`),
   markJobComplete: (id: string) => apiFetch(`/api/decorator/jobs/${id}/mark-complete`, { method: "POST" }),
   getPendingRequests: () => apiFetch("/api/decorator/bookings/pending"),
-  acceptRequest: (id: string) => apiFetch(`/api/decorator/bookings/${id}/accept`, { method: "POST" }),
+  acceptRequest: (id: string, advanceAmount?: number, advanceDeadline?: string) => apiFetch(`/api/decorator/bookings/${id}/accept`, { method: "POST", body: JSON.stringify({ advanceRequestedAmount: advanceAmount, advanceDeadline }) }),
   declineRequest: (id: string, reason: string) =>
     apiFetch(`/api/decorator/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
   getSchedule: (month?: number, year?: number) =>
@@ -244,7 +244,7 @@ export const decoratorAPI = {
 export const djAPI = {
   getOverview: () => apiFetch("/api/dj-artist/overview"),
   getPendingRequests: () => apiFetch("/api/dj-artist/bookings/pending"),
-  acceptRequest: (id: string) => apiFetch(`/api/dj-artist/bookings/${id}/accept`, { method: "POST" }),
+  acceptRequest: (id: string, advanceAmount?: number, advanceDeadline?: string) => apiFetch(`/api/dj-artist/bookings/${id}/accept`, { method: "POST", body: JSON.stringify({ advanceRequestedAmount: advanceAmount, advanceDeadline }) }),
   declineRequest: (id: string, reason: string) =>
     apiFetch(`/api/dj-artist/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
   getJobs: (status?: string) => apiFetch(`/api/dj-artist/jobs?status=${status || "upcoming"}`),
@@ -304,7 +304,7 @@ export const djAPI = {
 export const videographerAPI = {
   getOverview: () => apiFetch("/api/videographer/overview"),
   getPendingRequests: () => apiFetch("/api/videographer/bookings/pending"),
-  acceptRequest: (id: string) => apiFetch(`/api/videographer/bookings/${id}/accept`, { method: "POST" }),
+  acceptRequest: (id: string, advanceAmount?: number, advanceDeadline?: string) => apiFetch(`/api/videographer/bookings/${id}/accept`, { method: "POST", body: JSON.stringify({ advanceRequestedAmount: advanceAmount, advanceDeadline }) }),
   declineRequest: (id: string, reason: string) =>
     apiFetch(`/api/videographer/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
   getJobs: (status?: string) => apiFetch(`/api/videographer/jobs?status=${status || "upcoming"}`),
@@ -375,6 +375,11 @@ export const accountAPI = {
     }),
 };
 
+export const notificationAPI = {
+  getNotificationHistory: () => apiFetch('/api/notifications/history', { method: "GET" }),
+  markNotificationRead: (id: string) => apiFetch(`/api/notifications/history/${id}/read`, { method: "PUT" }),
+};
+
 export const customerBookingAPI = {
   createBooking: (body: any) =>
     apiFetch("/api/customer/bookings", {
@@ -432,6 +437,10 @@ export const customerBookingAPI = {
     apiFetch(`/api/customer/bookings/${bookingId}/credits/${creditId}/refund`, {
       method: "POST",
     }),
+  getVendorAdvances: (bookingId: string) => 
+    apiFetch(`/api/customer/bookings/${bookingId}/vendor-advances`),
+  payVendorAdvance: (bookingId: string, advanceId: string) => 
+    apiFetch(`/api/customer/bookings/${bookingId}/vendor-advances/${advanceId}/payhere-hash`, { method: "POST" }),
 };
 
 export const vendorPaymentAPI = {

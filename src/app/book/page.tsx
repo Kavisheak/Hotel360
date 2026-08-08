@@ -355,10 +355,15 @@ export default function BookPage() {
     getVendorCost("dj") + 
     getVendorCost("videographer");
 
-  const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
+  const hallBase = basePrice + extraHoursPremium + timeslotPremium;
+  const hallTax = Math.round(hallBase * 0.08);
+  const hallTotalWithTax = hallBase + hallTax;
+
+  const grandTotal = hallBase + addonsCost;
   const taxes = Math.round(grandTotal * 0.08);
   const bookingTotal = grandTotal + taxes;
-  const depositToday = Math.round(bookingTotal * 0.3);
+  
+  const depositToday = Math.round(hallTotalWithTax * 0.3);
   const balanceDue = bookingTotal - depositToday;
 
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
@@ -696,7 +701,7 @@ export default function BookPage() {
               </tbody>
             </table>
             <div class="total-box">
-              <p style="margin:0 0 5px 0; font-size:12px; color:gray; text-transform:uppercase;">Advance Deposit Paid (30%)</p>
+              <p style="margin:0 0 5px 0; font-size:12px; color:gray; text-transform:uppercase;">Advance Deposit Paid (30% of Hall Only)</p>
               <h3 style="margin:0 0 10px 0; color:#805d3a; font-size:24px;">${formatCurrency(successAdvancePaid)}</h3>
               <p style="margin:0; font-size:12px;">Remaining Balance: <strong>${formatCurrency(successRemainingBalance)}</strong></p>
             </div>
@@ -1170,11 +1175,11 @@ export default function BookPage() {
                           Cancellation Policy
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                          &bull; <strong>More than 30 days before event:</strong> Free cancellation from your dashboard.
+                          &bull; <strong>More than 30 days before event:</strong> Eligible for a 50% partial refund of advance payments.
                           <br />
-                          &bull; <strong>14–30 days before event:</strong> Cancellation requires Manager review.
+                          &bull; <strong>30 days or less before event:</strong> Cancellations are strictly non-refundable.
                           <br />
-                          &bull; <strong>Less than 14 days:</strong> Cancellation not possible via portal. Contact hotel directly.
+                          &bull; <strong>Venue Cancellations:</strong> If the venue cancels, you receive a full 100% refund.
                         </p>
                       </div>
 
@@ -1361,24 +1366,55 @@ export default function BookPage() {
                   <div className="space-y-3 text-xs">
                     <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold font-sans">Cost breakdown</p>
                     <div className="space-y-2.5">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Hall Hold & Time Slot</span>
-                        <span className="font-medium">{formatCurrency(extraHoursPremium + timeslotPremium)}</span>
+                      
+                      {/* Hall Subtotal */}
+                      <div className="border-b border-[#E8DFC9] dark:border-gray-800 pb-2 mb-2">
+                         <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                           <span>Hall Estimate</span>
+                           <span>{formatCurrency(hallBase)}</span>
+                         </div>
+                         <div className="flex justify-between text-gray-500">
+                           <span>Package {selectedPackage ? `(${selectedPackage.toUpperCase()})` : "(Not Selected)"}</span>
+                           <span className="font-medium">{formatCurrency(basePrice)}</span>
+                         </div>
+                         {(extraHoursPremium + timeslotPremium) > 0 && (
+                           <div className="flex justify-between text-gray-500 mt-1">
+                             <span>Hold & Time Slot</span>
+                             <span className="font-medium">{formatCurrency(extraHoursPremium + timeslotPremium)}</span>
+                           </div>
+                         )}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Package {selectedPackage ? `(${selectedPackage.toUpperCase()})` : "(Not Selected)"}</span>
-                        <span className="font-medium">{formatCurrency(basePrice)}</span>
-                      </div>
+
+                      {/* Vendors Subtotal */}
                       {addonsCost > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Selected Artisans</span>
-                          <span className="font-medium">{formatCurrency(addonsCost)}</span>
+                        <div className="border-b border-[#E8DFC9] dark:border-gray-800 pb-2 mb-2">
+                           <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                             <span>Vendor Estimate</span>
+                             <span>{formatCurrency(addonsCost)}</span>
+                           </div>
+                           {getVendorCost("decorator") > 0 && (
+                             <div className="flex justify-between text-gray-500">
+                               <span>Decorator</span>
+                               <span className="font-medium">{formatCurrency(getVendorCost("decorator"))}</span>
+                             </div>
+                           )}
+                           {getVendorCost("dj") > 0 && (
+                             <div className="flex justify-between text-gray-500 mt-1">
+                               <span>DJ Artist</span>
+                               <span className="font-medium">{formatCurrency(getVendorCost("dj"))}</span>
+                             </div>
+                           )}
+                           {getVendorCost("videographer") > 0 && (
+                             <div className="flex justify-between text-gray-500 mt-1">
+                               <span>Videographer</span>
+                               <span className="font-medium">{formatCurrency(getVendorCost("videographer"))}</span>
+                             </div>
+                           )}
                         </div>
                       )}
 
-                      
                       <div className="p-3.5 bg-[#FAF6EE] dark:bg-amber-950/20 border border-[#C69C6D]/40 rounded-xl flex justify-between items-center text-sm font-bold mt-2">
-                        <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Total</span>
+                        <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Grand Total</span>
                         <span className="text-[#C69C6D] text-base">
                           <AnimatedPrice value={bookingTotal} format={formatCurrency} />
                         </span>
@@ -1389,7 +1425,7 @@ export default function BookPage() {
                   {/* Deposit Today */}
                   <div className="bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 border border-[#E8DFC9] dark:border-zinc-800 rounded-xl flex items-center justify-between">
                     <div>
-                      <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">30% Advance Deposit</p>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">30% Advance (Hall Only)</p>
                       <p className="text-lg font-serif font-bold text-[#805D3A] dark:text-[#C9A84C] mt-0.5">
                         <AnimatedPrice value={depositToday} format={formatCurrency} />
                       </p>
@@ -1520,14 +1556,15 @@ export default function BookPage() {
                             <div className="p-4 bg-white dark:bg-[#111111] text-xs text-gray-600 dark:text-gray-400 space-y-2 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
                               <p><strong>Date:</strong> {selectedDate ? new Date(selectedDate).toLocaleDateString() : "Pending selection"}</p>
                               <p><strong>Time Slot:</strong> {startTime} – {endTime}</p>
-                              <p><strong>Guests:</strong> {guestCount} Guests</p>
+                              <p className="flex justify-between"><strong>Hall Base:</strong> <span>{formatCurrency(hallBase)}</span></p>
+                              {addonsCost > 0 && <p className="flex justify-between"><strong>Vendors:</strong> <span>{formatCurrency(addonsCost)}</span></p>}
                               <div className="h-px bg-gray-100 dark:bg-zinc-800 my-2" />
                               <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200 mt-1">
-                                <span>Estimated Total</span>
+                                <span>Estimated Grand Total</span>
                                 <span className="text-[#C69C6D]">{formatCurrency(bookingTotal)}</span>
                               </div>
                               <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200">
-                                <span>30% Deposit Today</span>
+                                <span>30% Advance (Hall Only)</span>
                                 <span className="text-[#C69C6D]">{formatCurrency(depositToday)}</span>
                               </div>
                             </div>

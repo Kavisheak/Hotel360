@@ -15,6 +15,7 @@ const REASON_OPTIONS = [
   { value: "date_conflict", label: "Date Conflict / Fully Booked" },
   { value: "out_of_budget", label: "Requested Budget Mismatch" },
   { value: "out_of_area", label: "Outside Primary Service Area" },
+  { value: "no_response", label: "No Response from Client" },
   { value: "other", label: "Other Operational Reason" },
 ];
 
@@ -43,7 +44,7 @@ const DeclineReasonModal: React.FC<DeclineReasonModalProps> = ({
         </div>
 
         <p className="text-xs text-gray-600 mb-4 leading-relaxed">
-          Please select a reason for declining. Declining will immediately convert the held 30% advance into an active 48-hour booking credit for the customer to pick a replacement vendor.
+          Please select a reason for declining. This will notify the customer so they can select a replacement vendor for their event.
         </p>
 
         <div className="space-y-2 mb-6">

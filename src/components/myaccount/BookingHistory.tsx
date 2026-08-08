@@ -175,6 +175,7 @@ export default function BookingHistory() {
                     const vStatus = vendor.status || "Pending";
                     const isAccepted = vStatus === "Accepted";
                     const isDeclined = vStatus === "Declined";
+                    const isExpired = vStatus === "Expired";
                     const isAwaitingHall = vStatus === "Awaiting Hall Confirmation";
 
                     const labels: Record<string, string> = {
@@ -193,11 +194,11 @@ export default function BookingHistory() {
                       statusText = "Confirmed";
                       textColorClass = "text-emerald-600";
                     } else if (isDeclined) {
-                      const pricingBreakdown: any = booking.pricingBreakdown || {};
-                      const cost = pricingBreakdown[`${service}Cost`] || 0;
-                      const creditVal = Math.round(cost * 1.08 * 0.3);
-                      statusText = `Credit — LKR ${creditVal.toLocaleString()}`;
-                      textColorClass = "text-amber-600";
+                      statusText = `Declined - Swap Required`;
+                      textColorClass = "text-red-500";
+                    } else if (isExpired) {
+                      statusText = `Expired - Swap Required`;
+                      textColorClass = "text-red-500";
                     } else if (isAwaitingHall) {
                       statusText = "Awaiting Hall";
                       textColorClass = "text-amber-500";
@@ -209,7 +210,24 @@ export default function BookingHistory() {
                     return (
                       <div key={service} className="bg-zinc-50 dark:bg-zinc-900/40 px-4 py-3 rounded-lg flex justify-between items-center border border-gray-100 dark:border-zinc-850">
                         <span className="text-gray-500 font-medium text-xs font-sans">{labels[service]}</span>
-                        <span className={`text-xs font-bold ${textColorClass}`}>{statusText}</span>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs font-bold ${textColorClass}`}>{statusText}</span>
+                          {(isDeclined || isExpired) && (
+                            <button
+                              onClick={() => {
+                                setSwapModalState({
+                                  isOpen: true,
+                                  bookingId: (booking._id || booking.id || "") as string,
+                                  service: service as "decorator" | "dj" | "videographer",
+                                  currentVendorId: vendor.vendorId
+                                });
+                              }}
+                              className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded text-[10px] font-bold uppercase tracking-wider transition-colors"
+                            >
+                              Swap
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -225,21 +243,7 @@ export default function BookingHistory() {
                     <Download className="w-3.5 h-3.5" /> Invoice
                   </button>
 
-                  {/* Replace vendor */}
-                  {!["Completed", "Cancelled", "Rejected"].includes(booking.status) && (
-                    <button 
-                      onClick={() => {
-                        setSwapModalState({
-                          isOpen: true,
-                          bookingId: (booking._id || booking.id || "") as string,
-                          service: "decorator"
-                        });
-                      }}
-                      className="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 font-sans"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" /> Replace vendor
-                    </button>
-                  )}
+
 
                   {/* Message hotel */}
                   <button 
