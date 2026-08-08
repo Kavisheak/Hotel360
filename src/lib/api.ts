@@ -227,7 +227,7 @@ export const decoratorAPI = {
   getAlbums: (status?: string) =>
     apiFetch(`/api/decorator/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
   getAlbumById: (id: string) => apiFetch(`/api/decorator/portfolio/albums/${id}`),
-  createAlbum: (body: { title: string; linkedBookingId?: string; price?: number; [key: string]: any }) =>
+  createAlbum: (body: { title: string; linkedBookingId?: string; price?: number;[key: string]: any }) =>
     apiFetch("/api/decorator/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
   updateAlbum: (id: string, body: any) =>
     apiFetch(`/api/decorator/portfolio/albums/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
@@ -466,6 +466,12 @@ export const superAdminAPI = {
   getOverview: () => apiFetch("/api/super-admin/overview"),
   getFinancials: () => apiFetch("/api/super-admin/financials"),
   getConfigHealth: () => apiFetch("/api/super-admin/config/health"),
+  getPlatformConfig: () => apiFetch("/api/super-admin/config/platform"),
+  updatePlatformConfig: (data: any) =>
+    apiFetch("/api/super-admin/config/platform", {
+      method: "PUT",
+      body: JSON.stringify(data)
+    }),
   approveRefund: (id: string) => apiFetch(`/api/super-admin/financials/refund/${id}`, { method: 'PUT' }),
   getStaff: () => apiFetch("/api/super-admin/users"),
   createStaff: (data: any) =>

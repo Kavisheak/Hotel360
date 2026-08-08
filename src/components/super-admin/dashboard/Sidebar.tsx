@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, Users, BarChart3,
   Settings, HelpCircle, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, ShieldCheck
+  PanelLeftClose, PanelLeftOpen, ShieldCheck, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -26,13 +26,11 @@ const NavItem = ({ icon, label, href, active = false, isCollapsed = false, onCli
       href={href}
       onClick={onClick}
       title={isCollapsed ? label : undefined}
-      className={`flex items-center rounded-md transition-all duration-200 ${
-        isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
-      } ${
-        active
+      className={`flex items-center rounded-md transition-all duration-200 ${isCollapsed ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
+        } ${active
           ? 'bg-[#F9DD76] text-[#7C6A2E] shadow-sm'
           : 'text-gray-600 hover:bg-[#F2EADA]'
-      }`}
+        }`}
     >
       <span className={active ? 'text-[#7C6A2E]' : 'text-gray-500'}>{icon}</span>
       {!isCollapsed && (
@@ -78,10 +76,11 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />, label: 'Global Overview',       href: '/super-admin' },
-    { icon: <Users size={20} />,       label: 'Staff Management',      href: '/super-admin/staff' },
-    { icon: <BarChart3 size={20} />,   label: 'Financial Records',     href: '/super-admin/financials' },
-    { icon: <Settings size={20} />,    label: 'System Configuration',  href: '/super-admin/configuration' },
+    { icon: <LayoutGrid size={20} />, label: 'Global Overview', href: '/super-admin' },
+    { icon: <Users size={20} />, label: 'Staff Management', href: '/super-admin/staff' },
+    { icon: <BarChart3 size={20} />, label: 'Financial Records', href: '/super-admin/financials' },
+    { icon: <ShieldCheck size={20} />, label: 'AI Sentiment Analytics', href: '/super-admin/sentiment-analytics' },
+    { icon: <Settings size={20} />, label: 'System Configuration', href: '/super-admin/configuration' },
   ];
 
   const bottomItems = [
@@ -211,9 +210,8 @@ const Sidebar = () => {
 
       {/* Mobile drawer */}
       <div
-        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-[#FDF9F1] border-r border-[#E0D8C3] z-50 p-6 transition-transform duration-300 overflow-y-auto ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-[#FDF9F1] border-r border-[#E0D8C3] z-50 p-6 transition-transform duration-300 overflow-y-auto ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
@@ -226,9 +224,8 @@ const Sidebar = () => {
 
       {/* Desktop sidebar with smooth collapse */}
       <div
-        className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${
-          mounted && isCollapsed ? 'w-20' : 'w-64'
-        }`}
+        className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${mounted && isCollapsed ? 'w-20' : 'w-64'
+          }`}
       >
         {sidebarBody(mounted && isCollapsed)}
       </div>
