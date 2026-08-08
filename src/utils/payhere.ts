@@ -99,6 +99,14 @@ export const startPayHerePayment = async ({
 
     payhere.onError = function onPayHereError(error: any) {
       console.error("PayHere Checkout Error:", error);
+      
+      const errorStr = String(error).toLowerCase();
+      if (errorStr.includes("card") || errorStr.includes("decline") || errorStr.includes("failed")) {
+        // Do not simulate success for actual card failures/declines
+        if (onError) onError(new Error(String(error)));
+        return;
+      }
+
       const simulate = confirm(
         `PayHere Merchant Notice: ${error || "Unauthorized payment request (Merchant credentials mismatch)"}.\n\nWould you like to simulate a successful deposit payment to complete testing your booking?`
       );

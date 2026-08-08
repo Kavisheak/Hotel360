@@ -13,6 +13,8 @@ import {
   VENUE_NAME,
   getApiImageUrl,
 } from "@/lib/vendorUtils";
+import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
+import DeclineRequestModal from '@/components/vendor/bookings/DeclineRequestModal';
 
 const BookingsGrid = () => {
   const router = useRouter();
@@ -22,6 +24,8 @@ const BookingsGrid = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [acceptEvent, setAcceptEvent] = useState<any | null>(null);
+  const [declineEvent, setDeclineEvent] = useState<any | null>(null);
 
   const loadBookings = () => {
     videographerAPI.getAssignedBookings().then(({ ok, data }) => {
@@ -34,11 +38,12 @@ const BookingsGrid = () => {
     loadBookings();
   }, []);
 
-  const handleStatusUpdate = async (bookingId: string, status: 'Accepted' | 'Declined') => {
+  const handleStatusUpdate = async (bookingId: string, status: 'Accepted' | 'Declined', reason?: string) => {
     setUpdatingId(bookingId);
     try {
-      const res = await videographerAPI.updateBookingStatus(bookingId, status);
+      const res = await videographerAPI.updateBookingStatus(bookingId, status, { declineReason: reason });
       if (res.ok) {
+        setDeclineEvent(null);
         loadBookings();
       } else {
         alert(res.data?.message || 'Failed to update status.');
@@ -47,6 +52,32 @@ const BookingsGrid = () => {
       console.error(e);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleAcceptConfirm = async (advanceAmount: number, advanceDeadline: string) => {
+    if (!acceptEvent) return;
+    setUpdatingId(acceptEvent._id);
+    try {
+      const res = await videographerAPI.updateBookingStatus(acceptEvent._id, "Accepted", {
+        advanceRequestedAmount: advanceAmount,
+        advanceDeadline: advanceDeadline
+      });
+      if (res.ok) {
+        setAcceptEvent(null);
+        loadBookings();
+      } else {
+        if (res.status === 409 || res.data?.code === "EXPIRED") {
+          alert("This request just expired.");
+        } else {
+          console.error("Failed to accept booking:", res.data?.message);
+        }
+      }
+    } catch (e) {
+      console.error("Error accepting booking:", e);
+    } finally {
+      setUpdatingId(null);
+      setAcceptEvent(null);
     }
   };
 
@@ -135,14 +166,14 @@ const BookingsGrid = () => {
                   {status === "Pending" ? (
                     <div className="flex items-center justify-end gap-1.5">
                       <button
-                        onClick={() => handleStatusUpdate(booking._id, "Accepted")}
+                        onClick={() => setAcceptEvent(booking)}
                         disabled={updatingId === booking._id}
                         className="px-3 py-1 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
                       >
                         Accept
                       </button>
                       <button
-                        onClick={() => handleStatusUpdate(booking._id, "Declined")}
+                        onClick={() => setDeclineEvent(booking)}
                         disabled={updatingId === booking._id}
                         className="px-3 py-1 border border-red-300 text-red-500 hover:bg-red-50 text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
                       >
@@ -162,6 +193,25 @@ const BookingsGrid = () => {
             );
           })}
         </div>
+      )}
+
+      {acceptEvent && (
+        <AdvanceRequestModal
+          isOpen={!!acceptEvent}
+          onClose={() => setAcceptEvent(null)}
+          onSubmit={handleAcceptConfirm}
+          isSubmitting={updatingId === acceptEvent._id}
+          offeredPrice={acceptEvent.pricingBreakdown?.videographerCost || 0}
+        />
+      )}
+
+      {declineEvent && (
+        <DeclineRequestModal
+          isOpen={!!declineEvent}
+          onClose={() => setDeclineEvent(null)}
+          onSubmit={(reason) => handleStatusUpdate(declineEvent._id, "Declined", reason)}
+          isSubmitting={updatingId === declineEvent._id}
+        />
       )}
     </div>
   );

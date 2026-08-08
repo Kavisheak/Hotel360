@@ -1,27 +1,58 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, CheckSquare, ArrowRight } from 'lucide-react';
+import { Bell, CheckSquare, ArrowRight, Loader2 } from 'lucide-react';
+import { accountAPI } from '@/lib/api';
+
+const timeAgo = (date: Date) => {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  let interval = Math.floor(seconds / 31536000);
+  if (interval > 1) return interval + " years ago";
+  interval = Math.floor(seconds / 2592000);
+  if (interval > 1) return interval + " months ago";
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval + (interval === 1 ? " day ago" : " days ago");
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval + (interval === 1 ? " hour ago" : " hours ago");
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval + (interval === 1 ? " minute ago" : " minutes ago");
+  return "Just now";
+};
 
 export default function ConciergeAlerts() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Food Menu Confirmation Required",
-      desc: "Please review and finalize your selected menu options with your concierge by tomorrow evening.",
-      time: "2 hours ago"
-    },
-    {
-      id: 2,
-      title: "Bank Installment Receipt Vetted",
-      desc: "Concierge office has approved your installment payment of LKR 1,200,000.",
-      time: "Yesterday"
-    }
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDismissNotif = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const res = await accountAPI.getNotificationHistory();
+      if (res.ok && res.data?.success) {
+        setNotifications(res.data.notifications || []);
+      }
+    } catch (e) {
+      console.error("Error fetching notifications:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDismissNotif = async (id: string) => {
+    try {
+      const res = await accountAPI.markNotificationRead(id);
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n._id !== id));
+      } else {
+        console.error("Failed to dismiss notification:", res.data?.message);
+      }
+    } catch (e) {
+      console.error("Error dismissing notification:", e);
+    }
   };
 
   return (
@@ -32,14 +63,18 @@ export default function ConciergeAlerts() {
           <h3 className="text-lg font-serif text-[#C9A84C] flex items-center gap-2">
             <Bell className="w-4 h-4 animate-bounce" /> Concierge Directives
           </h3>
-          {notifications.length > 0 && (
+          {notifications.length > 0 && !loading && (
             <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
               {notifications.length}
             </span>
           )}
         </div>
 
-        {notifications.length === 0 ? (
+        {loading ? (
+          <div className="py-6 flex justify-center text-[#C9A84C]">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="py-6 text-center border-t border-white/10 text-gray-400">
             <CheckSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-xs font-light">All caught up! No new directives.</p>
@@ -47,16 +82,18 @@ export default function ConciergeAlerts() {
         ) : (
           <div className="space-y-4">
             {notifications.map((notif) => (
-              <div key={notif.id} className="pb-4 border-b border-white/10 dark:border-[#C9A84C]/20 last:border-0 last:pb-0 p-2 rounded-sm transition-colors duration-200 -mx-2 group relative">
+              <div key={notif._id} className="pb-4 border-b border-white/10 dark:border-[#C9A84C]/20 last:border-0 last:pb-0 p-2 rounded-sm transition-colors duration-200 -mx-2 group relative">
                 <div className="flex justify-between items-baseline gap-2">
                   <h4 className="text-xs font-bold text-[#F0E6D0] pr-6">{notif.title}</h4>
-                  <span className="text-[8px] text-gray-500 font-semibold shrink-0 uppercase tracking-wider">{notif.time}</span>
+                  <span className="text-[8px] text-gray-500 font-semibold shrink-0 uppercase tracking-wider">
+                    {notif.createdAt ? timeAgo(new Date(notif.createdAt)) : 'Just now'}
+                  </span>
                 </div>
                 <p className="text-[11px] text-gray-400 font-light mt-1.5 leading-normal pr-4">
-                  {notif.desc}
+                  {notif.message}
                 </p>
                 <button 
-                  onClick={() => handleDismissNotif(notif.id)}
+                  onClick={() => handleDismissNotif(notif._id)}
                   className="absolute top-2 right-2 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all btn-interactive"
                   title="Dismiss"
                 >

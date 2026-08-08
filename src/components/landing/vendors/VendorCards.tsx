@@ -20,7 +20,7 @@ export default function VendorCards({
 }: VendorCardsProps) {
   const router = useRouter();
   const { vendors: allVendors } = useVendorStore();
-  const { vendors: cartVendors, setVendor, favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
+  const { vendors: cartVendors, requestedDesigns, setVendor, favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
   
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState("");
@@ -29,7 +29,7 @@ export default function VendorCards({
 
   // Selection Replace Confirmation Modal State
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState<{ id: string; category: string; name: string } | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<{ id: string; category: string; name: string; portfolioItemId?: string; portfolioPrice?: number } | null>(null);
   const [existingVendorName, setExistingVendorName] = useState("");
 
   // Contact Modal State
@@ -80,22 +80,39 @@ export default function VendorCards({
     return { status: "available", label: "Available", color: "text-emerald-700 bg-emerald-100", dot: "bg-emerald-500" };
   };
 
-  const handleSelectClick = (vendor: Vendor) => {
+  const handleSelectClick = (vendor: Vendor, portfolioItem: any) => {
     const storeCat = getStoreCategory(vendor.category);
     const existingId = cartVendors[storeCat];
 
     if (existingId === vendor.id) {
-      setVendor(storeCat, null);
+      if (portfolioItem && requestedDesigns[storeCat] !== (portfolioItem._id || portfolioItem.id)) {
+        // Switching to a different design from the same vendor
+        useVendorCartStore.setState((state) => ({
+          requestedDesigns: { ...state.requestedDesigns, [storeCat]: (portfolioItem._id || portfolioItem.id) },
+          requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: portfolioItem.price }
+        }));
+      } else {
+        // Toggling off completely
+        setVendor(storeCat, null);
+        useVendorCartStore.setState((state) => ({
+          requestedDesigns: { ...state.requestedDesigns, [storeCat]: null },
+          requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: null }
+        }));
+      }
       return;
     }
 
     if (existingId) {
       const existing = allVendors.find(v => v.id === existingId);
       setExistingVendorName(existing ? existing.name : "another provider");
-      setPendingSelection({ id: vendor.id, category: vendor.category, name: vendor.name });
+      setPendingSelection({ id: vendor.id, category: vendor.category, name: vendor.name, portfolioItemId: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null, portfolioPrice: portfolioItem?.price });
       setReplaceModalOpen(true);
     } else {
       setVendor(storeCat, vendor.id);
+      useVendorCartStore.setState((state) => ({
+        requestedDesigns: { ...state.requestedDesigns, [storeCat]: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null },
+        requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: portfolioItem?.price || null }
+      }));
     }
   };
 
@@ -103,6 +120,10 @@ export default function VendorCards({
     if (pendingSelection) {
       const storeCat = getStoreCategory(pendingSelection.category);
       setVendor(storeCat, pendingSelection.id);
+      useVendorCartStore.setState((state) => ({
+        requestedDesigns: { ...state.requestedDesigns, [storeCat]: pendingSelection.portfolioItemId || null },
+        requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: pendingSelection.portfolioPrice || null }
+      }));
       setReplaceModalOpen(false);
       setPendingSelection(null);
     }
@@ -184,7 +205,7 @@ export default function VendorCards({
               return vendor.portfolioItems.map((item, idx) => ({
                 vendor,
                 portfolioItem: item,
-                cardKey: `${vendor.id}-portfolio-${item.id || idx}`,
+                cardKey: `${vendor.id}-portfolio-${item._id || item.id || idx}`,
               }));
             }
             return [{
@@ -196,7 +217,12 @@ export default function VendorCards({
             const isFavorite = favoriteVendors?.includes(vendor.id) || false;
             const isCompareSelected = compareList.includes(vendor.id);
             const storeCat = getStoreCategory(vendor.category);
-            const isSelected = cartVendors[storeCat] === vendor.id;
+            const isVendorSelected = cartVendors[storeCat] === vendor.id;
+            
+            const pId = portfolioItem ? (portfolioItem._id || portfolioItem.id) : null;
+            const firstPId = vendor.portfolioItems?.[0] ? (vendor.portfolioItems[0]._id || vendor.portfolioItems[0].id) : null;
+            
+            const isSelected = isVendorSelected && (!portfolioItem || requestedDesigns[storeCat] === pId || (!requestedDesigns[storeCat] && pId === firstPId));
             const availability = getAvailability(vendor);
             
             // Get cover & gallery images for this specific portfolio card
@@ -377,7 +403,7 @@ export default function VendorCards({
                       <ImageIcon className="w-3.5 h-3.5"/> View Portfolio
                     </button>
                     <button 
-                      onClick={() => handleRestrictedAction("Please log in to select vendors for your booking.", () => handleSelectClick(vendor))}
+                      onClick={() => handleRestrictedAction("Please log in to select vendors for your booking.", () => handleSelectClick(vendor, portfolioItem))}
                       className={`flex-1 flex items-center justify-center py-3.5 px-2 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all shadow-md whitespace-nowrap ${isSelected ? 'bg-[#D4AF37] text-white hover:bg-[#C9A84C]' : 'bg-[#C9A84C] text-white hover:bg-[#D4AF37] hover:-translate-y-0.5 hover:shadow-lg'}`}
                     >
                       {isSelected ? (

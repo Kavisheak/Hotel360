@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar, MapPin, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { videographerAPI } from "@/lib/api";
 import { VENUE_NAME, getClientFirstName } from "@/lib/vendorUtils";
+import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
 
 interface UpcomingEventListProps {
   searchTerm?: string;
@@ -27,6 +28,8 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBook
   const [selectedEventId, setSelectedEventId] = useState("");
   const [modalStatus, setModalStatus] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const [declineReason, setDeclineReason] = useState("");
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -84,19 +87,28 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBook
   const handleStatusChange = (eventId: string, newStatus: string) => {
     setSelectedEventId(eventId);
     setModalStatus(newStatus);
+    setDeclineReason("");
     setShowModal(true);
   };
 
-  const confirmStatusChange = async () => {
+  const confirmStatusChange = async (advanceAmount?: number, advanceDeadline?: string) => {
     try {
       setIsUpdating(true);
-      const res = await videographerAPI.updateBookingStatus(selectedEventId, modalStatus);
+      const res = await videographerAPI.updateBookingStatus(selectedEventId, modalStatus, { 
+        declineReason,
+        advanceRequestedAmount: advanceAmount,
+        advanceDeadline: advanceDeadline
+      });
       if (res.ok) {
         setShowModal(false);
         if (onRefresh) onRefresh();
         else fetchUpcomingEvents();
       } else {
-        alert(res.data?.message || 'Failed to update status');
+        if (res.status === 409 || res.data?.code === "EXPIRED") {
+          alert("This request just expired.");
+        } else {
+          alert(res.data?.message || 'Failed to update status');
+        }
       }
     } catch (e) {
       console.error(e);
@@ -171,8 +183,18 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBook
         </div>
       )}
 
-      {/* Confirmation Modal */}
-      {showModal && (
+      {/* Confirmation Modals */}
+      {showModal && modalStatus === 'Accepted' && (
+        <AdvanceRequestModal
+          isOpen={true}
+          onClose={() => setShowModal(false)}
+          onSubmit={confirmStatusChange}
+          isSubmitting={isUpdating}
+          offeredPrice={rawBookings.find(b => b._id === selectedEventId)?.pricingBreakdown?.videographerCost || 0}
+        />
+      )}
+
+      {showModal && modalStatus === 'Declined' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full flex flex-col items-center text-center">
              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${modalStatus === 'Accepted' ? 'bg-[#7C6A2E]/10 text-[#7C6A2E]' : 'bg-red-50 text-red-500'}`}>
@@ -181,10 +203,28 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBook
              <h3 className="text-2xl font-serif text-gray-800 tracking-tight mb-2">
                 {modalStatus === 'Accepted' ? 'Accept Event Request?' : 'Decline Event Request?'}
              </h3>
-             <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
                 You are about to {modalStatus === 'Accepted' ? 'accept' : 'decline'} the request.
                 {modalStatus === 'Accepted' ? ' This will notify the manager that you are confirmed.' : ' This action cannot be undone.'}
              </p>
+
+             {modalStatus === 'Declined' && (
+                <div className="w-full mb-8 text-left">
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Decline Reason</label>
+                  <select 
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    className="w-full p-3 border border-[#E0D8C3] bg-white text-sm focus:outline-none focus:border-[#7C6A2E] text-gray-700"
+                  >
+                    <option value="" disabled>Select a reason...</option>
+                    <option value="date_conflict">Date Conflict</option>
+                    <option value="out_of_budget">Out of Budget</option>
+                    <option value="out_of_area">Out of Area</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+             )}
+
              <div className="flex w-full gap-3">
                <button 
                  onClick={() => setShowModal(false)}
@@ -195,8 +235,8 @@ const UpcomingEventList = ({ searchTerm = "", statusFilter = "All", externalBook
                </button>
                <button 
                  onClick={confirmStatusChange}
-                 disabled={isUpdating}
-                 className={`flex-1 py-3 text-white text-xs font-bold tracking-widest uppercase transition-colors flex justify-center items-center ${
+                 disabled={isUpdating || (modalStatus === 'Declined' && !declineReason)}
+                 className={`flex-1 py-3 text-white text-xs font-bold tracking-widest uppercase transition-colors flex justify-center items-center disabled:opacity-50 ${
                    modalStatus === 'Accepted' ? 'bg-[#7C6A2E] hover:bg-[#685724]' : 'bg-red-500 hover:bg-red-600'
                  }`}
                >

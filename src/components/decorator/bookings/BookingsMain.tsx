@@ -31,13 +31,13 @@ const BookingsMain: React.FC = () => {
     }
   };
 
-  const handleAcceptRequest = async (id: string) => {
+  const handleAcceptRequest = async (id: string, advanceAmount?: number, advanceDeadline?: string) => {
     // Optimistic UI update: remove item from pending queue immediately
     const prevRequests = [...requests];
     setRequests((prev) => prev.filter((r) => r._id !== id));
 
     try {
-      const res = await decoratorAPI.acceptRequest(id);
+      const res = await decoratorAPI.acceptRequest(id, advanceAmount, advanceDeadline);
       if (!res.ok) {
         // Rollback optimistic update on error (including 409 conflict)
         setRequests(prevRequests);
