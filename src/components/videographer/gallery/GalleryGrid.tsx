@@ -12,6 +12,7 @@ interface GalleryItem {
   id: string | number;
   title: string;
   category: string;
+  eventType?: string;
   year: string;
   image: string;
   galleryImages?: string[];
@@ -104,7 +105,7 @@ const GalleryGrid = () => {
         const items = data.data.map((item: any) => {
           const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
           const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-          const imageUrl = coverMedia?.url 
+          const imageUrl = coverMedia?.url
             ? (coverMedia.url.startsWith('http') ? coverMedia.url : `${apiBase}${coverMedia.url}`)
             : "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&q=80";
 
@@ -147,7 +148,14 @@ const GalleryGrid = () => {
   };
 
   const filtered = galleryData.filter((item: any) => {
-    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
+    // Highly resilient string matching for tabs
+    let safeItemEventType = (item.eventType || "").toString().trim().toLowerCase();
+    const safeActiveCategory = (activeCategory || "").toString().trim().toLowerCase();
+
+    if (safeItemEventType === "wedding") safeItemEventType = "wedding film";
+
+    // Ignore filtering if 'All' is selected. Otherwise strictly compare sanitized values.
+    const matchesCategory = safeActiveCategory === "all" || safeItemEventType === safeActiveCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -188,8 +196,8 @@ const GalleryGrid = () => {
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors border ${activeCategory === cat
-                  ? "bg-[#7C6A2E] text-white border-[#7C6A2E]"
-                  : "bg-white text-gray-600 border-[#E0D8C3] hover:bg-[#F2EADA]"
+                ? "bg-[#7C6A2E] text-white border-[#7C6A2E]"
+                : "bg-white text-gray-600 border-[#E0D8C3] hover:bg-[#F2EADA]"
                 }`}
             >
               {cat}
@@ -229,7 +237,7 @@ const GalleryGrid = () => {
                 className="relative flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
               >
                 <Link href={`/videographer/gallery/${item.id}`} className="absolute inset-0 z-0" />
-                
+
                 {/* Delete Button */}
                 <button
                   onClick={(e) => {
@@ -252,10 +260,15 @@ const GalleryGrid = () => {
                 {/* Image Container with Absolute Badge */}
                 <div className="relative aspect-[4/3] overflow-hidden z-10 pointer-events-none">
                   {/* Category Badge */}
-                  <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
-                    {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "CINEMATOGRAPHY"}
+                  <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm truncate max-w-[90%]">
+                    {(() => {
+                      const et = (item.eventType || item.category || "CINEMATOGRAPHY");
+                      // Convert 'Wedding' back to 'Wedding Film' for visual consistency if needed
+                      const display = et.toLowerCase() === 'wedding' ? 'WEDDING FILM' : et;
+                      return display.toUpperCase();
+                    })()}
                   </div>
-                  
+
                   {/* Portfolio Image */}
                   <img
                     src={item.image}

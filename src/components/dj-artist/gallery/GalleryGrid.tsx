@@ -28,7 +28,17 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = items.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
+    let matchesCategory = activeCategory === "All";
+    if (!matchesCategory) {
+      const itemEvent = (item.eventType || "").toLowerCase().trim();
+      const activeLower = activeCategory.toLowerCase().trim();
+      matchesCategory = itemEvent === activeLower;
+
+      // Legacy support mapping for mis-saved generic "wedding" items
+      if (!matchesCategory && activeLower === "wedding reception" && itemEvent === "wedding") {
+        matchesCategory = true;
+      }
+    }
     const itemTitle = item.title || "";
     const matchesSearch = itemTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -85,11 +95,10 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors border ${
-                activeCategory === cat
-                  ? "bg-[#7C6A2E] text-white border-[#7C6A2E]"
-                  : "bg-white text-gray-600 border-[#E0D8C3] hover:bg-[#F2EADA]"
-              }`}
+              className={`px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors border ${activeCategory === cat
+                ? "bg-[#7C6A2E] text-white border-[#7C6A2E]"
+                : "bg-white text-gray-600 border-[#E0D8C3] hover:bg-[#F2EADA]"
+                }`}
             >
               {cat}
             </button>
@@ -130,7 +139,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
               className="relative flex flex-col bg-white border border-[#E0D8C3] hover:shadow-md transition-all duration-300 group cursor-pointer"
             >
               <Link href={`/dj-artist/gallery/${item._id}`} className="absolute inset-0 z-0" />
-              
+
               {/* Delete Button */}
               <button
                 onClick={(e) => {
@@ -156,7 +165,7 @@ const GalleryGrid = ({ items = [], loading = false, refresh }: GalleryGridProps)
                 <div className="absolute top-4 left-4 z-10 bg-[#7C6A2E] text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.2em] uppercase shadow-sm">
                   {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "PERFORMANCE"}
                 </div>
-                
+
                 {/* Portfolio Image */}
                 <img
                   src={imgUrl}
