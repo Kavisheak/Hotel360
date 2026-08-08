@@ -2,9 +2,10 @@ import React from 'react';
 
 const SystemStatus = ({ status }: { status: any }) => {
   const statusItems = [
-    { label: 'API Gateway',      detail: status?.apiGateway || 'Uptime 99.98%', color: 'bg-green-500' },
-    { label: 'Database Engine',  detail: status?.databaseEngine || 'Latency 24ms',  color: 'bg-green-500' },
-    { label: 'CDN Cluster',      detail: status?.cdnCluster || '14 Edge Nodes',  color: 'bg-yellow-500' },
+    { label: 'Total Bookings This Month', detail: status?.totalBookingsThisMonth || 'Loading...', color: 'bg-green-500' },
+    { label: 'Pending Approvals', detail: status?.pendingApprovals || 'Loading...', color: 'bg-yellow-500' },
+    { label: 'Upcoming Events (7 Days)', detail: status?.upcomingEvents7Days || 'Loading...', color: 'bg-blue-500' },
+    { label: 'Average Satisfaction', detail: status?.averageCustomerSatisfaction || 'Loading...', color: 'bg-purple-500' },
   ];
 
   return (
@@ -21,7 +22,7 @@ const SystemStatus = ({ status }: { status: any }) => {
         ))}
       </div>
       <button className="border border-[#B08D2C] text-[#7C6A2E] font-bold text-[10px] tracking-widest uppercase px-5 py-2.5 hover:bg-[#F9DD76] transition-colors shrink-0">
-        RUN DIAGNOSTICS
+        GENERATE ANALYTICS REPORT
       </button>
     </div>
   );

@@ -44,9 +44,12 @@ const StaffMain = () => {
             roleCategory,
             roleBadge,
             rating: u.rating || 0,
-            reviews: 0,
+            reviews: u.reviewsCount || 0,
             status: u.isActive ? 'active' : 'suspended',
             avatar: u.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80',
+            completedEvents: u.completedEvents || 0,
+            assignedThisWeek: u.assignedThisWeek || 0,
+            availability: u.availability || 'Unknown',
           };
         });
         setStaffData(formatted);
@@ -64,10 +67,10 @@ const StaffMain = () => {
 
 
   const filtered = staffData.filter(m => {
-    if (activeRole === 'managers')      return m.roleCategory === 'managers';
-    if (activeRole === 'decorators')    return m.roleCategory === 'decorators';
+    if (activeRole === 'managers') return m.roleCategory === 'managers';
+    if (activeRole === 'decorators') return m.roleCategory === 'decorators';
     if (activeRole === 'videographers') return m.roleCategory === 'videographers';
-    if (activeRole === 'djs')           return m.roleCategory === 'djs';
+    if (activeRole === 'djs') return m.roleCategory === 'djs';
     return true;
   });
 
@@ -92,16 +95,16 @@ const StaffMain = () => {
       <Header />
 
       <div className="flex-1 px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto w-full">
-        <StaffHeader 
-          onOpenChangeManager={() => setIsManagerModalOpen(true)} 
-          onOpenRegisterStaff={() => setIsRegisterModalOpen(true)} 
+        <StaffHeader
+          onOpenChangeManager={() => setIsManagerModalOpen(true)}
+          onOpenRegisterStaff={() => setIsRegisterModalOpen(true)}
         />
 
         <StaffFilters
           activeRole={activeRole}
           onRoleChange={role => { setActiveRole(role); setCurrentPage(1); }}
           avgRating={
-            staffData.length > 0 
+            staffData.length > 0
               ? (staffData.reduce((sum, m) => sum + (m.rating || 0), 0) / staffData.length).toFixed(2)
               : "0.00"
           }
@@ -112,9 +115,9 @@ const StaffMain = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B08D2C]"></div>
           </div>
         ) : (
-          <StaffTable 
-            members={paginated} 
-            currentPage={currentPage} 
+          <StaffTable
+            members={paginated}
+            currentPage={currentPage}
             totalPages={totalPages}
             totalCount={totalCount}
             onPageChange={setCurrentPage}
@@ -129,9 +132,9 @@ const StaffMain = () => {
 
       <Footer />
 
-      <ChangeManagerModal 
-        isOpen={isManagerModalOpen} 
-        onClose={() => setIsManagerModalOpen(false)} 
+      <ChangeManagerModal
+        isOpen={isManagerModalOpen}
+        onClose={() => setIsManagerModalOpen(false)}
         staffData={staffData}
       />
 

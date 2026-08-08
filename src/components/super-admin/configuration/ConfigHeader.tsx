@@ -10,7 +10,7 @@ const ConfigHeader = () => {
           <Search size={16} className="text-gray-500 shrink-0" />
           <input
             type="text"
-            placeholder="Search system logs..."
+            placeholder="Search bookings, settings, or staff..."
             className="bg-transparent text-sm text-gray-600 placeholder-gray-500 focus:outline-none w-full font-serif italic"
           />
         </div>
