@@ -6,36 +6,7 @@ import Link from "next/link";
 import { videographerAPI } from "@/lib/api";
 import { getClientFullName } from "@/lib/vendorUtils";
 
-const mockActivities = [
-  {
-    title: "STERLING-VANCE WEDDING",
-    status: "CONFIRMED",
-    note: "Full-day Cinematic Coverage",
-    date: "JUN 24, 2026",
-    icon: <Calendar size={16} />,
-  },
-  {
-    title: "CORPORATE GALA SHOOT",
-    status: "DEPOSIT PAID",
-    note: "Event Highlight Reel",
-    date: "JUN 02, 2026",
-    icon: <CreditCard size={16} />,
-  },
-  {
-    title: "OKAFOR ENGAGEMENT SESSION",
-    status: "PENDING",
-    note: "Contract Review Required",
-    date: "MAY 28, 2026",
-    icon: <FileText size={16} />,
-  },
-  {
-    title: "NEW REVIEW",
-    status: "5.0 STAR",
-    note: "From: The Hartley Wedding",
-    date: "MAY 15, 2026",
-    icon: <Star size={16} />,
-  },
-];
+
 
 function statusClass(status: string = "") {
   if (!status) return "bg-[#FFF4E6] text-[#C27D2C] border-[#F2E4C9]";

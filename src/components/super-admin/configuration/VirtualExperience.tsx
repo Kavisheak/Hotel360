@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Scan, UploadCloud, Maximize2 } from 'lucide-react';
 
-const VirtualExperience = () => {
-  const [publicVisibility, setPublicVisibility] = useState(true);
-  const [tourUrl, setTourUrl] = useState('https://vr.eascca.luxury/grand-hall-v');
+const VirtualExperience = ({ data, onChange }: any) => {
+  if (!data) return null;
 
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm flex flex-col md:flex-row gap-6 relative">
@@ -25,15 +24,13 @@ const VirtualExperience = () => {
               Public<br />Visibility
             </span>
             <button
-              onClick={() => setPublicVisibility(!publicVisibility)}
-              className={`w-11 h-6 rounded-full transition-colors duration-200 relative focus:outline-none ${
-                publicVisibility ? 'bg-[#B08D2C]' : 'bg-gray-300'
-              }`}
+              onClick={() => onChange({ ...data, isPublic: !data.isPublic })}
+              className={`w-11 h-6 rounded-full transition-colors duration-200 relative focus:outline-none ${data.isPublic ? 'bg-[#B08D2C]' : 'bg-gray-300'
+                }`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200 shadow-sm ${
-                  publicVisibility ? 'translate-x-5' : 'translate-x-0'
-                }`}
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200 shadow-sm ${data.isPublic ? 'translate-x-5' : 'translate-x-0'
+                  }`}
               />
             </button>
           </div>
@@ -46,8 +43,8 @@ const VirtualExperience = () => {
           </label>
           <input
             type="text"
-            value={tourUrl}
-            onChange={(e) => setTourUrl(e.target.value)}
+            value={data.sourceUrl}
+            onChange={(e) => onChange({ ...data, sourceUrl: e.target.value })}
             className="w-full border border-[#E0D8C3] text-xs py-3 px-4 text-gray-700 bg-transparent focus:outline-none font-mono"
           />
         </div>
@@ -88,7 +85,7 @@ const VirtualExperience = () => {
         />
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-center items-center" />
-        
+
         {/* Label inside */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="bg-white/95 text-gray-800 text-[10px] font-bold tracking-[0.25em] uppercase px-4 py-2 border border-[#E0D8C3] shadow-md pointer-events-none">

@@ -26,16 +26,12 @@ export default function RefundRequestModal({ booking, onClose, onSuccess }: Refu
 
   if (diffDays > 30) {
     tierLabel = "Tier 1 (> 30 days before event)";
-    hallRefundPct = 100;
-    vendorRefundPct = 100;
-  } else if (diffDays >= 14 && diffDays <= 30) {
-    tierLabel = "Tier 2 (14 - 30 days before event)";
-    hallRefundPct = 55;
-    vendorRefundPct = 100;
-  } else {
-    tierLabel = "Tier 3 (< 14 days before event)";
-    hallRefundPct = 0;
+    hallRefundPct = 50;
     vendorRefundPct = 50;
+  } else {
+    tierLabel = "Tier 2 (<= 30 days before event)";
+    hallRefundPct = 0;
+    vendorRefundPct = 0;
   }
 
   const handleCancel = async () => {

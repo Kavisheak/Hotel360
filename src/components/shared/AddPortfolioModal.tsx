@@ -72,6 +72,16 @@ export default function AddPortfolioModal({
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const videosInputRef = useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (vendorType === "videographer") {
+      setEventType("Wedding Film");
+    } else if (vendorType === "dj") {
+      setEventType("Wedding Reception");
+    } else {
+      setEventType("Wedding");
+    }
+  }, [vendorType, isOpen]);
+
   if (!isOpen) return null;
 
   // Format Helper
@@ -214,7 +224,7 @@ export default function AddPortfolioModal({
       if (vendorType === "decorator") {
         // Step 1: Create album in MongoDB
         const albumTitle = portfolioTitle.trim();
-        const createRes = await decoratorAPI.createAlbum({ 
+        const createRes = await decoratorAPI.createAlbum({
           title: albumTitle,
           price: packagePrice ? Number(packagePrice) : 0,
           category,
@@ -321,13 +331,13 @@ export default function AddPortfolioModal({
     vendorType === "decorator"
       ? "DECORATOR SHOWCASE"
       : vendorType === "videographer"
-      ? "VIDEOGRAPHER PORTFOLIO"
-      : "DJ PERFORMANCE GALLERY";
+        ? "VIDEOGRAPHER PORTFOLIO"
+        : "DJ PERFORMANCE GALLERY";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md overflow-y-auto animate-fadeIn">
       <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#FDFBF7] dark:bg-[#121212] border border-[#E8DFC9] dark:border-[#C9A84C]/30 rounded-[28px] shadow-2xl flex flex-col overflow-hidden my-auto">
-        
+
         {/* HEADER */}
         <header className="px-6 py-5 bg-[#FDFBF7]/95 dark:bg-[#121212]/95 backdrop-blur-md border-b border-[#E8DFC9] dark:border-white/10 flex items-center justify-between z-20 shrink-0">
           <div>
@@ -365,7 +375,7 @@ export default function AddPortfolioModal({
 
         {/* FORM BODY */}
         <form id="portfolio-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-          
+
           {/* SECTION 1: EVENT DETAILS */}
           <section className="bg-white dark:bg-[#181818] p-6 rounded-2xl border border-gray-200/80 dark:border-white/5 shadow-xs space-y-5">
             <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-zinc-800 pb-3">
@@ -401,21 +411,46 @@ export default function AddPortfolioModal({
               {/* Event Type */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Event Type
+                  {vendorType === "decorator" ? "Event Type" : "Category / Event Type"}
                 </label>
                 <select
                   value={eventType}
                   onChange={(e) => setEventType(e.target.value)}
                   className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
                 >
-                  <option value="Wedding">Wedding</option>
-                  <option value="Reception">Reception</option>
-                  <option value="Engagement">Engagement</option>
-                  <option value="Homecoming">Homecoming</option>
-                  <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
-                  <option value="Corporate Gala">Corporate Gala</option>
-                  <option value="Private Party">Private Party</option>
-                  <option value="Anniversary">Anniversary</option>
+                  {vendorType === "videographer" && (
+                    <>
+                      <option value="Wedding Film">Wedding Film</option>
+                      <option value="Engagement Session">Engagement Session</option>
+                      <option value="Corporate Event">Corporate Event</option>
+                      <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
+                      <option value="Event Highlight Reel">Event Highlight Reel</option>
+                      <option value="Anniversary Film">Anniversary Film</option>
+                      <option value="Cinematic Story">Cinematic Story</option>
+                    </>
+                  )}
+                  {vendorType === "dj" && (
+                    <>
+                      <option value="Wedding Reception">Wedding Reception</option>
+                      <option value="Club Night">Club Night</option>
+                      <option value="Corporate Gala">Corporate Gala</option>
+                      <option value="Private Party">Private Party</option>
+                      <option value="Festival / Arena">Festival / Arena</option>
+                      <option value="Birthday Celebration">Birthday Celebration</option>
+                    </>
+                  )}
+                  {vendorType !== "videographer" && vendorType !== "dj" && (
+                    <>
+                      <option value="Wedding">Wedding</option>
+                      <option value="Reception">Reception</option>
+                      <option value="Engagement">Engagement</option>
+                      <option value="Homecoming">Homecoming</option>
+                      <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
+                      <option value="Corporate Gala">Corporate Gala</option>
+                      <option value="Private Party">Private Party</option>
+                      <option value="Anniversary">Anniversary</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -510,11 +545,10 @@ export default function AddPortfolioModal({
                 }}
                 onDragLeave={() => setIsDragCover(false)}
                 onDrop={handleCoverDrop}
-                className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                  isDragCover
-                    ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
-                    : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
-                }`}
+                className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDragCover
+                  ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
+                  : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
+                  }`}
               >
                 <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-zinc-800 flex items-center justify-center text-[#C9A84C] mb-3">
                   <UploadCloud className="w-6 h-6" />
@@ -545,7 +579,7 @@ export default function AddPortfolioModal({
                   <span className="text-[10px] text-gray-400 block">
                     {coverImage.sizeFormatted}
                   </span>
-                  
+
                   {/* Simulated Upload Progress Bar */}
                   <div className="w-full bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
                     <div className="bg-[#D4AF37] h-full w-full transition-all duration-500"></div>
@@ -589,9 +623,8 @@ export default function AddPortfolioModal({
                   </p>
                 </div>
               </div>
-              <span className={`text-[10px] font-extrabold uppercase px-3 py-1 rounded-full ${
-                portfolioImages.length >= 3 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-              }`}>
+              <span className={`text-[10px] font-extrabold uppercase px-3 py-1 rounded-full ${portfolioImages.length >= 3 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                }`}>
                 {portfolioImages.length} / 20 Uploaded (Min 3)
               </span>
             </div>
@@ -614,11 +647,10 @@ export default function AddPortfolioModal({
               }}
               onDragLeave={() => setIsDragImages(false)}
               onDrop={handleImagesDrop}
-              className={`p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                isDragImages
-                  ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
-                  : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
-              }`}
+              className={`p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDragImages
+                ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
+                : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
+                }`}
             >
               <UploadCloud className="w-7 h-7 text-[#C9A84C] mb-2" />
               <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
@@ -734,11 +766,10 @@ export default function AddPortfolioModal({
               }}
               onDragLeave={() => setIsDragVideos(false)}
               onDrop={handleVideosDrop}
-              className={`p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                isDragVideos
-                  ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
-                  : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
-              }`}
+              className={`p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDragVideos
+                ? "border-[#D4AF37] bg-amber-50/50 dark:bg-[#C9A84C]/10"
+                : "border-gray-300 dark:border-zinc-700 bg-[#FDFBF7] dark:bg-zinc-900/50 hover:border-[#D4AF37]"
+                }`}
             >
               <Video className="w-7 h-7 text-[#C9A84C] mb-2" />
               <span className="text-xs font-bold text-gray-800 dark:text-gray-200">

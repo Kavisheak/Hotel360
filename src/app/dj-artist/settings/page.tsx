@@ -1,5 +1,5 @@
 import React from 'react';
-import Sidebar from '../../../components/dj-artist/settings/Sidebar';
+import Sidebar from '@/components/dj-artist/overview/Sidebar';
 import SettingsMain from '../../../components/dj-artist/settings/SettingsMain';
 
 const DjSettingsPage = () => {

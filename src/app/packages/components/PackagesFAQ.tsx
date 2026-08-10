@@ -8,7 +8,7 @@ const faqs = [
   { question: "Can we customize or mix elements of different packages?", answer: "Absolutely. Our packages serve as a framework. You can elevate elements like culinary tiers or add exclusive vendor services through your dedicated event coordinator." },
   { question: "What is your policy regarding outside vendors?", answer: "To maintain our rigorous quality standards, we require you to select from our vetted pool of premium partner vendors for core services like Decor, DJ, and Videography." },
   { question: "How do additional guest charges work if we exceed the base capacity?", answer: "Additional guests beyond the package base are charged on a per-head basis determined by your selected Culinary Tier and Beverage Package. Your coordinator will provide exact figures during the planning phase." },
-  { question: "What is the payment schedule and reservation deposit?", answer: "A 25% non-refundable deposit secures your date. A second installment of 25% is due 6 months prior, and the final balance must be cleared 30 days before the event." }
+  { question: "What is the payment schedule and reservation deposit?", answer: "A 30% deposit secures your date. The final balance must be cleared prior to the event. Deposits are eligible for a 50% partial refund if cancelled more than 30 days in advance." }
 ];
 
 export default function PackagesFAQ() {

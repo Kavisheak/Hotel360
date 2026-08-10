@@ -52,7 +52,7 @@ export default function VendorsFilters({
   };
 
   return (
-    <div className="sticky top-[80px] z-[55] bg-[#FDFBF7]/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-sm py-5 pb-3 transition-all w-full">
+    <div className="sticky top-[80px] z-40 bg-[#FDFBF7]/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-sm py-5 pb-3 transition-all w-full">
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Top Row: Search & Main Categories */}

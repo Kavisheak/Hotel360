@@ -52,12 +52,14 @@ const MainContent = () => {
         ) : data ? (
           <>
             {/* Row 1: Revenue + Booking Chart */}
-            <OverviewCards 
-              totalRevenue={data.totalRevenue} 
+            <OverviewCards
+              totalRevenue={data.totalRevenue}
               thisMonthRevenue={data.thisMonthRevenue}
-              revenueGrowth={data.revenueGrowth} 
-              bookingTraffic={data.bookingTraffic} 
-              bookingTrafficMonthly={data.bookingTrafficMonthly} 
+              revenueGrowth={data.revenueGrowth}
+              bookingTraffic={data.bookingTraffic}
+              bookingTrafficMonthly={data.bookingTrafficMonthly}
+              systemStatus={data.systemStatus}
+              sentimentAnalytics={data.sentimentAnalytics}
             />
 
             {/* Row 2: Top Providers + Package Split + Cash Payments */}

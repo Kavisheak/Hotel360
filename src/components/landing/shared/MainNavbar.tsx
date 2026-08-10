@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, LogOut, Phone, Calendar, AlertTriangle, Menu, X } from "lucide-react";
+import { Heart, LogOut, Phone, Calendar, AlertTriangle, Menu, X, Moon, Sun } from "lucide-react";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
@@ -11,15 +11,18 @@ import { useBookingFormStore } from "@/store/bookingFormStore";
 import SignOutModal from "./SignOutModal";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 export default function MainNavbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   
   const { user, fetchUser, clearUser, isLoading } = useAuthStore();
   const isLoggedIn = !!user;
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
    
   const { isDirty, clearForm } = useBookingFormStore();
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -52,6 +55,7 @@ export default function MainNavbar() {
 
   useEffect(() => {
     fetchUser();
+    setMounted(true);
   }, [fetchUser]);
 
   useEffect(() => {
@@ -170,6 +174,15 @@ export default function MainNavbar() {
                 Sign In
               </Link>
             )}
+
+            {/* Theme Toggle (Visible on all sizes) */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex items-center justify-center p-2 mr-1 lg:mr-4 lg:ml-4 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              title="Toggle Theme"
+            >
+              {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
+            </button>
 
             {/* Mobile Menu Toggle Button */}
             <button

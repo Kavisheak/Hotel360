@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, DollarSign, Check, X, AlertTriangle, Sparkles } from 'lucide-react';
 import DeclineReasonModal from './DeclineReasonModal';
 import RequestedDesignModal from './RequestedDesignModal';
+import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
 import { getApiImageUrl } from '@/lib/vendorUtils';
 
 interface RequestCardProps {
   request: any;
-  onAccept: (id: string) => Promise<{ ok: boolean; status?: number; data?: any }>;
+  onAccept: (id: string, advanceAmount?: number, advanceDeadline?: string) => Promise<{ ok: boolean; status?: number; data?: any }>;
   onDecline: (id: string, reason: string) => Promise<{ ok: boolean; status?: number; data?: any }>;
 }
 
@@ -17,6 +18,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
   const [urgencyLevel, setUrgencyLevel] = useState<"neutral" | "warning" | "urgent">("neutral");
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
   const [isDesignModalOpen, setIsDesignModalOpen] = useState(false);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expiredError, setExpiredError] = useState<string | null>(null);
 
@@ -53,19 +55,22 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
     return () => clearInterval(interval);
   }, [respondByMs]);
 
-  const handleAcceptClick = async () => {
+  const handleAcceptConfirm = async (advanceAmount: number, advanceDeadline: string) => {
     setIsSubmitting(true);
     setExpiredError(null);
 
-    const res = await onAccept(request._id);
+    const res = await onAccept(request._id, advanceAmount, advanceDeadline);
     setIsSubmitting(false);
 
     if (!res.ok) {
       if (res.status === 409 || res.data?.code === "EXPIRED") {
         setExpiredError("This request just expired.");
+        setIsAdvanceModalOpen(false);
       } else {
         alert(res.data?.message || "Failed to accept request.");
       }
+    } else {
+      setIsAdvanceModalOpen(false);
     }
   };
 
@@ -200,7 +205,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
           </button>
 
           <button
-            onClick={handleAcceptClick}
+            onClick={() => setIsAdvanceModalOpen(true)}
             disabled={isSubmitting || !!expiredError}
             className="px-5 py-2 bg-[#7C6A2E] hover:bg-[#685724] text-white text-xs font-bold tracking-wider uppercase rounded shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
           >
@@ -223,6 +228,15 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
         isOpen={isDesignModalOpen}
         onClose={() => setIsDesignModalOpen(false)}
         design={request.requestedDesign}
+      />
+
+      {/* Advance Request Modal */}
+      <AdvanceRequestModal
+        isOpen={isAdvanceModalOpen}
+        onClose={() => setIsAdvanceModalOpen(false)}
+        onSubmit={handleAcceptConfirm}
+        isSubmitting={isSubmitting}
+        offeredPrice={request.offeredPrice}
       />
     </>
   );

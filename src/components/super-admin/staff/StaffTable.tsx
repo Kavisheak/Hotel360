@@ -18,8 +18,8 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
   return (
     <div className="bg-white border border-[#E0D8C3] overflow-x-auto">
       {/* Gold Column Header Row */}
-      <div className="grid grid-cols-[2fr_1.2fr_1fr_1fr_auto] bg-[#B08D2C] px-4 sm:px-6 py-3 gap-4 min-w-[640px]">
-        {['STAFF MEMBER', 'ROLE', 'RATING', 'STATUS', 'ACTIONS'].map(col => (
+      <div className="grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr_auto] bg-[#B08D2C] px-4 sm:px-6 py-3 gap-4 min-w-[640px]">
+        {['STAFF MEMBER', 'ROLE', 'COMPLETED', 'RATING', 'AVAILABILITY', 'ACTIONS'].map(col => (
           <p key={col} className="text-[9px] font-bold tracking-[0.18em] text-white uppercase">{col}</p>
         ))}
       </div>
@@ -31,7 +31,7 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
           return (
             <div
               key={member.id}
-              className="grid grid-cols-[2fr_1.2fr_1fr_1fr_auto] items-center px-4 sm:px-6 py-4 gap-4 hover:bg-[#FDFAF4] transition-colors"
+              className="grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr_auto] items-center px-4 sm:px-6 py-4 gap-4 hover:bg-[#FDFAF4] transition-colors"
             >
               {/* Staff Member */}
               <div className="flex items-center gap-3 min-w-0">
@@ -54,18 +54,30 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
                 </span>
               </div>
 
-              {/* Rating */}
-              <div className="flex items-center gap-1 flex-wrap">
-                <Star size={12} className="text-[#B08D2C] shrink-0" />
-                <span className="text-sm font-bold text-gray-800">{member.rating.toFixed(1)}</span>
-                <span className="text-[10px] text-gray-400 font-medium">({member.reviews} reviews)</span>
+              {/* Completed Events */}
+              <div>
+                <span className="text-sm font-bold text-gray-800">{member.completedEvents || 0}</span>
+                <span className="block text-[9px] text-gray-400 uppercase tracking-widest mt-0.5">Events</span>
               </div>
 
-              {/* Status Badge */}
+              {/* Rating */}
+              <div className="flex items-center gap-1 flex-wrap">
+                {member.rating > 0 ? (
+                  <>
+                    <Star size={12} className="text-[#B08D2C] shrink-0" />
+                    <span className="text-sm font-bold text-gray-800">{member.rating.toFixed(1)}</span>
+                    <span className="text-[10px] text-gray-400 font-medium">({member.reviews} reviews)</span>
+                  </>
+                ) : (
+                  <span className="text-sm font-bold text-gray-400">— <span className="text-[10px] font-medium">(0 reviews)</span></span>
+                )}
+              </div>
+
+              {/* Availability Badge */}
               <div>
-                <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold tracking-[0.12em] uppercase px-3 py-1.5 border rounded-sm ${st.bg} ${st.text} ${st.border}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                  {st.label}
+                <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold tracking-[0.12em] uppercase px-3 py-1.5 rounded-sm ${member.availability === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                  {member.availability || 'Unknown'}
                 </span>
               </div>
 
@@ -109,11 +121,10 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
             <button
               key={page}
               onClick={() => onPageChange(page)}
-              className={`w-8 h-8 flex items-center justify-center text-xs font-bold border transition-colors ${
-                currentPage === page
+              className={`w-8 h-8 flex items-center justify-center text-xs font-bold border transition-colors ${currentPage === page
                   ? 'bg-[#7C6A2E] text-white border-[#7C6A2E]'
                   : 'border-[#E0D8C3] text-gray-600 hover:bg-[#F2EADA]'
-              }`}
+                }`}
             >
               {page}
             </button>

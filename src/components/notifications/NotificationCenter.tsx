@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
+import { notificationAPI } from "@/lib/api";
 
 export interface NotificationItem {
   id: string;
@@ -26,6 +27,7 @@ export interface NotificationItem {
   type?: "booking" | "payment" | "alert" | "system" | "review";
   read: boolean;
   link?: string;
+  _id?: string;
 }
 
 interface NotificationCenterProps {
@@ -33,126 +35,21 @@ interface NotificationCenterProps {
   theme?: "gold" | "dark" | "default";
 }
 
-// Initial seed notifications per user role
-const INITIAL_NOTIFICATIONS_BY_ROLE: Record<string, NotificationItem[]> = {
-  customer: [
-    {
-      id: "n-cust-1",
-      title: "Booking Reservation Created",
-      message: "Your event reservation is pending 30% advance deposit. Pay within 15 mins to lock your date.",
-      time: "5 mins ago",
-      type: "payment",
-      read: false,
-      link: "/customer/myaccount?tab=bookings",
-    },
-    {
-      id: "n-cust-2",
-      title: "Artisan Team Assigned",
-      message: "Your selected Decorator and Videographer have accepted your event date request.",
-      time: "2 hours ago",
-      type: "booking",
-      read: false,
-      link: "/customer/myaccount?tab=bookings",
-    },
-    {
-      id: "n-cust-3",
-      title: "Venue Escrow Protection Active",
-      message: "Your payment is secured in escrow. Release funds upon event completion.",
-      time: "1 day ago",
-      type: "system",
-      read: true,
-      link: "/customer/myaccount?tab=escrow",
-    },
-  ],
-  hotel_manager: [
-    {
-      id: "n-mgr-1",
-      title: "New Advance Payment Received",
-      message: "Customer paid 30% deposit for event #LG-2026-1004. Hall hold confirmed.",
-      time: "10 mins ago",
-      type: "payment",
-      read: false,
-      link: "/hotel-manager/bookings",
-    },
-    {
-      id: "n-mgr-2",
-      title: "Vendor Document Verification",
-      message: "Royal Decorators submitted updated insurance & verification documents for manager review.",
-      time: "1 hour ago",
-      type: "alert",
-      read: false,
-      link: "/hotel-manager/vendors",
-    },
-    {
-      id: "n-mgr-3",
-      title: "Expiring Date Hold",
-      message: "Hold #HOLD-8819 expires in 45 minutes without deposit.",
-      time: "2 hours ago",
-      type: "alert",
-      read: true,
-      link: "/hotel-manager/calendar",
-    },
-  ],
-  decorator: [
-    {
-      id: "n-dec-1",
-      title: "New Event Request Assigned",
-      message: "You have been chosen as the Decorator for Grand Gold Wedding on 24 Aug 2026.",
-      time: "15 mins ago",
-      type: "booking",
-      read: false,
-      link: "/decorator/bookings",
-    },
-    {
-      id: "n-dec-2",
-      title: "Customer Review Received",
-      message: "5.0 ★ rating posted by The Sterling Wedding team.",
-      time: "3 hours ago",
-      type: "review",
-      read: false,
-      link: "/decorator/ratings",
-    },
-  ],
-  videographer: [
-    {
-      id: "n-vid-1",
-      title: "Shoot Schedule Updated",
-      message: "Timeline confirmed for upcoming Cinematic Gala coverage.",
-      time: "30 mins ago",
-      type: "booking",
-      read: false,
-      link: "/videographer/my-jobs",
-    },
-    {
-      id: "n-vid-2",
-      title: "Deliverables Acknowledged",
-      message: "Customer acknowledged receipt of highlight reel video.",
-      time: "1 day ago",
-      type: "system",
-      read: true,
-      link: "/videographer/my-jobs",
-    },
-  ],
-  dj_artist: [
-    {
-      id: "n-dj-1",
-      title: "Playlist Preferences Shared",
-      message: "Customer added custom music track choices for upcoming reception.",
-      time: "12 mins ago",
-      type: "booking",
-      read: false,
-      link: "/dj-artist/events-bookings",
-    },
-    {
-      id: "n-dj-2",
-      title: "New Booking Request",
-      message: "Pending DJ performance request for 18 Sep 2026.",
-      time: "4 hours ago",
-      type: "booking",
-      read: false,
-      link: "/dj-artist/events-bookings",
-    },
-  ],
+
+
+const timeAgo = (date: Date) => {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  let interval = Math.floor(seconds / 31536000);
+  if (interval > 1) return interval + " years ago";
+  interval = Math.floor(seconds / 2592000);
+  if (interval > 1) return interval + " months ago";
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval + (interval === 1 ? " day ago" : " days ago");
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval + (interval === 1 ? " hour ago" : " hours ago");
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval + (interval === 1 ? " minute ago" : " minutes ago");
+  return "Just now";
 };
 
 export default function NotificationCenter({ role, theme = "gold" }: NotificationCenterProps) {
@@ -165,11 +62,34 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
   const userRole = (role || user?.role || "customer").toLowerCase().replace("-", "_");
 
   // Load initial notifications for user role
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    return INITIAL_NOTIFICATIONS_BY_ROLE[userRole] || INITIAL_NOTIFICATIONS_BY_ROLE["customer"];
-  });
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (user) {
+      const fetchRealNotifs = async () => {
+        try {
+          const res = await notificationAPI.getNotificationHistory();
+          if (res.ok && res.data?.success) {
+            const mapped = res.data.notifications.map((n: any) => ({
+              id: n._id,
+              title: n.title,
+              message: n.message,
+              time: n.createdAt ? timeAgo(new Date(n.createdAt)) : 'Just now',
+              type: n.type === "BOOKING_UPDATE" ? "booking" : "system",
+              read: n.deliveryStatus === 'read',
+              link: userRole === 'customer' ? "/customer/myaccount?tab=overview" : undefined
+            }));
+            setNotifications(mapped);
+          }
+        } catch (e) {
+          console.error("Failed to fetch real notifications", e);
+        }
+      };
+      fetchRealNotifs();
+    }
+  }, [userRole, user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -189,14 +109,21 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
     };
   }, []);
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    
+    try {
+      await notificationAPI.markNotificationRead(id);
+    } catch (e) {
+      console.error("Failed to mark read on server", e);
+    }
   };
 
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    // Implement API call for mark all read if needed
   };
 
   const clearAll = () => {
