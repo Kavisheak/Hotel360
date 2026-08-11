@@ -246,3 +246,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ─── Mobile Animation Overrides ─── */
+@media (max-width: 768px) {
+  .section-reveal, .text-reveal, .card-entrance, .float-anim, .pulse-glow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .mobile-no-anim {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+

@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Heart, ShieldCheck, HelpCircle, Check, X, Phone, Mail, AlertTriangle, MessageSquare, MapPin, Briefcase, ChevronLeft, ChevronRight, Image as ImageIcon, SlidersHorizontal, PlayCircle, ArrowRight } from "lucide-react";
+import { Star, Heart, ShieldCheck, HelpCircle, Check, X, Phone, Mail, AlertTriangle, MessageSquare, MapPin, Briefcase, ChevronLeft, ChevronRight, Image as ImageIcon, SlidersHorizontal, PlayCircle, ArrowRight, Sparkles } from "lucide-react";
 import { Vendor } from "./types";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
+import { useToastStore } from "@/store/toastStore";
 import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
+import VendorReplaceModal from "@/components/landing/shared/VendorReplaceModal";
+import VendorFavoriteModal from "@/components/landing/shared/VendorFavoriteModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VendorCardsProps {
@@ -20,6 +23,7 @@ export default function VendorCards({
 }: VendorCardsProps) {
   const router = useRouter();
   const { vendors: allVendors } = useVendorStore();
+  const { addToast } = useToastStore();
   const { vendors: cartVendors, requestedDesigns, setVendor, favoriteVendors, toggleFavoriteVendor } = useVendorCartStore();
   
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -32,15 +36,28 @@ export default function VendorCards({
   const [pendingSelection, setPendingSelection] = useState<{ id: string; category: string; name: string; portfolioItemId?: string; portfolioPrice?: number } | null>(null);
   const [existingVendorName, setExistingVendorName] = useState("");
 
+  // Favorite Confirmation Modal State
+  const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
+  const [pendingFavoriteVendor, setPendingFavoriteVendor] = useState<{ id: string; name: string; isRemoving: boolean } | null>(null);
+
   // Contact Modal State
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [contactVendor, setContactVendor] = useState<Vendor | null>(null);
-  const [inquiryText, setInquiryText] = useState("Hi! I would like to check your rates and availability for my upcoming event at EASCC. Looking forward to hearing from you.");
-  const [inquirySent, setInquirySent] = useState(false);
+  const [inquiryText, setInquiryText] = useState("");
   const [isInquiring, setIsInquiring] = useState(false);
+  const [inquirySent, setInquirySent] = useState(false);
+  
+  const [flyingItem, setFlyingItem] = useState<{ id: number, url: string, startX: number, startY: number, endX: number, endY: number } | null>(null);
 
   // Gallery Navigation State
   const [galleryIndices, setGalleryIndices] = useState<Record<string, number>>({});
+
+  // Pagination State
+  const [visibleCount, setVisibleCount] = useState(8);
+
+  React.useEffect(() => {
+    setVisibleCount(8);
+  }, [filteredVendors]);
 
   const handleRestrictedAction = (message: string, action: () => void) => {
     if (isGuest) {
@@ -80,7 +97,35 @@ export default function VendorCards({
     return { status: "available", label: "Available", color: "text-emerald-700 bg-emerald-100", dot: "bg-emerald-500" };
   };
 
-  const handleSelectClick = (vendor: Vendor, portfolioItem: any) => {
+  const triggerFlyAnimation = (url: string, startRect?: DOMRect) => {
+    if (!startRect) return;
+    
+    // Fallback coordinates: bottom right corner where the FAB spawns
+    let endX = window.innerWidth - 60;
+    let endY = window.innerHeight - 60;
+    
+    // Slight delay to allow DOM to render the bottom banner if it wasn't there
+    setTimeout(() => {
+      const destBtn = document.getElementById('floating-cart-btn');
+      if (destBtn) {
+        const destRect = destBtn.getBoundingClientRect();
+        endX = destRect.left + destRect.width / 2;
+        endY = destRect.top + destRect.height / 2;
+      }
+      
+      setFlyingItem({
+        id: Date.now(),
+        url,
+        startX: startRect.left + startRect.width / 2,
+        startY: startRect.top + startRect.height / 2,
+        endX,
+        endY
+      });
+      setTimeout(() => setFlyingItem(null), 1300);
+    }, 10);
+  };
+
+  const handleSelectClick = (vendor: Vendor, portfolioItem: any, rect?: DOMRect) => {
     const storeCat = getStoreCategory(vendor.category);
     const existingId = cartVendors[storeCat];
 
@@ -91,6 +136,7 @@ export default function VendorCards({
           requestedDesigns: { ...state.requestedDesigns, [storeCat]: (portfolioItem._id || portfolioItem.id) },
           requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: portfolioItem.price }
         }));
+        triggerFlyAnimation(vendor.avatar || vendor.image, rect);
       } else {
         // Toggling off completely
         setVendor(storeCat, null);
@@ -103,21 +149,38 @@ export default function VendorCards({
     }
 
     if (existingId) {
-      const existing = allVendors.find(v => v.id === existingId);
-      setExistingVendorName(existing ? existing.name : "another provider");
-      setPendingSelection({ id: vendor.id, category: vendor.category, name: vendor.name, portfolioItemId: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null, portfolioPrice: portfolioItem?.price });
-      setReplaceModalOpen(true);
+      const skipConfirmation = useVendorCartStore.getState().skipReplaceConfirmation;
+      if (skipConfirmation) {
+        // Skip modal, replace immediately
+        setVendor(storeCat, vendor.id);
+        useVendorCartStore.setState((state) => ({
+          requestedDesigns: { ...state.requestedDesigns, [storeCat]: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null },
+          requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: portfolioItem?.price || null }
+        }));
+        triggerFlyAnimation(vendor.avatar || vendor.image, rect);
+      } else {
+        const existing = allVendors.find(v => v.id === existingId);
+        setExistingVendorName(existing ? existing.name : "another provider");
+        // Save the rect in pending selection so we can trigger it upon confirm if we wanted, but we'll skip for now or just trigger it.
+        setPendingSelection({ id: vendor.id, category: vendor.category, name: vendor.name, portfolioItemId: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null, portfolioPrice: portfolioItem?.price });
+        setReplaceModalOpen(true);
+      }
     } else {
       setVendor(storeCat, vendor.id);
       useVendorCartStore.setState((state) => ({
         requestedDesigns: { ...state.requestedDesigns, [storeCat]: portfolioItem ? (portfolioItem._id || portfolioItem.id) : null },
         requestedDesignPrices: { ...state.requestedDesignPrices, [storeCat]: portfolioItem?.price || null }
       }));
+      triggerFlyAnimation(vendor.avatar || vendor.image, rect);
     }
   };
 
-  const confirmReplace = () => {
+  const confirmReplace = (dontAskAgain: boolean) => {
     if (pendingSelection) {
+      if (dontAskAgain) {
+        useVendorCartStore.getState().setSkipReplaceConfirmation(true);
+      }
+      
       const storeCat = getStoreCategory(pendingSelection.category);
       setVendor(storeCat, pendingSelection.id);
       useVendorCartStore.setState((state) => ({
@@ -126,6 +189,44 @@ export default function VendorCards({
       }));
       setReplaceModalOpen(false);
       setPendingSelection(null);
+    }
+  };
+
+  const handleFavoriteClick = (vendor: Vendor) => {
+    const isFavorite = favoriteVendors.includes(vendor.id);
+    const skipConfirmation = useVendorCartStore.getState().skipFavoriteConfirmation;
+
+    if (skipConfirmation) {
+      toggleFavoriteVendor(vendor.id);
+      addToast({ 
+        message: isFavorite 
+          ? `${vendor.name} removed from favorites` 
+          : `${vendor.name} added to favorites!`, 
+        type: isFavorite ? "info" : "success" 
+      });
+    } else {
+      setPendingFavoriteVendor({ id: vendor.id, name: vendor.name, isRemoving: isFavorite });
+      setFavoriteModalOpen(true);
+    }
+  };
+
+  const confirmFavorite = (dontAskAgain: boolean) => {
+    if (pendingFavoriteVendor) {
+      if (dontAskAgain) {
+        useVendorCartStore.getState().setSkipFavoriteConfirmation(true);
+      }
+      toggleFavoriteVendor(pendingFavoriteVendor.id);
+      
+      const isNowRemoving = pendingFavoriteVendor.isRemoving;
+      addToast({ 
+        message: isNowRemoving 
+          ? `${pendingFavoriteVendor.name} removed from favorites` 
+          : `${pendingFavoriteVendor.name} added to favorites!`, 
+        type: isNowRemoving ? "info" : "success" 
+      });
+
+      setFavoriteModalOpen(false);
+      setPendingFavoriteVendor(null);
     }
   };
 
@@ -182,6 +283,21 @@ export default function VendorCards({
     return images;
   };
 
+  const flattenedCards = filteredVendors.flatMap((vendor) => {
+    if (vendor.portfolioItems && vendor.portfolioItems.length > 0) {
+      return vendor.portfolioItems.map((item, idx) => ({
+        vendor,
+        portfolioItem: item,
+        cardKey: `${vendor.id}-portfolio-${item._id || item.id || idx}`,
+      }));
+    }
+    return [{
+      vendor,
+      portfolioItem: null,
+      cardKey: vendor.id,
+    }];
+  });
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-12">
       {filteredVendors.length === 0 ? (
@@ -199,21 +315,9 @@ export default function VendorCards({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredVendors.flatMap((vendor) => {
-            if (vendor.portfolioItems && vendor.portfolioItems.length > 0) {
-              return vendor.portfolioItems.map((item, idx) => ({
-                vendor,
-                portfolioItem: item,
-                cardKey: `${vendor.id}-portfolio-${item._id || item.id || idx}`,
-              }));
-            }
-            return [{
-              vendor,
-              portfolioItem: null,
-              cardKey: vendor.id,
-            }];
-          }).map(({ vendor, portfolioItem, cardKey }) => {
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {flattenedCards.slice(0, visibleCount).map(({ vendor, portfolioItem, cardKey }) => {
             const isFavorite = favoriteVendors?.includes(vendor.id) || false;
             const isCompareSelected = compareList.includes(vendor.id);
             const storeCat = getStoreCategory(vendor.category);
@@ -255,33 +359,23 @@ export default function VendorCards({
                 className={`bg-white dark:bg-[#111111] flex flex-col transition-all duration-300 rounded-[24px] overflow-hidden group relative
                   ${isSelected ? 'border-2 border-[#D4AF37] shadow-[0_12px_40px_rgba(201,168,76,0.25)] transform -translate-y-1' : 'border border-gray-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'}`}
               >
-                {/* Selected Gold Checkmark Top Right (Outer) */}
-                {isSelected && (
-                  <div className="absolute -top-2 -right-2 z-30 w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-lg border-[3px] border-white dark:border-[#111111]">
-                    <Check className="w-4 h-4 text-white" strokeWidth={3.5} />
-                  </div>
-                )}
 
                 {/* Main Cover Image */}
-                <div className="relative h-[160px] w-full bg-gray-100 cursor-pointer overflow-hidden" onClick={() => handleRestrictedAction("Please log in to explore this portfolio.", () => router.push(`/customer/vendorProfile/${vendor.id}`))}>
+                <div className="relative h-[100px] sm:h-[160px] w-full bg-gray-100 cursor-pointer overflow-hidden" onClick={() => handleRestrictedAction("Please log in to explore this portfolio.", () => router.push(`/customer/vendorProfile/${vendor.id}`))}>
                   <img src={coverImage} alt={cardTitle} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-90" />
                   
                   {/* Category Label (Top Left) */}
-                  <span className="absolute top-5 left-5 bg-white/95 dark:bg-black/80 backdrop-blur-md text-gray-800 dark:text-gray-200 text-[10px] uppercase font-extrabold tracking-widest px-3.5 py-1.5 rounded-full shadow-sm">
+                  <span className="absolute top-3 left-3 sm:top-5 sm:left-5 bg-white/95 dark:bg-black/80 backdrop-blur-md text-gray-800 dark:text-gray-200 text-[8px] sm:text-[10px] uppercase font-extrabold tracking-widest px-2 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
                     {vendor.categoryLabel}
                   </span>
 
                   {/* Badges / Favorite (Top Right) */}
-                  <div className="absolute top-5 right-5 z-10 flex items-center gap-2">
-                    <span className={`flex items-center gap-1.5 backdrop-blur-md text-[9px] uppercase font-extrabold tracking-widest px-3.5 py-1.5 rounded-full shadow-sm ${availability.color}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${availability.dot}`}></span>
-                      {availability.label}
-                    </span>
+                  <div className="absolute top-3 right-3 sm:top-5 sm:right-5 z-10 flex items-center gap-1 sm:gap-2">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleRestrictedAction("Please log in to add vendors to your favorites list.", () => toggleFavoriteVendor(vendor.id));
+                        handleRestrictedAction("Please log in to add vendors to your favorites list.", () => handleFavoriteClick(vendor));
                       }} 
                       className="w-8 h-8 flex items-center justify-center bg-white/95 dark:bg-black/80 rounded-full shadow-sm text-gray-400 hover:text-red-500 transition-colors"
                     >
@@ -291,61 +385,61 @@ export default function VendorCards({
                 </div>
 
                 {/* Card Body */}
-                <div className="px-6 pb-6 bg-white dark:bg-[#111111] flex-1 flex flex-col relative pt-0">
+                <div className="px-3 pb-3 sm:px-6 sm:pb-6 bg-white dark:bg-[#111111] flex-1 flex flex-col relative pt-0 text-center md:text-left">
                   
                   {/* Avatar & Selected Badge */}
-                  <div className="relative -mt-10 mb-3 flex items-end justify-between z-20">
+                  <div className="relative -mt-6 sm:-mt-10 mb-2 sm:mb-3 flex flex-col md:flex-row items-center md:items-end justify-center md:justify-between gap-2 sm:gap-3 md:gap-0 z-20">
                     <div className="relative">
-                      <img src={vendor.avatar || vendor.image} alt={vendor.name} className="w-20 h-20 rounded-full object-cover border-[4px] border-white dark:border-[#111111] bg-white shadow-md" />
+                      <img src={vendor.avatar || vendor.image} alt={vendor.name} className="w-12 h-12 sm:w-20 sm:h-20 rounded-full object-cover border-[2px] sm:border-[4px] border-white dark:border-[#111111] bg-white shadow-md mx-auto md:mx-0" />
                       {isSelected && (
-                        <div className="absolute bottom-0 right-0 w-7 h-7 bg-[#D4AF37] rounded-full flex items-center justify-center border-[2px] border-white dark:border-[#111111] shadow-md z-10">
-                          <Check className="w-4 h-4 text-white" strokeWidth={3.5} />
+                        <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-7 sm:h-7 bg-[#D4AF37] rounded-full flex items-center justify-center border-[2px] border-white dark:border-[#111111] shadow-md z-10">
+                          <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={3.5} />
                         </div>
                       )}
                     </div>
                     {isSelected && (
-                      <span className="bg-[#D4AF37] text-white text-[10px] uppercase font-bold tracking-widest px-5 py-2 rounded-full shadow-md mb-2 flex items-center gap-1">
+                      <span className="bg-[#D4AF37] text-white text-[10px] uppercase font-bold tracking-widest px-5 py-2 rounded-full shadow-md mt-1 sm:mt-0 flex items-center gap-1">
                         Selected
                       </span>
                     )}
                   </div>
 
                   {/* Name & Basic Info */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-[18px] font-serif font-bold text-[#2C1E14] dark:text-white leading-tight truncate" title={cardTitle}>
+                  <div className="mb-2 sm:mb-4">
+                    <div className="flex items-center justify-center md:justify-start gap-1 sm:gap-2 mb-1">
+                      <h3 className="text-[14px] sm:text-[18px] font-serif font-bold text-[#2C1E14] dark:text-white leading-tight truncate" title={cardTitle}>
                         {cardTitle}
                       </h3>
-                      <ShieldCheck className="w-[18px] h-[18px] text-blue-500 flex-shrink-0" />
+                      <ShieldCheck className="w-[14px] h-[14px] sm:w-[18px] sm:h-[18px] text-blue-500 flex-shrink-0" />
                     </div>
-                    <p className="text-[11px] font-semibold text-[#C9A84C] tracking-wide truncate">
+                    <p className="text-[9px] sm:text-[11px] font-semibold text-[#C9A84C] tracking-wide truncate">
                       by {vendor.name}
                     </p>
-                    <div className="flex flex-col gap-2 mt-2">
-                      <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
-                        <Star className="w-3.5 h-3.5 text-[#D4AF37] fill-current" />
+                    <div className="flex flex-col gap-1 sm:gap-2 mt-2">
+                      <span className="flex items-center justify-center md:justify-start gap-1 sm:gap-1.5 text-[9px] sm:text-xs text-gray-600 dark:text-gray-300">
+                        <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#D4AF37] fill-current" />
                         <strong className="text-gray-900 dark:text-white">{vendor.rating}</strong> ({vendor.reviewsCount} reviews)
                       </span>
-                      <div className="flex items-center gap-4 text-[11px] text-gray-500 dark:text-gray-400 font-medium">
-                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400"/> {vendor.location || 'Colombo, Sri Lanka'}</span>
-                        <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-gray-400"/> {vendor.eventsCompleted || '8 Years Exp.'}</span>
+                      <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-4 text-[8px] sm:text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                        <span className="flex items-center gap-1 sm:gap-1.5"><MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400"/> {vendor.location || 'Colombo, Sri Lanka'}</span>
+                        <span className="flex items-center gap-1 sm:gap-1.5"><Briefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400"/> {vendor.eventsCompleted || '8 Years Exp.'}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Price & Description */}
-                  <div className="py-3 border-t border-b border-gray-100 dark:border-white/5 mb-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Price</span>
-                      <span className="text-[13px] font-bold text-[#D4AF37]">{cardPrice}</span>
+                  <div className="py-2 sm:py-3 border-t border-b border-gray-100 dark:border-white/5 mb-3 sm:mb-4 flex flex-col gap-1 sm:gap-2">
+                    <div className="flex items-center justify-center md:justify-start gap-2">
+                      <span className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-widest font-bold">Price</span>
+                      <span className="text-[11px] sm:text-[13px] font-bold text-[#D4AF37]">{cardPrice}</span>
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                    <p className="hidden sm:block text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
                       {cardDesc || 'Professional and highly experienced wedding service provider delivering exceptional results for your special day.'}
                     </p>
                   </div>
 
                   {/* Mini Gallery Carousel */}
-                  <div className="relative mb-5 group/gallery h-[100px]">
+                  <div className="hidden sm:block relative mb-5 group/gallery h-[100px]">
                     {hasPortfolio ? (
                       <>
                         <div className="grid grid-cols-3 gap-2 h-full">
@@ -395,21 +489,30 @@ export default function VendorCards({
                   </div>
 
                   {/* Actions Buttons */}
-                  <div className="flex gap-2.5 mt-auto pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-auto pt-2">
                     <button 
                       onClick={() => handleRestrictedAction("Please log in to view detailed portfolios.", () => router.push(`/customer/vendorProfile/${vendor.id}`))}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-3.5 px-2 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all hover:bg-gray-50 dark:hover:bg-white/5 whitespace-nowrap"
+                      className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-3.5 px-2 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-bold uppercase tracking-widest hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all hover:bg-gray-50 dark:hover:bg-white/5 whitespace-nowrap"
                     >
-                      <ImageIcon className="w-3.5 h-3.5"/> View Portfolio
+                      <ImageIcon className="hidden sm:block w-3.5 h-3.5"/> 
+                      <span className="hidden sm:inline">View Portfolio</span>
+                      <span className="sm:hidden">Portfolio</span>
                     </button>
                     <button 
-                      onClick={() => handleRestrictedAction("Please log in to select vendors for your booking.", () => handleSelectClick(vendor, portfolioItem))}
-                      className={`flex-1 flex items-center justify-center py-3.5 px-2 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all shadow-md whitespace-nowrap ${isSelected ? 'bg-[#D4AF37] text-white hover:bg-[#C9A84C]' : 'bg-[#C9A84C] text-white hover:bg-[#D4AF37] hover:-translate-y-0.5 hover:shadow-lg'}`}
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        handleRestrictedAction("Please log in to select vendors for your booking.", () => handleSelectClick(vendor, portfolioItem, rect));
+                      }}
+                      className={`flex-1 flex items-center justify-center py-2 sm:py-3.5 px-2 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-bold tracking-widest uppercase transition-all shadow-md whitespace-nowrap ${isSelected ? 'bg-[#D4AF37] text-white hover:bg-[#C9A84C]' : 'bg-[#C9A84C] text-white hover:bg-[#D4AF37] hover:-translate-y-0.5 hover:shadow-lg'}`}
                     >
                       {isSelected ? (
-                        <span className="flex items-center gap-1.5"><Check className="w-4 h-4" strokeWidth={3}/> Selected</span>
+                        <span className="flex items-center gap-1.5"><Check className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={3}/> Selected</span>
                       ) : (
-                        vendor.category === "decorators" ? "Select Design" : "Select Vendor"
+                        vendor.category === "decorators" ? (
+                          <><span className="hidden sm:inline">Select Design</span><span className="sm:hidden">Design</span></>
+                        ) : (
+                          <><span className="hidden sm:inline">Select Vendor</span><span className="sm:hidden">Select</span></>
+                        )
                       )}
                     </button>
                   </div>
@@ -418,7 +521,20 @@ export default function VendorCards({
               </div>
             );
           })}
-        </div>
+          </div>
+          
+          {visibleCount < flattenedCards.length && (
+            <div className="mt-12 flex justify-center">
+              <button 
+                onClick={() => setVisibleCount(prev => prev + 8)}
+                className="bg-white dark:bg-[#111111] text-[#C9A84C] border border-[#C9A84C] px-10 py-3.5 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#C9A84C] hover:text-white transition-all shadow-sm flex items-center gap-2 group"
+              >
+                Load More 
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Selected Vendors Bottom Banner */}
@@ -483,10 +599,18 @@ export default function VendorCards({
                     </div>
 
                     <button 
-                      onClick={() => router.push('/customer/event-plan')}
-                      className="w-full bg-[#D4AF37] hover:bg-[#C9A84C] text-white py-4 rounded-xl text-xs uppercase font-extrabold tracking-widest transition-all hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center gap-2"
+                      id="proceed-booking-btn"
+                      onClick={() => router.push('/book?fromCart=true')}
+                      className="group relative overflow-hidden w-full bg-gradient-to-r from-[#C9A84C] via-[#D4AF37] to-[#C9A84C] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white py-4 rounded-xl text-xs uppercase font-extrabold tracking-widest hover:-translate-y-1 shadow-lg hover:shadow-[0_15px_30px_rgba(201,168,76,0.3)] flex items-center justify-center gap-2"
                     >
-                      Continue with Selected Vendors <ArrowRight className="w-4 h-4" />
+                      <span className="relative z-10 flex items-center gap-2">
+                        Proceed to Booking ({(cartVendors.decorator ? 1 : 0) + (cartVendors.videographer ? 1 : 0) + (cartVendors.dj ? 1 : 0)}/3)
+                      </span>
+                      <div className="relative z-10 flex items-center">
+                        <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" />
+                        <Sparkles className="w-4 h-4 absolute -right-2 opacity-0 group-hover:opacity-100 group-hover:animate-pulse text-white transition-opacity duration-300" />
+                      </div>
+                      <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out z-0"></div>
                     </button>
                     
                     <div className="flex justify-center items-center gap-6 mt-4.5 text-[10px] text-gray-500 dark:text-gray-400 font-bold tracking-wider uppercase">
@@ -510,47 +634,67 @@ export default function VendorCards({
         message={loginModalMessage} 
       />
 
-      {/* Vendor Replacement Confirmation Modal */}
+      {/* Flying Cart Animation */}
       <AnimatePresence>
-        {replaceModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setReplaceModalOpen(false)}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white dark:bg-[#111111] p-8 max-w-md w-full rounded-[24px] shadow-2xl border border-gray-100 dark:border-white/10 text-center z-10"
-            >
-              <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle className="w-8 h-8 text-amber-500" />
-              </div>
-              <h3 className="font-serif text-2xl text-[#2C1E14] dark:text-white mb-3">Replace Selected Partner?</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                You already have <strong className="text-black dark:text-white">"{existingVendorName}"</strong> selected in this category. Would you like to confirm and replace them with <strong className="text-black dark:text-white">"{pendingSelection?.name}"</strong>?
-              </p>
-              
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setReplaceModalOpen(false)}
-                  className="flex-1 py-3.5 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold tracking-widest hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmReplace}
-                  className="flex-1 py-3.5 bg-[#C9A84C] text-white text-xs uppercase font-bold tracking-widest hover:bg-[#B3933E] transition-colors rounded-xl shadow-md"
-                >
-                  Confirm & Replace
-                </button>
-              </div>
-            </motion.div>
-          </div>
+        {flyingItem && (
+          <motion.img
+            key={flyingItem.id}
+            src={flyingItem.url}
+            initial={{ 
+              position: 'fixed', 
+              left: flyingItem.startX, 
+              top: flyingItem.startY, 
+              width: 80, 
+              height: 80,
+              borderRadius: '50%',
+              x: '-50%',
+              y: '-50%',
+              scale: 1,
+              opacity: 1,
+              zIndex: 9999
+            }}
+            animate={{ 
+              top: flyingItem.endY, 
+              left: flyingItem.endX,
+              scale: 0.05,
+              opacity: 0,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1] }}
+            className="pointer-events-none object-cover border-4 border-[#D4AF37] shadow-2xl"
+          />
         )}
       </AnimatePresence>
+
+      {/* Vendor Replacement Confirmation Modal */}
+      {replaceModalOpen && pendingSelection && (
+        <VendorReplaceModal
+          isOpen={replaceModalOpen}
+          onClose={() => {
+            setReplaceModalOpen(false);
+            setPendingSelection(null);
+          }}
+          onConfirm={confirmReplace}
+          categoryLabel={pendingSelection.category}
+          newVendorName={pendingSelection.name}
+          rating={allVendors.find(v => v.id === pendingSelection.id)?.rating}
+          price={(pendingSelection.portfolioPrice || allVendors.find(v => v.id === pendingSelection.id)?.startingPrice) as any}
+        />
+      )}
+
+      {/* Vendor Favorite Confirmation Modal */}
+      {favoriteModalOpen && pendingFavoriteVendor && (
+        <VendorFavoriteModal
+          isOpen={favoriteModalOpen}
+          onClose={() => {
+            setFavoriteModalOpen(false);
+            setPendingFavoriteVendor(null);
+          }}
+          onConfirm={confirmFavorite}
+          vendorName={pendingFavoriteVendor.name}
+          isRemoving={pendingFavoriteVendor.isRemoving}
+        />
+      )}
 
       {/* Contact Vendor Modal */}
       <AnimatePresence>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Palette, Music, Video, Camera, Cake, Flower2, Plus, ArrowRight, ArrowLeft, Trash2, CheckCircle2, UploadCloud, BrainCircuit, Sparkles } from "lucide-react";
 import { useVendorStore } from "@/store/vendorStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
+import VendorReplaceModal from "@/components/landing/shared/VendorReplaceModal";
 
 interface VendorsState {
   decorator: string | null;
@@ -18,7 +19,7 @@ interface VendorsState {
 
 interface BookingVendorSelectorProps {
   vendors: VendorsState;
-  onChange: (vendors: VendorsState) => void;
+  onChange: (vendors: VendorsState, categoryUpdated?: string) => void;
 }
 
 export default function BookingVendorSelector({ vendors, onChange }: BookingVendorSelectorProps) {
@@ -28,6 +29,15 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
 
   const [activeCategorySelection, setActiveCategorySelection] = useState<string | null>(null);
+  
+  // Replace Modal State
+  const [replaceModal, setReplaceModal] = useState<{
+    isOpen: boolean;
+    category: string;
+    oldVendorId: string;
+    newVendorData: any;
+    isDesign: boolean;
+  } | null>(null);
 
   // AI Matchmaker State
   const [isAiScanning, setIsAiScanning] = useState(false);
@@ -80,6 +90,84 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
   const getVendorDetails = (id: string | null) => {
     if (!id || id === "none" || id === "custom_preference") return null;
     return globalVendors.find(v => v.id === id) || null;
+  };
+
+  const executeVendorSelection = (storeCategory: keyof VendorsState, vendorId: string, defaultPackage: string, portfolioItemId?: string, price?: number) => {
+    useVendorCartStore.setState((state) => ({
+      vendors: {
+        ...state.vendors,
+        [storeCategory]: vendorId
+      },
+      requestedDesigns: {
+        ...state.requestedDesigns,
+        [storeCategory]: portfolioItemId || null
+      },
+      requestedDesignPrices: {
+        ...state.requestedDesignPrices,
+        [storeCategory]: price || null
+      }
+    }));
+    onChange({
+      ...vendors,
+      [storeCategory]: vendorId,
+      [`${storeCategory}Package`]: defaultPackage
+    } as any, storeCategory);
+    setActiveCategorySelection(null);
+    setAiAnalysis(null);
+  };
+
+  const handleSelectVendor = (storeCategory: keyof VendorsState, newVendorData: any, isDesign: boolean) => {
+    const currentVendorId = vendors[storeCategory];
+    const skipConfirmation = useVendorCartStore.getState().skipReplaceConfirmation;
+    
+    // If a vendor is already selected and it's not the same vendor, check if we should show confirmation
+    if (currentVendorId && currentVendorId !== "none" && currentVendorId !== newVendorData.vendorId) {
+      if (skipConfirmation) {
+        // Skip modal, replace immediately
+        executeVendorSelection(
+          storeCategory, 
+          newVendorData.vendorId, 
+          newVendorData.defaultPackage, 
+          newVendorData.portfolioItemId, 
+          newVendorData.price
+        );
+      } else {
+        // Show confirmation modal
+        setReplaceModal({
+          isOpen: true,
+          category: storeCategory,
+          oldVendorId: currentVendorId,
+          newVendorData,
+          isDesign
+        });
+      }
+    } else {
+      // Proceed directly
+      executeVendorSelection(
+        storeCategory, 
+        newVendorData.vendorId, 
+        newVendorData.defaultPackage, 
+        newVendorData.portfolioItemId, 
+        newVendorData.price
+      );
+    }
+  };
+
+  const handleConfirmReplace = (dontAskAgain: boolean) => {
+    if (replaceModal) {
+      if (dontAskAgain) {
+        useVendorCartStore.getState().setSkipReplaceConfirmation(true);
+      }
+      
+      executeVendorSelection(
+        replaceModal.category as keyof VendorsState,
+        replaceModal.newVendorData.vendorId,
+        replaceModal.newVendorData.defaultPackage,
+        replaceModal.newVendorData.portfolioItemId,
+        replaceModal.newVendorData.price
+      );
+      setReplaceModal(null);
+    }
   };
 
   const categories = [
@@ -206,28 +294,17 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                   <div 
                     key={idx}
                     onClick={() => {
-                      const storeCategory = activeCategorySelection as keyof VendorsState;
-                      useVendorCartStore.setState((state) => ({
-                        vendors: {
-                          ...state.vendors,
-                          [storeCategory]: item.vendorId
+                      handleSelectVendor(
+                        activeCategorySelection as keyof VendorsState,
+                        {
+                          vendorId: item.vendorId,
+                          defaultPackage: item.defaultPackage,
+                          portfolioItemId: item.portfolioItemId,
+                          price: item.price,
+                          vendorName: item.vendorName
                         },
-                        requestedDesigns: {
-                          ...state.requestedDesigns,
-                          [storeCategory]: item.portfolioItemId
-                        },
-                        requestedDesignPrices: {
-                          ...state.requestedDesignPrices,
-                          [storeCategory]: item.price
-                        }
-                      }));
-                      onChange({
-                        ...vendors,
-                        [activeCategorySelection]: item.vendorId,
-                        [`${activeCategorySelection}Package`]: item.defaultPackage
-                      } as any);
-                      setActiveCategorySelection(null);
-                      setAiAnalysis(null);
+                        true // isDesign
+                      );
                     }}
                     className="relative break-inside-avoid rounded-sm overflow-hidden group cursor-pointer border border-[#E8DFC9] dark:border-gray-800 mb-4 bg-[#FDF9F1] dark:bg-[#111]"
                   >
@@ -315,27 +392,17 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
                         )}
                         <button 
                           onClick={() => {
-                            const storeCategory = activeCategorySelection as keyof VendorsState;
-                            useVendorCartStore.setState((state) => ({
-                              vendors: {
-                                ...state.vendors,
-                                [storeCategory]: vendor.id
+                            handleSelectVendor(
+                              activeCategorySelection as keyof VendorsState,
+                              {
+                                vendorId: vendor.id,
+                                defaultPackage: defaultPackage,
+                                vendorName: vendor.name,
+                                price: price,
+                                rating: vendor.rating
                               },
-                              requestedDesigns: {
-                                ...state.requestedDesigns,
-                                [storeCategory]: null
-                              },
-                              requestedDesignPrices: {
-                                ...state.requestedDesignPrices,
-                                [storeCategory]: null
-                              }
-                            }));
-                            onChange({
-                              ...vendors,
-                              [activeCategorySelection]: vendor.id,
-                              [`${activeCategorySelection}Package`]: defaultPackage
-                            } as any);
-                            setActiveCategorySelection(null);
+                              false // isDesign
+                            );
                           }}
                           className="w-full bg-[#1A1512] dark:bg-white text-white dark:text-[#1A1512] py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-white transition-colors rounded-md cursor-pointer"
                         >
@@ -570,6 +637,18 @@ export default function BookingVendorSelector({ vendors, onChange }: BookingVend
           );
         })}
       </div>
+
+      {replaceModal && (
+        <VendorReplaceModal
+          isOpen={replaceModal.isOpen}
+          onClose={() => setReplaceModal(null)}
+          onConfirm={handleConfirmReplace}
+          categoryLabel={categories.find(c => c.key === replaceModal.category)?.label || "Vendor"}
+          newVendorName={replaceModal.newVendorData.vendorName}
+          rating={replaceModal.newVendorData.rating}
+          price={replaceModal.newVendorData.price}
+        />
+      )}
     </div>
   );
 }

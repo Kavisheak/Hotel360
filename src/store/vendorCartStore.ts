@@ -31,11 +31,19 @@ interface VendorCartState {
   clearCart: () => void;
   toggleVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others", portfolioItemId?: string, portfolioPrice?: number) => void;
   isVendorInEventPlan: (id: string, category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others") => boolean;
+  skipReplaceConfirmation: boolean;
+  setSkipReplaceConfirmation: (skip: boolean) => void;
+  skipFavoriteConfirmation: boolean;
+  setSkipFavoriteConfirmation: (skip: boolean) => void;
 }
 
 export const useVendorCartStore = create<VendorCartState>()(
   persist(
     (set) => ({
+      skipReplaceConfirmation: false,
+      setSkipReplaceConfirmation: (skip) => set({ skipReplaceConfirmation: skip }),
+      skipFavoriteConfirmation: false,
+      setSkipFavoriteConfirmation: (skip) => set({ skipFavoriteConfirmation: skip }),
       vendors: {
         decorator: null,
         dj: null,

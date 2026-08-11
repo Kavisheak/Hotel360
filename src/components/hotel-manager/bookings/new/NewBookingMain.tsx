@@ -38,8 +38,16 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
   const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
 
+  const [dbPackages, setDbPackages] = useState<any[]>([]);
+
   useEffect(() => {
     fetchVendors();
+    const { packageAPI } = require("@/lib/api");
+    packageAPI.getAllPackages().then((res: any) => {
+      if (res.ok && res.data?.data) {
+        setDbPackages(res.data.data);
+      }
+    });
   }, [fetchVendors]);
 
   const [vendors, setVendors] = useState<{
@@ -71,6 +79,18 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   });
 
   const getBasePrice = () => {
+    if (dbPackages && dbPackages.length > 0) {
+      const matched = dbPackages.find((pkg) => {
+        const nameLower = pkg.name.toLowerCase();
+        let slug = "gold";
+        if (nameLower.includes("silver")) slug = "silver";
+        else if (nameLower.includes("diamond")) slug = "diamond";
+        return slug === selectedPackage;
+      });
+      if (matched && matched.price) {
+        return typeof matched.price === "number" ? matched.price : parseInt(matched.price, 10);
+      }
+    }
     if (selectedPackage === "silver") return 1800000;
     if (selectedPackage === "diamond") return 5000000;
     return 3400000;
@@ -161,16 +181,9 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     phone: "",
     alternativePhone: "",
     notes: "",
-    paymentMethod: "Card"
   });
   
-  const [paymentDetails, setPaymentDetails] = useState({
-    cardNumber: "",
-    expiry: "",
-    cvv: ""
-  });
-  
-  const [cashConfirmed, setCashConfirmed] = useState(false);
+  const [advanceReceived, setAdvanceReceived] = useState<number | ''>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{email?: string, phone?: string, alternativePhone?: string}>({});
@@ -181,14 +194,8 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       alert("Please go back to Step 1 and select an available event date.");
       return;
     }
-    
-    if (formData.paymentMethod === "Card" && (!paymentDetails.cardNumber || !paymentDetails.expiry || !paymentDetails.cvv)) {
-      alert("Please enter payment details.");
-      return;
-    }
-
-    if (formData.paymentMethod === "Manual" && !cashConfirmed) {
-      alert("Please confirm that you have physically received the cash deposit.");
+    if (advanceReceived === '') {
+      alert("Please enter the advance amount received.");
       return;
     }
 
@@ -238,7 +245,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       guests: guestCount,
       packageId: selectedPackage,
       packageName: selectedPackage,
-      paymentMethod: formData.paymentMethod,
+      paymentMethod: "Manual",
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
@@ -246,7 +253,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       cakeCost: getVendorCost("cake"),
       floristCost: getVendorCost("florist"),
       totalCost: grandTotal,
-      depositAmount: grandTotal * 0.3,
+      depositAmount: advanceReceived,
       balanceAmount: 0,
       vendors: {
         decorator: {
@@ -398,7 +405,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                   }}
                 />
                 <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
-                <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} />
+                <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} dbPackages={dbPackages} />
                 <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
                 <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
               </div>
@@ -576,88 +583,22 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                         <CreditCard className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> Deposit Collection
                       </h4>
                       <div className="flex items-center gap-1 text-[9px] text-emerald-500 font-bold tracking-widest uppercase">
-                        30% Due Now
+                        Minimum 30% Expected: LKR {(grandTotal * 0.3).toLocaleString()}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 pb-2">
-                      <label className="flex items-center gap-2 cursor-pointer text-base text-[#2C1E14] dark:text-white">
-                        <input 
-                          type="radio" 
-                          name="paymentMethod" 
-                          value="Card" 
-                          checked={formData.paymentMethod === "Card"} 
-                          onChange={(e) => setFormData({...formData, paymentMethod: "Card"})}
-                          className="accent-[#805D3A] dark:accent-[#C9A84C]"
-                        />
-                        Card Payment (Terminal)
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer text-base text-[#2C1E14] dark:text-white">
-                        <input 
-                          type="radio" 
-                          name="paymentMethod" 
-                          value="Manual" 
-                          checked={formData.paymentMethod === "Manual"} 
-                          onChange={(e) => setFormData({...formData, paymentMethod: "Manual"})}
-                          className="accent-[#805D3A] dark:accent-[#C9A84C]"
-                        />
-                        Cash Deposit (Desk)
-                      </label>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Advance Received (LKR)</label>
+                      <input 
+                        required
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 500000"
+                        className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
+                        value={advanceReceived}
+                        onChange={e => setAdvanceReceived(e.target.value ? Number(e.target.value) : '')}
+                      />
                     </div>
-
-                    {formData.paymentMethod === "Card" ? (
-                      <div className="bg-[#F0E6D0] dark:bg-[#1A1A1A] p-5 border border-[#D4C9A8] dark:border-[#C9A84C]/30 rounded-sm space-y-5 shadow-inner">
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Card Number</label>
-                          <input 
-                            required
-                            type="text" 
-                            placeholder="0000 0000 0000 0000"
-                            className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-base focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                            value={paymentDetails.cardNumber}
-                            onChange={e => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Expiry Date</label>
-                            <input 
-                              required
-                              type="text" 
-                              placeholder="MM/YY"
-                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-base focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                              value={paymentDetails.expiry}
-                              onChange={e => setPaymentDetails({...paymentDetails, expiry: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">CVV</label>
-                            <input 
-                              required
-                              type="password" 
-                              placeholder="***"
-                              maxLength={4}
-                              className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white px-3 py-2 text-base focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                              value={paymentDetails.cvv}
-                              onChange={e => setPaymentDetails({...paymentDetails, cvv: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-[#F0E6D0] dark:bg-[#1A1A1A] p-5 border border-[#D4C9A8] dark:border-[#C9A84C]/30 rounded-sm space-y-3 shadow-inner flex items-start gap-3">
-                        <input 
-                          type="checkbox" 
-                          id="cashConfirm" 
-                          checked={cashConfirmed}
-                          onChange={(e) => setCashConfirmed(e.target.checked)}
-                          className="mt-1 w-4 h-4 accent-[#805D3A] dark:accent-[#C9A84C] cursor-pointer"
-                        />
-                        <label htmlFor="cashConfirm" className="text-sm text-[#2C1E14] dark:text-gray-300 cursor-pointer">
-                          <strong className="text-[#805D3A] dark:text-[#C9A84C]">I confirm</strong> that I have physically received the 30% initial deposit (<strong className="text-gray-900 dark:text-white">LKR {(grandTotal * 0.3).toLocaleString()}</strong>) in cash from the client.
-                        </label>
-                      </div>
-                    )}
                   </div>
 
                   <div className="pt-4 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20">

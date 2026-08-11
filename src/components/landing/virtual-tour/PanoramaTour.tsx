@@ -28,74 +28,61 @@ interface Scene {
   defaultYaw?: number;
 }
 
-// Updated scenes with yaw/pitch coordinates instead of 2D screen percentages
+// Navigation flow based on real EASCCA Conference Centre layout:
+// Gate Entrance → Front Entrance → Side Walkway → Hall Center ↔ Hall Stage
+// 2 nodes inside the hall as requested
 const scenes: Scene[] = [
   {
-    id: "entrance",
-    name: "Main Entrance",
-    image: "/tour/entrance.png",
-    thumbnail: "/tour/entrance.png",
+    id: "gate-entrance",
+    name: "Gate Entrance",
+    image: "/tour/gate-entrance.png",
+    thumbnail: "/tour/gate-entrance.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "grand-hall", label: "Grand Hall", yaw: 0, pitch: -10 },
-      { target: "outdoor-garden", label: "Outdoor Garden", yaw: -90, pitch: -5 },
+      { target: "front-entrance", label: "Front Entrance", yaw: 0, pitch: -5 },
     ],
   },
   {
-    id: "grand-hall",
-    name: "Grand Hall Center",
-    image: "/tour/grand-hall.png",
-    thumbnail: "/tour/grand-hall.png",
+    id: "front-entrance",
+    name: "Front Entrance",
+    image: "/tour/front-entrance.png",
+    thumbnail: "/tour/front-entrance.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "stage", label: "Stage Area", yaw: 0, pitch: -5 },
-      { target: "dining", label: "Dining Area", yaw: 90, pitch: -10 },
-      { target: "entrance", label: "Main Entrance", yaw: 180, pitch: -10 },
+      { target: "gate-entrance", label: "Gate Entrance", yaw: 180, pitch: -5 },
+      { target: "side-walkway", label: "Side Walkway", yaw: 90, pitch: -5 },
     ],
   },
   {
-    id: "stage",
+    id: "side-walkway",
+    name: "Side Walkway",
+    image: "/tour/side-walkway.png",
+    thumbnail: "/tour/side-walkway.png",
+    defaultYaw: 0,
+    hotspots: [
+      { target: "front-entrance", label: "Front Entrance", yaw: -90, pitch: -5 },
+      { target: "hall-center", label: "Enter Hall", yaw: 0, pitch: -10 },
+    ],
+  },
+  {
+    id: "hall-center",
+    name: "Hall Center",
+    image: "/tour/hall-center.png",
+    thumbnail: "/tour/hall-center.png",
+    defaultYaw: 0,
+    hotspots: [
+      { target: "hall-stage", label: "Stage Area", yaw: 0, pitch: -5 },
+      { target: "side-walkway", label: "Exit to Walkway", yaw: 180, pitch: -10 },
+    ],
+  },
+  {
+    id: "hall-stage",
     name: "Stage Area",
-    image: "/tour/stage.png",
-    thumbnail: "/tour/stage.png",
+    image: "/tour/hall-stage.png",
+    thumbnail: "/tour/hall-stage.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "grand-hall", label: "Grand Hall", yaw: 180, pitch: -15 },
-      { target: "vip-lounge", label: "VIP Lounge", yaw: -90, pitch: -10 },
-    ],
-  },
-  {
-    id: "dining",
-    name: "Dining Area",
-    image: "/tour/dining.png",
-    thumbnail: "/tour/dining.png",
-    defaultYaw: 0,
-    hotspots: [
-      { target: "grand-hall", label: "Grand Hall", yaw: -90, pitch: -10 },
-      { target: "vip-lounge", label: "VIP Lounge", yaw: 0, pitch: -5 },
-      { target: "outdoor-garden", label: "Outdoor Garden", yaw: 90, pitch: -10 },
-    ],
-  },
-  {
-    id: "vip-lounge",
-    name: "VIP Lounge",
-    image: "/tour/vip-lounge.png",
-    thumbnail: "/tour/vip-lounge.png",
-    defaultYaw: 0,
-    hotspots: [
-      { target: "stage", label: "Stage Area", yaw: 90, pitch: -10 },
-      { target: "dining", label: "Dining Area", yaw: 180, pitch: -15 },
-    ],
-  },
-  {
-    id: "outdoor-garden",
-    name: "Outdoor Garden",
-    image: "/tour/outdoor-garden.png",
-    thumbnail: "/tour/outdoor-garden.png",
-    defaultYaw: 0,
-    hotspots: [
-      { target: "entrance", label: "Main Entrance", yaw: 90, pitch: -5 },
-      { target: "dining", label: "Dining Area", yaw: -90, pitch: -10 },
+      { target: "hall-center", label: "Hall Center", yaw: 180, pitch: -10 },
     ],
   },
 ];
@@ -313,7 +300,7 @@ function CameraController({ zoom, autoRotate, compassAngleCallback }: { zoom: nu
 export default function PanoramaTour() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [currentSceneId, setCurrentSceneId] = useState("entrance");
+  const [currentSceneId, setCurrentSceneId] = useState("gate-entrance");
   const [nextSceneId, setNextSceneId] = useState<string | null>(null);
   const [transitionOpacity, setTransitionOpacity] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -542,7 +529,7 @@ export default function PanoramaTour() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {scenes.map((scene) => {
                 const isActive = scene.id === currentSceneId;
                 return (

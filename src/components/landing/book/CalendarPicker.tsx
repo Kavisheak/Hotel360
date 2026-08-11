@@ -30,7 +30,7 @@ const FIXED_HOLIDAYS: Record<string, string> = {
 
 export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarPickerProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [bookedDates, setBookedDates] = useState<{ date: string; status: string }[]>([]);
+  const [bookedDates, setBookedDates] = useState<{ date: string; status: string; reason?: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -100,6 +100,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
       });
 
       let status = "available";
+      let reason = "";
       if (dateStringMatch) {
         if (dateStringMatch.status === "confirmed" || dateStringMatch.status === "completed") {
           status = "reserved";
@@ -109,6 +110,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
           status = "held";
         } else if (dateStringMatch.status === "blocked") {
           status = "blocked";
+          reason = dateStringMatch.reason || "Maintenance";
         }
       }
 
@@ -116,7 +118,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
       const dayStr = dateObj.getDate().toString().padStart(2, "0");
       const holidayName = FIXED_HOLIDAYS[`${monthStr}-${dayStr}`];
 
-      result.push({ date: day, timestamp: dateObj.getTime(), status, holidayName });
+      result.push({ date: day, timestamp: dateObj.getTime(), status, holidayName, reason });
     }
     return result;
   }, [currentMonth, daysInMonth, startOffset, bookedDates]);
@@ -221,7 +223,14 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-amber-600">HELD</span>
               )}
               {dayObj.status === "blocked" && (
-                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-400">BLOCKED</span>
+                <>
+                  <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-400">BLOCKED</span>
+                  {dayObj.reason && (
+                    <span className="text-[6px] text-gray-500 uppercase max-w-[90%] truncate px-1 text-center leading-tight mt-0.5" title={dayObj.reason}>
+                      {dayObj.reason}
+                    </span>
+                  )}
+                </>
               )}
               {dayObj.holidayName && (
                 <span className={`text-[7px] uppercase tracking-widest font-bold mt-0.5 max-w-full truncate px-1 text-center ${dayObj.status === "available" || dayObj.status === "pending" ? "text-green-600 dark:text-green-500" : "text-gray-500 opacity-70"}`} title={dayObj.holidayName}>

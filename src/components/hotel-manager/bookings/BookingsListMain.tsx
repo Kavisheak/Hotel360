@@ -10,6 +10,7 @@ const BookingsListMain = () => {
   const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [filterSource, setFilterSource] = useState('All');
   const [activeTab, setActiveTab] = useState<'all' | 'disputes'>('all');
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,10 +19,31 @@ const BookingsListMain = () => {
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
 
   // Maintenance Block Form State
-  const [blockHallName, setBlockHallName] = useState('Grand Royal Ballroom');
   const [blockReason, setBlockReason] = useState('Scheduled Ceiling Maintenance & AC Servicing');
-  const [blockStartDate, setBlockStartDate] = useState('2026-08-01');
-  const [blockEndDate, setBlockEndDate] = useState('2026-08-03');
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [unblockDates, setUnblockDates] = useState<string[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [existingBlocks, setExistingBlocks] = useState<{date: string, reason: string}[]>([]);
+
+  useEffect(() => {
+    if (isBlockModalOpen) {
+      bookingAPI.getAllBlocks().then(res => {
+        if (res.ok && res.data?.data) {
+          setExistingBlocks(res.data.data.map((b: any) => {
+            const d = new Date(b.date);
+            const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return {
+              date: localDate,
+              reason: b.reason || 'Blocked'
+            };
+          }));
+        }
+      });
+    } else {
+      setSelectedDates([]);
+      setUnblockDates([]);
+    }
+  }, [isBlockModalOpen]);
 
   // Customer Disputes Mock Data
   const [disputes, setDisputes] = useState([
@@ -46,7 +68,7 @@ const BookingsListMain = () => {
   // Reset pagination when search or filter changes
   useEffect(() => {
     setVisibleCount(10);
-  }, [searchTerm, filterStatus]);
+  }, [searchTerm, filterStatus, filterSource]);
 
   useEffect(() => {
     setIsClient(true);
@@ -58,19 +80,24 @@ const BookingsListMain = () => {
       const res = await bookingAPI.getAllBookings();
       if (res.ok && res.data?.data) {
         // Map backend booking schema to frontend expected format
-        const mappedBookings = res.data.data.map((b: any) => ({
-          id: b._id,
-          bookingRef: b.bookingRef || b._id,
-          clientName: b.clientName,
-          date: new Date(b.date).toLocaleDateString(),
-          createdAt: b.createdAt || new Date(0).toISOString(),
-          eventType: b.eventType,
-          status: b.status,
-          packageId: b.packageId,
-          depositAmount: b.depositAmount || 0,
-          balanceAmount: b.balanceAmount || 0,
-          vendors: b.vendors,
-        }));
+        const mappedBookings = res.data.data.map((b: any) => {
+          const firstUpdater = b.statusHistory && b.statusHistory.length > 0 ? b.statusHistory[0].updatedBy : "System";
+          const bookingSource = ["manager", "hotel_manager", "System"].includes(firstUpdater) ? "Manual" : "Customer";
+          return {
+            id: b._id,
+            bookingRef: b.bookingRef || b._id,
+            clientName: b.clientName,
+            date: new Date(b.date).toLocaleDateString(),
+            createdAt: b.createdAt || new Date(0).toISOString(),
+            eventType: b.eventType,
+            status: b.status,
+            packageId: b.packageId,
+            depositAmount: b.depositAmount || 0,
+            balanceAmount: b.balanceAmount || 0,
+            vendors: b.vendors,
+            bookingSource,
+          };
+        });
         setBookings(mappedBookings);
       }
     } catch (err) {
@@ -83,7 +110,8 @@ const BookingsListMain = () => {
   const filteredBookings = bookings.filter(b => {
     const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || b.bookingRef.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'All' || b.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesSource = filterSource === 'All' || b.bookingSource === filterSource;
+    return matchesSearch && matchesStatus && matchesSource;
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const paginatedBookings = filteredBookings.slice(0, visibleCount);
@@ -171,6 +199,15 @@ const BookingsListMain = () => {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter size={16} className="text-gray-400" />
               <select 
+                value={filterSource}
+                onChange={(e) => setFilterSource(e.target.value)}
+                className="border border-[#E0D8C3] py-2 px-4 rounded text-sm text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E]"
+              >
+                <option value="All">All Sources</option>
+                <option value="Customer">Online (Customer)</option>
+                <option value="Manual">Manual (Manager)</option>
+              </select>
+              <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="border border-[#E0D8C3] py-2 px-4 rounded text-sm text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E]"
@@ -212,7 +249,12 @@ const BookingsListMain = () => {
                   paginatedBookings.map((b, idx) => (
                     <tr key={b.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF6EE] hover:bg-[#F2EADA] transition-colors'}>
                       <td className="px-6 py-4">
-                        <span className="font-mono text-xs text-gray-700 font-bold">{b.bookingRef}</span>
+                        <span className="font-mono text-xs text-gray-700 font-bold block">{b.bookingRef}</span>
+                        {b.bookingSource === 'Manual' ? (
+                          <span className="text-[9px] uppercase tracking-wider bg-[#E0D8C3] text-[#7C6A2E] px-1.5 py-0.5 rounded mt-1 inline-block font-bold">Manual</span>
+                        ) : (
+                          <span className="text-[9px] uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mt-1 inline-block font-bold">Online</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 font-bold text-gray-800">
                         {b.clientName}
@@ -281,42 +323,128 @@ const BookingsListMain = () => {
 
             <p className="text-xs text-gray-500">Manually lock dates for hall maintenance, structural renovations, or private non-customer events.</p>
 
-            <form onSubmit={(e) => { e.preventDefault(); alert('Hall availability blocked successfully!'); setIsBlockModalOpen(false); }} className="space-y-3 text-xs">
+            <form 
+              onSubmit={async (e) => { 
+                e.preventDefault(); 
+                if (selectedDates.length === 0 && unblockDates.length === 0) {
+                  alert('Please select dates to block or unblock.');
+                  return;
+                }
+                try {
+                  const blockPromises = selectedDates.map(dateStr => 
+                    bookingAPI.createBlock({ date: new Date(dateStr).toISOString(), reason: blockReason })
+                  );
+                  const unblockPromises = unblockDates.map(dateStr => 
+                    bookingAPI.releaseBlock({ date: new Date(dateStr).toISOString() })
+                  );
+                  const results = await Promise.all([...blockPromises, ...unblockPromises]);
+                  const failed = results.filter(r => !r.ok || !r.data?.success);
+                  
+                  if (failed.length > 0) {
+                    alert(`Failed to process ${failed.length} date(s). Please try again.`);
+                  } else {
+                    alert('Changes saved successfully!');
+                    setIsBlockModalOpen(false);
+                    setSelectedDates([]);
+                    setUnblockDates([]);
+                    setBlockReason('');
+                  }
+                } catch (err) {
+                  alert('An error occurred while saving the changes');
+                }
+              }} 
+              className="space-y-4 text-xs"
+            >
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Select Hall / Space</label>
-                <select 
-                  value={blockHallName}
-                  onChange={(e) => setBlockHallName(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-xs"
-                >
-                  <option value="Grand Royal Ballroom">Grand Royal Ballroom</option>
-                  <option value="Executive Conference Suite">Executive Conference Suite</option>
-                  <option value="Courtyard Garden Terrace">Courtyard Garden Terrace</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Start Date</label>
-                  <input type="date" value={blockStartDate} onChange={e => setBlockStartDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
+                <label className="block font-semibold text-gray-700 mb-2">Select Dates</label>
+                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                      className="p-1 hover:bg-gray-200 rounded text-gray-600"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                    </button>
+                    <div className="font-semibold text-gray-800 text-sm">
+                      {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                      className="p-1 hover:bg-gray-200 rounded text-gray-600"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+                      <div key={d} className="text-[10px] font-bold text-gray-400">{d}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {(() => {
+                      const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+                      const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+                      const days = [];
+                      for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
+                      for (let d = 1; d <= daysInMonth; d++) {
+                        const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        const isSelected = selectedDates.includes(dateStr);
+                        const isExisting = existingBlocks.find(b => b.date === dateStr);
+                        const isUnblocking = unblockDates.includes(dateStr);
+                        const isPast = new Date(dateStr).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+                        
+                        days.push(
+                          <button
+                            key={d}
+                            type="button"
+                            disabled={isPast && !isExisting}
+                            title={isExisting ? isExisting.reason : ''}
+                            onClick={() => {
+                              if (isExisting) {
+                                setUnblockDates(prev => prev.includes(dateStr) ? prev.filter(x => x !== dateStr) : [...prev, dateStr]);
+                              } else {
+                                setSelectedDates(prev => prev.includes(dateStr) ? prev.filter(x => x !== dateStr) : [...prev, dateStr]);
+                              }
+                            }}
+                            className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-[11px] transition-colors ${
+                              isExisting && !isUnblocking ? 'bg-red-500 text-white font-bold shadow-sm cursor-pointer hover:bg-red-600' :
+                              isUnblocking ? 'bg-gray-100 text-gray-400 line-through border border-gray-300 font-bold shadow-inner cursor-pointer hover:bg-gray-200' :
+                              isPast ? 'text-gray-300 cursor-not-allowed' :
+                              isSelected ? 'bg-[#1E56A0] text-white font-bold shadow-sm' : 'text-gray-700 hover:bg-gray-200 font-medium'
+                            }`}
+                          >
+                            {d}
+                          </button>
+                        );
+                      }
+                      return days;
+                    })()}
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">End Date</label>
-                  <input type="date" value={blockEndDate} onChange={e => setBlockEndDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
-                </div>
+                {selectedDates.length > 0 && (
+                  <div className="mt-2 text-[10px] text-gray-500 font-medium">
+                    {selectedDates.length} date(s) selected
+                  </div>
+                )}
               </div>
 
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Reason / Notes</label>
-                <textarea rows={2} value={blockReason} onChange={e => setBlockReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" />
+                <textarea rows={2} value={blockReason} onChange={e => setBlockReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-xs" placeholder="e.g. Maintenance" required />
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t">
                 <button type="button" onClick={() => setIsBlockModalOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg">
-                  Confirm Hall Lock
+                <button 
+                  type="submit" 
+                  disabled={selectedDates.length === 0 && unblockDates.length === 0} 
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

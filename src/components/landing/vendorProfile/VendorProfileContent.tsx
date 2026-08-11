@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check, X, Phone, Mail, AlertTriangle, MessageSquare } from "lucide-react";
+import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check, X, Phone, Mail, AlertTriangle, MessageSquare, ThumbsUp, Share2, MoreHorizontal } from "lucide-react";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { vendorAPI } from "@/lib/api";
 
 interface VendorProfileContentProps {
   vendor: Vendor;
@@ -19,11 +20,55 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
   const { vendors: allVendors } = useVendorStore();
   const { vendors: cartVendors, setVendor } = useVendorCartStore();
 
-  const [activeTab, setActiveTab] = useState<"portfolio" | "packages" | "reviews" | "availability" | "about">("portfolio");
+  const [activeTab, setActiveTab] = useState<string>("portfolio");
+
+  // Calendar State
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [bookedDays, setBookedDays] = useState<number[]>([]);
+  const [blockedDays, setBlockedDays] = useState<number[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "availability") {
+      const fetchAvailability = async () => {
+        setCalendarLoading(true);
+        try {
+          const res = await vendorAPI.checkVendorAvailability(vendor.id, {
+            month: currentMonth.getMonth() + 1,
+            year: currentMonth.getFullYear()
+          });
+          if (res.ok) {
+            setBookedDays(res.data.bookedDays || []);
+            setBlockedDays(res.data.blockedDays || []);
+          }
+        } catch (error) {
+          console.error("Error fetching availability:", error);
+        } finally {
+          setCalendarLoading(false);
+        }
+      };
+      fetchAvailability();
+    }
+  }, [activeTab, currentMonth, vendor.id]);
 
   // Selection state
   const storeCat = getStoreCategory(vendor.category);
   const isSelected = cartVendors[storeCat] === vendor.id;
+
+  const formatTimeAgo = (dateString?: string) => {
+    if (!dateString) return "2 days ago";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+    return `${Math.floor(diffDays / 365)} years ago`;
+  };
 
   // Modals state
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
@@ -103,7 +148,6 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
 
   const tabs = [
     { id: "portfolio", label: "Portfolio" },
-    { id: "packages", label: "Packages & Pricing" },
     { id: "reviews", label: `Reviews (${vendor.reviewsCount})` },
     { id: "availability", label: "Availability" },
     { id: "about", label: "Vendor Profile" },
@@ -240,15 +284,41 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                 </div>
               ) : dynamicAlbums && dynamicAlbums.length > 0 ? (
                 /* Published Albums Cards Grid */
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
                   {dynamicAlbums.map((alb) => (
                     <div
                       key={alb._id}
                       onClick={() => setSelectedBackendAlbum(alb)}
-                      className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                      className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                     >
+                      {/* Facebook Post Header */}
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <img src={vendor.avatar || vendor.image} className="w-10 h-10 rounded-full object-cover border border-[#E8DFC9] dark:border-[#C9A84C]/30 shadow-sm" alt={vendor.name} />
+                          <div className="flex flex-col">
+                            <span className="text-[14px] font-bold text-[#1A1512] dark:text-white leading-tight">
+                              {vendor.name} <span className="font-normal text-gray-500">added a new album.</span>
+                            </span>
+                            <span className="text-[12px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
+                              {formatTimeAgo(alb.createdAt)} • 🌍
+                            </span>
+                          </div>
+                        </div>
+                        <button className="text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"><MoreHorizontal className="w-5 h-5" /></button>
+                      </div>
+
+                      {/* Post Content (Title + Description) */}
+                      <div className="px-4 pb-4">
+                        <h4 className="font-bold text-[15px] text-[#1A1512] dark:text-white mb-1">
+                          {alb.title}
+                        </h4>
+                        <p className="text-[14px] text-gray-700 dark:text-gray-300">
+                          Check out our latest showcase photos from this beautiful event! Click to explore the full album.
+                        </p>
+                      </div>
+
                       <div>
-                        <div className="relative aspect-16/10 bg-[#FAF6EE] dark:bg-black overflow-hidden">
+                        <div className="relative aspect-[4/3] bg-[#FAF6EE] dark:bg-black overflow-hidden border-y border-[#E8DFC9] dark:border-white/10">
                           {alb.coverUrl ? (
                             <img
                               src={alb.coverUrl}
@@ -260,78 +330,60 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                               No Cover Photo
                             </div>
                           )}
-                          <span className="absolute top-3 right-3 bg-[#C69C6D] text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-xs">
-                            {alb.photoCount || alb.images?.length || 0} Photos
+                          <span className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md text-white text-[12px] font-bold px-3 py-1.5 rounded-full shadow-xs">
+                            +{alb.photoCount || alb.images?.length || 0} Photos
                           </span>
                         </div>
-
-                        <div className="p-4">
-                          <h4 className="font-serif font-bold text-lg text-[#1A1512] dark:text-white group-hover:text-[#C69C6D] transition-colors truncate">
-                            {alb.title}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Published Showcase Album
-                          </p>
-                        </div>
                       </div>
 
-                      <div className="px-4 py-2.5 bg-[#FAF6EE] dark:bg-black border-t border-[#E8DFC9] dark:border-white/10 text-right">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#C69C6D]">
-                          Explore Album &rarr;
-                        </span>
-                      </div>
+
                     </div>
                   ))}
                 </div>
               ) : (
                 /* Static Portfolio Fallback Grid */
-                <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
                   {vendor.portfolio.map((img, i) => (
-                    <div key={i} className="relative break-inside-avoid bg-[#E8DFC9]/30 dark:bg-white/5 rounded-sm overflow-hidden group mb-4">
-                      <img 
-                        src={img} 
-                        alt={`${vendor.name} portfolio ${i + 1}`}
-                        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                      />
+                    <div key={i} className="break-inside-avoid bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden group mb-4 flex flex-col shadow-sm hover:shadow-md transition-all">
+                      
+                      {/* Facebook Post Header */}
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                          <img src={vendor.avatar || vendor.image} className="w-10 h-10 rounded-full object-cover border border-[#E8DFC9] dark:border-[#C9A84C]/30 shadow-sm" alt={vendor.name} />
+                          <div className="flex flex-col">
+                            <span className="text-[14px] font-bold text-[#1A1512] dark:text-white leading-tight">
+                              {vendor.name} <span className="font-normal text-gray-500">shared a photo.</span>
+                            </span>
+                            <span className="text-[12px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
+                              Recently • 🌍
+                            </span>
+                          </div>
+                        </div>
+                        <button className="text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"><MoreHorizontal className="w-5 h-5" /></button>
+                      </div>
+
+                      {/* Post Content */}
+                      <div className="px-4 pb-4">
+                        <p className="text-[14px] text-gray-700 dark:text-gray-300">
+                          Loving the vibes from this recent setup! ✨
+                        </p>
+                      </div>
+
+                      {/* Image */}
+                      <div className="relative w-full border-y border-[#E8DFC9] dark:border-white/10">
+                        <img 
+                          src={img} 
+                          alt={`${vendor.name} portfolio ${i + 1}`}
+                          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </div>
+
+
                     </div>
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* PACKAGES TAB */}
-          {activeTab === "packages" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {vendor.packages.map((pkg, i) => (
-                <div key={i} className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-8 rounded-sm shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
-                    <div>
-                      <h4 className="text-xl font-serif text-[#1A1512] dark:text-white">{pkg.name}</h4>
-                    </div>
-                    <div className="text-left md:text-right">
-                      <span className="text-[10px] uppercase tracking-widest text-[#A6955C] font-bold block mb-1">Package Price</span>
-                      <span className="text-2xl font-bold text-[#1A1512] dark:text-white">{pkg.price}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
-                    {pkg.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5">
-                        <CheckCircle className="w-4 h-4 text-[#C69C6D] shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-8 pt-6 border-t border-[#E8DFC9] dark:border-white/10">
-                    <button className="w-full md:w-auto px-6 py-2.5 border border-[#1A1512] dark:border-white text-[#1A1512] dark:text-white text-[10px] uppercase font-bold tracking-widest rounded-sm hover:bg-[#1A1512] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors">
-                      Inquire About This Package
-                    </button>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 
@@ -428,21 +480,24 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-800"></div>
-                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Booked Out</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-sm bg-[#FAF6EE] dark:bg-[#2A2312] border border-[#C69C6D]/30"></div>
-                      <span className="text-[10px] uppercase font-bold text-[#C69C6D] tracking-widest">Limited / Pending</span>
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Booked / Blocked</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Mock Calendar Widget */}
-                <div className="w-full md:w-[320px] shrink-0 border border-[#E8DFC9] dark:border-white/10 rounded-sm overflow-hidden bg-[#FAF6EE] dark:bg-black">
+                {/* Dynamic Calendar Widget */}
+                <div className="w-full md:w-[320px] shrink-0 border border-[#E8DFC9] dark:border-white/10 rounded-sm overflow-hidden bg-[#FAF6EE] dark:bg-black relative">
+                  {calendarLoading && (
+                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-[#C69C6D] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-[#E8DFC9] dark:border-white/10">
-                    <button className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm">&lt;</button>
-                    <span className="text-sm font-bold tracking-widest uppercase text-[#1A1512] dark:text-white">December 2026</span>
-                    <button className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm">&gt;</button>
+                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm transition-colors">&lt;</button>
+                    <span className="text-sm font-bold tracking-widest uppercase text-[#1A1512] dark:text-white">
+                      {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} className="p-1 hover:bg-[#E8DFC9] dark:hover:bg-white/10 rounded-sm transition-colors">&gt;</button>
                   </div>
                   <div className="p-4">
                     <div className="grid grid-cols-7 gap-1 text-center mb-2">
@@ -451,17 +506,18 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                       ))}
                     </div>
                     <div className="grid grid-cols-7 gap-1">
-                      {[...Array(31)].map((_, i) => {
+                      {[...Array(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay())].map((_, i) => (
+                        <div key={`empty-${i}`} className="aspect-square"></div>
+                      ))}
+                      {[...Array(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate())].map((_, i) => {
                         const day = i + 1;
-                        const isBooked = [3, 4, 12, 18, 19, 25, 31].includes(day);
-                        const isPending = [10, 11, 26].includes(day);
+                        const isUnavailable = bookedDays.includes(day) || blockedDays.includes(day);
                         return (
                           <div 
                             key={day} 
-                            className={`aspect-square flex items-center justify-center text-xs rounded-sm cursor-pointer transition-colors
-                              ${isBooked ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed opacity-50' : 
-                                isPending ? 'bg-[#FAF6EE] dark:bg-[#2A2312] border border-[#C69C6D]/30 text-[#C69C6D]' : 
-                                'hover:bg-[#C69C6D] hover:text-white text-[#1A1512] dark:text-gray-300 font-medium'}`}
+                            className={`aspect-square flex items-center justify-center text-xs rounded-sm transition-colors
+                              ${isUnavailable ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed opacity-50' : 
+                                'hover:bg-[#C69C6D] hover:text-white text-[#1A1512] dark:text-gray-300 font-medium cursor-pointer bg-white dark:bg-transparent shadow-sm hover:shadow-none'}`}
                           >
                             {day}
                           </div>

@@ -1,10 +1,8 @@
 import LandingHero from "@/components/landing/home/LandingHero";
-import PackagesSection from "@/components/landing/home/PackagesSection";
-import AmenitiesSection from "@/components/landing/home/AmenitiesSection";
-import EstimateSection from "@/components/landing/home/EstimateSection";
-import TheHallSection from "@/components/landing/home/TheHallSection";
-import FAQSection from "@/components/landing/home/FAQSection";
-import CTASection from "@/components/landing/home/CTASection";
+import AboutSection from "@/components/landing/home/AboutSection";
+import FacilitiesSection from "@/components/landing/home/FacilitiesSection";
+import EventsWeHostSection from "@/components/landing/home/EventsWeHostSection";
+import PlanEventSection from "@/components/landing/home/PlanEventSection";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 
@@ -13,12 +11,10 @@ export default function Home() {
  <div className="flex flex-col min-h-screen bg-white transition-colors duration-300">
  <MainNavbar />
  <LandingHero />
- <PackagesSection />
- <AmenitiesSection />
- <EstimateSection />
- <TheHallSection />
- <FAQSection />
- <CTASection />
+ <AboutSection />
+ <FacilitiesSection />
+ <EventsWeHostSection />
+ <PlanEventSection />
  <Footer />
  </div>
  );

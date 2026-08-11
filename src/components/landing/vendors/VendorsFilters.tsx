@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Search, ChevronDown, MapPin, X, Palette, Camera, Music } from "lucide-react";
 
 interface VendorsFiltersProps {
@@ -51,15 +51,37 @@ export default function VendorsFilters({
     setActiveTab("all");
   };
 
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
   return (
-    <div className="sticky top-[80px] z-40 bg-[#FDFBF7]/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-sm py-5 pb-3 transition-all w-full">
+    <div className="sticky top-[80px] z-40 bg-[#FDFBF7]/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-sm py-4 md:py-5 pb-3 transition-all w-full">
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* Top Row: Search & Main Categories */}
-        <div className="flex flex-col lg:flex-row items-center gap-4 mb-5">
+        {/* Mobile Search & Filter Toggle */}
+        <div className="flex lg:hidden items-center gap-3 mb-2 md:mb-5">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search vendors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#111111] text-sm text-[#2C1E14] dark:text-white border border-gray-200 dark:border-zinc-800 rounded-full outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 shadow-sm transition-all placeholder:text-gray-400"
+            />
+          </div>
+          <button 
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+            className={`p-3 bg-white dark:bg-[#111111] border ${isMobileOpen ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300'} rounded-full shadow-sm transition-colors flex-shrink-0`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+          </button>
+        </div>
+
+        {/* Filters Row (Desktop always visible, Mobile conditionally visible) */}
+        <div className={`${isMobileOpen ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row items-center gap-4 mb-2 md:mb-5`}>
           
-          {/* Search Input */}
-          <div className="relative flex-1 w-full lg:min-w-[300px]">
+          {/* Desktop Search Input */}
+          <div className="relative flex-1 w-full lg:min-w-[300px] hidden lg:block">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"

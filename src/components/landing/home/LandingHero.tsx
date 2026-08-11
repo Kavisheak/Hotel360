@@ -1,17 +1,64 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { ArrowRight, PlayCircle, Building2, Award, ConciergeBell } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { motion, useScroll, useTransform, useSpring, Variants } from 'framer-motion';
 
 const LandingHero = () => {
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  // Smooth out the scroll progress for a buttery Apple-like feel
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
+  // Transformations based on scroll progress
+  const yBg = useTransform(smoothProgress, [0, 1], ["0%", "20%"]);
+  const scaleBg = useTransform(smoothProgress, [0, 1], [1, 0.95]);
+  const opacityBg = useTransform(smoothProgress, [0, 1], [1, 0.4]);
+  
+  const yText = useTransform(smoothProgress, [0, 1], ["0%", "-40%"]);
+  const opacityText = useTransform(smoothProgress, [0, 0.4], [1, 0]);
+  const scaleText = useTransform(smoothProgress, [0, 0.4], [1, 0.95]);
+
+  const containerVariants: Variants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as any } 
+    }
+  };
+
+  const bottomBarVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { delay: 1, duration: 1, ease: [0.16, 1, 0.3, 1] as any } }
+  };
 
   return (
-    <div className="relative w-full h-screen min-h-[500px] max-h-[800px] flex flex-col font-sans text-[#2C1E14] dark:text-white overflow-hidden transition-colors duration-300">
-      {/* Background Image - pointer-events-none so it never blocks clicks */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+    <div ref={containerRef} className="relative w-full h-screen min-h-[500px] max-h-[800px] flex flex-col font-sans text-[#2C1E14] dark:text-white overflow-hidden bg-[#FAF8F5] dark:bg-[#0A0A0A] transition-colors duration-300">
+      {/* Background Image Container with parallax & scaling */}
+      <motion.div 
+        style={{ y: yBg, scale: scaleBg, opacity: opacityBg }}
+        className="absolute inset-0 z-0 pointer-events-none origin-bottom mobile-no-anim"
+      >
         <Image
           src="/light_ballroom_bg.png"
           alt="Luxury Ballroom Light"
@@ -33,7 +80,7 @@ const LandingHero = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-[#0A0A0A]/80 dark:via-transparent dark:to-transparent pointer-events-none" />
         {/* Horizontal gradient to wash out the center for text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/95 to-transparent dark:via-[#0A0A0A]/95 pointer-events-none"></div>
-      </div>
+      </motion.div>
 
       <style>{`
         @keyframes legacy-zoom {
@@ -51,32 +98,40 @@ const LandingHero = () => {
         }
       `}</style>
 
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center items-center text-center px-6 md:px-12 lg:px-20 max-w-7xl mx-auto pb-10">
-        <div className="space-y-6 flex flex-col items-center">
+      {/* Main Content with Parallax & Fade on Scroll */}
+      <motion.main 
+        style={{ y: yText, opacity: opacityText, scale: scaleText }}
+        className="relative z-10 flex-1 flex flex-col justify-center items-center text-center px-4 sm:px-6 md:px-12 lg:px-20 max-w-7xl mx-auto pb-10"
+      >
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6 flex flex-col items-center mobile-no-anim"
+        >
           {/* Overline */}
-          <div className="flex items-center gap-4 text-reveal stagger-1">
+          <motion.div variants={itemVariants} className="flex items-center gap-4">
             <div className="w-8 h-[1px] bg-[#805D3A]/40 dark:bg-[#C9A84C]/60"></div>
             <p className="text-[#805D3A] dark:text-white/90 text-[10px] sm:text-[11px] tracking-[0.3em] uppercase font-semibold">
               SOUTH ASIA'S SIGNATURE CELEBRATION & CONVENTION CENTER
             </p>
             <div className="w-8 h-[1px] bg-[#805D3A]/40 dark:bg-[#C9A84C]/60"></div>
-          </div>
+          </motion.div>
 
           {/* Main Title */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif leading-tight text-reveal stagger-2 text-[#2C1E14] dark:text-white">
+          <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl lg:text-8xl font-serif leading-tight text-[#2C1E14] dark:text-white">
             Where Every Union<br />
             <span className="italic font-light animate-legacy">Becomes A Legacy</span>
-          </h1>
+          </motion.h1>
 
           {/* Subtitle */}
-          <p className="max-w-2xl text-[#805D3A] dark:text-gray-200 text-sm md:text-base leading-relaxed text-reveal stagger-3 font-medium">
+          <motion.p variants={itemVariants} className="max-w-2xl text-[#805D3A] dark:text-gray-200 text-sm md:text-base leading-relaxed font-medium">
             A timeless wedding sanctuary in the heart of Batticaloa — crafted for stories 
             who deserve to be remembered forever.
-          </p>
+          </motion.p>
 
           {/* Buttons */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center gap-6 text-reveal stagger-4">
+          <motion.div variants={itemVariants} className="pt-8 flex flex-col sm:flex-row items-center gap-6">
             <button 
               onClick={() => router.push('/book')}
               className="btn-interactive w-full sm:w-auto bg-[#D4AF37] dark:bg-[#C9A84C] text-white dark:text-black px-8 py-3.5 flex items-center justify-center gap-3 text-[11px] tracking-widest uppercase font-bold hover:bg-[#C9A84C] dark:hover:bg-[#B5953F] transition-all"
@@ -91,14 +146,19 @@ const LandingHero = () => {
               Explore Packages
               <ArrowRight className="w-4 h-4" />
             </button>
-          </div>
+          </motion.div>
 
-        </div>
-      </main>
+        </motion.div>
+      </motion.main>
 
       {/* Bottom Bar overlaying the hero */}
-      <div className="absolute bottom-0 left-0 w-full bg-white/95 dark:bg-black/80 backdrop-blur-md border-t border-[#805D3A]/10 dark:border-white/10 z-20">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-reveal stagger-4">
+      <motion.div 
+        variants={bottomBarVariants}
+        initial="hidden"
+        animate="visible"
+        className="hidden sm:block absolute bottom-0 left-0 w-full bg-white/95 dark:bg-black/80 backdrop-blur-md border-t border-[#805D3A]/10 dark:border-white/10 z-20"
+      >
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
           <div className="flex-1 w-full sm:w-auto py-5 flex justify-center items-center gap-3 border-r border-[#805D3A]/10 dark:border-white/10">
             <Building2 size={16} className="text-[#C9A84C]" />
             <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#805D3A] dark:text-[#C9A84C]">Curated Spaces</span>
@@ -112,7 +172,7 @@ const LandingHero = () => {
             <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#805D3A] dark:text-[#C9A84C]">Best Catering</span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

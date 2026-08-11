@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { Pencil, ArrowRight } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import AccountOverview from "@/components/myaccount/AccountOverview";
@@ -69,9 +71,18 @@ function MyAccountContent() {
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-8 section-reveal">
         {/* Page Header */}
-        <div className="mb-8 text-left">
-          <h1 className="text-4xl md:text-5xl font-serif text-[#1A1512] dark:text-white">My Account</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-500 font-light mt-1">Manage your profile, security, bookings and preferences.</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-serif text-[#1A1512] dark:text-white">My Account</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-500 font-light mt-1">Manage your profile, security, bookings and preferences.</p>
+          </div>
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#FAF6EE] dark:bg-[#C9A84C]/10 border border-[#E8DFC9] dark:border-[#C9A84C]/30 rounded-full text-[#C9A84C] text-sm font-semibold hover:bg-white dark:hover:bg-[#111111] transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+            Edit Profile
+          </button>
         </div>
 
         {/* Layout: Sidebar + Content */}
@@ -85,10 +96,12 @@ function MyAccountContent() {
           {/* Right Center Content Panel */}
           <div className="lg:col-span-8 xl:col-span-9 space-y-6">
             {/* Header section of the tab */}
-            <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 p-6 rounded-xl shadow-sm text-left">
-              <h2 className="text-2xl font-serif text-gray-900 dark:text-white">{currentSection.title}</h2>
-              <p className="text-xs text-gray-500 mt-1 font-light">{currentSection.subtitle}</p>
-            </div>
+            {activeTab !== "overview" && (
+              <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 p-6 rounded-xl shadow-sm text-left mb-6">
+                <h2 className="text-2xl font-serif text-gray-900 dark:text-white">{currentSection.title}</h2>
+                <p className="text-xs text-gray-500 mt-1 font-light">{currentSection.subtitle}</p>
+              </div>
+            )}
 
             {/* Dynamic Content Panel */}
             <div className="card-entrance" key={activeTab}>
@@ -108,6 +121,7 @@ function MyAccountContent() {
           </div>
         </div>
       </main>
+
 
       <Footer />
     </div>
