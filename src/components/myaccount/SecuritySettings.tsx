@@ -167,8 +167,8 @@ export default function SecuritySettings() {
                   </p>
                   <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light mt-0.5">
                     {twoFA
-                      ? "Your account is protected with SMS verification."
-                      : "Add an extra layer of security via SMS or authenticator app."}
+                      ? "Your account is protected with authenticator verification."
+                      : "Add an extra layer of security via an authenticator app."}
                   </p>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock } from "lucide-react";
+import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock, X } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import BookHero from "@/components/landing/book/BookHero";
@@ -65,6 +65,35 @@ export default function BookPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  // Toast state
+  const [toast, setToast] = useState<{show: boolean; title: string; subtitle: string}>({ show: false, title: "", subtitle: "" });
+  const [isToastVisible, setIsToastVisible] = useState(false);
+  const toastTimeoutRef = React.useRef<NodeJS.Timeout[]>([]);
+
+  const triggerToast = (title: string, subtitle: string = "You can now configure your event details.") => {
+    console.log("TRIGGER TOAST CALLED", { title, subtitle });
+    // Clear any existing timeouts to prevent overlapping animations
+    toastTimeoutRef.current.forEach(clearTimeout);
+    toastTimeoutRef.current = [];
+
+    // Start by hiding the toast if it's currently visible
+    setIsToastVisible(false);
+    
+    // Wait a brief moment for the CSS to reset before showing the new one
+    const t1 = setTimeout(() => {
+      console.log("SETTING TOAST STATE", { title, subtitle });
+      setToast({ show: true, title, subtitle });
+      
+      const t2 = setTimeout(() => setIsToastVisible(true), 100);
+      const t3 = setTimeout(() => setIsToastVisible(false), 4500);
+      const t4 = setTimeout(() => setToast({ show: false, title: "", subtitle: "" }), 5500);
+      
+      toastTimeoutRef.current.push(t2, t3, t4);
+    }, 150);
+    
+    toastTimeoutRef.current.push(t1);
+  };
 
   // Step 2 Form States
   const [firstName, setFirstName] = useState("");
@@ -179,7 +208,26 @@ export default function BookPage() {
     videographerPackage: "none",
   });
 
-  const setVendors = (newVendors: typeof vendors) => {
+  const getVendorName = (id: string | null) => {
+    if (!id || id === "none") return "";
+    if (id === "custom_preference") return "Custom Preference";
+    const v = globalVendors.find((v: Vendor) => v.id === id || (v as any)._id === id);
+    return v ? ((v as any).businessName || v.name) : "";
+  };
+
+  const setVendors = (newVendors: typeof vendors, categoryUpdated?: string) => {
+    // Check which vendor was selected by using the explicitly passed category
+    if (categoryUpdated === "decorator") {
+      const name = getVendorName(newVendors.decorator);
+      triggerToast(`Selected ${name || "Event Decorator"}!`, "This decoration partner has been added to your booking.");
+    } else if (categoryUpdated === "dj") {
+      const name = getVendorName(newVendors.dj);
+      triggerToast(`Selected ${name || "DJ / Band"}!`, "This entertainment vendor has been added to your booking.");
+    } else if (categoryUpdated === "videographer") {
+      const name = getVendorName(newVendors.videographer);
+      triggerToast(`Selected ${name || "Photography"}!`, "This media vendor has been added to your booking.");
+    }
+
     setLocalVendors(newVendors);
     if (newVendors.decorator !== cartVendors.decorator) setStoreVendor("decorator", newVendors.decorator);
     if (newVendors.dj !== cartVendors.dj) setStoreVendor("dj", newVendors.dj);
@@ -203,10 +251,11 @@ export default function BookPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
-      const prePackage = searchParams.get("package");
+      const prePackage = searchParams.get("package") || searchParams.get("pkg");
       const preDecorator = searchParams.get("decorator") || searchParams.get("decorators");
       const preDj = searchParams.get("dj") || searchParams.get("djs");
       const preVid = searchParams.get("videographer") || searchParams.get("videographers");
+      const fromSelect = searchParams.get("fromSelect");
 
       if (preDecorator || preDj || preVid) {
         setVendors({
@@ -219,6 +268,24 @@ export default function BookPage() {
 
       if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
         setSelectedPackage(prePackage);
+        
+        if (fromSelect) {
+          const pkgName = prePackage.charAt(0).toUpperCase() + prePackage.slice(1) + " Package";
+          
+          // Remove fromSelect from URL without reloading
+          const newUrl = window.location.pathname + "?package=" + prePackage;
+          window.history.replaceState({}, "", newUrl);
+
+          triggerToast(`Selected ${pkgName}!`, "You can now configure your event details.");
+        }
+      }
+
+      // Check if arriving from Floating Event Cart
+      const fromCart = searchParams.get("fromCart");
+      if (fromCart === "true") {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+        triggerToast("Vendors Imported!", "Your selected vendors have been added to your booking.");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -735,7 +802,53 @@ export default function BookPage() {
       `}} />
       <MainNavbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow relative">
+        
+        {/* Toast Notification */}
+        {toast.show && (
+          <div 
+            className={`fixed left-1/2 -translate-x-1/2 z-[40] transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isToastVisible 
+                ? 'top-[110px] opacity-100 scale-100' 
+                : '-top-[100px] opacity-0 scale-95 pointer-events-none'
+            }`}
+          >
+            <div className="bg-white rounded-r-2xl rounded-l-md border-l-[6px] border-[#C9A84C] shadow-[0_20px_50px_rgba(0,0,0,0.1)] max-w-xl w-[90vw] md:w-[600px] flex items-center p-3 md:p-5 relative overflow-hidden text-left">
+              
+              {/* Faint leaf background graphics */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-32 h-32 opacity-[0.07] pointer-events-none">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-[#C9A84C] fill-current">
+                  <path d="M30 50 Q50 20 70 50 Q50 80 30 50 Z" />
+                  <path d="M40 30 Q60 10 80 30 Q60 50 40 30 Z" />
+                  <path d="M40 70 Q60 90 80 70 Q60 50 40 70 Z" />
+                </svg>
+              </div>
+              
+              {/* Faint stars corners */}
+              <div className="absolute right-4 top-3 text-[#C9A84C] opacity-30 text-xl">✦</div>
+              <div className="absolute right-8 bottom-2 text-[#C9A84C] opacity-30 text-lg">✧</div>
+
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border-[1.5px] border-[#C9A84C] flex items-center justify-center relative z-10 shrink-0 bg-white shadow-[0_0_20px_rgba(201,168,76,0.15)]">
+                <Check className="text-[#C9A84C] w-5 h-5 md:w-7 md:h-7" strokeWidth={3} />
+              </div>
+
+              <div className="flex-1 ml-3 md:ml-5 relative z-10">
+                <h4 className="text-[#5C4520] font-serif font-bold text-[15px] md:text-[19px] mb-1">{toast.title}</h4>
+                <p className="text-gray-600 text-[11px] md:text-[14px] leading-snug">{toast.subtitle}</p>
+              </div>
+
+              <div className="border-l border-gray-200 h-8 md:h-10 mx-2 md:mx-5 relative z-10"></div>
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsToastVisible(false); }}
+                className="text-gray-400 hover:text-[#5C4520] transition-colors relative z-10 p-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <BookHero />
 
         <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">

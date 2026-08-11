@@ -42,7 +42,7 @@ export default function AccountOverview() {
 
       {/* Avatar & Info */}
       <div className="px-6 pb-6 relative flex flex-col items-center text-center -mt-12 z-10">
-        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-[#111111] shadow-lg overflow-hidden bg-white dark:bg-[#1A1A1A] flex-shrink-0 mb-4 relative group flex items-center justify-center">
+        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-[#111111] shadow-lg overflow-hidden bg-white dark:bg-[#1A1A1A] flex-shrink-0 mb-4 relative flex items-center justify-center">
           {authUser?.avatar ? (
             <Image
               src={getImageUrl(authUser.avatar)}
@@ -55,10 +55,6 @@ export default function AccountOverview() {
           ) : (
             <User className="w-12 h-12 text-gray-400" />
           )}
-          {/* Pencil Edit Icon */}
-          <div className="absolute bottom-0 right-0 w-6 h-6 bg-[#FAF6EE] border border-[#E8DFC9] rounded-full flex items-center justify-center shadow-sm text-[#C9A84C] cursor-pointer hover:bg-white transition-colors">
-            <Pencil className="w-3 h-3" strokeWidth={2} />
-          </div>
         </div>
         
         <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white mb-2">
@@ -73,20 +69,20 @@ export default function AccountOverview() {
         {/* Contact Details */}
         <div className="space-y-3.5 text-xs w-full text-left pt-6 pb-2">
           <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-            <div className="w-6 h-6 rounded-full bg-[#FAF6EE] dark:bg-[#1A1A1A] flex items-center justify-center shrink-0">
-              <Mail className="w-3 h-3 text-[#C69C6D]" />
+            <div className="w-7 h-7 rounded-full border border-[#E8DFC9] dark:border-[#C9A84C]/20 bg-white dark:bg-[#1A1A1A] flex items-center justify-center shrink-0">
+              <Mail className="w-3.5 h-3.5 text-[#C9A84C]" strokeWidth={1.5} />
             </div>
             <span className="font-medium tracking-wide">{user.email}</span>
           </div>
           <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-            <div className="w-6 h-6 rounded-full bg-[#FAF6EE] dark:bg-[#1A1A1A] flex items-center justify-center shrink-0">
-              <Phone className="w-3 h-3 text-[#C69C6D]" />
+            <div className="w-7 h-7 rounded-full border border-[#E8DFC9] dark:border-[#C9A84C]/20 bg-white dark:bg-[#1A1A1A] flex items-center justify-center shrink-0">
+              <Phone className="w-3.5 h-3.5 text-[#C9A84C]" strokeWidth={1.5} />
             </div>
             <span className="font-medium tracking-wide">{user.phone}</span>
           </div>
           <div className="flex items-start gap-3 text-gray-600 dark:text-gray-400">
-            <div className="w-6 h-6 rounded-full bg-[#FAF6EE] dark:bg-[#1A1A1A] flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-3 h-3 text-[#C69C6D]" />
+            <div className="w-7 h-7 rounded-full border border-[#E8DFC9] dark:border-[#C9A84C]/20 bg-white dark:bg-[#1A1A1A] flex items-center justify-center shrink-0 mt-0.5">
+              <MapPin className="w-3.5 h-3.5 text-[#C9A84C]" strokeWidth={1.5} />
             </div>
             <span className="font-medium tracking-wide leading-relaxed">{user.address},<br/>{user.city}</span>
           </div>

@@ -130,6 +130,17 @@ export const bookingAPI = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+  getAllBlocks: () => apiFetch("/api/manager/bookings/blocks"),
+  createBlock: (body: any) =>
+    apiFetch("/api/manager/bookings/block", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  releaseBlock: (body: any) =>
+    apiFetch("/api/manager/bookings/block", {
+      method: "DELETE",
+      body: JSON.stringify(body),
+    }),
 };
 
 export const paymentAPI = {
@@ -455,10 +466,16 @@ export const vendorAPI = {
       method: "POST",
       body: JSON.stringify({ vendorId: id }),
     }),
-  checkVendorAvailability: (vendorId: string, date: string) =>
-    apiFetch(`/api/customer/vendors/${vendorId}/availability?date=${date}`),
+  checkVendorAvailability: (vendorId: string, params: { date?: string, month?: number, year?: number }) => {
+    if (params.date) return apiFetch(`/api/customer/vendors/${vendorId}/availability?date=${params.date}`);
+    return apiFetch(`/api/customer/vendors/${vendorId}/availability?month=${params.month}&year=${params.year}`);
+  },
   getPublicVendorPortfolio: (vendorId: string) =>
     apiFetch(`/api/customer/vendors/${vendorId}/portfolio`),
+};
+
+export const hotelManagerAPI = {
+  getOverview: () => apiFetch("/api/manager/overview"),
 };
 
 // ─── Super Admin API ─────────────────────────────────────────────────────────────

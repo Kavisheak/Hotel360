@@ -6,7 +6,7 @@ import Footer from "@/components/landing/shared/Footer";
 import PackagesHero from "@/components/landing/packages/PackagesHero";
 import PackageCards from "@/components/landing/packages/PackageCards";
 import ComparisonMatrix from "@/components/landing/packages/ComparisonMatrix";
-import CostCalculator from "@/components/landing/packages/CostCalculator";
+
 import FAQAccordion from "@/components/landing/packages/FAQAccordion";
 import TrustSection from "@/components/landing/packages/TrustSection";
 import { packageAPI } from "@/lib/api";
@@ -43,6 +43,8 @@ export default function PackagesPage() {
             };
           });
           if (mapped.length > 0) {
+            const orderWeight: { [key: string]: number } = { silver: 1, gold: 2, diamond: 3 };
+            mapped.sort((a: any, b: any) => (orderWeight[a.id] || 4) - (orderWeight[b.id] || 4));
             setPackages(mapped);
           }
         }
@@ -75,9 +77,7 @@ export default function PackagesPage() {
         )}
         
         <ComparisonMatrix />
-        
-        <CostCalculator />
-        
+
         <FAQAccordion />
         
         <TrustSection />

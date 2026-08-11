@@ -10,7 +10,7 @@ import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useBookingFormStore } from "@/store/bookingFormStore";
 import SignOutModal from "./SignOutModal";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { useTheme } from "next-themes";
 
 export default function MainNavbar() {
@@ -71,9 +71,26 @@ export default function MainNavbar() {
     ...(isLoggedIn ? [{ name: "My Account", path: "/customer/myaccount" }] : []),
   ];
 
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    return scrollY.onChange((latest) => {
+      setIsScrolled(latest > 50);
+    });
+  }, [scrollY]);
+
+  const isHome = pathname === "/";
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-white dark:bg-[#0A0A0A] border-b border-gray-100 dark:border-zinc-800/80 text-gray-800 dark:text-gray-200 shadow-sm transition-shadow duration-300">
+      <header 
+        className={`sticky top-0 z-50 w-full transition-all duration-500 ease-out ${
+          isHome && !isScrolled 
+            ? "bg-transparent border-transparent text-gray-800 dark:text-white" 
+            : "bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800/80 text-gray-800 dark:text-gray-200 shadow-sm"
+        }`}
+      >
         <div className="w-full px-6 md:px-12 lg:px-16 py-4 flex items-center justify-between">
           
           {/* Brand Logo */}
@@ -124,7 +141,7 @@ export default function MainNavbar() {
           {/* Call to Actions */}
           <div className="flex items-center gap-5">
             {/* Saved Items */}
-            <Link href="/customer/saved" onClick={(e) => handleNavClick(e, "/customer/saved")} className="relative group text-gray-600 dark:text-gray-300 hover:text-[#E2952B] transition-colors">
+            <Link href="/customer/saved" onClick={(e) => handleNavClick(e, "/customer/saved")} className="hidden lg:flex relative group text-gray-600 dark:text-gray-300 hover:text-[#E2952B] transition-colors">
               <Heart className="w-5 h-5" />
               {favoriteVendors?.length > 0 && (
                 <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
@@ -134,19 +151,17 @@ export default function MainNavbar() {
             </Link>
 
             {/* Notification Center */}
-            {isLoggedIn && <NotificationCenter role="customer" />}
+            <div className="hidden lg:block">
+              {isLoggedIn && <NotificationCenter role="customer" />}
+            </div>
 
-            {/* Contact Phone */}
-            <a href="tel:+94770445434" className="hidden md:flex items-center gap-2 text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] transition-colors duration-200" style={{ fontFamily: "'Jost', sans-serif" }}>
-              <Phone className="w-4 h-4 text-[#E2952B] dark:text-[#F3BA46]" strokeWidth={2.5} />
-              <span className="font-bold text-[15px] tracking-wide">+94 77 044 5434</span>
-            </a>
+
 
             {/* Book Event Button */}
             <Link
               href="/book"
               onClick={(e) => handleNavClick(e, "/book")}
-              className="flex items-center gap-2 bg-gradient-to-r from-[#E2952B] to-[#F3BA46] text-white hover:from-[#D0841A] hover:to-[#E2A732] px-5 py-2.5 rounded-md text-[15px] font-bold transition-all duration-200 shadow-md shadow-orange-500/10 hover:shadow-orange-500/20"
+              className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-[#E2952B] to-[#F3BA46] text-white hover:from-[#D0841A] hover:to-[#E2A732] px-5 py-2.5 rounded-md text-[15px] font-bold transition-all duration-200 shadow-md shadow-orange-500/10 hover:shadow-orange-500/20"
               style={{ fontFamily: "'Jost', sans-serif" }}
             >
               <Calendar className="w-4 h-4 text-white" strokeWidth={2.5} />
@@ -154,26 +169,28 @@ export default function MainNavbar() {
             </Link>
 
             {/* Auth Actions */}
-            {isLoading ? (
-              <div className="w-16 h-4 bg-[#E8DFC9]/40 dark:bg-gray-800 animate-pulse rounded-sm shrink-0"></div>
-            ) : isLoggedIn ? (
-              <button
-                onClick={() => setIsSignOutModalOpen(true)}
-                title="Sign Out"
-                className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                onClick={(e) => handleNavClick(e, "/login")}
-                className="text-[15px] font-bold text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] dark:hover:text-[#F3BA46] transition-colors duration-200"
-                style={{ fontFamily: "'Jost', sans-serif" }}
-              >
-                Sign In
-              </Link>
-            )}
+            <div className="hidden lg:flex items-center">
+              {isLoading ? (
+                <div className="w-16 h-4 bg-[#E8DFC9]/40 dark:bg-gray-800 animate-pulse rounded-sm shrink-0"></div>
+              ) : isLoggedIn ? (
+                <button
+                  onClick={() => setIsSignOutModalOpen(true)}
+                  title="Sign Out"
+                  className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={(e) => handleNavClick(e, "/login")}
+                  className="text-[15px] font-bold text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] dark:hover:text-[#F3BA46] transition-colors duration-200"
+                  style={{ fontFamily: "'Jost', sans-serif" }}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
 
             {/* Theme Toggle (Visible on all sizes) */}
             <button
@@ -218,10 +235,10 @@ export default function MainNavbar() {
                         setIsMobileMenuOpen(false);
                       }}
                       style={{ fontFamily: "'Jost', sans-serif" }}
-                      className={`text-[16px] font-bold py-2 transition-colors duration-200 ${
+                      className={`text-center text-[16px] font-bold py-2 transition-colors duration-200 ${
                         isActive
-                          ? "text-[#E2952B] dark:text-[#F3BA46] border-l-2 border-[#E2952B] pl-3"
-                          : "text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] pl-3"
+                          ? "text-[#E2952B] dark:text-[#F3BA46]"
+                          : "text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B]"
                       }`}
                     >
                       {link.name}
@@ -229,13 +246,45 @@ export default function MainNavbar() {
                   );
                 })}
                 
-                {/* Contact Phone & Quick Actions in Mobile Menu */}
-                <div className="border-t border-gray-100 dark:border-zinc-800/80 pt-4 mt-2 flex flex-col gap-4">
-                  <a href="tel:+94770445434" className="flex items-center gap-2 text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B]" style={{ fontFamily: "'Jost', sans-serif" }}>
-                    <Phone className="w-5 h-5 text-[#E2952B] dark:text-[#F3BA46]" strokeWidth={2} />
-                    <span className="font-bold text-[16px]">+94 77 044 5434</span>
-                  </a>
-                </div>
+                {/* Mobile Extra Links */}
+                <div className="h-px bg-gray-100 dark:bg-zinc-800/80 my-2"></div>
+                
+                <Link
+                  href="/customer/saved"
+                  onClick={(e) => { handleNavClick(e, "/customer/saved"); setIsMobileMenuOpen(false); }}
+                  className="flex items-center justify-center gap-3 text-[16px] font-bold text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] py-2"
+                  style={{ fontFamily: "'Jost', sans-serif" }}
+                >
+                  <Heart className="w-5 h-5" /> Saved Vendors
+                  {favoriteVendors?.length > 0 && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">{favoriteVendors.length}</span>}
+                </Link>
+
+                <Link
+                  href="/book"
+                  onClick={(e) => { handleNavClick(e, "/book"); setIsMobileMenuOpen(false); }}
+                  className="flex items-center justify-center gap-2 bg-[#E2952B] text-white px-5 py-3 rounded-md text-[15px] font-bold mt-2"
+                  style={{ fontFamily: "'Jost', sans-serif" }}
+                >
+                  <Calendar className="w-4 h-4" /> Book Event
+                </Link>
+
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); setIsSignOutModalOpen(true); }}
+                    className="flex items-center justify-center gap-2 text-red-500 font-bold py-3 mt-2 border border-red-100 dark:border-red-900/30 rounded-md"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign Out
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={(e) => { handleNavClick(e, "/login"); setIsMobileMenuOpen(false); }}
+                    className="flex items-center justify-center gap-2 text-[#2b354e] dark:text-gray-300 border border-gray-200 dark:border-gray-700 font-bold py-3 mt-2 rounded-md"
+                    style={{ fontFamily: "'Jost', sans-serif" }}
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
             </motion.div>
           )}

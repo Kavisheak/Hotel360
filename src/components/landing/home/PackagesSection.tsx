@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Users, ArrowRight } from 'lucide-react';
 
 const PackagesSection = () => {
+ const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+ useEffect(() => {
+   if (window.innerWidth < 768 && scrollContainerRef.current) {
+     setTimeout(() => {
+       const container = scrollContainerRef.current;
+       if (container) {
+         const cardWidth = window.innerWidth * 0.75; // 75vw
+         const gap = 24; // gap-6 is 1.5rem = 24px
+         const scrollPos = 24 + cardWidth + gap - ((window.innerWidth - cardWidth) / 2);
+         container.scrollTo({ left: scrollPos, behavior: 'smooth' });
+       }
+     }, 300);
+   }
+ }, []);
+
  const packages = [
  {
  id: 'silver',
@@ -51,26 +67,20 @@ const PackagesSection = () => {
  </div>
 
  {/* Cards Grid */}
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full items-center relative z-10">
+ <div ref={scrollContainerRef} className="flex flex-nowrap overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-3 gap-6 max-w-6xl w-[100vw] sm:w-full -ml-6 md:ml-0 md:w-full items-center relative z-10 pb-12 md:pb-0 px-6 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
  {packages.map((pkg, index) => (
  <div 
  key={pkg.id}
- className={`flex flex-col overflow-hidden transition-all duration-500 relative card-entrance stagger-${index + 1} ${
+ className={`flex flex-col overflow-hidden transition-all duration-500 relative card-entrance stagger-${index + 1} min-w-[75vw] sm:min-w-[60vw] md:min-w-0 snap-center shrink-0 ${
  pkg.isMostLoved 
- ? 'bg-white dark:bg-transparent border border-[#C69C6D] shadow-lg md:-translate-y-4 md:scale-105 z-20 py-10 px-8' 
- : 'bg-white dark:bg-transparent border border-[#E8DFC9] dark:border-[#C69C6D]/30 hover:border-[#C69C6D]/60 dark:hover:border-[#C69C6D]/80 z-10 py-8 px-6'
+ ? 'bg-white dark:bg-transparent border border-[#C69C6D] shadow-lg md:-translate-y-4 md:scale-105 z-20 py-6 px-4 md:py-10 md:px-8' 
+ : 'bg-white dark:bg-transparent border border-[#E8DFC9] dark:border-[#C69C6D]/30 hover:border-[#C69C6D]/60 dark:hover:border-[#C69C6D]/80 z-10 py-4 px-4 md:py-8 md:px-6'
  }`}
  >
- {/* Top Badge for Most Loved */}
- {pkg.isMostLoved && (
- <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#C69C6D] text-white text-[9px] uppercase tracking-[0.2em] px-4 py-1.5 font-bold rounded-b-sm">
- Most Loved
- </div>
- )}
 
  {/* Card Content */}
  <div className="flex flex-col flex-grow text-center">
- <h3 className="text-[#A6955C] font-serif text-2xl mb-4 mt-2">
+ <h3 className="text-[#A6955C] font-serif text-lg md:text-2xl mb-4 mt-2">
  {pkg.name}
  </h3>
  
@@ -81,7 +91,7 @@ const PackagesSection = () => {
  </div>
  
  <div className="mb-6">
- <h4 className="text-4xl md:text-5xl font-serif text-[#2C1E14] dark:text-white mb-2 tracking-tight">
+ <h4 className="text-3xl md:text-5xl font-serif text-[#2C1E14] dark:text-white mb-2 tracking-tight">
  {pkg.price}
  </h4>
  <span className="text-[9px] uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold">{pkg.guests}</span>
@@ -91,10 +101,10 @@ const PackagesSection = () => {
  {pkg.description}
  </p>
 
- <div className="flex flex-col gap-4 text-left mb-8 flex-grow">
+ <div className="flex flex-col gap-4 text-center md:text-left mb-8 flex-grow items-center md:items-start">
  {['Dedicated Wedding Planner', 'Exclusive Ballroom Access', 'Complimentary Tasting Menu', 'Valet Parking for Guests'].map((feature, i) => (
- <div key={i} className="flex items-start gap-3">
- <div className="mt-1.5 w-1 h-1 rotate-45 bg-[#C69C6D] flex-shrink-0"></div>
+ <div key={i} className="flex items-center md:items-start gap-3">
+ <div className="mt-1 md:mt-1.5 w-1 h-1 rotate-45 bg-[#C69C6D] flex-shrink-0"></div>
  <span className="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-light">{feature}</span>
  </div>
  ))}

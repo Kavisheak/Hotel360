@@ -18,7 +18,7 @@ export default function NotificationsSettings() {
     }
   }, [user]);
 
-  const toggle = (id: string, channel: "email" | "sms" | "push") => {
+  const toggle = (id: string, channel: "email" | "push") => {
     setPrefs((prev) =>
       prev.map((p) => (p.id === id ? { ...p, [channel]: !p[channel] } : p))
     );
@@ -59,9 +59,6 @@ export default function NotificationsSettings() {
               <Mail className="w-3 h-3" /> Email
             </span>
             <span className="text-[9px] uppercase tracking-widest font-bold text-gray-600 dark:text-gray-400 flex items-center gap-1 w-14 justify-center">
-              <MessageSquare className="w-3 h-3" /> SMS
-            </span>
-            <span className="text-[9px] uppercase tracking-widest font-bold text-gray-600 dark:text-gray-400 flex items-center gap-1 w-14 justify-center">
               <Smartphone className="w-3 h-3" /> Push
             </span>
           </div>
@@ -79,7 +76,7 @@ export default function NotificationsSettings() {
                 <p className="text-[10px] text-gray-600 dark:text-gray-400 font-light mt-0.5 truncate">{pref.description}</p>
               </div>
               <div className="flex items-center gap-6 flex-shrink-0">
-                {(["email", "sms", "push"] as const).map((ch) => (
+                {(["email", "push"] as const).map((ch) => (
                   <div key={ch} className="w-14 flex justify-center">
                     <button
                       onClick={() => toggle(pref.id, ch)}

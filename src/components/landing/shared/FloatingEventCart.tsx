@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarCheck, ChevronUp, X, Sparkles, Trash2 } from "lucide-react";
+import { CalendarCheck, ChevronUp, X, Sparkles, Trash2, ShoppingBag, ClipboardList } from "lucide-react";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { useBookingFormStore } from "@/store/bookingFormStore";
-import { useToastStore } from "@/store/toastStore";
 import { Vendor } from "@/components/landing/vendors/types";
 
 export default function FloatingEventCart() {
@@ -15,7 +14,6 @@ export default function FloatingEventCart() {
   const { vendors: cartVendors, toggleVendorInEventPlan } = useVendorCartStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
   const { setStep } = useBookingFormStore();
-  const { addToast } = useToastStore();
   
   const [isOpen, setIsOpen] = useState(false);
   
@@ -49,9 +47,9 @@ export default function FloatingEventCart() {
 
   const handleProceed = () => {
     setIsOpen(false);
-    addToast({ message: "Selected vendors added to the bookings!", type: "success" });
     setStep(1); // Explicitly reset to step 1
-    router.push("/book");
+    // Pass fromCart parameter to trigger beautiful toast on the booking page
+    router.push("/book?fromCart=true");
   };
 
   return (
@@ -110,19 +108,32 @@ export default function FloatingEventCart() {
         )}
       </AnimatePresence>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-[#1A1512] dark:bg-white text-[#C9A84C] dark:text-[#1A1512] rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.3)] dark:shadow-[0_10px_30px_rgba(201,168,76,0.3)] flex items-center justify-center relative border border-[#C9A84C]/50 transition-colors z-50 group hover:bg-[#2C1E14] dark:hover:bg-gray-100"
-      >
-        <CalendarCheck className="w-6 h-6" />
-        {vendorCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#C9A84C] text-white dark:text-[#1A1A1A] text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#1A1A1A]">
-            {vendorCount}
-          </span>
-        )}
-      </motion.button>
+      <div className="relative mt-4">
+        <motion.button
+          id="floating-cart-btn"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-14 h-14 bg-white/90 dark:bg-black/90 backdrop-blur-md text-[#C9A84C] rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex items-center justify-center relative border border-[#C9A84C]/30 transition-all z-50 group hover:border-[#C9A84C] hover:shadow-[0_15px_40px_rgba(201,168,76,0.3)] overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#C9A84C]/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+          <ShoppingBag className="w-6 h-6 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300 relative z-10" />
+          <Sparkles className="w-3.5 h-3.5 absolute top-3 right-3 text-[#D4AF37] opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-all duration-300 z-10" />
+        </motion.button>
+        
+        <AnimatePresence>
+          {vendorCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full z-[60] shadow-md border-2 border-white dark:border-[#1A1A1A]"
+            >
+              {vendorCount}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
