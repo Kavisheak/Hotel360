@@ -38,6 +38,19 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (!localStorage.getItem('theme')) {
+                  localStorage.setItem('theme', 'light');
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
