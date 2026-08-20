@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Calendar, MapPin, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import { djAPI } from '@/lib/api';
 import { getClientDisplayName, VENUE_NAME } from '@/lib/vendorUtils';
-import DjJobDetailModal from './DjJobDetailModal';
+import DeclineRequestModal from '@/components/vendor/bookings/DeclineRequestModal';
 
 interface UpcomingJobsProps {
   booking: any;
@@ -21,13 +21,17 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
   const isPending = status === 'Pending';
 
   const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [modalStatus, setModalStatus] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChange = (newStatus: string) => {
-    setModalStatus(newStatus);
-    setShowModal(true);
+    if (newStatus === 'Declined') {
+      setShowDeclineModal(true);
+    } else {
+      setModalStatus(newStatus);
+      setShowModal(true);
+    }
   };
 
   const confirmStatusChange = async () => {
@@ -36,9 +40,26 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
       const res = await djAPI.updateBookingStatus(booking._id, modalStatus);
       if (res.ok) {
         setShowModal(false);
-        onRefresh?.();
+        if (onRefresh) onRefresh();
       } else {
         alert(res.data?.message || 'Failed to update status');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const confirmDecline = async (reason: string) => {
+    try {
+      setIsUpdating(true);
+      const res = await djAPI.updateBookingStatus(booking._id, 'Declined', { declineReason: reason });
+      if (res.ok) {
+        setShowDeclineModal(false);
+        if (onRefresh) onRefresh();
+      } else {
+        alert(res.data?.message || 'Failed to decline request');
       }
     } catch (e) {
       console.error(e);
@@ -117,13 +138,13 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
                 )}
               </>
             )}
-            <button
-              onClick={() => setShowDetailModal(true)}
+            <Link
+              href={`/dj-artist/events-bookings/${booking._id}`}
               className="flex items-center gap-1 px-2 py-1 text-[9px] font-bold tracking-widest text-gray-400 hover:text-[#7C6A2E] uppercase"
             >
               Details
               <ArrowRight size={11} />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -153,13 +174,15 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
         </div>
       )}
 
-      {showDetailModal && (
-        <DjJobDetailModal 
-          jobId={booking._id}
-          onClose={() => setShowDetailModal(false)}
-          onRefresh={onRefresh}
+      {showDeclineModal && (
+        <DeclineRequestModal
+          isOpen={true}
+          onClose={() => setShowDeclineModal(false)}
+          onSubmit={confirmDecline}
+          isSubmitting={isUpdating}
         />
       )}
+
     </>
   );
 };
