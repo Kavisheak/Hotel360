@@ -143,7 +143,7 @@ export default function VendorRemovalModal({ isOpen, onClose, bookingId, service
               {step === 1 ? (
                 <>
                   <div className="p-5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-800 rounded-lg">
-                    <p className="font-bold text-[#1A1512] dark:text-white mb-1">{resolvedOldVendor?.shopName || resolvedOldVendor?.name || currentVendorId}</p>
+                    <p className="font-bold text-[#1A1512] dark:text-white mb-1">{(resolvedOldVendor as any)?.shopName || resolvedOldVendor?.name || currentVendorId}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{oldVendor?.packageName}</p>
                     
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Advance Paid</p>
@@ -227,7 +227,7 @@ export default function VendorRemovalModal({ isOpen, onClose, bookingId, service
                   <div className="bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-800 p-5 rounded-lg space-y-4">
                     <div>
                       <p className="text-[10px] uppercase font-bold text-gray-500 mb-1 tracking-widest capitalize">{serviceCategory}</p>
-                      <p className="font-bold text-[#1A1512] dark:text-white">{resolvedOldVendor?.shopName || resolvedOldVendor?.name || currentVendorId}</p>
+                      <p className="font-bold text-[#1A1512] dark:text-white">{(resolvedOldVendor as any)?.shopName || resolvedOldVendor?.name || currentVendorId}</p>
                     </div>
 
                     <div>

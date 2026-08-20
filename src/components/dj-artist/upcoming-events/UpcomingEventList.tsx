@@ -5,6 +5,7 @@ import { djAPI } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { getClientFullName } from "@/lib/vendorUtils";
 import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
+import DjJobDetailModal from '../my_jobs/DjJobDetailModal';
 
 const UpcomingEventList = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -14,6 +15,7 @@ const UpcomingEventList = () => {
   const [declineEventId, setDeclineEventId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState("");
   const [acceptEvent, setAcceptEvent] = useState<any | null>(null);
+  const [detailEventId, setDetailEventId] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     try {
@@ -135,9 +137,19 @@ const UpcomingEventList = () => {
                     : "border-[#E0D8C3]"
                 }`}
               >
-                <p className="font-semibold text-gray-800">
-                  {clientName} — {event.eventType}
-                </p>
+                <div className="flex justify-between items-start">
+                  <p className="font-semibold text-gray-800">
+                    {clientName} — {event.eventType}
+                  </p>
+                  {status !== "Pending" && (
+                    <button
+                      onClick={() => setDetailEventId(event._id)}
+                      className="text-[10px] font-bold tracking-widest text-gray-400 hover:text-[#7C6A2E] uppercase"
+                    >
+                      Details
+                    </button>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {new Date(event.date).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -227,6 +239,14 @@ const UpcomingEventList = () => {
           onSubmit={handleAcceptConfirm}
           isSubmitting={updatingId === acceptEvent._id}
           offeredPrice={acceptEvent.pricingBreakdown?.djCost || 0}
+        />
+      )}
+
+      {detailEventId && (
+        <DjJobDetailModal
+          jobId={detailEventId}
+          onClose={() => setDetailEventId(null)}
+          onRefresh={fetchEvents}
         />
       )}
     </article>
