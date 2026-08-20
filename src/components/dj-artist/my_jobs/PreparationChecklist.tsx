@@ -118,35 +118,7 @@ const PreparationChecklist = ({ booking, onRefresh }: PreparationChecklistProps)
         ))}
       </div>
 
-      <div className="pt-6 border-t border-[#E0D8C3]">
-        <h4 className="text-[10px] font-bold tracking-[0.2em] text-gray-800 uppercase mb-4">UPLOAD COMPLETION PHOTOS</h4>
-        <label className="block">
-          <input type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} disabled={isUpdating} />
-          <div 
-            className={`border-2 border-dashed border-[#E0D8C3] p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${uploaded ? 'bg-emerald-50 border-emerald-200' : 'bg-white hover:bg-gray-50'}`}
-          >
-            {uploaded ? (
-              <>
-                <CheckSquare size={24} className="text-emerald-600 mb-3" />
-                <p className="text-xs text-emerald-700 font-medium">Photos uploaded successfully.</p>
-              </>
-            ) : (
-              <>
-                <Camera size={24} className="text-[#A6955C] mb-3" />
-                <p className="text-xs text-gray-500 font-medium">Click or drag photos of<br/>the finished stage to<br/>upload for review.</p>
-              </>
-            )}
-          </div>
-        </label>
-      </div>
 
-      <button 
-        onClick={handleComplete}
-        disabled={isUpdating}
-        className="w-full bg-[#685724] hover:bg-[#4A463B] disabled:opacity-50 text-white py-4 mt-6 font-semibold text-xs tracking-[0.2em] transition-colors shadow-md"
-      >
-        {isUpdating ? 'PROCESSING...' : 'MARK JOB COMPLETE'}
-      </button>
 
       {/* Premium Success Modal */}
       {successDetails && (

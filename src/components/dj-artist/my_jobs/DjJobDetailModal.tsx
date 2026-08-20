@@ -30,7 +30,7 @@ const DjJobDetailModal: React.FC<DjJobDetailModalProps> = ({ jobId, onClose, onR
     if (!jobId) return;
     setIsLoading(true);
     try {
-      const res = await djAPI.getJobById(jobId);
+      const res = await djAPI.getBookingById(jobId);
       if (res.ok && res.data?.data) {
         setJob(res.data.data);
       }

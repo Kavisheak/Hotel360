@@ -170,10 +170,10 @@ export const useBookingStore = create<BookingState>()(
             }
             return res.data;
           }
-          return { success: false };
+          return { success: false, message: res.data?.message || "Request failed" };
         } catch (error) {
           console.error("Initiate swap error:", error);
-          return { success: false };
+          return { success: false, message: "Network error" };
         }
       },
       confirmSwapPayment: async (bookingId, pendingSwapId) => {

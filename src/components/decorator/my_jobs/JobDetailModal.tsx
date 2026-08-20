@@ -30,7 +30,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ jobId, onClose, onRefre
     if (!jobId) return;
     setIsLoading(true);
     try {
-      const res = await decoratorAPI.getJobById(jobId);
+      const res = await decoratorAPI.getBookingById(jobId);
       if (res.ok && res.data?.data) {
         setJob(res.data.data);
       }
