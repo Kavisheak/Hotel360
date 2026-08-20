@@ -537,7 +537,7 @@ export default function BookPage() {
 
   const durationHours = calculateDuration();
   const basePrice = getBasePrice();
-  const extraHoursPremium = Math.max(0, durationHours - 8) * 5000;
+  const extraHoursPremium = Math.max(0, durationHours - 7) * 5000;
   const timeslotPremium = 0;
 
   let addonsCost = 
@@ -612,6 +612,9 @@ export default function BookPage() {
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
+      photographerCost: getVendorCost("photographer"),
+      cakeCost: getVendorCost("cake"),
+      floristCost: getVendorCost("florist"),
       totalCost: bookingTotal,
       vendors: {
         decorator: {
@@ -1008,7 +1011,7 @@ export default function BookPage() {
                 ` : ""}
                 ${extraHoursPremium > 0 ? `
                 <tr>
-                  <td>Extra Hours Premium (${durationHours - 8} hrs)</td>
+                  <td>Extra Hours Premium (${durationHours - 7} hrs)</td>
                   <td style="text-align:right;">${formatCurrency(extraHoursPremium)}</td>
                 </tr>
                 ` : ""}
@@ -1282,8 +1285,8 @@ export default function BookPage() {
                         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-lg py-3 px-4 mb-6 flex items-start gap-3 text-sm text-amber-700 dark:text-amber-500 font-medium shadow-sm">
                           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                           <div>
-                            Your event duration is {durationHours} hours. Base packages include up to 8 hours. 
-                            An extra premium of <span className="font-bold">LKR {(durationHours - 8) * 5000}</span> will be applied for the additional {durationHours - 8} hour(s).
+                            Your event duration is {durationHours} hours. Base packages include up to 7 hours. 
+                            An extra premium of <span className="font-bold">LKR {(durationHours - 7) * 5000}</span> will be applied for the additional {durationHours - 7} hour(s).
                           </div>
                         </div>
                       ) : (

@@ -848,7 +848,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                 ` : ""}
                 ${extraHoursPremium > 0 ? `
                 <tr>
-                  <td>Extra Hours Premium (${durationHours - 6} hrs)</td>
+                  <td>Extra Hours Premium (${durationHours - 7} hrs)</td>
                   <td style="text-align:right;">${formatCurrency(extraHoursPremium)}</td>
                 </tr>
                 ` : ""}
