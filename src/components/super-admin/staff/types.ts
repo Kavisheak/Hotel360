@@ -11,6 +11,9 @@ export interface StaffMember {
   reviews: number;
   status: 'active' | 'on_leave' | 'suspended';
   avatar: string;
+  completedEvents?: number;
+  assignedThisWeek?: number;
+  availability?: string;
 }
 
 export const statusConfig = {

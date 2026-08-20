@@ -99,7 +99,7 @@ export const startPayHerePayment = async ({
 
     payhere.onError = function onPayHereError(error: any) {
       console.error("PayHere Checkout Error:", error);
-      
+
       const errorStr = String(error).toLowerCase();
       if (errorStr.includes("card") || errorStr.includes("decline") || errorStr.includes("failed")) {
         // Do not simulate success for actual card failures/declines

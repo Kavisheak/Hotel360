@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, Calendar, BookOpen, Star, ImageIcon, Settings, HelpCircle, LogOut, Menu, X, Plus,
-  PanelLeftClose, PanelLeftOpen, User
+  PanelLeftClose, PanelLeftOpen, User, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -76,10 +76,10 @@ const DjSidebar = () => {
 
   const navItems = [
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/dj-artist/overview' },
-    { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
     { icon: <User size={20} />, label: 'MY JOBS', href: '/dj-artist/my-jobs' },
     { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
     { icon: <BookOpen size={20} />, label: 'PACKAGES', href: '/dj-artist/packages' },
+    { icon: <DollarSign size={20} />, label: 'PAYOUTS', href: '/dj-artist/payouts' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/dj-artist/settings' },
   ];
 
