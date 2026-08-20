@@ -7,7 +7,7 @@ interface ApiOptions extends RequestInit {
   [key: string]: any;
 }
 
-const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
+export const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
   try {
     const isFormData = options.body instanceof FormData;
     const defaultHeaders: any = isFormData
