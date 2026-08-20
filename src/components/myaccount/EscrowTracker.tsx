@@ -37,7 +37,7 @@ export default function EscrowTracker({ bookingId }: EscrowTrackerProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Held":
-        return <span className="px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold rounded">Held in Escrow</span>;
+        return <span className="px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold rounded">Allocated</span>;
       case "Released":
         return <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold rounded">Released</span>;
       case "Refunded":
@@ -61,9 +61,12 @@ export default function EscrowTracker({ bookingId }: EscrowTrackerProps) {
 
   return (
     <div className="space-y-4 text-left">
-      <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/80 pb-2">
-        <ShieldCheck className="w-5 h-5 text-emerald-500" />
-        <h4 className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200">Escrow Allocations (30% / 70% Split)</h4>
+      <div className="flex flex-col border-b border-gray-100 dark:border-zinc-800/80 pb-2">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-emerald-500" />
+          <h4 className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200">Payment Allocations (30% / 70% Split)</h4>
+        </div>
+        <p className="text-[10px] text-gray-500 font-light mt-0.5">Track how your advance payments and balances are allocated among service providers.</p>
       </div>
 
       <div className="overflow-x-auto">
@@ -95,7 +98,14 @@ export default function EscrowTracker({ bookingId }: EscrowTrackerProps) {
                   {formatCurrency(escrow.advanceHeld)}
                 </td>
                 <td className="py-3">
-                  {getStatusBadge(escrow.advanceStatus)}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(escrow.advanceStatus)}
+                    {escrow.vendorConfirmedAt && escrow.advanceStatus === "Released" && (
+                      <span className="text-emerald-600 flex items-center gap-1 text-[10px] font-bold" title={`Confirmed on ${new Date(escrow.vendorConfirmedAt).toLocaleDateString()}`}>
+                        <ShieldCheck className="w-3.5 h-3.5" /> Vendor Received
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="py-3 font-medium text-gray-800 dark:text-gray-200">
                   {formatCurrency(escrow.balanceHeld)}
@@ -107,8 +117,8 @@ export default function EscrowTracker({ bookingId }: EscrowTrackerProps) {
             ))}
             {escrows.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-gray-400 italic">
-                  Escrow holds have not been allocated yet for this booking.
+                <td colSpan={6} className="py-6 text-center text-gray-400 italic text-xs">
+                  Payment allocations have not been generated yet for this booking.
                 </td>
               </tr>
             )}

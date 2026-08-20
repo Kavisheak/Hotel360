@@ -41,7 +41,7 @@ const ManagerHeader = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-[#E0D8C3] flex justify-between items-center px-4 lg:px-6 h-16 w-full">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E0D8C3]/60 flex justify-between items-center px-4 lg:px-8 h-16 w-full shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-all">
         {/* Left: Page title */}
         <div className="flex items-center gap-6 lg:gap-10 pl-10 lg:pl-0">
           <h2 className="font-serif italic text-[#7C6A2E] text-xl lg:text-2xl font-semibold tracking-wide">
@@ -52,10 +52,10 @@ const ManagerHeader = () => {
         {/* Right: Search + Icons + Avatar */}
         <div className="flex items-center gap-3 lg:gap-5">
           {/* Search */}
-          <div className={`hidden sm:flex items-center gap-2 border rounded-md px-3 py-1.5 transition-colors bg-white ${
-            isSearchFocused ? 'border-[#B08D2C]' : 'border-[#E0D8C3]'
+          <div className={`hidden sm:flex items-center gap-2 border rounded-full px-4 py-1.5 transition-all duration-300 bg-gray-50/50 ${
+            isSearchFocused ? 'border-[#B08D2C] ring-2 ring-[#B08D2C]/20 bg-white' : 'border-gray-200'
           }`}>
-            <Search size={14} className="text-gray-400" />
+            <Search size={14} className={isSearchFocused ? "text-[#7C6A2E]" : "text-gray-400"} />
             <input
               type="text"
               placeholder="Search events..."
@@ -68,7 +68,7 @@ const ManagerHeader = () => {
           {/* New Booking Button */}
           <button 
             onClick={() => setIsNewBookingOpen(true)} 
-            className="hidden sm:flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-4 py-2 rounded text-xs font-bold tracking-widest uppercase transition-colors shadow-sm cursor-pointer"
+            className="hidden sm:flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#6A5A27] text-white px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
           >
             <Plus size={16} />
             New Booking
@@ -89,13 +89,13 @@ const ManagerHeader = () => {
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv0rt5w6JHhyT0aULGsvUTEhH0YGbA1Gd8ZrFx43b_uzbKWemyf_4_Qp48TJQ9vH9iTw-SGP8hB3e93Cq3gbm_IUhqcluJMXvuLBMvDUP0D8FPGXBGIqhu8_RPsBa5rNKXl4yD0YbQ7ozuhMGKOe8oSUXCdtVaxq2h2IcNZqCyDNuQbkTvNSjVNstk0B9_r9AfVTRKYpsOmV2BI5HGSFrE-Q-BOvnTzomP_bXb8jk_Zep4l6sU5VW0SOV3lUdKALmUgU_-mN2eCsU"
                 alt="Manager Profile"
-                className="w-8 h-8 rounded-full object-cover border-2 border-[#E0D8C3] cursor-pointer hover:border-[#B08D2C] transition-colors"
+                className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-[#7C6A2E]/30 transition-all"
               />
             </button>
             
             {/* Dropdown Menu */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-[#E0D8C3] animate-fadeIn">
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 animate-fadeIn">
                 <Link 
                   href="/hotel-manager/settings" 
                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#FDF9F1] hover:text-[#7C6A2E] transition-colors"

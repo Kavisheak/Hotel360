@@ -94,7 +94,6 @@ const PackagesSection = () => {
  <h4 className="text-3xl md:text-5xl font-serif text-[#2C1E14] dark:text-white mb-2 tracking-tight">
  {pkg.price}
  </h4>
- <span className="text-[9px] uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold">{pkg.guests}</span>
  </div>
 
  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed font-light mb-8 pb-8 border-b border-[#D4C9A8] dark:border-white/10 ">

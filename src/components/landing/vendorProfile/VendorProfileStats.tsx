@@ -18,7 +18,7 @@ export default function VendorProfileStats({ vendor }: VendorProfileStatsProps) 
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Years Experience</span>
-            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{((vendor as any).experience) || "5+ Years"}</span>
+            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{vendor.experience ? `${vendor.experience} Years` : "-"}</span>
           </div>
         </div>
 
@@ -31,7 +31,7 @@ export default function VendorProfileStats({ vendor }: VendorProfileStatsProps) 
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Events Completed</span>
-            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{((vendor as any).eventsCompleted) || "120+"}</span>
+            <span className="text-lg font-serif text-[#1A1512] dark:text-white leading-tight">{vendor.eventsCompleted || "-"}</span>
           </div>
         </div>
 

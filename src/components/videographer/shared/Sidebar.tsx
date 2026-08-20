@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutGrid, Calendar, BookOpen, Star, ImageIcon,
+  LayoutGrid, Calendar, BookOpen, ImageIcon,
   Settings, HelpCircle, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, CalendarClock, DollarSign, Video
+  PanelLeftClose, PanelLeftOpen, CalendarClock, DollarSign, Package
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -48,6 +48,7 @@ const Sidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
@@ -64,8 +65,12 @@ const Sidebar = () => {
     localStorage.setItem('videographer-sidebar-collapsed', String(next));
   };
 
-  const handleSignOut = async (e: React.MouseEvent) => {
+  const handleSignOutClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    setShowLogoutModal(true);
+  };
+
+  const confirmSignOut = async () => {
     await authAPI.signout();
     clearUser();
     router.replace('/login');
@@ -75,7 +80,7 @@ const Sidebar = () => {
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW',  href: '/videographer' },
     { icon: <BookOpen size={20} />,   label: 'BOOKINGS',  href: '/videographer/events-bookings' },
     { icon: <DollarSign size={20} />, label: 'PAYOUTS',   href: '/videographer/payouts' },
-    { icon: <Star size={20} />,       label: 'RATINGS',   href: '/videographer/ratings' },
+    { icon: <Package size={20} />,    label: 'PACKAGES',  href: '/videographer/packages' },
     { icon: <ImageIcon size={20} />,  label: 'GALLERY',   href: '/videographer/gallery' },
     { icon: <Settings size={20} />,   label: 'SETTINGS',  href: '/videographer/settings' },
   ];
@@ -176,7 +181,7 @@ const Sidebar = () => {
           ))}
           <a
             href="#"
-            onClick={handleSignOut}
+            onClick={handleSignOutClick}
             title={collapsedState ? 'SIGN OUT' : undefined}
             className={`flex items-center rounded-md transition-all duration-200 ${
               collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
@@ -213,6 +218,29 @@ const Sidebar = () => {
       <div className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${mounted && isCollapsed ? 'w-20' : 'w-64'}`}>
         {sidebarBody(mounted && isCollapsed)}
       </div>
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 font-serif">Sign Out</h3>
+            <p className="text-sm text-gray-600 mb-6">Are you sure you want to sign out of your account?</p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmSignOut}
+                className="px-4 py-2 text-sm font-bold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

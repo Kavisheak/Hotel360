@@ -2,14 +2,14 @@ import React from 'react';
 import Image from 'next/image';
 
 const compareData = [
-  { feature: "Venue Access", silver: "4 Hours (Ballroom)", gold: "8 Hours (Ballroom & Terrace)", diamond: "Full Day (Ballroom, Foyer, Garden)" },
-  { feature: "Culinary Tier", silver: "Classic Buffet (3 main)", gold: "Signature Buffet (5 main)", diamond: "Grand Gourmet & Live Carving Station" },
-  { feature: "Welcome Beverages", silver: "Standard welcome drinks", gold: "Premium mocktails", diamond: "Molecular mixology cocktails" },
-  { feature: "Decor & Backdrops", silver: "Elegant stage & drape", gold: "Suspended ceiling florals & runway", diamond: "Bespoke architectural builds & custom dancefloor" },
-  { feature: "Sound & Lighting", silver: "Standard House PA & warm", gold: "Intelligent LED rigs & wash", diamond: "Club-spec sound, lasers, map overly" },
-  { feature: "VIP & Coordination", silver: "On-day event coordinator", gold: "Concierge & full rehearsal team", diamond: "Personal Bridal Liaison & full planning support" },
-  { feature: "Suites & Lounging", silver: "Bridal changing suite", gold: "Bridal Day-Use Suite", diamond: "Overnight Executive Suite + Couple Breakfast" },
-  { feature: "Corkage & Rental", silver: "Standard corkage fee", gold: "Complimentary corkage for wine", diamond: "Fully complimentary corkage & bartending" }
+  { feature: "Venue Access", silver: "6 hours (Ballroom)", gold: "6 hours (Ballroom + Terrace)", diamond: "Full Day (Ballroom, Foyer, Gardens)" },
+  { feature: "Culinary Tier", silver: "Classic Buffet (5 mains)", gold: "Signature Buffet (7 mains)", diamond: "Grand Gourmet & Live Carving Station" },
+  { feature: "Welcome Beverages", silver: "Standard welcome drink", gold: "Premium mocktails", diamond: "Molecular mixology cocktails" },
+  { feature: "Decor & Backdrops", silver: "Elegant settee & stage", gold: "Suspended ceiling florals & runway", diamond: "Bespoke structural builds & custom dancefloor" },
+  { feature: "Sound & Lighting", silver: "Standard House PA & Wash", gold: "Intelligent LED rigs & wash", diamond: "Club-spec sound, lasers, vinyl overlay" },
+  { feature: "Staff & Coordination", silver: "On-day event coordinator", gold: "Concierge & full rehearsal team", diamond: "Personal Bridal Liaison & full planning support" },
+  { feature: "Suites & Lodging", silver: "Bridal changing suite", gold: "Bridal Day-Use Suite", diamond: "Overnight Executive Suite + Couple Breakfast" },
+  { feature: "Corkage & Alcohol", silver: "Standard corkage fee", gold: "Complimentary corkage for wine", diamond: "Fully complimentary corkage & bartending" }
 ];
 
 export default function CompareFrameworks() {

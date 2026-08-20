@@ -15,6 +15,7 @@ import {
 } from '@/lib/vendorUtils';
 import { djAPI } from '@/lib/api';
 import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
+import { useVendorStore } from '@/store/vendorStore';
 
 interface DetailMainProps {
   bookingId: string;
@@ -29,10 +30,14 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
   const [declineReason, setDeclineReason] = useState("");
   const [showDeclineReason, setShowDeclineReason] = useState(false);
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+
+  const { vendors, fetchVendors } = useVendorStore();
 
   useEffect(() => {
+    fetchVendors();
     fetchBooking();
-  }, [bookingId]);
+  }, [bookingId, fetchVendors]);
 
   const fetchBooking = async () => {
     try {
@@ -106,6 +111,10 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
   }
 
   const vendorStatus = booking.vendors?.dj?.status || 'Pending';
+  const djVendorData = booking.vendors?.dj;
+  const currentVendor = vendors.find(v => v.userId === djVendorData?.vendorId || v.id === djVendorData?.vendorId);
+  const requestedPackageName = djVendorData?.packageName;
+  const currentPackage = currentVendor?.packages?.find(p => p.name === requestedPackageName) || null;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
@@ -140,6 +149,14 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
                 <p className="text-xs text-gray-600">You have been assigned to this event. Please accept or decline to notify the hotel manager.</p>
               </div>
               <div className="flex gap-3 shrink-0">
+                {!showDeclineReason && (
+                  <button
+                    onClick={() => setShowPackageModal(true)}
+                    className="px-6 py-2.5 border border-[#7C6A2E] text-[#7C6A2E] hover:bg-[#7C6A2E] hover:text-white text-xs font-bold uppercase tracking-widest transition-colors"
+                  >
+                    View Package Detail
+                  </button>
+                )}
                 <button
                   onClick={() => setShowAdvanceModal(true)}
                   disabled={statusUpdating || showDeclineReason}
@@ -204,6 +221,13 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
           venue={VENUE_NAME} 
         />
 
+        {booking?.vendors?.dj?.requirements?.specialRequests && (
+          <div className="bg-[#FDE8E8] border border-[#F5D4D4] p-5 mb-8 rounded">
+            <p className="text-[10px] font-bold text-[#9B3434] tracking-widest uppercase mb-2">Special Requests & Notes</p>
+            <p className="text-sm italic text-gray-800">{booking.vendors.dj.requirements.specialRequests}</p>
+          </div>
+        )}
+
         {/* Client details & Visuals */}
         <DetailMiddle 
           clientName={getClientFullName(booking)} 
@@ -215,7 +239,7 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
         />
 
         {/* Package components checklist & tasks */}
-        <DetailBottom booking={booking} onRefresh={fetchBooking} />
+        <DetailBottom booking={booking} onRefresh={fetchBooking} onViewPackage={() => setShowPackageModal(true)} />
       </div>
       <Footer />
 
@@ -227,6 +251,80 @@ const DetailMain = ({ bookingId }: DetailMainProps) => {
         isSubmitting={statusUpdating}
         offeredPrice={booking?.pricingBreakdown?.djCost || 0}
       />
+
+      {/* Package Details Modal */}
+      {showPackageModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white border border-[#E0D8C3] shadow-2xl p-6 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowPackageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">✕</button>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-4">Requested Package Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Package Name</p>
+                <p className="text-sm font-semibold text-gray-900">{booking?.vendors?.dj?.packageName || 'Custom'}</p>
+              </div>
+              <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Offered Price</p>
+                <p className="text-sm font-semibold text-gray-900">LKR {(booking?.pricingBreakdown?.djCost || 0).toLocaleString()}</p>
+              </div>
+
+              {currentPackage?.description && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3] md:col-span-2">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Description</p>
+                  <p className="text-sm text-gray-700">{currentPackage.description}</p>
+                </div>
+              )}
+
+              {currentPackage?.features && currentPackage.features.length > 0 && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3] md:col-span-2">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-2">Features</p>
+                  <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
+                    {currentPackage.features.map((feature, i) => (
+                      <li key={i}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {currentPackage?.duration && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Duration</p>
+                  <p className="text-sm text-gray-700">{currentPackage.duration}</p>
+                </div>
+              )}
+              {currentPackage?.services && currentPackage.services.length > 0 && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Services</p>
+                  <p className="text-sm text-gray-700">{currentPackage.services.join(', ')}</p>
+                </div>
+              )}
+              {currentPackage?.sound && currentPackage.sound.length > 0 && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Sound</p>
+                  <p className="text-sm text-gray-700">{currentPackage.sound.join(', ')}</p>
+                </div>
+              )}
+              {currentPackage?.lighting && currentPackage.lighting.length > 0 && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3]">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Lighting</p>
+                  <p className="text-sm text-gray-700">{currentPackage.lighting.join(', ')}</p>
+                </div>
+              )}
+              {currentPackage?.musicGenres && currentPackage.musicGenres.length > 0 && (
+                <div className="p-4 bg-[#FAF6EE] border border-[#E0D8C3] md:col-span-2">
+                  <p className="text-[10px] font-bold text-[#7C6A2E] tracking-widest uppercase mb-1">Music Genres</p>
+                  <p className="text-sm text-gray-700">{currentPackage.musicGenres.join(', ')}</p>
+                </div>
+              )}
+
+
+            </div>
+            <button onClick={() => setShowPackageModal(false)} className="w-full mt-6 bg-[#7C6A2E] hover:bg-[#5C4E1E] text-white py-3 text-xs font-bold uppercase tracking-widest transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

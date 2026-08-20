@@ -26,7 +26,7 @@ export default function VirtualTourPage() {
       <MainNavbar />
       
       <main className="flex-grow pb-0">
-        <div className="max-w-7xl mx-auto px-6 pt-12 pb-16 section-reveal">
+        <div className="max-w-7xl mx-auto px-6 pt-28 md:pt-40 pb-16 section-reveal">
         <div className="flex flex-col mb-8">
           
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 stagger-1">

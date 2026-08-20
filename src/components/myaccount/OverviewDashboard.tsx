@@ -132,7 +132,7 @@ export default function OverviewDashboard() {
           <div className="flex-1 flex flex-col">
             {[
               { title: "Book a New Event", desc: "Initiate our guided hall booking workflow.", href: "/book" },
-              { title: "Browse Partners", desc: "Discover premium catering and entertainment.", href: "/customer/vendors" },
+              { title: "Browse Partners", desc: "Discover premium catering and entertainment.", href: "/packages" },
               { title: "Payment History", desc: "View your transactions and invoices.", href: "?tab=billing" },
               { title: "General Settings", desc: "Update your name, contact fields or security.", href: "?tab=profile" }
             ].map((link, idx) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
+import GlobalReviewPrompt from '@/components/myaccount/GlobalReviewPrompt';
 
 export default function CustomerLayout({
   children,
@@ -13,6 +14,7 @@ export default function CustomerLayout({
         <main className="flex-grow w-full">
           {children}
         </main>
+        <GlobalReviewPrompt />
       </div>
     </ProtectedRoute>
   );

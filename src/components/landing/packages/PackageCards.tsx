@@ -7,13 +7,24 @@ interface PackageCardsProps {
   activePackage: string;
   setActivePackage: (id: any) => void;
   packages?: any[];
+  onSelect?: (pkgId: string, pkgName: string) => void;
+  isCompact?: boolean;
 }
 
-export default function PackageCards({ activePackage, setActivePackage, packages }: PackageCardsProps) {
+export default function PackageCards({ activePackage, setActivePackage, packages, onSelect, isCompact }: PackageCardsProps) {
   const router = useRouter();
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const displayPackages = packages && packages.length > 0 ? packages : SIGNATURE_PACKAGES;
+  const displayPackages = (packages && packages.length > 0 ? packages : SIGNATURE_PACKAGES).sort((a, b) => {
+    const getRank = (name: string) => {
+      const lower = name.toLowerCase();
+      if (lower.includes("silver")) return 1;
+      if (lower.includes("gold")) return 2;
+      if (lower.includes("diamond")) return 3;
+      return 4; // Any other packages go last
+    };
+    return getRank(a.name) - getRank(b.name);
+  });
 
   useEffect(() => {
     // Scroll to the second (Gold) package on mobile mount
@@ -32,8 +43,12 @@ export default function PackageCards({ activePackage, setActivePackage, packages
   }, [displayPackages]);
   
   const showToastAndNavigate = (pkgId: string, pkgName: string) => {
-    // Navigate immediately - toast will be shown on the destination page
-    router.push(`/book?package=${pkgId}&fromSelect=true`);
+    if (onSelect) {
+      onSelect(pkgId, pkgName);
+    } else {
+      // Navigate immediately - toast will be shown on the destination page
+      router.push(`/book?package=${pkgId}&fromSelect=true`);
+    }
   };
 
 
@@ -79,7 +94,7 @@ export default function PackageCards({ activePackage, setActivePackage, packages
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-16 md:py-24 relative z-20">
+    <section className={`max-w-7xl mx-auto px-6 relative z-20 ${isCompact ? "py-4 md:py-8" : "py-16 md:py-24"}`}>
       <div ref={scrollContainerRef} className="flex flex-nowrap overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-3 gap-6 md:gap-10 lg:gap-14 pb-12 md:pb-0 -ml-6 px-6 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-[100vw] sm:w-full md:w-full">
         {displayPackages.map((pkg, index) => {
           const isActive = activePackage === pkg.id;
@@ -123,9 +138,6 @@ export default function PackageCards({ activePackage, setActivePackage, packages
                     <h2 className={`text-3xl md:text-4xl font-serif ${theme.textPrice} leading-none`}>
                       {pkg.price}
                     </h2>
-                    <p className={`text-[10px] md:text-[11px] uppercase tracking-widest ${theme.textLabel} mt-3 font-bold`}>
-                      {displayGuests}
-                    </p>
                   </div>
 
                   {/* Description */}
@@ -170,7 +182,7 @@ export default function PackageCards({ activePackage, setActivePackage, packages
                   </h3>
 
                   {/* Features List */}
-                  <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 text-center md:text-left">
+                  <div className="space-y-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative z-10 text-center md:text-left">
                     {pkg.features.map((feature: string, idx: number) => (
                       <div key={idx} className={`flex items-center md:items-start justify-center md:justify-start gap-2 md:gap-3 text-xs ${theme.textPrice} font-medium`}>
                         <Check className={`w-4 h-4 ${theme.textTitle} shrink-0 md:mt-0.5`} strokeWidth={2.5} />

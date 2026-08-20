@@ -136,6 +136,7 @@ export const startPayHerePayment = async ({
       address: payData.customer.address,
       city: payData.customer.city,
       country: payData.customer.country,
+      custom_1: "theme:#C69C6D",
     };
 
     payhere.startPayment(paymentObject);

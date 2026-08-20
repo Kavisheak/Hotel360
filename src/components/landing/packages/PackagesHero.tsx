@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 export default function PackagesHero() {
   return (
-    <section className="relative w-full h-[80vh] min-h-[500px] md:h-auto md:min-h-0 md:py-24 flex flex-col justify-center bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white overflow-hidden border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20">
+    <section className="relative w-full h-[80vh] min-h-[500px] md:h-auto md:min-h-0 pt-28 pb-12 md:pt-40 md:pb-24 flex flex-col justify-center bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white overflow-hidden border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image

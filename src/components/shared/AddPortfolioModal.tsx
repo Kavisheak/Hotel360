@@ -27,6 +27,7 @@ export interface MediaUploadItem {
   sizeFormatted: string;
   file?: File;
   progress: number;
+  isExisting?: boolean;
 }
 
 export interface AddPortfolioModalProps {
@@ -34,6 +35,7 @@ export interface AddPortfolioModalProps {
   onClose: () => void;
   vendorType: "decorator" | "videographer" | "dj";
   onSubmitSuccess?: (newPortfolio: any) => void;
+  initialData?: any;
 }
 
 export default function AddPortfolioModal({
@@ -41,6 +43,7 @@ export default function AddPortfolioModal({
   onClose,
   vendorType,
   onSubmitSuccess,
+  initialData,
 }: AddPortfolioModalProps) {
   // Form State
   const [portfolioTitle, setPortfolioTitle] = useState("");
@@ -49,8 +52,19 @@ export default function AddPortfolioModal({
   const [category, setCategory] = useState("installations");
   const [culturalStyle, setCulturalStyle] = useState("Western / Modern");
   const [description, setDescription] = useState("");
-  const [packagePrice, setPackagePrice] = useState("");
   const [eventLocation, setEventLocation] = useState("EASCC Main Hall");
+
+  // Decorator Multi-select Checklists
+  const [decoratorEventTypes, setDecoratorEventTypes] = useState<string[]>([]);
+  const [decorationStyles, setDecorationStyles] = useState<string[]>([]);
+  const [colorThemes, setColorThemes] = useState<string[]>([]);
+  const [includedItems, setIncludedItems] = useState<string[]>([]);
+
+  // Videographer Multi-select Checklists
+  const [videoEventTypes, setVideoEventTypes] = useState<string[]>([]);
+  const [videoStyles, setVideoStyles] = useState<string[]>([]);
+  const [videoServices, setVideoServices] = useState<string[]>([]);
+  const [videoYear, setVideoYear] = useState("");
 
   // Media State
   const [coverImage, setCoverImage] = useState<MediaUploadItem | null>(null);
@@ -71,6 +85,71 @@ export default function AddPortfolioModal({
   const coverInputRef = useRef<HTMLInputElement>(null);
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const videosInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setPortfolioTitle(initialData.title || "");
+        setDescription(initialData.description || "");
+        if (vendorType === "videographer") {
+          setVideoEventTypes(initialData.eventTypes || []);
+          setVideoStyles(initialData.videoStyles || []);
+          setVideoServices(initialData.servicesProvided || []);
+          setVideoYear(initialData.year || "");
+          
+          const existingMedia = initialData.media || [];
+          
+          const coverM = existingMedia.find((m: any) => m.isCover);
+          if (coverM) {
+            setCoverImage({
+              id: coverM._id || `cover-${Date.now()}`,
+              url: coverM.url,
+              name: "Existing Cover",
+              sizeFormatted: "Existing",
+              progress: 100,
+              isExisting: true
+            });
+          } else {
+            setCoverImage(null);
+          }
+          
+          const vidItems = existingMedia.filter((m: any) => !m.isCover && (m.resourceType === 'video' || m.mediaType === 'video'));
+          setVideos(vidItems.map((m: any, idx: number) => ({
+            id: m._id || `vid-${Date.now()}-${idx}`,
+            url: m.url,
+            name: "Existing Video",
+            sizeFormatted: "Existing",
+            progress: 100,
+            isExisting: true
+          })));
+
+          const imgItems = existingMedia.filter((m: any) => !m.isCover && m.resourceType !== 'video' && m.mediaType !== 'video');
+          setPortfolioImages(imgItems.map((m: any, idx: number) => ({
+            id: m._id || `img-${Date.now()}-${idx}`,
+            url: m.url,
+            name: "Existing Image",
+            sizeFormatted: "Existing",
+            progress: 100,
+            isExisting: true
+          })));
+        }
+      } else {
+        // Reset state for new entry
+        setPortfolioTitle("");
+        setDescription("");
+        setVideoEventTypes([]);
+        setVideoStyles([]);
+        setVideoServices([]);
+        setVideoYear("");
+        setCoverImage(null);
+        setVideos([]);
+        setPortfolioImages([]);
+      }
+      setIsSubmitting(false);
+      setErrorMsg(null);
+      setShowSuccessToast(false);
+    }
+  }, [isOpen, initialData, vendorType]);
 
   if (!isOpen) return null;
 
@@ -191,18 +270,23 @@ export default function AddPortfolioModal({
     setErrorMsg(null);
 
     // Validation
-    if (vendorType === "decorator" && !portfolioTitle.trim()) {
-      setErrorMsg("Portfolio Title is required for Decorators.");
+    if ((vendorType === "decorator" || vendorType === "videographer") && !portfolioTitle.trim()) {
+      setErrorMsg("Portfolio Title is required.");
       return;
     }
 
     if (!coverImage) {
-      setErrorMsg("Please upload a Cover Image thumbnail for your portfolio.");
+      setErrorMsg(vendorType === "videographer" ? "Please upload a Cover Video for your portfolio showcase." : "Please upload a Cover Image thumbnail for your portfolio.");
       return;
     }
 
     if (portfolioImages.length < 3) {
       setErrorMsg("Please upload at least 3 Portfolio Images (minimum 3 required).");
+      return;
+    }
+
+    if (vendorType === "videographer" && videos.length === 0) {
+      setErrorMsg("Please upload at least 1 Main Video for the videography showcase.");
       return;
     }
 
@@ -216,12 +300,15 @@ export default function AddPortfolioModal({
         const albumTitle = portfolioTitle.trim();
         const createRes = await decoratorAPI.createAlbum({ 
           title: albumTitle,
-          price: packagePrice ? Number(packagePrice) : 0,
+          price: 0,
           category,
           culturalStyle,
           eventDate: eventDate || undefined,
-          eventType,
+          eventType: eventType,
+          decorationStyle: JSON.stringify(decorationStyles),
+          colorTheme: JSON.stringify(colorThemes),
           description,
+          servicesProvided: JSON.stringify(includedItems),
         });
         if (!createRes.ok || !createRes.data?.data?._id) {
           throw new Error(createRes.data?.message || "Failed to create album in database.");
@@ -237,6 +324,9 @@ export default function AddPortfolioModal({
         portfolioImages.forEach((img) => {
           if (img.file) formData.append("photos", img.file);
         });
+        videos.forEach((vid) => {
+          if (vid.file) formData.append("photos", vid.file);
+        });
 
         const uploadRes = await decoratorAPI.uploadAlbumImages(albumId, formData);
         if (!uploadRes.ok) {
@@ -249,26 +339,40 @@ export default function AddPortfolioModal({
 
       } else if (vendorType === "videographer") {
         const formData = new FormData();
-        formData.append("title", portfolioTitle || `${eventType} Showcase`);
-        formData.append("eventType", eventType);
+        formData.append("title", portfolioTitle || `${videoEventTypes[0] || 'Event'} Showcase`);
+        formData.append("eventTypes", JSON.stringify(videoEventTypes));
         formData.append("eventDate", eventDate || new Date().toISOString().substring(0, 10));
+        formData.append("year", videoYear);
         formData.append("venue", eventLocation);
-        formData.append("price", packagePrice || "0");
-        formData.append("description", description || `${eventType} portfolio showcase.`);
+        formData.append("price", "0");
+        formData.append("videoStyles", JSON.stringify(videoStyles));
+        formData.append("servicesProvided", JSON.stringify(videoServices));
+        formData.append("description", description || `Videography portfolio showcase.`);
+        
         if (coverImage.file) {
           formData.append("coverImageName", coverImage.file.name);
           formData.append("media", coverImage.file);
+        } else if (coverImage.isExisting) {
+          formData.append("existingMedia", coverImage.url);
         }
 
         portfolioImages.forEach((img) => {
           if (img.file) formData.append("media", img.file);
+          else if (img.isExisting) formData.append("existingMedia", img.url);
         });
 
         videos.forEach((vid) => {
           if (vid.file) formData.append("media", vid.file);
+          else if (vid.isExisting) formData.append("existingMedia", vid.url);
         });
 
-        const res = await videographerAPI.createPortfolioItem(formData);
+        let res;
+        if (initialData && initialData.id) {
+          res = await videographerAPI.updatePortfolioItem(initialData.id, formData);
+        } else {
+          res = await videographerAPI.createPortfolioItem(formData);
+        }
+        
         if (!res.ok || !res.data?.success) {
           throw new Error(res.data?.message || "Failed to upload portfolio to Cloudinary & MongoDB.");
         }
@@ -280,7 +384,7 @@ export default function AddPortfolioModal({
         formData.append("eventType", eventType);
         formData.append("eventDate", eventDate || new Date().toISOString().substring(0, 10));
         formData.append("venue", eventLocation);
-        formData.append("price", packagePrice || "0");
+        formData.append("price", "0");
         formData.append("description", description || `${eventType} DJ performance gallery.`);
         if (coverImage.file) {
           formData.append("coverImageName", coverImage.file.name);
@@ -381,82 +485,229 @@ export default function AddPortfolioModal({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Portfolio Title (ONLY FOR DECORATORS) */}
-              {vendorType === "decorator" && (
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#A67C52] dark:text-[#C9A84C]">
-                    Portfolio Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={portfolioTitle}
-                    onChange={(e) => setPortfolioTitle(e.target.value)}
-                    placeholder="e.g. Royal Crystal Stage & Grand Floral Decoration"
-                    required
-                    className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] transition-all"
-                  />
-                </div>
+              {/* Portfolio Title (ALL VENDORS) */}
+              <div className="sm:col-span-2 space-y-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#A67C52] dark:text-[#C9A84C]">
+                  Portfolio Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={portfolioTitle}
+                  onChange={(e) => setPortfolioTitle(e.target.value)}
+                  placeholder="e.g. Royal Crystal Stage & Grand Floral Decoration"
+                  required
+                  className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] transition-all"
+                />
+              </div>
+
+              {vendorType === "decorator" ? (
+                <>
+                  {/* Decorator Event Type (Single Select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      Event Type
+                    </label>
+                    <select
+                      value={eventType}
+                      onChange={(e) => setEventType(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
+                    >
+                      <option value="Wedding">Wedding</option>
+                      <option value="Engagement">Engagement</option>
+                      <option value="Birthday">Birthday</option>
+                      <option value="Anniversary">Anniversary</option>
+                      <option value="Corporate">Corporate</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  {/* Decoration Style (Multi-select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      Decoration Style (Select multiple)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {["Luxury", "Modern", "Minimalist", "Traditional", "Floral", "Glamorous", "Rustic", "Classic", "Theme-based"].map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                          <input type="checkbox" checked={decorationStyles.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setDecorationStyles([...decorationStyles, opt]);
+                            else setDecorationStyles(decorationStyles.filter(i => i !== opt));
+                          }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Theme (Multi-select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      Color Theme (Select multiple)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {["White", "Gold", "Red", "Pink", "Blue", "Green", "Purple", "Silver", "Black", "Custom"].map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                          <input type="checkbox" checked={colorThemes.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setColorThemes([...colorThemes, opt]);
+                            else setColorThemes(colorThemes.filter(i => i !== opt));
+                          }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* What is Included (Multi-select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      What is Included? (Select multiple)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {["Main Stage", "Stage Backdrop", "Entrance Decoration", "Head Table", "Cake Table", "Guest Table Decoration", "Floral Arrangements", "Centerpieces", "Chair Decoration", "Ceiling Decoration", "Lighting", "Welcome Board", "Photo Booth", "Carpet / Aisle"].map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                          <input type="checkbox" checked={includedItems.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setIncludedItems([...includedItems, opt]);
+                            else setIncludedItems(includedItems.filter(i => i !== opt));
+                          }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : vendorType === "videographer" ? (
+                <>
+                  {/* Videographer Event Type (Single Select) */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Event Type
+                    </label>
+                    <select
+                      value={eventType}
+                      onChange={(e) => setEventType(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
+                    >
+                      <option value="Wedding">Wedding</option>
+                      <option value="Engagement">Engagement</option>
+                      <option value="Birthday">Birthday</option>
+                      <option value="Anniversary">Anniversary</option>
+                      <option value="Corporate">Corporate</option>
+                      <option value="Conference">Conference</option>
+                      <option value="Graduation">Graduation</option>
+                      <option value="Baby Shower">Baby Shower</option>
+                      <option value="Homecoming">Homecoming</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  {/* Year Input */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Year
+                    </label>
+                    <input
+                      type="text"
+                      value={videoYear}
+                      onChange={(e) => setVideoYear(e.target.value)}
+                      placeholder="e.g. 2026"
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] transition-all"
+                    />
+                  </div>
+
+                  {/* Event Location */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Event Location
+                    </label>
+                    <input
+                      type="text"
+                      value={eventLocation}
+                      onChange={(e) => setEventLocation(e.target.value)}
+                      placeholder="e.g. Colombo"
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] transition-all"
+                    />
+                  </div>
+
+                  {/* Video Style (Multi-select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      Video Style (Select multiple)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {["Cinematic", "Candid", "Traditional", "Documentary", "Storytelling", "Editorial", "Creative"].map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                          <input type="checkbox" checked={videoStyles.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setVideoStyles([...videoStyles, opt]);
+                            else setVideoStyles(videoStyles.filter(i => i !== opt));
+                          }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Services Provided (Multi-select) */}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                      Services Provided (Select multiple)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {["Full Event Videography", "Ceremony Coverage", "Reception Coverage", "Pre-shoot", "Highlight Film", "Drone Videography", "Same-Day Edit", "Social Media Reel", "Live Streaming"].map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                          <input type="checkbox" checked={videoServices.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setVideoServices([...videoServices, opt]);
+                            else setVideoServices(videoServices.filter(i => i !== opt));
+                          }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Event Type (Standard) */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Event Type
+                    </label>
+                    <select
+                      value={eventType}
+                      onChange={(e) => setEventType(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
+                    >
+                      <option value="Wedding">Wedding</option>
+                      <option value="Reception">Reception</option>
+                      <option value="Engagement">Engagement</option>
+                      <option value="Homecoming">Homecoming</option>
+                      <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
+                      <option value="Corporate Gala">Corporate Gala</option>
+                      <option value="Private Party">Private Party</option>
+                      <option value="Anniversary">Anniversary</option>
+                    </select>
+                  </div>
+
+                  {/* Cultural Style (Standard) */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Cultural Style
+                    </label>
+                    <select
+                      value={culturalStyle}
+                      onChange={(e) => setCulturalStyle(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
+                    >
+                      <option value="Western / Modern">Western / Modern</option>
+                      <option value="Sinhala Traditional">Sinhala Traditional</option>
+                      <option value="Tamil Traditional">Tamil Traditional</option>
+                      <option value="Muslim Traditional">Muslim Traditional</option>
+                      <option value="Mixed / Fusion">Mixed / Fusion</option>
+                    </select>
+                  </div>
+                </>
               )}
 
-              {/* Event Type */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Event Type
-                </label>
-                <select
-                  value={eventType}
-                  onChange={(e) => setEventType(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
-                >
-                  <option value="Wedding">Wedding</option>
-                  <option value="Reception">Reception</option>
-                  <option value="Engagement">Engagement</option>
-                  <option value="Homecoming">Homecoming</option>
-                  <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
-                  <option value="Corporate Gala">Corporate Gala</option>
-                  <option value="Private Party">Private Party</option>
-                  <option value="Anniversary">Anniversary</option>
-                </select>
-              </div>
 
-
-
-
-
-              {/* Cultural Style */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Cultural Style
-                </label>
-                <select
-                  value={culturalStyle}
-                  onChange={(e) => setCulturalStyle(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] cursor-pointer"
-                >
-                  <option value="Western / Modern">Western / Modern</option>
-                  <option value="Sinhala Traditional">Sinhala Traditional</option>
-                  <option value="Tamil Traditional">Tamil Traditional</option>
-                  <option value="Muslim Traditional">Muslim Traditional</option>
-                  <option value="Mixed / Fusion">Mixed / Fusion</option>
-                </select>
-              </div>
-
-              {/* Package Price */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Package Pricing (LKR)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">LKR</span>
-                  <input
-                    type="number"
-                    value={packagePrice}
-                    onChange={(e) => setPackagePrice(e.target.value)}
-                    placeholder="e.g. 150000"
-                    className="w-full pl-12 pr-4 py-3 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] transition-all"
-                  />
-                </div>
-              </div>
 
               {/* Description */}
               <div className="sm:col-span-2 space-y-1.5">
@@ -465,30 +716,30 @@ export default function AddPortfolioModal({
                     Short Description
                   </label>
                   <span className="text-[10px] text-gray-400">
-                    {description.length}/500 chars
+                    {description.length}/100 chars
                   </span>
                 </div>
                 <textarea
                   value={description}
-                  onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                  rows={3}
-                  placeholder="Describe the aesthetic, theme, setup, or highlights of this event..."
+                  onChange={(e) => setDescription(e.target.value.slice(0, 100))}
+                  rows={2}
+                  placeholder="Describe the aesthetic or highlights (approx. 10 words)..."
                   className="w-full p-4 bg-[#FDFBF7] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs text-gray-800 dark:text-white outline-none focus:border-[#D4AF37] resize-none leading-relaxed"
                 />
               </div>
             </div>
           </section>
 
-          {/* SECTION 2: COVER IMAGE */}
+          {/* SECTION 2: COVER MEDIA */}
           <section className="bg-white dark:bg-[#181818] p-6 rounded-2xl border border-gray-200/80 dark:border-white/5 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-zinc-800 pb-3">
-              <ImageIcon className="w-5 h-5 text-[#C9A84C]" />
+              {vendorType === "videographer" ? <Film className="w-5 h-5 text-[#C9A84C]" /> : <ImageIcon className="w-5 h-5 text-[#C9A84C]" />}
               <div>
                 <h3 className="text-base font-serif font-bold text-gray-900 dark:text-white">
-                  Cover Image (Main Thumbnail) <span className="text-red-500">*</span>
+                  {vendorType === "videographer" ? "Cover Video (Main Showcase)" : "Cover Image (Main Thumbnail)"} <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  Main highlight image displayed on your portfolio card.
+                  {vendorType === "videographer" ? "Main auto-playing video displayed on your portfolio card. Recommended 16:9 aspect ratio." : "Main highlight image displayed on your portfolio card."}
                 </p>
               </div>
             </div>
@@ -497,7 +748,7 @@ export default function AddPortfolioModal({
               type="file"
               ref={coverInputRef}
               onChange={handleCoverSelect}
-              accept="image/*"
+              accept={vendorType === "videographer" ? "video/*" : "image/*"}
               className="hidden"
             />
 
@@ -520,19 +771,26 @@ export default function AddPortfolioModal({
                   <UploadCloud className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
-                  Drag & Drop Cover Image here or <span className="text-[#C9A84C] underline">Browse</span>
+                  Drag & Drop {vendorType === "videographer" ? "Cover Video" : "Cover Image"} here or <span className="text-[#C9A84C] underline">Browse</span>
                 </span>
                 <span className="text-[10px] text-gray-400 mt-1">
-                  Supports JPG, PNG, WEBP up to 10MB
+                  Supports {vendorType === "videographer" ? "MP4, WEBM up to 100MB" : "JPG, PNG, WEBP up to 10MB"}
                 </span>
               </div>
             ) : (
               <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-[#FDFBF7] dark:bg-zinc-900 p-4 flex flex-col sm:flex-row items-center gap-4">
-                <img
-                  src={coverImage.url}
-                  alt="Cover Preview"
-                  className="w-full sm:w-36 h-28 object-cover rounded-xl shadow-sm"
-                />
+                {coverImage.file?.type.startsWith("video/") ? (
+                  <video
+                    src={coverImage.url}
+                    className="w-full sm:w-36 h-28 object-cover rounded-xl shadow-sm bg-black"
+                  />
+                ) : (
+                  <img
+                    src={coverImage.url}
+                    alt="Cover Preview"
+                    className="w-full sm:w-36 h-28 object-cover rounded-xl shadow-sm"
+                  />
+                )}
                 <div className="flex-1 w-full space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-gray-800 dark:text-white truncate max-w-[200px]">
@@ -703,16 +961,19 @@ export default function AddPortfolioModal({
             )}
           </section>
 
-          {/* SECTION 4: VIDEOS (OPTIONAL) */}
+          {/* SECTION 4: VIDEOS (OPTIONAL/REQUIRED) */}
           <section className="bg-white dark:bg-[#181818] p-6 rounded-2xl border border-gray-200/80 dark:border-white/5 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-zinc-800 pb-3">
               <Film className="w-5 h-5 text-[#C9A84C]" />
               <div>
                 <h3 className="text-base font-serif font-bold text-gray-900 dark:text-white">
-                  Video Clips (Optional)
+                  {vendorType === "videographer" ? "Main Video & Additional Clips" : "Video Clips (Optional)"}
+                  {vendorType === "videographer" && <span className="text-red-500 ml-1">*</span>}
                 </h3>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  Upload video reels or event highlights (MP4, MOV).
+                  {vendorType === "videographer" 
+                    ? "Upload your Main Video / Highlight Film first. You can add additional clips (ceremony, reception, drone) after."
+                    : "Upload video reels or event highlights (MP4, MOV)."}
                 </p>
               </div>
             </div>

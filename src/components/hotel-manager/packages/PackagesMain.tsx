@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Package, Wallet, Award, Clock, Send } from 'lucide-react';
 import { initialTiers, initialFees, type Tier, type SupplementalFee } from './packagesData';
 import { packageAPI } from '@/lib/api';
 import PackagesHeader from './PackagesHeader';
@@ -154,7 +154,7 @@ const PackagesMain = () => {
         guestSurcharge: tierToEdit.guestSurcharge || 0,
         icon: tierToEdit.icon || 'diamond',
         badge: tierToEdit.badge || 'NONE',
-        features: tierToEdit.features.map(f => f.text),
+        features: tierToEdit.features.map(f => f.text.trim()).filter(text => text.length > 0),
         inclusions: tierToEdit.inclusions || { valet: false, bridal: false, led: false, catering: false }
       };
 
@@ -225,24 +225,79 @@ const PackagesMain = () => {
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <button className="border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#FAF6EE] transition-colors">
-                DISCARD CHANGES
+              <button className="border border-[#7C6A2E] text-[#7C6A2E] bg-transparent rounded px-5 py-2.5 text-xs font-bold transition-colors hover:bg-[#FAF6EE]">
+                Discard Changes
               </button>
               <button 
                 onClick={handlePublish}
                 disabled={isPublishing}
-                className="bg-[#7C6A2E] hover:bg-[#5E4F20] disabled:opacity-50 text-white font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 transition-colors shadow-sm"
+                className="bg-[#C5A040] hover:bg-[#B08D2C] rounded disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
               >
-                {isPublishing ? 'PUBLISHING...' : 'PUBLISH UPDATES'}
+                <Send size={14} className="fill-transparent" />
+                {isPublishing ? 'PUBLISHING...' : 'Publish Updates'}
               </button>
             </div>
           </div>
 
           {/* Two-column layout: Left (main) + Right (sidebar) */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-8 items-start">
             {/* Left Column */}
-            <div className="space-y-6">
-              <TierConfigurations tiers={tiers} onPriceChange={handlePriceChange} onEdit={setTierToEdit} />
+            <div className="space-y-8">
+              
+              {/* Top Stats Row */}
+              <div className="bg-[#FFFDF6] border border-[#E0D8C3] rounded-xl p-6 flex flex-wrap items-center justify-between gap-6 shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#F6F0E0] rounded-full flex items-center justify-center shrink-0">
+                    <Package className="w-5 h-5 text-[#C5A040]" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-500 mb-0.5">Total Packages</p>
+                    <p className="text-xl font-bold text-gray-900 leading-none">3</p>
+                    <p className="text-[10px] text-gray-400 mt-1">Active packages</p>
+                  </div>
+                </div>
+
+                <div className="w-px h-12 bg-[#E0D8C3]/50 hidden sm:block" />
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#F6F0E0] rounded-full flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5 text-[#C5A040]" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-500 mb-0.5">Base Revenue</p>
+                    <p className="text-xl font-bold text-gray-900 leading-none">$120,000</p>
+                    <p className="text-[10px] text-gray-400 mt-1">From all packages</p>
+                  </div>
+                </div>
+
+                <div className="w-px h-12 bg-[#E0D8C3]/50 hidden sm:block" />
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#F6F0E0] rounded-full flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5 text-[#C5A040]" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-500 mb-0.5">Avg. Package Value</p>
+                    <p className="text-xl font-bold text-gray-900 leading-none">$40,000</p>
+                    <p className="text-[10px] text-gray-400 mt-1">Per booking</p>
+                  </div>
+                </div>
+
+                <div className="w-px h-12 bg-[#E0D8C3]/50 hidden lg:block" />
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#F6F0E0] rounded-full flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-[#C5A040]" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-500 mb-0.5">Last Updated</p>
+                    <p className="text-sm font-bold text-gray-900 leading-none mt-1">Today, 10:45 AM</p>
+                    <p className="text-[10px] text-gray-400 mt-1">By you</p>
+                  </div>
+                </div>
+              </div>
+
+              <TierConfigurations tiers={tiers} onEdit={setTierToEdit} />
             </div>
 
             {/* Right Sidebar Panel */}
@@ -331,41 +386,7 @@ const PackagesMain = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Icon</label>
-                  <select 
-                    value={tierToEdit.icon || 'diamond'}
-                    onChange={(e) => setTierToEdit({...tierToEdit, icon: e.target.value})}
-                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
-                  >
-                    <option value="diamond">Diamond</option>
-                    <option value="crown">Crown (Gold)</option>
-                    <option value="star">Star</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Badge</label>
-                  <select 
-                    value={tierToEdit.badge || 'NONE'}
-                    onChange={(e) => setTierToEdit({...tierToEdit, badge: e.target.value})}
-                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
-                  >
-                    <option value="NONE">None</option>
-                    <option value="MOST POPULAR">Most Popular</option>
-                    <option value="LIMITED OFFER">Limited Offer</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Surcharge (LKR)</label>
-                  <input 
-                    type="number" 
-                    value={tierToEdit.guestSurcharge || 0}
-                    onChange={(e) => setTierToEdit({...tierToEdit, guestSurcharge: Number(e.target.value)})}
-                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
-                  />
-                </div>
-              </div>
+
 
               {/* Vendor Interchangeability & Package Visibility */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-blue-50/60 border border-blue-200 rounded-lg">
@@ -399,7 +420,7 @@ const PackagesMain = () => {
                   rows={8}
                   value={tierToEdit.features.map(f => f.text).join('\n')}
                   onChange={(e) => {
-                    const featArray = e.target.value.split('\n').map(f => f.trim()).filter(f => f);
+                    const featArray = e.target.value.split('\n');
                     setTierToEdit({
                       ...tierToEdit, 
                       features: featArray.map(f => ({ text: f, included: true }))

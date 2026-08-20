@@ -63,6 +63,7 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
 
   // Load initial notifications for user role
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const previousUnreadCount = useRef(0);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -79,15 +80,23 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
               time: n.createdAt ? timeAgo(new Date(n.createdAt)) : 'Just now',
               type: n.type === "BOOKING_UPDATE" ? "booking" : "system",
               read: n.deliveryStatus === 'read',
-              link: userRole === 'customer' ? "/customer/myaccount?tab=overview" : undefined
+              link: userRole === 'customer' ? "/customer/myaccount?tab=overview" : undefined,
+              _id: n._id
             }));
+            
+            const newUnreadCount = mapped.filter((n: any) => !n.read).length;
+            previousUnreadCount.current = newUnreadCount;
             setNotifications(mapped);
           }
         } catch (e) {
           console.error("Failed to fetch real notifications", e);
         }
       };
+      
+      // Fetch immediately and then poll every 10 seconds
       fetchRealNotifs();
+      const interval = setInterval(fetchRealNotifs, 10000);
+      return () => clearInterval(interval);
     }
   }, [userRole, user]);
 
@@ -121,17 +130,31 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
     }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    // Implement API call for mark all read if needed
+    try {
+      await notificationAPI.markAllNotificationsRead();
+    } catch (e) {
+      console.error("Failed to mark all as read on server", e);
+    }
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     setNotifications([]);
+    try {
+      await notificationAPI.clearAllNotifications();
+    } catch (e) {
+      console.error("Failed to clear all notifications on server", e);
+    }
   };
 
-  const removeNotification = (id: string) => {
+  const removeNotification = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await notificationAPI.deleteNotification(id);
+    } catch (e) {
+      console.error("Failed to delete notification on server", e);
+    }
   };
 
   const filteredNotifications = notifications.filter((n) => {
@@ -267,7 +290,7 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
                       )}
                     </div>
                     
-                    <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 leading-snug line-clamp-2">
+                    <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 leading-snug">
                       {item.message}
                     </p>
 
@@ -331,6 +354,7 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
           )}
         </div>
       )}
+
     </div>
   );
 }

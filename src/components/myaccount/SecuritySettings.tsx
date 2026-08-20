@@ -20,6 +20,17 @@ export default function SecuritySettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const calculateStrength = (password: string) => {
+    let strength = 0;
+    if (password.length > 5) strength += 1;
+    if (password.length > 7) strength += 1;
+    if (/[A-Z]/.test(password) && /[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return strength;
+  };
+  
+  const strength = calculateStrength(newPassword);
+
   useEffect(() => {
     if (user && user.twoFactorEnabled !== undefined) {
       setTwoFA(user.twoFactorEnabled);
@@ -131,10 +142,16 @@ export default function SecuritySettings() {
               </div>
             {/* Password Strength Hint */}
             <div className="flex gap-1.5">
-              <div className="h-1 flex-1 rounded-full bg-emerald-400" />
-              <div className="h-1 flex-1 rounded-full bg-emerald-400" />
-              <div className="h-1 flex-1 rounded-full bg-gray-600" />
-              <div className="h-1 flex-1 rounded-full bg-gray-600" />
+              {[1, 2, 3, 4].map((level) => (
+                <div 
+                  key={level} 
+                  className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                    strength >= level 
+                      ? strength > 2 ? 'bg-emerald-400' : 'bg-yellow-400' 
+                      : 'bg-gray-300 dark:bg-gray-700'
+                  }`} 
+                />
+              ))}
             </div>
             <p className="text-[9px] text-gray-600 dark:text-gray-400 font-light">Use 8+ characters with a mix of letters, numbers & symbols.</p>
           </div>

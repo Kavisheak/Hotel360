@@ -74,7 +74,7 @@ function MyAccountContent() {
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl font-serif text-[#1A1512] dark:text-white">My Account</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-500 font-light mt-1">Manage your profile, security, bookings and preferences.</p>
+
           </div>
           <button 
             onClick={() => setActiveTab('profile')}

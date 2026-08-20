@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ChevronDown, Calendar, MapPin, Video } from "lucide-react";
+import { Search, ChevronDown, Calendar, MapPin, Video, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { videographerAPI } from "@/lib/api";
 import {
@@ -26,6 +26,32 @@ const BookingsGrid = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [acceptEvent, setAcceptEvent] = useState<any | null>(null);
   const [declineEvent, setDeclineEvent] = useState<any | null>(null);
+
+  const [hiddenBookings, setHiddenBookings] = useState<string[]>([]);
+  const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
+  const [showClearAllModal, setShowClearAllModal] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('hiddenVideographerBookings');
+    if (saved) {
+      setHiddenBookings(JSON.parse(saved));
+    }
+  }, []);
+
+  const hideBooking = (id: string) => {
+    const updated = [...hiddenBookings, id];
+    setHiddenBookings(updated);
+    localStorage.setItem('hiddenVideographerBookings', JSON.stringify(updated));
+    setBookingToDelete(null);
+  };
+
+  const clearAll = () => {
+    const allIds = bookings.map(b => b._id);
+    const updated = [...new Set([...hiddenBookings, ...allIds])];
+    setHiddenBookings(updated);
+    localStorage.setItem('hiddenVideographerBookings', JSON.stringify(updated));
+    setShowClearAllModal(false);
+  };
 
   const loadBookings = () => {
     videographerAPI.getAssignedBookings().then(({ ok, data }) => {
@@ -82,6 +108,7 @@ const BookingsGrid = () => {
   };
 
   let filtered = bookings.filter((b) => {
+    if (hiddenBookings.includes(b._id)) return false;
     const title = getClientDisplayName(b).toLowerCase();
     const matchSearch = title.includes(searchTerm.toLowerCase()) || (b.eventType || "").toLowerCase().includes(searchTerm.toLowerCase());
     const status = getVendorStatus(b, "videographer");
@@ -118,6 +145,12 @@ const BookingsGrid = () => {
           />
         </div>
         <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={() => setShowClearAllModal(true)}
+            className="px-4 py-2.5 bg-white border border-red-200 text-red-600 text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-colors shrink-0"
+          >
+            Clear All
+          </button>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="md:w-48 bg-white border border-[#E0D8C3] px-4 py-2.5 text-xs">
             <option value="All">Status: All</option>
             <option value="Pending">Pending</option>
@@ -148,7 +181,14 @@ const BookingsGrid = () => {
                 <div className="relative w-full sm:w-[42%] h-56 sm:h-auto shrink-0 overflow-hidden">
                   <img src={imgUrl} alt={booking.eventType} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1 p-5 flex flex-col justify-between">
+                <div className="flex-1 p-5 flex flex-col justify-between relative">
+                  <button 
+                    onClick={() => setBookingToDelete(booking._id)}
+                    className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur rounded-full text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors z-10"
+                    title="Hide Booking"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className={`text-[9px] font-bold tracking-widest px-2.5 py-1 rounded-sm ${statusBadge(status)}`}>
@@ -212,6 +252,32 @@ const BookingsGrid = () => {
           onSubmit={(reason) => handleStatusUpdate(declineEvent._id, "Declined", reason)}
           isSubmitting={updatingId === declineEvent._id}
         />
+      )}
+
+      {bookingToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white p-6 w-full max-w-sm border border-[#E0D8C3] shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Hide Booking</h3>
+            <p className="text-sm text-gray-600 mb-6">Are you sure you want to remove this booking from your view? It will not be deleted from the system.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setBookingToDelete(null)} className="px-4 py-2 border border-gray-300 text-gray-600 text-xs font-bold uppercase tracking-widest hover:bg-gray-50">Cancel</button>
+              <button onClick={() => hideBooking(bookingToDelete)} className="px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700">Yes, Hide</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showClearAllModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white p-6 w-full max-w-sm border border-[#E0D8C3] shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Clear All Bookings</h3>
+            <p className="text-sm text-gray-600 mb-6">Are you sure you want to hide all bookings from your view? They will not be deleted from the system.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowClearAllModal(false)} className="px-4 py-2 border border-gray-300 text-gray-600 text-xs font-bold uppercase tracking-widest hover:bg-gray-50">Cancel</button>
+              <button onClick={() => clearAll()} className="px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700">Clear All</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

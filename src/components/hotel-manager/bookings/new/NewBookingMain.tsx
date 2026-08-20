@@ -1,22 +1,51 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, X, User, CreditCard, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-import CalendarPicker from "@/components/landing/book/CalendarPicker";
-import CostBreakdown from "@/components/landing/book/CostBreakdown";
-import TrustDivider from "@/components/landing/book/TrustDivider";
-import TimeRangeSelector from "@/components/landing/book/TimeRangeSelector";
-import PackageSelector from "@/components/landing/book/PackageSelector";
-import GuestCounter from "@/components/landing/book/GuestCounter";
+import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock, X, ArrowRight, Edit2, Headphones, ShieldCheck } from "lucide-react";
+import MainNavbar from "@/components/landing/shared/MainNavbar";
+import Footer from "@/components/landing/shared/Footer";
+import PackageCards from "@/components/landing/packages/PackageCards";
 import BookingVendorSelector from "@/components/landing/book/BookingVendorSelector";
+import BookingHistory from "@/components/landing/book/BookingHistory";
+import DateRequiredModal from "@/components/landing/book/DateRequiredModal";
+import CalendarPicker from "@/components/landing/book/CalendarPicker";
+import LoginRequiredModal from "@/components/landing/shared/LoginRequiredModal";
+import PolicyModal from "@/components/landing/book/PolicyModal";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import type { Vendor, VendorPackage } from "@/store/vendorStore";
-import { bookingAPI } from "@/lib/api";
-import { validateEmail, validatePhone } from "@/lib/validation";
+import { useBookingStore } from "@/store/bookingStore";
+import { useAuthStore } from "@/store/authStore";
+import { customerBookingAPI, packageAPI, hotelManagerAPI, bookingAPI } from "@/lib/api";
+import { useToastStore } from "@/store/toastStore";
+
+function AnimatedPrice({ value, format }: { value: number; format: (val: number) => string }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  useEffect(() => {
+    let start = displayValue;
+    const end = value;
+    if (start === end) return;
+    const duration = 800; // ms
+    const startTime = performance.now();
+    let animationFrame: number;
+    
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = progress * (2 - progress);
+      const current = Math.round(start + (end - start) * ease);
+      setDisplayValue(current);
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return <span>{format(displayValue)}</span>;
+}
 
 interface NewBookingMainProps {
   onClose?: () => void;
@@ -25,44 +54,162 @@ interface NewBookingMainProps {
 
 export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"new" | "history">("new");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [startTime, setStartTime] = useState<string>("18:00");
   const [endTime, setEndTime] = useState<string>("23:00");
-  const [selectedPackage, setSelectedPackage] = useState<string>("gold");
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [eventType, setEventType] = useState<string>("Wedding");
   const [guestCount, setGuestCount] = useState<number>(380);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
 
+  // Toast state
+  const [toast, setToast] = useState<{show: boolean; title: string; subtitle: string}>({ show: false, title: "", subtitle: "" });
+  const [isToastVisible, setIsToastVisible] = useState(false);
+  const toastTimeoutRef = React.useRef<NodeJS.Timeout[]>([]);
+
+  const triggerToast = (title: string, subtitle: string = "You can now configure your event details.") => {
+    console.log("TRIGGER TOAST CALLED", { title, subtitle });
+    // Clear any existing timeouts to prevent overlapping animations
+    toastTimeoutRef.current.forEach(clearTimeout);
+    toastTimeoutRef.current = [];
+
+    // Start by hiding the toast if it's currently visible
+    setIsToastVisible(false);
+    
+    // Wait a brief moment for the CSS to reset before showing the new one
+    const t1 = setTimeout(() => {
+      console.log("SETTING TOAST STATE", { title, subtitle });
+      setToast({ show: true, title, subtitle });
+      
+      const t2 = setTimeout(() => setIsToastVisible(true), 100);
+      const t3 = setTimeout(() => setIsToastVisible(false), 4500);
+      const t4 = setTimeout(() => setToast({ show: false, title: "", subtitle: "" }), 5500);
+      
+      toastTimeoutRef.current.push(t2, t3, t4);
+    }, 150);
+    
+    toastTimeoutRef.current.push(t1);
+  };
+
+  // Step 2 Form States
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [advanceReceived, setAdvanceReceived] = useState<number | "">("");
+  const [alternativePhone, setAlternativePhone] = useState("");
+  const [nic, setNic] = useState("");
+  const [notes, setNotes] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingPostalCode, setBillingPostalCode] = useState("");
+  const [billingCountry, setBillingCountry] = useState("France");
+  const [paymentMethod, setPaymentMethod] = useState<"Visa" | "MasterCard" | "PayPal" | "Stripe">("Visa");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [walletId, setWalletId] = useState("");
+  const [vishwaUser, setVishwaUser] = useState("");
+  const [vishwaAccount, setVishwaAccount] = useState("");
+  const [kokoPhone, setKokoPhone] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successBookingRef, setSuccessBookingRef] = useState("");
+  const [successAdvancePaid, setSuccessAdvancePaid] = useState(0);
+  const [successRemainingBalance, setSuccessRemainingBalance] = useState(0);
+  const [successBookingId, setSuccessBookingId] = useState("");
+  const [paymentPendingNotice, setPaymentPendingNotice] = useState<{ bookingId: string } | null>(null);
+
+  // Validation errors
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    nic?: string;
+    billingAddress?: string;
+    billingCity?: string;
+    billingPostalCode?: string;
+    billingCountry?: string;
+    cardNumber?: string;
+    cardExpiry?: string;
+    cardCvc?: string;
+  }>({});
+
+  const [glowHall, setGlowHall] = useState(false);
+  const [glowPackage, setGlowPackage] = useState(false);
+  const [glowDecorator, setGlowDecorator] = useState(false);
+  const [glowDj, setGlowDj] = useState(false);
+  const [glowVideographer, setGlowVideographer] = useState(false);
+  const [glowGuests, setGlowGuests] = useState(false);
+  const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
+  const [mobileOpenAccordion, setMobileOpenAccordion] = useState<string | null>(null);
+
+  const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
-  const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
-  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
-
   const [dbPackages, setDbPackages] = useState<any[]>([]);
-
+  const [maxCapacity, setMaxCapacity] = useState<number>(600);
+  const [venueSettings, setVenueSettings] = useState<any>(null);
+  const [unavailableDates, setUnavailableDates] = useState<{date: string, status: string}[]>([]);
+  const { addToast } = useToastStore();
+  const [policyModalType, setPolicyModalType] = useState<"vendor" | "cancellation" | null>(null);
   useEffect(() => {
     fetchVendors();
-    const { packageAPI } = require("@/lib/api");
-    packageAPI.getAllPackages().then((res: any) => {
+    packageAPI.getAllPackages().then((res) => {
       if (res.ok && res.data?.data) {
         setDbPackages(res.data.data);
       }
     });
+    hotelManagerAPI.getVenueSettings().then((res) => {
+      if (res.ok && res.data?.settings) {
+        setVenueSettings(res.data.settings);
+        if (res.data.settings.maxCapacity) {
+          setMaxCapacity(res.data.settings.maxCapacity);
+        }
+      }
+    });
+    customerBookingAPI.getAvailability().then(res => {
+      if (res.ok && res.data?.data) {
+        setUnavailableDates(res.data.data);
+      }
+    });
   }, [fetchVendors]);
 
-  const [vendors, setVendors] = useState<{
+  const isSelectedDateUnavailable = () => {
+    if (!selectedDate) return false;
+    const dateStr = new Date(selectedDate).toDateString();
+    return unavailableDates.some(ud => new Date(ud.date).toDateString() === dateStr);
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  
+
+  const cartVendors = useVendorCartStore((state) => state.vendors);
+  const setStoreVendor = useVendorCartStore((state) => state.setVendor);
+
+  const [decoratorRequirements, setDecoratorRequirements] = useState("");
+  const [videographerRequirements, setVideographerRequirements] = useState("");
+  const [djRequirements, setDjRequirements] = useState("");
+
+  const [vendors, setLocalVendors] = useState<{
     decorator: string | null;
     decoratorPackage: string;
     dj: string | null;
     djPackage: string;
     videographer: string | null;
     videographerPackage: string;
-    photographer: string | null;
-    photographerPackage: string;
-    cake: string | null;
-    cakePackage: string;
-    florist: string | null;
-    floristPackage: string;
   }>({
     decorator: "none",
     decoratorPackage: "none",
@@ -70,17 +217,165 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     djPackage: "none",
     videographer: "none",
     videographerPackage: "none",
-    photographer: "none",
-    photographerPackage: "none",
-    cake: "none",
-    cakePackage: "none",
-    florist: "none",
-    floristPackage: "none",
   });
+
+  const [isStateLoaded, setIsStateLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("bookingDraft");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate).getTime());
+        if (parsed.eventType) setEventType(parsed.eventType);
+        if (parsed.guestCount) setGuestCount(parsed.guestCount);
+        else if (parsed.guests) setGuestCount(parsed.guests);
+        if (parsed.startTime) setStartTime(parsed.startTime);
+        if (parsed.endTime) setEndTime(parsed.endTime);
+        if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
+        if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+        if (parsed.vendors) setLocalVendors(parsed.vendors);
+      } catch (e) {}
+    }
+    setIsStateLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isStateLoaded) return;
+    const draft = {
+      selectedDate,
+      eventType,
+      guestCount,
+      startTime,
+      endTime,
+      selectedPackage,
+      currentStep,
+      vendors
+    };
+    sessionStorage.setItem("bookingDraft", JSON.stringify(draft));
+  }, [isStateLoaded, selectedDate, eventType, guestCount, startTime, endTime, selectedPackage, currentStep, vendors]);
+
+  const getVendorName = (id: string | null) => {
+    if (!id || id === "none") return "";
+    if (id === "custom_preference") return "Custom Preference";
+    const v = globalVendors.find((v: Vendor) => v.id === id || (v as any)._id === id);
+    return v ? ((v as any).businessName || v.name) : "";
+  };
+
+  const setVendors = (newVendors: typeof vendors, categoryUpdated?: string) => {
+    // Check which vendor was selected by using the explicitly passed category
+    // Toast messages for vendor selections have been removed per user request
+
+    setLocalVendors(newVendors);
+    // Removed: no longer writing back to the global vendorCartStore
+  };
+
+  // Removed: We no longer auto-sync local vendors from the global cart on every change.
+  // Instead, we only import them on mount if fromCart=true.
+  // Read URL parameters on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const prePackage = searchParams.get("package") || searchParams.get("pkg");
+      const preDecorator = searchParams.get("decorator") || searchParams.get("decorators");
+      const preDj = searchParams.get("dj") || searchParams.get("djs");
+      const preVid = searchParams.get("videographer") || searchParams.get("videographers");
+      const fromSelect = searchParams.get("fromSelect");
+
+      if (preDecorator || preDj || preVid) {
+        setVendors({
+          ...vendors,
+          decorator: preDecorator || "none",
+          dj: preDj || "none",
+          videographer: preVid || "none",
+        });
+      }
+
+      if (prePackage && ["silver", "gold", "diamond"].includes(prePackage)) {
+        setSelectedPackage(prePackage);
+        
+        if (fromSelect) {
+          const pkgName = prePackage.charAt(0).toUpperCase() + prePackage.slice(1) + " Package";
+          
+          // Remove fromSelect from URL without reloading
+          const newUrl = window.location.pathname + "?package=" + prePackage;
+          window.history.replaceState({}, "", newUrl);
+
+          triggerToast(`Selected ${pkgName}!`, "You can now configure your event details.");
+        }
+      }
+
+      // Check if arriving from Floating Event Cart
+      const fromCart = searchParams.get("fromCart");
+      if (fromCart === "true") {
+        const storePackages = useVendorCartStore.getState().vendorPackages;
+        const currentCart = useVendorCartStore.getState().vendors;
+        setVendors({
+          ...vendors,
+          decorator: currentCart.decorator || "none",
+          decoratorPackage: storePackages.decorator || "none",
+          dj: currentCart.dj || "none",
+          djPackage: "none",
+          videographer: currentCart.videographer || "none",
+          videographerPackage: "none",
+        });
+        
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+        triggerToast("Vendors Imported!", "Your selected vendors have been added to your booking.");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate !== 0) {
+      setGlowHall(true);
+      const timer = setTimeout(() => setGlowHall(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    setGlowPackage(true);
+    const timer = setTimeout(() => setGlowPackage(false), 1200);
+    return () => clearTimeout(timer);
+  }, [selectedPackage]);
+
+  useEffect(() => {
+    if (vendors.decorator && vendors.decorator !== "none") {
+      setGlowDecorator(true);
+      const timer = setTimeout(() => setGlowDecorator(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.decorator]);
+
+  useEffect(() => {
+    if (vendors.dj && vendors.dj !== "none") {
+      setGlowDj(true);
+      const timer = setTimeout(() => setGlowDj(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.dj]);
+
+  useEffect(() => {
+    if (vendors.videographer && vendors.videographer !== "none") {
+      setGlowVideographer(true);
+      const timer = setTimeout(() => setGlowVideographer(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendors.videographer]);
+
+  useEffect(() => {
+    setGlowGuests(true);
+    const timer = setTimeout(() => setGlowGuests(false), 1200);
+    return () => clearTimeout(timer);
+  }, [guestCount]);
 
   const getBasePrice = () => {
     if (dbPackages && dbPackages.length > 0) {
       const matched = dbPackages.find((pkg) => {
+        if (pkg.id === selectedPackage || pkg._id === selectedPackage) return true;
         const nameLower = pkg.name.toLowerCase();
         let slug = "gold";
         if (nameLower.includes("silver")) slug = "silver";
@@ -92,35 +387,53 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       }
     }
     if (selectedPackage === "silver") return 1800000;
+    if (selectedPackage === "gold") return 3400000;
     if (selectedPackage === "diamond") return 5000000;
-    return 3400000;
+    return 0;
   };
 
-  const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
-    const vendorId = vendors[category];
-    if (vendorId === "none" || vendorId === "custom_preference" || !vendorId) return 0;
+  const addBooking = useBookingStore((state) => state.addBooking);
+  const clearCart = useVendorCartStore((state) => state.clearCart);
+  const requestedDesigns = useVendorCartStore((state) => state.requestedDesigns);
+  const requestedDesignPrices = useVendorCartStore((state) => state.requestedDesignPrices);
 
+  const getVendorCost = (category: "decorator" | "dj" | "videographer") => {
+    const vendorId = vendors[category];
+    if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
+    
     // Check if there is a specific requested design price first
     if (requestedDesignPrices && requestedDesignPrices[category] !== undefined && requestedDesignPrices[category] !== null) {
       return requestedDesignPrices[category] as number;
     }
 
-    const pkgName = vendors[`${category}Package` as keyof typeof vendors];
-    if (pkgName && pkgName !== "none" && pkgName !== "Custom Preferences") {
-      const v = globalVendors.find((v: Vendor) => v.id === vendorId);
-      if (!v) return 0;
-      const pkg = v.packages.find((p: VendorPackage) => p.name === pkgName);
-      if (pkg) {
-        const numericStr = pkg.price.replace(/[^0-9]/g, "");
-        return numericStr ? parseInt(numericStr, 10) : 0;
-      }
-      return 0;
+    if (category === "decorator") {
+      const pkgName = vendors[`${category}Package` as keyof typeof vendors];
+      if (pkgName === "none" || pkgName === "Custom Preferences") return 0;
     }
 
-    const v = globalVendors.find((v: Vendor) => v.id === vendorId);
-    if (!v) return 0;
-    const numericStr = v.startingPrice.replace(/[^0-9]/g, "");
-    return numericStr ? parseInt(numericStr, 10) : 0;
+    const pkgName = vendors[`${category}Package` as keyof typeof vendors];
+    if (pkgName && pkgName !== "none" && pkgName !== "Custom Preferences") {
+      const v = globalVendors.find((v: Vendor) => v.id === vendorId || (v as any)._id === vendorId);
+      if (!v) return 0;
+
+      const pkg = v.packages?.find((p: VendorPackage) => p.name === pkgName);
+      if (pkg && pkg.price !== undefined) {
+        const numericStr = String(pkg.price).replace(/[^0-9]/g, "");
+        return numericStr ? parseInt(numericStr, 10) : 0;
+      }
+    }
+
+    // No package selected, do not add starting price or default package price
+    return 0;
+  };
+
+  const formatTimeStr = (t: string) => {
+    if (!t) return "";
+    const [h, m] = t.split(":");
+    const hr = parseInt(h);
+    const suffix = hr >= 12 ? "PM" : "AM";
+    const displayHr = hr % 12 || 12;
+    return `${displayHr}:${m} ${suffix}`;
   };
 
   const calculateDuration = () => {
@@ -135,108 +448,64 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
 
   const durationHours = calculateDuration();
   const basePrice = getBasePrice();
-  const extraHoursPremium = Math.max(0, durationHours - 6) * 50000;
+  const extraHoursPremium = Math.max(0, durationHours - 7) * 5000;
   const timeslotPremium = 0;
 
-  let addonsCost =
-    getVendorCost("decorator") +
-    getVendorCost("dj") +
-    getVendorCost("videographer") +
-    getVendorCost("photographer") +
-    getVendorCost("cake") +
-    getVendorCost("florist");
+  let addonsCost = 
+    getVendorCost("decorator") + 
+    getVendorCost("dj") + 
+    getVendorCost("videographer");
 
-  const grandTotal = basePrice + extraHoursPremium + timeslotPremium + addonsCost;
+  const hallBase = basePrice + extraHoursPremium + timeslotPremium;
+  const hallTax = 0; // Tax removed as requested
+  const hallTotalWithTax = hallBase + hallTax;
+
+  const grandTotal = hallBase + addonsCost;
+  const taxes = 0; // Tax removed as requested
+  const bookingTotal = grandTotal + taxes;
+  const getVendorAdvanceInfo = (category: "decorator" | "dj" | "videographer") => {
+    const cost = getVendorCost(category);
+    if (cost === 0) return { advance: 0, percentage: 0 };
+    const vendorId = vendors[category];
+    if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return { advance: 0, percentage: 0 };
+    const v = globalVendors.find((v: Vendor) => v.id === vendorId || (v as any)._id === vendorId);
+    if (!v) return { advance: 0, percentage: 0 };
+    const percentage = v.advancePaymentPercentage || 0;
+    return { advance: Math.round(cost * (percentage / 100)), percentage, cost };
+  };
+
+  const hallAdvance = Math.round(hallBase * 0.30);
+  const decoratorAdv = getVendorAdvanceInfo("decorator");
+  const djAdv = getVendorAdvanceInfo("dj");
+  const videographerAdv = getVendorAdvanceInfo("videographer");
+  
+  const depositToday = hallAdvance + decoratorAdv.advance + djAdv.advance + videographerAdv.advance;
+  const balanceDue = bookingTotal - depositToday;
+
   const formatCurrency = (val: number) => "LKR " + val.toLocaleString();
 
-  const TOTAL_STEPS = 4;
-
-  const handleNext = () => {
-    if (currentStep === 1 && selectedDate === 0) {
-      alert("Please select an event date on the calendar.");
-      return;
-    }
-    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleStepClick = (step: number) => {
-    if (step < currentStep) setCurrentStep(step);
-  };
-
-  const STEP_LABELS: Record<number, string> = {
-    1: "Event Details",
-    2: "Vendors",
-    3: "Review",
-    4: "Checkout",
-  };
-
-  // --- Step 4: Checkout Form Logic ---
-  const [formData, setFormData] = useState({
-    clientName: "",
-    email: "",
-    phone: "",
-    alternativePhone: "",
-    notes: "",
-  });
-  
-  const [advanceReceived, setAdvanceReceived] = useState<number | ''>('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [errors, setErrors] = useState<{email?: string, phone?: string, alternativePhone?: string}>({});
-
-  const handleFinalizeBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedDate === 0) {
-      alert("Please go back to Step 1 and select an available event date.");
-      return;
-    }
-    if (advanceReceived === '') {
-      alert("Please enter the advance amount received.");
-      return;
-    }
-
-    setErrors({});
-    let hasError = false;
-    const newErrors: typeof errors = {};
-
-    if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address.";
-      hasError = true;
-    }
-    if (!validatePhone(formData.phone)) {
-      newErrors.phone = "Please enter a valid Sri Lankan phone number.";
-      hasError = true;
-    }
-    if (formData.alternativePhone && !validatePhone(formData.alternativePhone)) {
-      newErrors.alternativePhone = "Please enter a valid Sri Lankan phone number.";
-      hasError = true;
-    }
-
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsProcessing(true);
-
-    const eventTypeName =
-      selectedPackage === "silver"
-        ? "Classic Silver Package"
-        : selectedPackage === "diamond"
-        ? "Luxury Diamond Gala"
-        : "Grand Gold Celebration";
+  const handleFinalizeBooking = async (contactInfo: any) => {
+    const matchedPkg = dbPackages.find((pkg) => pkg.id === selectedPackage || pkg._id === selectedPackage);
+    const eventTypeName = matchedPkg
+      ? matchedPkg.name
+      : selectedPackage === "silver"
+      ? "Classic Silver Package"
+      : selectedPackage === "diamond"
+      ? "Luxury Diamond Gala"
+      : "Grand Gold Celebration";
 
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
     const bookingPayload = {
-      clientName: formData.clientName,
-      email: formData.email,
-      phone: formData.phone,
-      alternativePhone: formData.alternativePhone || "",
+      clientName: `${contactInfo.customerDetails?.firstName || ''} ${contactInfo.customerDetails?.lastName || ''}`.trim(),
+      email: contactInfo.customerDetails?.email || "",
+      phone: contactInfo.customerDetails?.phone || "",
+      alternativePhone: contactInfo.customerDetails?.alternativePhone || "",
+      nic: contactInfo.customerDetails?.nic || "",
+      billingAddress: contactInfo.customerDetails?.billingAddress || "",
+      billingCity: contactInfo.customerDetails?.billingCity || "",
+      billingPostalCode: contactInfo.customerDetails?.billingPostalCode || "",
+      billingCountry: contactInfo.customerDetails?.billingCountry || "",
       eventType,
       eventName: eventTypeName,
       date: dateString,
@@ -244,50 +513,33 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
       durationHours,
       guests: guestCount,
       packageId: selectedPackage,
-      packageName: selectedPackage,
-      paymentMethod: "Manual",
+      paymentMethod: paymentMethod,
+      depositAmount: contactInfo.advanceReceived || depositToday,
       decoratorCost: getVendorCost("decorator"),
       djCost: getVendorCost("dj"),
       videographerCost: getVendorCost("videographer"),
-      photographerCost: getVendorCost("photographer"),
-      cakeCost: getVendorCost("cake"),
-      floristCost: getVendorCost("florist"),
-      totalCost: grandTotal,
-      depositAmount: advanceReceived,
-      balanceAmount: 0,
+      totalCost: bookingTotal,
       vendors: {
         decorator: {
           vendorId: vendors.decorator !== "none" ? vendors.decorator : null,
           status: vendors.decorator !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.decoratorPackage !== "none" ? vendors.decoratorPackage : "",
           requestedDesignId: requestedDesigns.decorator || null,
+          requirements: { specialRequests: decoratorRequirements }
         },
         dj: {
           vendorId: vendors.dj !== "none" ? vendors.dj : null,
           status: vendors.dj !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.djPackage !== "none" ? vendors.djPackage : "",
           requestedDesignId: requestedDesigns.dj || null,
+          requirements: { specialRequests: djRequirements }
         },
         videographer: {
           vendorId: vendors.videographer !== "none" ? vendors.videographer : null,
           status: vendors.videographer !== "none" ? "Pending" : "NotRequired",
           packageName: vendors.videographerPackage !== "none" ? vendors.videographerPackage : "",
           requestedDesignId: requestedDesigns.videographer || null,
-        },
-        photographer: {
-          vendorId: vendors.photographer !== "none" ? vendors.photographer : null,
-          status: vendors.photographer !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.photographerPackage !== "none" ? vendors.photographerPackage : "",
-        },
-        cake: {
-          vendorId: vendors.cake !== "none" ? vendors.cake : null,
-          status: vendors.cake !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.cakePackage !== "none" ? vendors.cakePackage : "",
-        },
-        florist: {
-          vendorId: vendors.florist !== "none" ? vendors.florist : null,
-          status: vendors.florist !== "none" ? "Pending" : "NotRequired",
-          packageName: vendors.floristPackage !== "none" ? vendors.floristPackage : "",
+          requirements: { specialRequests: videographerRequirements }
         }
       },
     };
@@ -295,28 +547,362 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     try {
       const res = await bookingAPI.createBooking(bookingPayload);
       if (res.ok && res.data.success) {
-        setShowSuccessModal(true);
+        clearCart();
+        return res.data.data?._id || res.data.data?.id || true;
       } else {
-        alert(res.data.message || "Failed to create booking.");
+        addToast({ message: res.data.message || "Failed to create booking", type: "error" });
+        return false;
       }
-    } catch (error) {
-      alert("Network error. Please check your connection.");
+    } catch (error: any) {
+      console.error("EXACT ERROR FINDING - Booking Submission Failed:", error);
+      console.error("Failed Payload Was:", JSON.stringify(bookingPayload, null, 2));
+      alert(`An error occurred while creating booking: ${error?.message || "Unknown Error"}`);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (!holdExpiresAt) return;
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.round((holdExpiresAt - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining === 0) {
+        clearInterval(interval);
+        setHoldExpiresAt(null);
+        handleHoldExpired();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holdExpiresAt, selectedDate]);
+
+  const handleHoldExpired = async () => {
+    addToast({ message: "Your 10-minute hold has expired. You can still continue your booking, but the date is no longer guaranteed and may be booked by someone else.", type: "error" });
+    if (selectedDate) {
+      const dateString = new Date(selectedDate).toISOString();
+      try {
+        await customerBookingAPI.releaseHold({ date: dateString });
+      } catch (e) {}
+    }
+    // We no longer reset the date or send them back to Step 1
+    // They can continue from where they stopped.
+    setHoldExpiresAt(null);
+    setTimeLeft(0);
+  };
+
+  const handlePreConfirm = async () => {
+    if (!termsAccepted) {
+      addToast({ message: "Please accept the terms and conditions.", type: "error" });
+      return;
+    }
+    
+    // Validate Contact & Billing Form
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!firstName.trim()) { newErrors.firstName = "First name is required."; hasError = true; }
+    if (!lastName.trim()) { newErrors.lastName = "Last name is required."; hasError = true; }
+    const { validateEmail, validatePhone } = await import("@/lib/validation");
+    if (!validateEmail(email)) { newErrors.email = "Please enter a valid email address."; hasError = true; }
+    if (!validatePhone(phone)) { newErrors.phone = "Please enter a valid Sri Lankan phone number."; hasError = true; }
+    if (!nic.trim() || !/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(nic)) { newErrors.nic = "Please enter a valid Sri Lankan NIC."; hasError = true; }
+    if (!billingAddress.trim()) { newErrors.billingAddress = "Billing address is required."; hasError = true; }
+    if (!billingCity.trim()) { newErrors.billingCity = "Billing city is required."; hasError = true; }
+    if (!billingPostalCode.trim()) { newErrors.billingPostalCode = "Postal code is required."; hasError = true; }
+    if (!billingCountry.trim()) { newErrors.billingCountry = "Country is required."; hasError = true; }
+
+    if (hasError) {
+      setErrors(newErrors);
+      setCurrentStep(4);
+      addToast({ message: "Please fill in all required customer details.", type: "error" });
+      return;
+    }
+    
+    setAdvanceReceived(depositToday);
+    setShowAdvanceModal(true);
+  };
+
+  const handleConfirmAndPay = async () => {
+    if (advanceReceived === "" || isNaN(Number(advanceReceived))) {
+      addToast({ message: "Please enter the advance amount received.", type: "error" });
+      return;
+    }
+    if (Number(advanceReceived) < depositToday) {
+      addToast({ message: `Minimum advance required is ${formatCurrency(depositToday)}`, type: "error" });
+      return;
+    }
+
+    setShowAdvanceModal(false);
+    setIsProcessing(true);
+
+    try {
+      const payload = {
+        date: selectedDate,
+        eventType,
+        guests: guestCount,
+        startTime,
+        endTime,
+        package: selectedPackage,
+        vendors,
+        customerDetails: {
+          firstName,
+          lastName,
+          email,
+          phone,
+          alternativePhone,
+          nic,
+          billingAddress,
+          billingCity,
+          billingPostalCode,
+          billingCountry,
+          notes
+        },
+        advanceReceived: Number(advanceReceived)
+      };
+
+      const bookingId = await handleFinalizeBooking(payload);
+      
+      if (bookingId) {
+        addToast({ message: "Booking confirmed successfully!", type: "success" });
+        setShowSuccessModal(true);
+      }
+    } catch (err: any) {
+      console.error("Booking error:", err);
+      addToast({ message: err.message || "Failed to confirm booking. Please try again.", type: "error" });
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const TOTAL_STEPS = 5;
+
+  const handleNext = async () => {
+    if (isGuest) {
+      setLoginModalOpen(true);
+      return;
+    }
+    if (currentStep === 1) {
+      if (selectedDate === 0) {
+        setIsDateModalOpen(true);
+        return;
+      }
+      if (isSelectedDateUnavailable()) {
+        addToast({ message: "This date is currently unavailable. Please choose another date.", type: "error" });
+        return;
+      }
+      try {
+        const dateString = new Date(selectedDate).toISOString();
+        const res = await customerBookingAPI.createHold({ date: dateString });
+        const data = res.data;
+        if (res.ok && data.success) {
+          const expiresAt = new Date(data.expiresAt).getTime();
+          setHoldExpiresAt(expiresAt);
+          setTimeLeft(Math.max(0, Math.round((expiresAt - Date.now()) / 1000)));
+        } else {
+          addToast({ message: data.message || "This date is currently held by another user. Please choose another date.", type: "error" });
+          return;
+        }
+      } catch (e) {
+        addToast({ message: "Failed to secure temporary hold. Please try again.", type: "error" });
+        return;
+      }
+    }
+
+    if (currentStep === 2 && !selectedPackage) {
+      addToast({ message: "Please select a venue package before proceeding to the next step.", type: "error" });
+      return;
+    }
+
+    if (currentStep === 3) {
+      if (vendors.videographer && vendors.videographer !== "none" && (!vendors.videographerPackage || vendors.videographerPackage === "none")) {
+        addToast({ message: "Please select a package for the Videographer before proceeding.", type: "error" });
+        return;
+      }
+      if (vendors.dj && vendors.dj !== "none" && (!vendors.djPackage || vendors.djPackage === "none")) {
+        addToast({ message: "Please select a package for the DJ before proceeding.", type: "error" });
+        return;
+      }
+    }
+
+    if (currentStep === 4) {
+      // Validate Contact & Billing Form
+      setErrors({});
+      let hasError = false;
+      const newErrors: typeof errors = {};
+
+      if (!firstName.trim()) {
+        newErrors.firstName = "First name is required.";
+        hasError = true;
+      }
+      if (!lastName.trim()) {
+        newErrors.lastName = "Last name is required.";
+        hasError = true;
+      }
+      const { validateEmail, validatePhone } = await import("@/lib/validation");
+      if (!validateEmail(email)) {
+        newErrors.email = "Please enter a valid email address.";
+        hasError = true;
+      }
+      if (!validatePhone(phone)) {
+        newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+        hasError = true;
+      }
+      if (!nic.trim() || !/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(nic)) {
+        newErrors.nic = "Please enter a valid Sri Lankan NIC.";
+        hasError = true;
+      }
+      if (!billingAddress.trim()) {
+        newErrors.billingAddress = "Billing address is required.";
+        hasError = true;
+      }
+      if (!billingCity.trim()) {
+        newErrors.billingCity = "Billing city is required.";
+        hasError = true;
+      }
+      if (!billingPostalCode.trim()) {
+        newErrors.billingPostalCode = "Postal code is required.";
+        hasError = true;
+      }
+      if (!billingCountry.trim()) {
+        newErrors.billingCountry = "Country is required.";
+        hasError = true;
+      }
+
+      if (hasError) {
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+  };
+
+  const handleStepClick = async (step: number) => {
+    if (isGuest) {
+      setLoginModalOpen(true);
+      return;
+    }
+    if (step < currentStep) {
+      setCurrentStep(step);
+    }
+  };
+
+  const handleBack = async () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleDownloadReceipt = () => {
+    const receiptWindow = window.open("", "_blank");
+    if (receiptWindow) {
+      receiptWindow.document.write(`
+        <html>
+          <head>
+            <title>EASCCA Conference Centre - Receipt</title>
+            <style>
+              body { font-family: 'Georgia', serif; padding: 40px; color: #1a1512; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+              .header { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 20px; margin-bottom: 30px; }
+              .title { font-size: 24px; font-weight: bold; color: #805d3a; margin: 0; }
+              .meta { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px; }
+              .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              .details-table th, .details-table td { border-bottom: 1px solid #e8dfc9; padding: 12px; text-align: left; }
+              .details-table th { background: #faf6ee; color: #805d3a; font-size: 12px; text-transform: uppercase; }
+              .total-box { background: #faf6ee; border: 1px solid #c9a84c; padding: 20px; margin-top: 20px; text-align: right; }
+              .status-badge { display: inline-block; padding: 4px 12px; background: #d1fae5; color: #065f46; font-size: 12px; font-weight: bold; border-radius: 4px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="title">EASCCA CONFERENCE CENTRE</div>
+              <p style="margin: 5px 0 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #805d3a;">Official Advance Payment Receipt</p>
+            </div>
+            <div class="meta">
+              <div>
+                <strong>Booking Reference:</strong> ${successBookingRef}<br/>
+                <strong>Date:</strong> ${new Date().toLocaleDateString()}<br/>
+                <strong>Client Name:</strong> ${firstName} ${lastName}
+              </div>
+              <div style="text-align: right;">
+                <strong>Event Date:</strong> ${selectedDate ? new Date(selectedDate).toLocaleDateString() : ""}<br/>
+                <strong>Payment Gateway:</strong> PayHere 🇱🇰<br/>
+                <span class="status-badge">PAID</span>
+              </div>
+            </div>
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${eventType} Hall Rental (${selectedPackage.toUpperCase()} Package)</td>
+                  <td style="text-align:right;">${formatCurrency(basePrice)}</td>
+                </tr>
+                ${addonsCost > 0 ? `
+                <tr>
+                  <td>Selected Artisans & Add-ons</td>
+                  <td style="text-align:right;">${formatCurrency(addonsCost)}</td>
+                </tr>
+                ` : ""}
+                ${extraHoursPremium > 0 ? `
+                <tr>
+                  <td>Extra Hours Premium (${durationHours - 6} hrs)</td>
+                  <td style="text-align:right;">${formatCurrency(extraHoursPremium)}</td>
+                </tr>
+                ` : ""}
+
+                <tr style="font-weight:bold;">
+                  <td>Total Estimated Cost</td>
+                  <td style="text-align:right;">${formatCurrency(bookingTotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="total-box">
+              <p style="margin:0 0 5px 0; font-size:12px; color:gray; text-transform:uppercase;">Advance Deposit Paid</p>
+              <h3 style="margin:0 0 10px 0; color:#805d3a; font-size:24px;">${formatCurrency(successAdvancePaid)}</h3>
+              <div style="font-size:10px; color:#555; text-align:right; margin-bottom:10px;">
+                <p style="margin:2px 0;">Hall Advance (25%): ${formatCurrency(hallAdvance)}</p>
+                ${decoratorAdv.advance > 0 ? `<p style="margin:2px 0;">Decorator Advance (${decoratorAdv.percentage}%): ${formatCurrency(decoratorAdv.advance)}</p>` : ""}
+                ${djAdv.advance > 0 ? `<p style="margin:2px 0;">DJ Advance (${djAdv.percentage}%): ${formatCurrency(djAdv.advance)}</p>` : ""}
+                ${videographerAdv.advance > 0 ? `<p style="margin:2px 0;">Videographer Advance (${videographerAdv.percentage}%): ${formatCurrency(videographerAdv.advance)}</p>` : ""}
+              </div>
+              <p style="margin:0; font-size:12px;">Remaining Balance: <strong>${formatCurrency(successRemainingBalance)}</strong></p>
+            </div>
+            <p style="text-align:center; font-size:10px; color:gray; margin-top:50px;">Thank you for reserving with EASCCA. This is a computer-generated official receipt.</p>
+          </body>
+        </html>
+      `);
+      receiptWindow.document.close();
+    }
+  };
+
+  const STEP_LABELS: Record<number, string> = {
+    1: "Date & Guests",
+    2: "Venue Package",
+    3: "Select Artisans",
+    4: "Billing Details",
+    5: "Review & Policies",
+  };
+
   return (
-    <div className={`flex flex-col flex-1 min-w-0 bg-white dark:bg-[#0A0A0A] font-sans text-[#1A1512] dark:text-white transition-colors duration-300 ${onClose ? 'max-h-[90vh]' : 'min-h-screen'}`}>
-      
+    <div className={`bg-white dark:bg-[#0A0A0A] flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300 ${onClose ? "h-[92vh] flex-1 overflow-hidden" : "min-h-screen"}`}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes goldGlow {
+          0% { box-shadow: 0 0 0 0 rgba(198, 156, 109, 0.4); border-color: #c69c6d; }
+          50% { box-shadow: 0 0 15px 5px rgba(198, 156, 109, 0.6); border-color: #c69c6d; transform: scale(1.02); }
+          100% { box-shadow: 0 0 0 0 rgba(198, 156, 109, 0); border-color: #e8dfc9; }
+        }
+        .animate-gold-glow {
+          animation: goldGlow 1.2s ease-out;
+        }
+      `}} />
       {/* Header for Manager Modal/Page */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#E8DFC9] dark:border-gray-800 flex items-center justify-between px-6 h-16 shrink-0">
         <div className="flex items-center gap-4">
           {!onClose && (
             <>
-              <Link href="/hotel-manager" className="text-gray-400 hover:text-[#C69C6D] transition-colors">
-                <ArrowLeft size={18} />
-              </Link>
               <div className="w-px h-6 bg-[#E8DFC9] dark:bg-gray-800" />
             </>
           )}
@@ -334,365 +920,1251 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
         )}
       </header>
 
-      <main className={`flex-grow px-6 py-8 overflow-y-auto ${onClose ? 'max-h-[calc(90vh-4rem)]' : ''}`}>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-12">
-          
-          {/* Left Column: Booking Form Steps */}
-          <div className="lg:col-span-8 space-y-12">
-            
-            {/* Stepper Indicator */}
-            <div className="flex items-center justify-between border-b border-[#E8DFC9] dark:border-gray-800 pb-6 mb-12 relative">
-              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#E8DFC9] dark:bg-gray-800 -z-10 -translate-y-1/2" />
-              {[1, 2, 3, 4].map((step) => (
-                <div
-                  key={step}
-                  onClick={() => handleStepClick(step)}
-                  className={`flex items-center gap-3 bg-white dark:bg-[#0A0A0A] pr-4 cursor-pointer hover:opacity-80 transition-opacity ${
-                    currentStep === step
-                      ? "text-[#1A1512] dark:text-white"
-                      : currentStep > step
-                      ? "text-[#A6955C]"
-                      : "text-gray-400"
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
-                      currentStep === step
-                        ? "border-[#C69C6D] text-[#C69C6D]"
-                        : currentStep > step
-                        ? "border-[#A6955C] bg-[#A6955C] text-white"
-                        : "border-gray-300 dark:border-gray-700"
-                    }`}
-                  >
-                    {step}
-                  </div>
-                  <span className="text-sm uppercase font-bold tracking-widest hidden sm:block">
-                    {STEP_LABELS[step]}
-                  </span>
-                </div>
-              ))}
+      <main className={`flex-grow relative overflow-y-auto ${onClose ? "pb-6" : "pt-28 md:pt-32"}`}>
+        
+        {/* Toast Notification */}
+        {toast.show && (
+          <div 
+            className={`fixed left-1/2 -translate-x-1/2 z-[40] transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isToastVisible 
+                ? 'top-[110px] opacity-100 scale-100' 
+                : '-top-[100px] opacity-0 scale-95 pointer-events-none'
+            }`}
+          >
+            <div className="bg-white rounded-r-2xl rounded-l-md border-l-[6px] border-[#C9A84C] shadow-[0_20px_50px_rgba(0,0,0,0.1)] max-w-xl w-[90vw] md:w-[600px] flex items-center p-3 md:p-5 relative overflow-hidden text-left">
+              
+              {/* Faint leaf background graphics */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-32 h-32 opacity-[0.07] pointer-events-none">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-[#C9A84C] fill-current">
+                  <path d="M30 50 Q50 20 70 50 Q50 80 30 50 Z" />
+                  <path d="M40 30 Q60 10 80 30 Q60 50 40 30 Z" />
+                  <path d="M40 70 Q60 90 80 70 Q60 50 40 70 Z" />
+                </svg>
+              </div>
+              
+              {/* Faint stars corners */}
+              <div className="absolute right-4 top-3 text-[#C9A84C] opacity-30 text-xl">✦</div>
+              <div className="absolute right-8 bottom-2 text-[#C9A84C] opacity-30 text-lg">✧</div>
+
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border-[1.5px] border-[#C9A84C] flex items-center justify-center relative z-10 shrink-0 bg-white shadow-[0_0_20px_rgba(201,168,76,0.15)]">
+                <Check className="text-[#C9A84C] w-5 h-5 md:w-7 md:h-7" strokeWidth={3} />
+              </div>
+
+              <div className="flex-1 ml-3 md:ml-5 relative z-10">
+                <h4 className="text-[#5C4520] font-serif font-bold text-[15px] md:text-[19px] mb-1">{toast.title}</h4>
+                <p className="text-gray-600 text-[11px] md:text-[14px] leading-snug">{toast.subtitle}</p>
+              </div>
+
+              <div className="border-l border-gray-200 h-8 md:h-10 mx-2 md:mx-5 relative z-10"></div>
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsToastVisible(false); }}
+                className="text-gray-400 hover:text-[#5C4520] transition-colors relative z-10 p-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+          </div>
+        )}
 
-            {/* Step 1: Event Details */}
-            {currentStep === 1 && (
-              <div className="space-y-8 animate-fadeIn">
-                <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm">
-                  <label className="block text-base uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold mb-4">
-                    Event Type
-                  </label>
-                  <select
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    className="w-full bg-[#FDFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-3 rounded-sm text-base text-[#1A1512] dark:text-white outline-none focus:border-[#C9A84C]"
+        {/* Top Stepper Banner removed as per user request */}
+
+        <div className="max-w-[1400px] mx-auto px-6 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start mb-24">
+
+          {/* Left Column: Booking Form Steps */}
+          <div className={`${successBookingRef ? "lg:col-span-12" : "lg:col-span-8"} space-y-10 transition-all duration-500`}>
+
+            {/* Tab Switcher */}
+            
+
+            {successBookingRef ? (
+              <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-8 rounded-sm text-center shadow-[0_0_30px_rgba(128,93,58,0.05)] space-y-6 max-w-xl mx-auto my-8">
+                <div className="w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <span className="text-3xl text-emerald-600 dark:text-emerald-500">✓</span>
+                </div>
+                
+                <h2 className="text-2xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C] tracking-wide">
+                  Advance Payment Successful
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your 30% advance deposit payment has been received and verified. Your event date is officially secured.
+                </p>
+
+                <div className="bg-[#FAF6EE] dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800/80 p-5 rounded-md space-y-3.5 text-sm text-left max-w-sm mx-auto font-mono">
+                  <div className="flex justify-between border-b border-[#E8DFC9]/50 dark:border-zinc-800/50 pb-2">
+                    <span className="text-gray-500">Booking Reference</span>
+                    <span className="font-bold text-gray-850 dark:text-white">{successBookingRef}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#E8DFC9]/50 dark:border-zinc-800/50 pb-2">
+                    <span className="text-gray-500">Advance Paid</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(successAdvancePaid)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Remaining Balance</span>
+                    <span className="font-bold text-gray-850 dark:text-white">{formatCurrency(successRemainingBalance)}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center">
+                  <button 
+                    onClick={() => router.push("/customer/myaccount?tab=bookings")}
+                    className="px-6 py-3 bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm shadow-sm"
                   >
-                    <option value="Wedding">Wedding</option>
-                    <option value="Birthday Party">Birthday Party</option>
-                    <option value="Corporate Meeting">Corporate Meeting</option>
-                    <option value="Conference">Conference</option>
-                    <option value="Anniversary">Anniversary</option>
-                    <option value="Other">Other Event</option>
-                  </select>
-                </div>
-                <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
-                <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-                <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
-                <TimeRangeSelector
-                  startTime={startTime}
-                  endTime={endTime}
-                  onChange={(start, end) => {
-                    setStartTime(start);
-                    setEndTime(end);
-                  }}
-                />
-                <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
-                <PackageSelector selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage} dbPackages={dbPackages} />
-                <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/30 w-full" />
-                <GuestCounter count={guestCount} onChange={setGuestCount} min={100} max={600} />
-              </div>
-            )}
-
-            {/* Step 2: Vendor Selection */}
-            {currentStep === 2 && (
-              <div className="animate-fadeIn">
-                <BookingVendorSelector vendors={vendors} onChange={setVendors as any} />
-              </div>
-            )}
-
-            {/* Step 3: Review */}
-            {currentStep === 3 && (
-              <div className="space-y-6 animate-fadeIn bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm">
-                <h3 className="text-xl font-serif text-[#1A1512] dark:text-white mb-4">Review Your Booking</h3>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">Event Date:</span>
-                    <span className="font-bold text-[#1A1512] dark:text-white">
-                      {selectedDate
-                        ? new Date(selectedDate).toLocaleDateString(undefined, {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })
-                        : "Not selected"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">Timeslot &amp; Duration:</span>
-                    <span className="font-bold text-[#1A1512] dark:text-white">
-                      {startTime} - {endTime} ({durationHours} hrs)
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">Guests:</span>
-                    <span className="font-bold text-[#1A1512] dark:text-white">
-                      {guestCount} Guests
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">Venue Package:</span>
-                    <span className="font-bold text-[#1A1512] dark:text-white capitalize">
-                      {selectedPackage} Package
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 text-sm">
-                    <span className="text-gray-500">Selected Vendors:</span>
-                    <div className="text-right font-bold text-[#1A1512] dark:text-white space-y-1 text-xs">
-                      {([ "decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).map((cat) => {
-                        const id = vendors[cat];
-                        if (!id || id === "none") return null;
-                        const v = globalVendors.find((v: Vendor) => v.id === id);
-                        return <p key={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}: {v ? v.name : "Selected"}</p>;
-                      })}
-                      {(["decorator", "dj", "videographer", "photographer", "cake", "florist"] as const).every(
-                        (cat) => !vendors[cat] || vendors[cat] === "none"
-                      ) && <p className="text-gray-400 font-normal">No vendors selected</p>}
-                    </div>
-                  </div>
-                  <div className="flex justify-between pb-3 text-sm font-bold">
-                    <span className="text-[#1A1512] dark:text-white">Estimated Total:</span>
-                    <span className="text-[#C69C6D] text-base">{formatCurrency(grandTotal)}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-4">
-                  <input
-                    type="checkbox"
-                    id="termsAgree"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="accent-[#C69C6D] h-4 w-4 cursor-pointer"
-                  />
-                  <label htmlFor="termsAgree" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
-                    I confirm that I have reviewed the booking details with the client and they agree to the EASCC Cancellation Policy.
-                  </label>
+                    View Booking
+                  </button>
+                  <button 
+                    onClick={handleDownloadReceipt}
+                    className="px-6 py-3 border border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm"
+                  >
+                    Download Receipt
+                  </button>
                 </div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Hold countdown banner */}
+                {holdExpiresAt && timeLeft > 0 && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 px-4 py-3 rounded-sm flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-6 animate-pulse">
+                    <span>⚠️ Temporary reservation active. Secure your event date before the hold expires!</span>
+                    <span className="font-mono text-sm bg-[#C69C6D] text-white px-2 py-1 rounded-sm">
+                      {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                    </span>
+                  </div>
+                )}
 
-            {/* Step 4: Checkout */}
-            {currentStep === 4 && (
-              <div className="animate-fadeIn space-y-8 bg-white dark:bg-[#111111] p-6 border border-[#E8DFC9] dark:border-gray-800 rounded-sm shadow-[0_0_20px_rgba(128,93,58,0.05)] dark:shadow-[0_0_20px_rgba(201,168,76,0.05)]">
-                <label className="block text-[10px] uppercase tracking-widest text-[#805D3A] dark:text-[#C9A84C] font-bold flex items-center gap-1.5 border-b border-[#D4C9A8] dark:border-[#C9A84C]/30 pb-3 mb-4">
-                  <User className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> Client Registry & Payment
-                </label>
-
-                <form onSubmit={handleFinalizeBooking} className="space-y-8">
-                  {/* Contact Details */}
-                  <div className="space-y-6">
-                    <h4 className="text-base font-serif font-semibold text-[#2C1E14] dark:text-white">Client Details</h4>
+                {/* Step 1: Event Details */}
+                {currentStep === 1 && (
+                  <div className="space-y-8 animate-fadeIn">
                     
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Full Name</label>
-                      <input 
-                        required
-                        type="text" 
-                        placeholder="e.g. John & Sarah"
-                        className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                        value={formData.clientName}
-                        onChange={e => setFormData({...formData, clientName: e.target.value})}
-                      />
+                    {/* Step 1 Header */}
+                    <div className="bg-[#FAF9F6] border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-10 relative overflow-hidden shadow-sm flex flex-col justify-center items-center text-center">
+                      <div className="absolute right-0 top-0 h-full w-1/3 opacity-80 pointer-events-none" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'multiply' }}></div>
+                      <div className="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-r from-[#FAF9F6] via-[#FAF9F6]/80 to-transparent pointer-events-none"></div>
+                      <h2 className="text-[32px] font-serif text-[#1A1512] dark:text-white relative z-10 mb-4 tracking-tight">Let's start with your event details</h2>
+                      <div className="flex items-center justify-center gap-2 mb-4 relative z-10">
+                        <div className="w-8 h-px bg-[#C9A84C]"></div>
+                        <div className="w-2 h-2 rounded-full bg-[#C9A84C]"></div>
+                        <div className="w-8 h-px bg-[#C9A84C]"></div>
+                      </div>
+                      <p className="text-[15px] text-gray-500 max-w-md relative z-10 font-medium">Provide basic information about your event so we can help you find the best options.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Email Address</label>
-                        <input 
-                          required
-                          type="email"
-                          placeholder="client@example.com"
-                          className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                          value={formData.email}
-                          onChange={e => {
-                            setFormData({...formData, email: e.target.value});
-                            if (errors.email) setErrors({ ...errors, email: undefined });
-                          }}
-                        />
-                        {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
+                    {/* Event Type Grid */}
+                    <div className="bg-white dark:bg-[#111111] border-b border-gray-100 pb-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-7 h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center font-bold text-xs shadow-md">1</div>
+                        <h3 className="text-xl font-bold text-[#1A1512] dark:text-white">Event Type</h3>
                       </div>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Phone Number</label>
-                        <input 
-                          required
-                          type="tel"
-                          placeholder="+94 77 ..."
-                          className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                          value={formData.phone}
-                          onChange={e => {
-                            setFormData({...formData, phone: e.target.value});
-                            if (errors.phone) setErrors({ ...errors, phone: undefined });
-                          }}
-                        />
-                        {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {[
+                          { id: 'Wedding', icon: '💍' },
+                          { id: 'Engagement', icon: '💎' },
+                          { id: 'Birthday', icon: '🎂' },
+                          { id: 'Anniversary', icon: '❤️' },
+                          { id: 'Corporate', icon: '💼' },
+                          { id: 'Conference', icon: '👥' },
+                          { id: 'Graduation', icon: '🎓' },
+                          { id: 'Other', icon: '💬' },
+                        ].map((type) => (
+                          <div 
+                            key={type.id}
+                            onClick={() => setEventType(type.id)}
+                            className={`cursor-pointer rounded-lg p-5 flex flex-col items-center justify-center gap-3 transition-all ${eventType === type.id ? 'border-2 border-[#C9A84C] bg-[#FDFBF7] shadow-[0_4px_15px_rgba(201,168,76,0.15)] scale-[1.02]' : 'border border-gray-200 hover:border-[#C9A84C] hover:bg-gray-50'}`}
+                          >
+                            <span className="text-2xl">{type.icon}</span>
+                            <span className={`text-[13px] font-bold ${eventType === type.id ? 'text-[#C9A84C]' : 'text-gray-600'}`}>{type.id}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Alternative Phone Number (Optional)</label>
-                      <input 
-                        type="tel"
-                        placeholder="+94 77 000 0000"
-                        className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                        value={formData.alternativePhone}
-                        onChange={e => {
-                          setFormData({...formData, alternativePhone: e.target.value});
-                          if (errors.alternativePhone) setErrors({ ...errors, alternativePhone: undefined });
+                    {/* Date & Time */}
+                    <div className="bg-white dark:bg-[#111111] border-b border-gray-100 pb-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-7 h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center font-bold text-xs shadow-md">2</div>
+                        <h3 className="text-xl font-bold text-[#1A1512] dark:text-white">Event Date & Time</h3>
+                      </div>
+                      
+                      <div className="mb-6">
+                        <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-2">Event Start Time</label>
+                          <div className="relative">
+                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input 
+                              type="time" 
+                              className="w-full border border-gray-200 rounded-lg py-3.5 pl-11 pr-4 text-sm font-medium text-gray-700 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-shadow"
+                              value={startTime}
+                              onChange={(e) => setStartTime(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-2">Event End Time</label>
+                          <div className="relative">
+                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input 
+                              type="time" 
+                              className="w-full border border-gray-200 rounded-lg py-3.5 pl-11 pr-4 text-sm font-medium text-gray-700 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-shadow"
+                              value={endTime}
+                              onChange={(e) => setEndTime(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedDate !== 0 && (
+                        <div className="bg-[#FDFBF7] border border-[#F2E5C5] rounded-lg py-3.5 px-5 flex items-center gap-3 text-sm text-[#805D3A] font-medium shadow-sm">
+                          <Calendar className="w-4 h-4 text-[#C9A84C]" />
+                          Selected date: {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </div>
+                      )}
+                      {isSelectedDateUnavailable() && (
+                        <div className="text-red-500 text-xs font-medium mt-3">
+                          This date is currently unavailable. Please select another beautiful day for your event.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Guest Count */}
+                    <div className="bg-white dark:bg-[#111111] border-b border-gray-100 pb-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-7 h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center font-bold text-xs shadow-md">3</div>
+                        <h3 className="text-xl font-bold text-[#1A1512] dark:text-white">Guest Count</h3>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row items-center gap-8">
+                        <div className="flex-1 w-full">
+                          <label className="block text-[13px] font-bold text-gray-700 mb-3">Expected Number of Guests</label>
+                          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-[#FAF9F6]">
+                            <button onClick={() => setGuestCount(Math.max(10, guestCount - 10))} className="px-6 py-3.5 text-[#C9A84C] hover:bg-white hover:text-[#805D3A] font-bold text-xl transition-colors border-r border-gray-200">-</button>
+                            <input 
+                              type="number" 
+                              value={guestCount}
+                              onChange={(e) => setGuestCount(Number(e.target.value))}
+                              className="flex-1 text-center font-bold text-xl py-3.5 bg-transparent focus:outline-none text-[#1A1512]"
+                            />
+                            <button onClick={() => setGuestCount(Math.min(maxCapacity, guestCount + 10))} className="px-6 py-3.5 text-[#C9A84C] hover:bg-white hover:text-[#805D3A] font-bold text-xl transition-colors border-l border-gray-200">+</button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 w-full bg-[#FDFBF7] border border-[#E8DFC9] rounded-xl p-6 flex items-start gap-4 shadow-sm">
+                          <div className="text-[#C9A84C] bg-white p-3 rounded-full shadow-[0_2px_10px_rgba(201,168,76,0.15)]"><Users className="w-6 h-6" /></div>
+                          <div>
+                            <h4 className="text-[13px] font-bold text-[#805D3A] mb-1">Recommended Capacity</h4>
+                            <p className="text-[15px] font-bold text-[#1A1512] mb-1">50 - {maxCapacity} Guests</p>
+                            <p className="text-[11px] text-gray-500 font-medium">(Comfortable seating)</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                )}
+
+                {/* Step 2: Venue Package Selection */}
+                {currentStep === 2 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
+                      <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
+                        Venue Package Selection
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Based on your guest count of <strong>{guestCount}</strong>, we recommend the <strong>{guestCount <= 250 ? "Silver" : guestCount <= 450 ? "Gold" : "Diamond"}</strong> package.
+                      </p>
+                      <PackageCards 
+                        activePackage={selectedPackage} 
+                        setActivePackage={setSelectedPackage} 
+                        packages={dbPackages && dbPackages.length > 0 ? dbPackages.map((pkg) => {
+                          const nameLower = pkg.name.toLowerCase();
+                          let slug = "gold";
+                          if (nameLower.includes("silver")) slug = "silver";
+                          else if (nameLower.includes("diamond")) slug = "diamond";
+
+                          return {
+                            id: pkg._id || pkg.id || slug,
+                            name: pkg.name,
+                            price: typeof pkg.price === 'number' ? `LKR ${pkg.price.toLocaleString()}` : pkg.price,
+                            guests: pkg.maxGuests ? `Up to ${pkg.maxGuests} guests` : "Guests",
+                            description: pkg.description || "",
+                            features: pkg.features || []
+                          };
+                        }).sort((a, b) => {
+                          const order = { "silver": 1, "gold": 2, "diamond": 3 };
+                          return (order[a.id as keyof typeof order] || 4) - (order[b.id as keyof typeof order] || 4);
+                        }) : undefined}
+                        onSelect={(id) => {
+                          setSelectedPackage(id);
+                          setCurrentStep(3);
                         }}
+                        isCompact={true}
                       />
-                      {errors.alternativePhone && <p className="text-red-500 text-[10px] mt-1">{errors.alternativePhone}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Special Requests / Notes</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] p-3 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                        placeholder="Internal manager notes or client requests..."
-                        value={formData.notes}
-                        onChange={e => setFormData({...formData, notes: e.target.value})}
-                      ></textarea>
                     </div>
                   </div>
+                )}
 
-                  <div className="h-px bg-[#D4C9A8] dark:bg-[#C9A84C]/20 w-full" />
+                {/* Step 3: Select Artisans */}
+                {currentStep === 3 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
+                      <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
+                        Select Artisans & Vendors
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                        Add curated third-party vendor services to complete your event. You can also proceed without selecting them if you have alternative arrangements.
+                      </p>
+                      <BookingVendorSelector 
+                        vendors={vendors} 
+                        onChange={setVendors} 
+                        decoratorRequirements={decoratorRequirements}
+                        setDecoratorRequirements={setDecoratorRequirements}
+                        videographerRequirements={videographerRequirements}
+                        setVideographerRequirements={setVideographerRequirements}
+                        djRequirements={djRequirements}
+                        setDjRequirements={setDjRequirements}
+                      />
+                    </div>
+                  </div>
+                )}
 
-                  {/* Payment Details */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-base font-serif font-semibold text-[#2C1E14] dark:text-white flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-[#805D3A] dark:text-[#C9A84C]" /> Deposit Collection
-                      </h4>
-                      <div className="flex items-center gap-1 text-[9px] text-emerald-500 font-bold tracking-widest uppercase">
-                        Minimum 30% Expected: LKR {(grandTotal * 0.3).toLocaleString()}
+                {/* Step 4: Billing Details */}
+                {currentStep === 4 && (
+                  <div className="space-y-8 animate-fadeIn">
+                    {/* Customer Information */}
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
+                      <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
+                        Customer Information
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">First name<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="John"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={firstName}
+                            onChange={(e) => {
+                              setFirstName(e.target.value);
+                              if (errors.firstName) setErrors({ ...errors, firstName: undefined });
+                            }}
+                          />
+                          {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Last name<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="Doe"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={lastName}
+                            onChange={(e) => {
+                              setLastName(e.target.value);
+                              if (errors.lastName) setErrors({ ...errors, lastName: undefined });
+                            }}
+                          />
+                          {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName}</p>}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Email<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="email"
+                            placeholder="name@example.com"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email) setErrors({ ...errors, email: undefined });
+                            }}
+                          />
+                          {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Phone<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="tel"
+                            placeholder="0771234567"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={phone}
+                            onChange={(e) => {
+                              setPhone(e.target.value);
+                              if (errors.phone) setErrors({ ...errors, phone: undefined });
+                            }}
+                          />
+                          {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Alternative Phone (Optional)</label>
+                          <input
+                            type="tel"
+                            placeholder="0779876543"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={alternativePhone}
+                            onChange={(e) => setAlternativePhone(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">NIC Number<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 199912345678 or 991234567V"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={nic}
+                            onChange={(e) => {
+                              setNic(e.target.value.toUpperCase());
+                              if (errors.nic) setErrors({ ...errors, nic: undefined });
+                            }}
+                          />
+                          {errors.nic && <p className="text-red-500 text-[10px] mt-1">{errors.nic}</p>}
+                        </div>
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-bold mb-2">Advance Received (LKR)</label>
-                      <input 
-                        required
-                        type="number"
-                        min="0"
-                        placeholder="e.g. 500000"
-                        className="w-full border border-[#D4C9A8] dark:border-[#C9A84C]/30 bg-[#FDFBF7] dark:bg-[#1A1A1A] px-3 py-2 text-base text-[#2C1E14] dark:text-white focus:border-[#805D3A] dark:focus:border-[#C9A84C] outline-none transition-colors rounded-sm"
-                        value={advanceReceived}
-                        onChange={e => setAdvanceReceived(e.target.value ? Number(e.target.value) : '')}
-                      />
+                    {/* Billing Details */}
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
+                      <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
+                        Billing Details
+                      </h3>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Address<span className="text-red-500 ml-1">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="123 Luxury Avenue"
+                          className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                          value={billingAddress}
+                          onChange={(e) => {
+                            setBillingAddress(e.target.value);
+                            if (errors.billingAddress) setErrors({ ...errors, billingAddress: undefined });
+                          }}
+                        />
+                        {errors.billingAddress && <p className="text-red-500 text-[10px] mt-1">{errors.billingAddress}</p>}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">City<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="Colombo"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={billingCity}
+                            onChange={(e) => {
+                              setBillingCity(e.target.value);
+                              if (errors.billingCity) setErrors({ ...errors, billingCity: undefined });
+                            }}
+                          />
+                          {errors.billingCity && <p className="text-red-500 text-[10px] mt-1">{errors.billingCity}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Postal code<span className="text-red-500 ml-1">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="00100"
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                            value={billingPostalCode}
+                            onChange={(e) => {
+                              setBillingPostalCode(e.target.value);
+                              if (errors.billingPostalCode) setErrors({ ...errors, billingPostalCode: undefined });
+                            }}
+                          />
+                          {errors.billingPostalCode && <p className="text-red-500 text-[10px] mt-1">{errors.billingPostalCode}</p>}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Country<span className="text-red-500 ml-1">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="Sri Lanka"
+                          className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-2.5 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors"
+                          value={billingCountry}
+                          onChange={(e) => {
+                            setBillingCountry(e.target.value);
+                            if (errors.billingCountry) setErrors({ ...errors, billingCountry: undefined });
+                          }}
+                        />
+                        {errors.billingCountry && <p className="text-red-500 text-[10px] mt-1">{errors.billingCountry}</p>}
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  <div className="pt-4 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20">
-                    <button 
-                      type="submit"
-                      disabled={isProcessing}
-                      className={`w-full py-4 text-[10px] uppercase font-bold tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md ${isProcessing ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]'}`}
+                {/* Step 5: Review & Final Confirmation */}
+                {currentStep === 5 && (
+                  <div className="space-y-6 animate-fadeIn">
+                    
+                    {/* Main Dashboard Review Card */}
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
+                      <div className="bg-[#FAFBF7] dark:bg-[#1A1A1A] px-6 py-4 border-b border-[#E8DFC9] dark:border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">
+                          Final Review Dashboard
+                        </h3>
+                        <div className="text-left md:text-right">
+                          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Booking Total</p>
+                          <p className="text-2xl font-bold text-[#805D3A] dark:text-[#C9A84C]">{formatCurrency(bookingTotal)}</p>
+                        </div>
+                      </div>
+
+                      <div className="p-6 space-y-8">
+                        
+                        {/* Event & Venue Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <h4 className="font-bold text-[#A6955C] uppercase tracking-widest text-[10px] pb-2 border-b border-gray-100 dark:border-gray-800">Event Details</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-500 text-xs">Event</p>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200 capitalize">{eventType}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs">Date</p>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200">{selectedDate ? new Date(selectedDate).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : "N/A"}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs">Guests</p>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200">{guestCount} Guests</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs">Timeslot</p>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200">{startTime} - {endTime}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <h4 className="font-bold text-[#A6955C] uppercase tracking-widest text-[10px] pb-2 border-b border-gray-100 dark:border-gray-800">Hall</h4>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200 capitalize text-base">{selectedPackage} Package</p>
+                                <p className="text-gray-500 text-sm capitalize">Hall Booking</p>
+                              </div>
+                              <p className="font-bold text-gray-900 dark:text-gray-200">{formatCurrency(grandTotal - getVendorCost("decorator") - getVendorCost("videographer") - getVendorCost("dj"))}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Vendors List */}
+                        {(vendors.decorator !== "none" || vendors.videographer !== "none" || vendors.dj !== "none") && (
+                          <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                             <h4 className="font-bold text-[#A6955C] uppercase tracking-widest text-[10px] pb-2 border-b border-gray-100 dark:border-gray-800">Selected Artisans</h4>
+                             
+                             {([
+                               { key: "decorator", label: "Decorator", req: decoratorRequirements },
+                               { key: "videographer", label: "Videographer", req: videographerRequirements },
+                               { key: "dj", label: "DJ Artist", req: djRequirements }
+                             ] as const).map((cat) => {
+                               const id = vendors[cat.key as keyof typeof vendors];
+                               if (!id || id === "none") return null;
+                               
+                               const v = globalVendors.find((vendor: Vendor) => vendor.id === id || (vendor as any)._id === id);
+                               const pkgName = vendors[`${cat.key}Package` as keyof typeof vendors];
+                               const cost = getVendorCost(cat.key);
+                               const designId = requestedDesigns[cat.key as keyof typeof requestedDesigns];
+
+                               return (
+                                 <div key={cat.key} className="bg-[#FAFBF7] dark:bg-white/5 border border-gray-100 dark:border-gray-800 p-4 rounded-md">
+                                   <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="text-xs font-bold text-[#A6955C] uppercase tracking-widest mb-1">{cat.label}</p>
+                                        <p className="text-base font-semibold text-gray-900 dark:text-gray-200">{v ? v.name : "Custom Selected"}</p>
+                                        <p className="text-sm text-gray-500 capitalize">{pkgName || "Default Package"}</p>
+                                        {designId && <p className="text-[10px] uppercase tracking-widest text-emerald-600 mt-1 font-bold">✓ Specific Design Requested</p>}
+                                      </div>
+                                      <p className="font-bold text-gray-900 dark:text-gray-200">{formatCurrency(cost)}</p>
+                                   </div>
+                                   
+                                   {cat.req && cat.req.trim() !== "" && (
+                                     <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Special request:</p>
+                                        <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">"{cat.req}"</p>
+                                     </div>
+                                   )}
+                                 </div>
+                               );
+                             })}
+                          </div>
+                        )}
+
+                        {/* Additional Notes for Manager */}
+                        <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                          <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold mb-2">Additional Notes for Manager</label>
+                          <textarea
+                            rows={3}
+                            placeholder="Any other overall requirements for your event..."
+                            className="w-full bg-[#FAFBF7] dark:bg-[#1A1A1A] border border-[#D4C9A8] dark:border-[#C9A84C]/30 px-4 py-3 rounded-md text-sm outline-none focus:border-[#C9A84C] transition-colors resize-none"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                          />
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Vendor Policy Warning */}
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-md">
+                      <div className="flex gap-3">
+                        <div className="text-amber-500 mt-0.5 font-bold">⚠️</div>
+                        <div>
+                          <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400 mb-1">Important</h4>
+                          <p className="text-xs text-amber-700 dark:text-amber-500/80 leading-relaxed font-medium">
+                            Your vendor selections are requests only. Vendors will be notified after the hall booking is approved by the manager. If a vendor declines, you will be able to choose a replacement vendor or request a refund/credit according to the applicable policy.
+                            {" "}
+                            <button 
+                              onClick={() => setPolicyModalType("vendor")}
+                              className="text-amber-800 dark:text-amber-400 font-bold underline hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+                            >
+                              Read full policy
+                            </button>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cancellation Policy */}
+                    <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
+                      <div className="bg-[#FAFBF7] dark:bg-[#1A1A1A] px-6 py-4 border-b border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center">
+                        <h4 className="text-[10px] uppercase tracking-widest font-bold text-[#A6955C]">
+                          Hall Cancellation &amp; Refund Policy
+                        </h4>
+                        <button
+                          onClick={() => setPolicyModalType("cancellation")}
+                          className="text-[10px] uppercase tracking-widest font-bold text-[#805D3A] dark:text-[#C9A84C] hover:text-[#A6955C] underline transition-colors"
+                        >
+                          Read full policy
+                        </button>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        {(() => {
+                          const tier = venueSettings?.cancellationTiers || "tiered";
+                          if (tier === "strict") {
+                            return (
+                              <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">Before confirmation:</p>
+                                  <p className="text-gray-600">100% refund</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">After confirmation:</p>
+                                  <p className="text-gray-600">According to hall cancellation policy (Strictly non-refundable)</p>
+                                </div>
+                              </div>
+                            );
+                          }
+                          if (tier === "flexible") {
+                            return (
+                              <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">Before confirmation:</p>
+                                  <p className="text-gray-600">100% refund</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">After confirmation (more than 14 days before):</p>
+                                  <p className="text-gray-600">Full refund</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">Within 14 days of event:</p>
+                                  <p className="text-gray-600">Refund conditions apply (50% partial refund)</p>
+                                </div>
+                              </div>
+                            );
+                          }
+                          // Default tiered
+                          return (
+                            <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">Before confirmation:</p>
+                                  <p className="text-gray-600">100% refund</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">After confirmation:</p>
+                                  <p className="text-gray-600">According to hall cancellation policy</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900 dark:text-white">Within 30 days:</p>
+                                  <p className="text-gray-600">Refund conditions apply</p>
+                                </div>
+                            </div>
+                          );
+                        })()}
+
+                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            id="termsAgree"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="accent-[#C69C6D] h-5 w-5 mt-0.5 cursor-pointer rounded"
+                          />
+                          <label htmlFor="termsAgree" className="text-sm font-medium text-gray-800 dark:text-gray-200 select-none cursor-pointer">
+                            I have read and agree to the cancellation and refund policy.
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Payment Summary Box */}
+                    <div className="bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-6 shadow-sm">
+                      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="space-y-2 w-full md:w-auto">
+                          <div className="flex justify-between md:justify-start gap-8 items-end">
+                            <div>
+                              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Payable Now (Advance)</p>
+                              <p className="text-3xl font-serif text-[#1A1512] dark:text-white">{formatCurrency(depositToday)}</p>
+                              <div className="mt-2 text-xs text-gray-500 space-y-1">
+                                <p className="flex justify-between w-48"><span className="text-gray-400">Hall (25%)</span> <span>{formatCurrency(hallAdvance)}</span></p>
+                                {decoratorAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Decorator ({decoratorAdv.percentage}%)</span> <span>{formatCurrency(decoratorAdv.advance)}</span></p>}
+                                {djAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">DJ ({djAdv.percentage}%)</span> <span>{formatCurrency(djAdv.advance)}</span></p>}
+                                {videographerAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Videographer ({videographerAdv.percentage}%)</span> <span>{formatCurrency(videographerAdv.advance)}</span></p>}
+                              </div>
+                            </div>
+                            <div className="text-right md:text-left self-start">
+                              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Remaining Balance</p>
+                              <p className="text-lg text-gray-700 dark:text-gray-300">{formatCurrency(balanceDue)}</p>
+                              <p className="text-[10px] text-gray-500 mt-1 font-medium">Due 7 days before the event</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-full md:w-auto">
+                          {/* Navigation Buttons inline for final step */}
+                          <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+                            <button
+                              onClick={handleBack}
+                              className="w-full md:w-auto px-6 py-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-sm uppercase font-bold tracking-widest transition-colors"
+                            >
+                              &larr; Back
+                            </button>
+                            <button
+                              onClick={handlePreConfirm}
+                              disabled={!termsAccepted || isProcessing}
+                              className="w-full md:w-auto px-8 py-4 bg-[#1A1512] hover:bg-[#2C241E] dark:bg-white dark:hover:bg-gray-200 dark:text-[#1A1512] text-white font-bold uppercase tracking-widest text-[11px] rounded-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              {isProcessing ? "Processing..." : "BOOK"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                {currentStep < 5 && (
+                  <div className="flex items-center justify-between pt-8 border-t border-gray-100 dark:border-gray-800 mt-8">
+                    {currentStep > 1 ? (
+                      <button
+                        onClick={handleBack}
+                        className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
+                      >
+                        &larr; Previous Step
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    <button
+                      onClick={handleNext}
+                      className="px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] bg-[#C69C6D] hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
                     >
-                      {isProcessing ? "Processing..." : "Finalize & Add Booking"}
+                      Next Step &rarr;
                     </button>
                   </div>
-                </form>
-              </div>
+                )}
+
+              </>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-8">
-              {currentStep > 1 ? (
-                <button
-                  onClick={handleBack}
-                  className="px-8 py-3 bg-transparent text-[#C69C6D] border border-[#C69C6D] text-sm uppercase font-bold tracking-[0.2em] hover:bg-[#C69C6D] hover:text-white transition-colors rounded-sm shadow-sm"
-                >
-                  &larr; Previous Step
-                </button>
-              ) : (
-                <div />
-              )}
+          </div>
 
-              {currentStep < TOTAL_STEPS && (
-                <button
-                  onClick={handleNext}
-                  disabled={currentStep === 3 && !termsAccepted}
-                  className={`px-8 py-3 text-white text-sm uppercase font-bold tracking-[0.2em] transition-colors rounded-sm shadow-md ${
-                    currentStep === 3 && !termsAccepted
-                      ? "bg-gray-400 cursor-not-allowed opacity-50"
-                      : "bg-[#C69C6D] hover:bg-[#B58B5C]"
-                  }`}
+          {/* Right Column: Sticky Cost Breakdown / Booking Summary */}
+          {/* Right Column: Sidebar */}
+          {!successBookingRef && (
+            <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-32 hidden lg:block">
+              {/* LIVE BOOKING SUMMARY */}
+              <div className="bg-white border border-[#E8DFC9] rounded-lg p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Live Booking Summary</h3>
+                  <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> All changes saved</span>
+                </div>
+                
+                <h4 className="text-xs font-bold text-[#1A1512] mb-4 uppercase tracking-widest">Event Overview</h4>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 flex items-center gap-2"><div className="w-4 h-4 bg-gray-100 rounded-sm" /> Event Type</span>
+                    <span className="font-bold text-[#1A1512]">{eventType || 'Not selected'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-400" /> Event Date</span>
+                    <span className="font-bold text-[#1A1512]">{selectedDate ? new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not selected'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 flex items-center gap-2"><Clock className="w-4 h-4 text-gray-400" /> Event Time</span>
+                    <span className="font-bold text-[#1A1512]">{formatTimeStr(startTime)} – {formatTimeStr(endTime)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 flex items-center gap-2"><Users className="w-4 h-4 text-gray-400" /> Guest Count</span>
+                    <span className="font-bold text-[#1A1512]">{guestCount} Guests</span>
+                  </div>
+                </div>
+
+                {selectedPackage && (
+                  <>
+                    <div className="h-px bg-gray-100 w-full mb-5" />
+                    <h4 className="text-xs font-bold text-[#1A1512] mb-3 uppercase tracking-widest">Selected Package</h4>
+                    <div className="flex items-center justify-between text-sm bg-[#FAFBF7] p-3 rounded-md border border-[#F2E5C5] mb-6">
+                      <span className="font-bold text-[#1A1512] capitalize flex items-center gap-2"><Gift className="w-3.5 h-3.5 text-[#C9A84C]" /> {selectedPackage} Package</span>
+                      <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-sm uppercase tracking-wider">Added</span>
+                    </div>
+                  </>
+                )}
+
+                {(vendors.decorator !== 'none' || vendors.dj !== 'none' || vendors.videographer !== 'none') && (
+                  <>
+                    <div className="h-px bg-gray-100 w-full mb-5" />
+                    <h4 className="text-xs font-bold text-[#1A1512] mb-3 uppercase tracking-widest">Selected Vendors</h4>
+                    <div className="space-y-2 mb-6">
+                      {['decorator', 'dj', 'videographer'].map(cat => {
+                        const vId = vendors[cat as keyof typeof vendors];
+                        if (vId && vId !== 'none') {
+                          return (
+                            <div key={cat} className="flex flex-col bg-[#FDFBF7] p-3 rounded-md border border-[#E8DFC9]">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">{cat}</span>
+                                <span className="text-[9px] text-[#C9A84C] font-bold bg-[#FAF9F6] px-2 py-0.5 rounded-sm uppercase tracking-wider">Added</span>
+                              </div>
+                              <span className="font-bold text-[#1A1512] text-sm">{getVendorName(vId) || vId}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {currentStep > 1 && (
+                  <>
+                    <div className="h-px bg-gray-100 w-full mb-6" />
+                    <h4 className="text-xs font-bold text-[#1A1512] mb-4 uppercase tracking-widest">Cost Breakdown</h4>
+                    <div className="space-y-3 mb-6 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500">Hall Estimate</span>
+                        <span className="font-bold text-[#1A1512]">{formatCurrency(hallBase)}</span>
+                      </div>
+                      {addonsCost > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Vendor Estimate</span>
+                          <span className="font-bold text-[#1A1512]">{formatCurrency(addonsCost)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                        <span className="text-[#C9A84C] font-bold">Total Estimate</span>
+                        <span className="font-bold text-[#C9A84C] text-lg">{formatCurrency(bookingTotal)}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                <button 
+                  onClick={() => handleStepClick(1)}
+                  className="w-full bg-[#FDFBF7] hover:bg-[#F2E5C5] border border-[#E8DFC9] text-[#805D3A] py-3 rounded-md text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
-                  Next Step &rarr;
+                  <Edit2 className="w-3 h-3" /> Edit Event Details
                 </button>
-              )}
+              </div>
+
+              {/* BOOKING JOURNEY */}
+              <div className="bg-white border border-[#E8DFC9] rounded-lg p-6 shadow-sm">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">Booking Journey</h3>
+                <div className="space-y-6 relative">
+                  <div className="absolute left-4 top-4 bottom-4 w-px bg-gray-100 z-0"></div>
+                  {[1, 2, 3, 4, 5].map((step) => (
+                    <div key={`journey-${step}`} className="flex items-start gap-4 relative z-10">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${currentStep === step ? 'bg-[#FDFBF7] border-2 border-[#C9A84C] text-[#C9A84C] shadow-sm' : currentStep > step ? 'bg-[#C9A84C] border-2 border-[#C9A84C] text-white' : 'bg-white border-2 border-gray-100 text-gray-300'}`}>
+                        {currentStep > step ? <Check className="w-4 h-4" /> : step}
+                      </div>
+                      <div className="pt-1">
+                        <h4 className={`text-sm font-bold ${currentStep === step ? 'text-[#C9A84C]' : currentStep > step ? 'text-[#1A1512]' : 'text-gray-400'}`}>{STEP_LABELS[step]}</h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          {step === 1 && "Tell us about your event"}
+                          {step === 2 && "Choose your package"}
+                          {step === 3 && "Select your vendors"}
+                          {step === 4 && "Review & confirm"}
+                          {step === 5 && "Secure your booking"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* NEED HELP? */}
+              <div className="bg-white border border-[#E8DFC9] rounded-lg p-6 shadow-sm relative overflow-hidden group">
+                <div className="relative z-10 w-2/3">
+                  <h3 className="text-sm font-bold text-[#1A1512] mb-2">Need Help?</h3>
+                  <p className="text-xs text-gray-500 mb-4 leading-relaxed">Our event specialists are here to help you plan your perfect event.</p>
+                  <button className="bg-[#FDFBF7] border border-[#E8DFC9] text-[#805D3A] px-4 py-2.5 rounded-md text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#F2E5C5] transition-colors shadow-sm">
+                    <Headphones className="w-3 h-3" /> Contact Us
+                  </button>
+                </div>
+                <div className="absolute -right-4 bottom-0 w-32 h-32 bg-[#FAF9F6] rounded-full mix-blend-multiply opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
+                <Headphones className="absolute right-4 bottom-4 w-16 h-16 text-[#E8DFC9] opacity-20 transform -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
+              </div>
+
+              {/* TRUST BADGES */}
+              <div className="bg-white border border-[#E8DFC9] rounded-lg p-6 shadow-sm relative overflow-hidden">
+                <h3 className="text-sm font-bold text-[#1A1512] mb-4">Your Booking is Safe</h3>
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center gap-3 text-xs text-gray-600 font-medium">
+                    <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-emerald-500" />
+                    </div>
+                    Secure SSL Encryption
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-600 font-medium">
+                    <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-emerald-500" />
+                    </div>
+                    Trusted by 1000+ customers
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-600 font-medium">
+                    <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-emerald-500" />
+                    </div>
+                    Best price guaranteed
+                  </div>
+                </div>
+                <div className="absolute -right-2 -bottom-2 opacity-10 rotate-12">
+                  <ShieldCheck className="w-24 h-24 text-[#C9A84C]" />
+                </div>
+              </div>
             </div>
+          )}
 
-          </div>
+          {!successBookingRef && (
+            <>
+              {/* Mobile Summary Floating Panel / Bottom Sheet */}
+              <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-[#111111] border-t-2 border-[#C69C6D] shadow-[0_-5px_30px_rgba(0,0,0,0.15)] transition-all duration-300">
+                {/* Collapsed view */}
+                {!mobileSummaryExpanded ? (
+                  <div 
+                    onClick={() => setMobileSummaryExpanded(true)}
+                    className="p-4 flex items-center justify-between cursor-pointer active:bg-gray-50/50 dark:active:bg-zinc-900/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📋</span>
+                      <div>
+                        <p className="text-xs font-serif font-bold text-gray-900 dark:text-white">Your Event Summary</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
+                          <span>Pkg {selectedPackage ? '✓' : '✗'}</span>
+                          <span>•</span>
+                          <span>{[vendors.decorator, vendors.videographer, vendors.dj].filter(v => v && v !== 'none').length} Vendors ✓</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Total</p>
+                        <p className="text-sm font-bold text-[#C69C6D]">
+                          <AnimatedPrice value={bookingTotal} format={formatCurrency} />
+                        </p>
+                      </div>
+                      <ChevronUp className="w-5 h-5 text-[#C69C6D] animate-bounce" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Backdrop */}
+                    <div 
+                      onClick={() => setMobileSummaryExpanded(false)}
+                      className="fixed inset-0 bg-black/40 z-[-1]"
+                    />
+                    
+                    {/* Expanded Bottom Sheet */}
+                    <div className="max-h-[80vh] overflow-y-auto rounded-t-[20px] p-6 space-y-6">
+                      <div className="flex items-center justify-between border-b border-gray-150 dark:border-zinc-800 pb-3">
+                        <h3 className="text-lg font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">Your Live Event Summary</h3>
+                        <button 
+                          onClick={() => setMobileSummaryExpanded(false)}
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                          <ChevronDown className="w-6 h-6" />
+                        </button>
+                      </div>
 
-          {/* Right Column: Sticky Cost Breakdown */}
-          <div className="lg:col-span-4 space-y-6 sticky top-24">
-            <CostBreakdown
-              packageName={selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
-              selectedTimeslot={`${startTime} - ${endTime}`}
-              costBreakdown={{
-                basePrice,
-                extraHoursPremium,
-                guestCount,
-                timeslotPremium,
-                addonsCost,
-                grandTotal,
-              }}
-              formatCurrency={formatCurrency}
-            />
-            <TrustDivider />
-          </div>
+                      {/* Accordion List */}
+                      <div className="space-y-3">
+                        
+
+                        {/* Package Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "package" ? null : "package")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">🎁 Package</span>
+                            <span className="text-[#C69C6D] capitalize">{selectedPackage ? `${selectedPackage} ✓` : 'Not Selected ✗'}</span>
+                          </button>
+                          {mobileOpenAccordion === "package" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs text-gray-600 dark:text-gray-400 space-y-1 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              <p><strong>Selected Package:</strong> <span className="capitalize">{selectedPackage ? `${selectedPackage} Package` : "None Selected"}</span></p>
+                              <p><strong>Menu Type Included:</strong> Standard catering set menu.</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Vendors Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "vendors" ? null : "vendors")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">🌸 Selected Artisans</span>
+                            <span className="text-[#C69C6D]">{[vendors.decorator, vendors.videographer, vendors.dj].filter(v => v && v !== 'none').length} Selected ✓</span>
+                          </button>
+                          {mobileOpenAccordion === "vendors" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs space-y-2 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              {([
+                                { id: "decorator", label: "Decorator", icon: "🌸" },
+                                { id: "videographer", label: "Videographer", icon: "📹" },
+                                { id: "dj", label: "DJ Artist", icon: "🎧" }
+                              ] as const).map((cat) => {
+                                const vendorId = vendors[cat.id];
+                                const isSelected = vendorId && vendorId !== "none";
+                                const vObj = globalVendors.find(v => v.id === vendorId || (v as any)._id === vendorId);
+                                return (
+                                  <div key={cat.id} className="flex justify-between items-center py-1">
+                                    <span className="text-gray-500">{cat.icon} {cat.label}</span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">
+                                      {isSelected ? (vObj ? vObj.name : "Custom Selected") : "Not Added"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Details/Pricing Accordion */}
+                        <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => setMobileOpenAccordion(mobileOpenAccordion === "pricing" ? null : "pricing")}
+                            className="w-full bg-[#FAFBF7] dark:bg-zinc-900/40 p-4 flex items-center justify-between text-xs font-bold"
+                          >
+                            <span className="flex items-center gap-2">💰 Pricing & Details</span>
+                            <span className="text-[#C69C6D]">Breakdown ✓</span>
+                          </button>
+                          {mobileOpenAccordion === "pricing" && (
+                            <div className="p-4 bg-white dark:bg-[#111111] text-xs text-gray-600 dark:text-gray-400 space-y-2 border-t border-[#E8DFC9]/40 dark:border-zinc-800/40">
+                              <p><strong>Date:</strong> {selectedDate ? new Date(selectedDate).toLocaleDateString() : "Pending selection"}</p>
+                              <p><strong>Time Slot:</strong> {startTime} – {endTime}</p>
+                              <p className="flex justify-between"><strong>Hall Base:</strong> <span>{formatCurrency(hallBase)}</span></p>
+                              {addonsCost > 0 && <p className="flex justify-between"><strong>Vendors:</strong> <span>{formatCurrency(addonsCost)}</span></p>}
+                              <div className="h-px bg-gray-100 dark:bg-zinc-800 my-2" />
+                              <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200 mt-1">
+                                <span>Estimated Grand Total</span>
+                                <span className="text-[#C69C6D]">{formatCurrency(bookingTotal)}</span>
+                              </div>
+                              <div className="flex justify-between font-bold text-gray-800 dark:text-gray-200">
+                                <span>Advance Deposit</span>
+                                <span className="text-[#C69C6D]">{formatCurrency(depositToday)}</span>
+                              </div>
+                              <div className="pl-4 pt-1 text-xs text-gray-500 space-y-0.5">
+                                <div className="flex justify-between"><span>Hall (25%)</span><span>{formatCurrency(hallAdvance)}</span></div>
+                                {decoratorAdv.advance > 0 && <div className="flex justify-between"><span>Decorator ({decoratorAdv.percentage}%)</span><span>{formatCurrency(decoratorAdv.advance)}</span></div>}
+                                {djAdv.advance > 0 && <div className="flex justify-between"><span>DJ ({djAdv.percentage}%)</span><span>{formatCurrency(djAdv.advance)}</span></div>}
+                                {videographerAdv.advance > 0 && <div className="flex justify-between"><span>Videographer ({videographerAdv.percentage}%)</span><span>{formatCurrency(videographerAdv.advance)}</span></div>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Cost Summary Highlight */}
+                      <div className="p-4 bg-[#FAF6EE] dark:bg-amber-950/20 border border-[#C69C6D]/40 rounded-2xl flex justify-between items-center text-sm font-bold">
+                        <span className="text-[#805D3A] dark:text-[#C9A84C] font-serif">Estimated Total</span>
+                        <span className="text-[#C69C6D] text-base">
+                          <AnimatedPrice value={bookingTotal} format={formatCurrency} />
+                        </span>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="space-y-3">
+                        {currentStep < TOTAL_STEPS ? (
+                          <button
+                            onClick={() => {
+                              handleNext();
+                              setMobileSummaryExpanded(false);
+                            }}
+                            className="w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] bg-[#C69C6D] hover:bg-[#B58B5C] rounded-xl shadow-md transition-colors"
+                          >
+                            Continue Booking &rarr;
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handleConfirmAndPay();
+                              setMobileSummaryExpanded(false);
+                            }}
+                            disabled={!termsAccepted || isProcessing}
+                            className={`w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] rounded-xl shadow-md transition-colors ${
+                              !termsAccepted || isProcessing
+                                ? "bg-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-[#C69C6D] hover:bg-[#B58B5C]"
+                            }`}
+                          >
+                            {isProcessing ? "Processing..." : "Finalize & Add Booking"}
+                          </button>
+                        )}
+                        <p className="text-center text-[9px] text-gray-500 uppercase tracking-widest flex items-center justify-center gap-1">
+                          <Lock className="w-3 h-3 text-emerald-500" /> SECURED BY PAYHERE CENTRAL BANK REGULATED Webhook
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
 
         </div>
       </main>
 
-      {/* Premium Success Modal */}
+      
       {showSuccessModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center rounded-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center">
             <div className="w-16 h-16 bg-[#FAF6EE] border border-[#E0D8C3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <Lock size={32} className="text-[#7C6A2E]" />
+              <CheckCircle2 size={32} className="text-[#7C6A2E]" />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Created Successfully!</h3>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Confirmed!</h3>
             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
-              The new booking has been added to the system and the requested artisans have been notified.
+              Your 30% deposit has been successfully processed. The artisan team has been notified and your date is secured.
             </p>
             <button 
               onClick={() => {
                 setShowSuccessModal(false);
-                if (onSuccess) {
-                  onSuccess();
-                } else {
-                  router.push("/hotel-manager/bookings");
-                }
+                router.push("/customer/myaccount?tab=bookings");
               }}
-              className="w-full bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] text-black px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm rounded-sm"
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm"
             >
-              Continue to Bookings
+              Go to Dashboard
             </button>
           </div>
         </div>
       )}
 
+      {paymentPendingNotice && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] dark:bg-[#111111] border-2 border-[#C9A84C] shadow-2xl p-8 max-w-md w-full mx-4 text-center rounded-[20px] space-y-6">
+            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">
+                Payment Not Completed
+              </h3>
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                Your booking reservation has been saved, but your <strong>30% advance deposit</strong> has not been completed yet.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
+                ⏳ Please complete your 30% advance payment within <strong>15 minutes</strong> to secure your date.
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <button 
+                onClick={() => {
+                  setPaymentPendingNotice(null);
+                  router.push("/customer/myaccount?tab=bookings");
+                }}
+                className="w-full bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] py-3.5 px-6 text-xs font-bold uppercase tracking-widest transition-colors rounded-xl shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Go to My Account & Pay Now</span> &rarr;
+              </button>
+              
+              <button 
+                onClick={() => setPaymentPendingNotice(null)}
+                className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors"
+              >
+                Close & Stay on Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+
+      <DateRequiredModal
+        isOpen={isDateModalOpen}
+        onClose={() => setIsDateModalOpen(false)}
+      />
+
+      <LoginRequiredModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        message="Please log in to continue with your booking process."
+      />
+
+      <PolicyModal
+        isOpen={policyModalType !== null}
+        onClose={() => setPolicyModalType(null)}
+        policyType={policyModalType}
+        cancellationTier={venueSettings?.cancellationTiers}
+      />
+
+      {showAdvanceModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#111111] max-w-md w-full rounded shadow-xl overflow-hidden border border-[#E8DFC9] dark:border-gray-800 animate-fadeIn">
+            <div className="bg-[#FAFBF7] dark:bg-[#1A1A1A] px-6 py-4 border-b border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center">
+              <h3 className="font-serif italic text-[#C69C6D] text-lg font-semibold tracking-wide">Record Advance Payment</h3>
+              <button onClick={() => setShowAdvanceModal(false)} className="text-gray-500 hover:text-red-500"><X size={20} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                To confirm this booking, please collect and record the advance payment from the customer.
+              </p>
+              
+              <div className="bg-[#FDFBF7] dark:bg-[#1A1A1A] p-4 rounded-md border border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Minimum Advance:</span>
+                <span className="text-lg font-bold text-[#805D3A] dark:text-[#C9A84C]">{formatCurrency(depositToday)}</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                  Amount Received (LKR) *
+                </label>
+                <input
+                  type="number"
+                  min={depositToday}
+                  value={advanceReceived}
+                  onChange={(e) => setAdvanceReceived(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="w-full px-4 py-3 bg-white dark:bg-black border border-[#E8DFC9] dark:border-gray-800 focus:border-[#C69C6D] focus:ring-1 focus:ring-[#C69C6D] rounded outline-none transition-all text-gray-900 dark:text-white"
+                  placeholder="e.g. 50000"
+                />
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={handleConfirmAndPay}
+                  disabled={isProcessing}
+                  className="w-full px-8 py-4 bg-[#1A1512] hover:bg-[#2C241E] dark:bg-white dark:hover:bg-gray-200 dark:text-[#1A1512] text-white font-bold uppercase tracking-widest text-[11px] rounded-sm transition-all shadow-md disabled:opacity-50"
+                >
+                  {isProcessing ? "PROCESSING..." : "CONFIRM & PAY"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

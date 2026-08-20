@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, Tag, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Tag, Edit2, Trash2, ChevronLeft, ChevronRight, PlayCircle, Check } from 'lucide-react';
 import RatingsStats from '../../ratings/RatingsStats';
 import RecentFeedback from '../../ratings/RecentFeedback';
 
@@ -109,17 +109,24 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
   const coverMedia = item.media?.find((m: any) => m.isCover) || item.media?.[0];
   const getMediaUrl = (url: string) => url.startsWith("http") ? url : `${API_URL}${url}`;
 
-  // Gallery images
-  const galleryImages = item.media?.map((m: any) => getMediaUrl(m.url)) || [];
-  const displayUrl = galleryImages.length > 0 ? galleryImages[currentImageIndex] : "https://via.placeholder.com/1200x800";
+  // Gallery media
+  const galleryMedia = item.media?.map((m: any) => {
+    const url = getMediaUrl(m.url);
+    return {
+      url,
+      isVideo: m.resourceType === 'video' || m.mediaType === 'video' || url.includes('.mp4') || url.includes('.webm') || url.includes('/video/upload/')
+    };
+  }) || [];
+  
+  const currentMedia = galleryMedia.length > 0 ? galleryMedia[currentImageIndex] : { url: "https://via.placeholder.com/1200x800", isVideo: false };
 
   const handleNext = (e: React.MouseEvent) => {
     e.preventDefault();
-    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    setCurrentImageIndex((prev) => (prev + 1) % galleryMedia.length);
   };
   const handlePrev = (e: React.MouseEvent) => {
     e.preventDefault();
-    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    setCurrentImageIndex((prev) => (prev - 1 + galleryMedia.length) % galleryMedia.length);
   };
 
   return (
@@ -158,14 +165,25 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
 
         {/* Hero Section */}
         <div className="w-full h-[50vh] sm:h-[60vh] lg:h-[70vh] relative group overflow-hidden bg-black">
-          <img 
-            src={displayUrl} 
-            alt={item.title} 
-            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80"
-          />
+          {currentMedia.isVideo ? (
+            <video 
+              src={currentMedia.url} 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80"
+            />
+          ) : (
+            <img 
+              src={currentMedia.url} 
+              alt={item.title} 
+              className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
           
-          {galleryImages.length > 1 && (
+          {galleryMedia.length > 1 && (
             <>
               <button 
                 onClick={handlePrev}
@@ -220,7 +238,7 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
           </div>
 
           {/* Details Sidebar (Right) */}
-          <div className="lg:col-span-5 space-y-12">
+          <div className="lg:col-span-5 space-y-8">
             <div className="space-y-6">
               <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 border-b border-[#E0D8C3] pb-2 uppercase">Project Specifications</h3>
               
@@ -230,16 +248,8 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
                   <div className="text-sm font-serif font-bold text-gray-800">{item.venue || 'Premium Location'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Event Type</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{item.category || "Cinematography"}</div>
-                </div>
-                <div>
                   <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Date</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : "2026"}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1">Style</div>
-                  <div className="text-sm font-serif font-bold text-gray-800">{"Cinematic Film"}</div>
+                  <div className="text-sm font-serif font-bold text-gray-800">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : (item.year || "2026")}</div>
                 </div>
                 {item.price ? (
                   <div className="col-span-2 pt-2 border-t border-[#F2EDE0]">
@@ -249,11 +259,56 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
                 ) : null}
               </div>
             </div>
+
+            {/* Event Types */}
+            {item.eventTypes && item.eventTypes.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-bold tracking-[0.2em] text-gray-400 uppercase">Events Covered</h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.eventTypes.map((t: string) => (
+                    <span key={t} className="px-3 py-1.5 bg-white border border-[#E0D8C3] text-gray-700 text-xs font-semibold rounded-sm shadow-sm">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Video Styles */}
+            {item.videoStyles && item.videoStyles.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-bold tracking-[0.2em] text-gray-400 uppercase">Videography Style</h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.videoStyles.map((t: string) => (
+                    <span key={t} className="px-3 py-1.5 bg-[#FDFBF7] border border-[#F2E5C5] text-[#C9A84C] text-xs font-semibold rounded-sm shadow-sm">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Services Provided */}
+            {item.servicesProvided && item.servicesProvided.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h3 className="text-[9px] font-bold tracking-[0.2em] text-gray-400 uppercase border-b border-[#E0D8C3] pb-2 mb-3">Included Services</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
+                  {item.servicesProvided.map((service: string) => (
+                    <div key={service} className="flex items-start gap-2">
+                      <div className="mt-0.5 p-0.5 bg-emerald-50 rounded text-emerald-500 flex-shrink-0">
+                        <Check className="w-3 h-3" strokeWidth={3} />
+                      </div>
+                      <span className="text-xs font-medium text-gray-600 leading-tight">{service}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Gallery Section */}
-        {galleryImages.length > 0 && (
+        {galleryMedia.length > 0 && (
           <div className="bg-white border-t border-[#E0D8C3] py-16 lg:py-24">
             <div className="max-w-7xl mx-auto px-6 sm:px-8">
               <h3 className="text-center text-sm font-bold tracking-[0.2em] text-[#A6955C] uppercase mb-12 flex items-center justify-center gap-4">
@@ -262,14 +317,26 @@ const GalleryItemMain = ({ itemId }: GalleryItemMainProps) => {
                 <span className="w-12 h-[1px] bg-[#E0D8C3]"></span>
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {galleryImages.map((src: string, idx: number) => (
+                {galleryMedia.map((media: any, idx: number) => (
                   <div key={idx} onClick={() => setCurrentImageIndex(idx)} className={`aspect-square relative overflow-hidden group cursor-pointer border shadow-sm transition-all ${currentImageIndex === idx ? 'border-[#B08D2C] scale-[0.98] ring-2 ring-[#F9DD76]/50' : 'border-[#F2EDE0] hover:border-[#B08D2C]/50'}`}>
-                    <img 
-                      src={src} 
-                      alt={`Gallery perspective ${idx + 1}`} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                    {media.isVideo ? (
+                      <>
+                        <video 
+                          src={media.url} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 pointer-events-none"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <PlayCircle className="w-8 h-8 text-white opacity-80" />
+                        </div>
+                      </>
+                    ) : (
+                      <img 
+                        src={media.url} 
+                        alt={`Gallery perspective ${idx + 1}`} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
                   </div>
                 ))}
               </div>

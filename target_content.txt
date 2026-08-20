@@ -1,0 +1,114 @@
+  const handleConfirmAndPay = async () => {
+    if (!termsAccepted) {
+      addToast({ message: "Please accept the terms and conditions.", type: "error" });
+      return;
+    }
+    
+    // Validate Contact & Billing Form
+    setErrors({});
+    let hasError = false;
+    const newErrors: typeof errors = {};
+
+    if (!firstName.trim()) { newErrors.firstName = "First name is required."; hasError = true; }
+    if (!lastName.trim()) { newErrors.lastName = "Last name is required."; hasError = true; }
+    const { validateEmail, validatePhone } = await import("@/lib/validation");
+    if (!validateEmail(email)) { newErrors.email = "Please enter a valid email address."; hasError = true; }
+    if (!validatePhone(phone)) { newErrors.phone = "Please enter a valid Sri Lankan phone number."; hasError = true; }
+    if (!nic.trim() || !/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(nic)) { newErrors.nic = "Please enter a valid Sri Lankan NIC."; hasError = true; }
+    if (!billingAddress.trim()) { newErrors.billingAddress = "Billing address is required."; hasError = true; }
+    if (!billingCity.trim()) { newErrors.billingCity = "Billing city is required."; hasError = true; }
+    if (!billingPostalCode.trim()) { newErrors.billingPostalCode = "Postal code is required."; hasError = true; }
+    if (!billingCountry.trim()) { newErrors.billingCountry = "Country is required."; hasError = true; }
+
+    if (hasError) {
+      setErrors(newErrors);
+      setCurrentStep(4);
+      addToast({ message: "Please fill in all required customer details.", type: "error" });
+      return;
+    }
+    
+    if (advanceReceived === "") {
+      addToast({ message: "Please enter the advance amount received.", type: "error" });
+      return;
+    }
+
+    // We removed the strict hold expiration check here.
+    // If the hold expired, the backend will verify if the date is still available during checkout.
+
+    setIsProcessing(true);
+    const bookingResult = await handleFinalizeBooking({
+      firstName,
+      lastName,
+      email,
+      phone,
+      alternativePhone,
+      nic,
+      billingAddress,
+      billingCity,
+      billingPostalCode,
+      billingCountry,
+      notes,
+      paymentMethod: "Manual",
+      depositAmount: advanceReceived,
+    });
+    
+    if (typeof bookingResult === "string") {
+      // Hand off entirely to PayHere's official Hosted Checkout Modal
+      const { startPayHerePayment } = await import("@/utils/payhere");
+      await startPayHerePayment({
+        bookingId: bookingResult,
+        paymentType: "deposit",
+        onSuccess: () => {
+          // Fetch the completed booking details to display on the success screen
+          customerBookingAPI.getMyBookings().then(res => {
+            if (res.ok && res.data?.data) {
+              const matched = res.data.data.find((b: any) => (b._id || b.id) === bookingResult);
+              if (matched) {
+                setSuccessBookingRef(matched.bookingRef);
+                setSuccessAdvancePaid(matched.depositAmount);
+                const due = Math.max(0, matched.totalCost - matched.depositAmount - matched.balanceAmount - (matched.bookingCredit || 0));
+                setSuccessRemainingBalance(due);
+                setSuccessBookingId(matched._id || matched.id);
+                setIsProcessing(false);
+                addToast({ message: "30% Deposit Paid! Booking Confirmed. Waiting for manager approval.", type: "success" });
+                return;
+              }
+            }
+            // Fallback
+            setSuccessBookingRef(`LG-${new Date().getFullYear()}-${bookingResult.slice(-4).toUpperCase()}`);
+            setSuccessAdvancePaid(depositToday);
+            setSuccessRemainingBalance(balanceDue);
+            setSuccessBookingId(bookingResult);
+            setIsProcessing(false);
+            addToast({ message: "30% Deposit Paid! Booking Confirmed. Waiting for manager approval.", type: "success" });
+          }).catch(() => {
+            setSuccessBookingRef(`LG-${new Date().getFullYear()}-${bookingResult.slice(-4).toUpperCase()}`);
+            setSuccessAdvancePaid(depositToday);
+            setSuccessRemainingBalance(balanceDue);
+            setSuccessBookingId(bookingResult);
+            setIsProcessing(false);
+            addToast({ message: "30% Deposit Paid! Booking Confirmed. Waiting for manager approval.", type: "success" });
+          });
+        },
+        onDismiss: () => {
+          setIsProcessing(false);
+          if (bookingResult) {
+            setPaymentPendingNotice({ bookingId: bookingResult });
+          }
+        },
+        onError: () => {
+          setIsProcessing(false);
+          if (bookingResult) {
+            setPaymentPendingNotice({ bookingId: bookingResult });
+            addToast({ message: "Payment failed. Booking submitted but deposit is pending.", type: "error" });
+          }
+        }
+      });
+    } else if (bookingResult) {
+      setIsProcessing(false);
+      setShowSuccessModal(true);
+      addToast({ message: "Booking Submitted! Please pay the deposit offline within 48 hours.", type: "success" });
+    } else {
+      setIsProcessing(false);
+    }
+  };

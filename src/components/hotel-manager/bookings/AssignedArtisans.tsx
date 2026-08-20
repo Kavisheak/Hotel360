@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { apiFetch } from '@/lib/api';
+import { useToastStore } from '@/store/toastStore';
 
-const AssignedArtisans = ({ booking }: { booking: any }) => {
+const AssignedArtisans = ({ booking, onRefresh }: { booking: any, onRefresh?: () => void }) => {
+  const [isRefunding, setIsRefunding] = useState(false);
+  const { addToast } = useToastStore();
   // Defensive check for vendors object
   const vendors = booking?.vendors || {};
 
@@ -40,7 +44,32 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
       status: vendorObj.status || 'Pending',
       packageName: vendorObj.packageName || 'Custom',
       img: imgUrl,
+      rejectionReason: vendorObj.rejectionReason || vendorObj.declineReason || '',
+      rejectedAt: vendorObj.rejectedAt || null,
+      rejectedAt: vendorObj.rejectedAt || null,
+      serviceCategory: role.toLowerCase().includes('decorator') ? 'decorator' : role.toLowerCase().includes('dj') ? 'dj' : 'videographer',
     };
+  };
+
+  const handleRefund = async (itemType: string) => {
+    if (!confirm('Are you sure you want to process this refund for the customer?')) return;
+    setIsRefunding(true);
+    try {
+      const res = await apiFetch(`/api/manager/payments/bookings/${booking._id || booking.id}/items/${itemType}/refund`, {
+        method: "POST"
+      });
+      if (res.ok) {
+        addToast({ message: "Refund processed successfully.", type: "success" });
+        onRefresh?.();
+      } else {
+        alert(res.data?.message || "Failed to process refund.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("An error occurred while processing the refund.");
+    } finally {
+      setIsRefunding(false);
+    }
   };
 
   const activeArtisans = [
@@ -78,7 +107,8 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
               <div className="flex gap-2 items-center mt-auto">
                 <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm ${
                   a.status === 'Accepted' || a.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                  a.status === 'Declined' ? 'bg-red-100 text-red-700' :
+                  a.status === 'Refunded' ? 'bg-blue-100 text-blue-700' :
+                  a.status === 'Declined' || a.status === 'Refund Pending' ? 'bg-red-100 text-red-700' :
                   'bg-yellow-100 text-yellow-700'
                 }`}>
                   {a.status === 'Awaiting Hall Confirmation' ? 'Awaiting Hall' : a.status}
@@ -87,6 +117,28 @@ const AssignedArtisans = ({ booking }: { booking: any }) => {
                   {a.packageName}
                 </span>
               </div>
+              
+              {a.status === 'Declined' && (a.rejectionReason || a.rejectedAt) && (
+                <div className="mt-3 w-full bg-red-50 border border-red-100 rounded p-2 text-left">
+                  <p className="text-[9px] font-bold uppercase text-red-700 mb-1">Rejection Details</p>
+                  {a.rejectedAt && (
+                    <p className="text-[10px] text-red-600 mb-1">Date: {new Date(a.rejectedAt).toLocaleDateString()}</p>
+                  )}
+                  {a.rejectionReason && (
+                    <p className="text-[10px] text-red-600 italic">"{a.rejectionReason}"</p>
+                  )}
+                </div>
+              )}
+              
+              {a.status === 'Refund Pending' && (
+                <button
+                  onClick={() => handleRefund(a.serviceCategory)}
+                  disabled={isRefunding}
+                  className="mt-3 w-full py-2 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors disabled:opacity-50"
+                >
+                  {isRefunding ? "Processing..." : "Refund Customer"}
+                </button>
+              )}
             </div>
           ))}
         </div>

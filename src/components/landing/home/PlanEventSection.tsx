@@ -6,13 +6,6 @@ import { useRouter } from 'next/navigation';
 import { motion, Variants } from 'framer-motion';
 
 const PlanEventSection = () => {
-  const router = useRouter();
-
-  const handleBook = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push('/book');
-  };
-
   const slideUpVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
@@ -67,13 +60,6 @@ const PlanEventSection = () => {
             </div>
           </div>
 
-          <button 
-            onClick={handleBook}
-            className="bg-[#CDA566] hover:bg-[#b8945b] text-white px-10 py-4 rounded-md flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-widest transition-all shadow-[0_4px_14px_rgba(205,165,102,0.4)]"
-          >
-            START BOOKING NOW
-            <ArrowRight size={16} strokeWidth={2.5} />
-          </button>
         </motion.div>
       </div>
     </section>

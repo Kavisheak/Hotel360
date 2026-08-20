@@ -5,12 +5,15 @@ import {
   X, CalendarDays, Clock, Users, Package, 
   MapPin, Phone, Mail, User, Receipt,
   CheckCircle2, AlertCircle, CreditCard,
-  Music, Camera, Paintbrush, Award
+  Music, Camera, Paintbrush, Award, Ban
 } from "lucide-react";
 import type { Booking } from "@/store/bookingStore";
 import { customerBookingAPI, accountAPI } from "@/lib/api";
 import { startPayHerePayment } from "@/utils/payhere";
 import EscrowTracker from "./EscrowTracker";
+import VendorSwapModal from "./VendorSwapModal";
+import VendorRemovalModal from "./VendorRemovalModal";
+import RefundRequestModal from "./RefundRequestModal";
 
 import ReplacementVendorModal from "../decorator/my_jobs/ReplacementVendorModal";
 
@@ -35,12 +38,27 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
   const [mounted, setMounted] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState<"deposit" | "balance" | null>(null);
+  const [showRefundModal, setShowRefundModal] = useState(false);
 
   // Credit replacement states
   const [activeCredits, setActiveCredits] = useState<any[]>([]);
   const [vendorAdvances, setVendorAdvances] = useState<any[]>([]);
   const [isRefundingCredit, setIsRefundingCredit] = useState(false);
   const [showReplacementCategory, setShowReplacementCategory] = useState<string | null>(null);
+
+  const [swapModalState, setSwapModalState] = useState<{
+    isOpen: boolean;
+    serviceCategory: any;
+    currentVendorId?: string;
+  }>({ isOpen: false, serviceCategory: "decorator" });
+
+  const [removalModalState, setRemovalModalState] = useState<{
+    isOpen: boolean;
+    serviceCategory: any;
+    currentVendorId?: string;
+  }>({ isOpen: false, serviceCategory: "decorator" });
+  
+  const [locallyRemovedVendors, setLocallyRemovedVendors] = useState<string[]>([]);
 
   // Form State for Autofill
   const [cardNumber, setCardNumber] = useState("");
@@ -84,27 +102,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
     }
   }, [isOpen, booking]);
 
-  const handleManualCreditRefund = async (creditId: string, amount: number) => {
-    if (!booking) return;
-    const bId = booking._id || booking.id!;
-    if (confirm(`Are you sure you want to request an immediate LKR ${amount.toLocaleString()} refund instead of selecting a replacement vendor?`)) {
-      setIsRefundingCredit(true);
-      try {
-        const res = await customerBookingAPI.refundCreditManual(bId, creditId);
-        if (res.ok) {
-          alert(`LKR ${amount.toLocaleString()} advance refund processed successfully!`);
-          window.location.reload();
-        } else {
-          alert(res.data?.message || "Failed to process refund.");
-        }
-      } catch (e: any) {
-        alert(e.message || "Server error while processing refund.");
-      } finally {
-        setIsRefundingCredit(false);
-      }
-    }
-  };
-
   useEffect(() => {
     setMounted(true);
     if (isOpen) document.body.style.overflow = "hidden";
@@ -134,7 +131,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
       const bId = booking._id || booking.id!;
       const res = await customerBookingAPI.payVendorAdvance(bId, advanceId);
       if (res.ok && res.data?.data?.hash) {
-        // use payhere window
         const payhere = (window as any).payhere;
         if (!payhere) {
           alert("PayHere is not loaded.");
@@ -201,14 +197,29 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   const createdDate = new Date(booking.createdAt || new Date());
   
-  const balanceDue = Math.max(0, (booking.totalCost || 0) - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0));
+  let refundRequestedAmount = 0;
+  let refundedAmount = 0;
+  const vendorCats = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
+  
+  vendorCats.forEach(cat => {
+    const v = (booking.vendors as any)?.[cat];
+    if (v) {
+      if (v.status === "Refund Pending") {
+        refundRequestedAmount += v.refundRequestedAmount || 0;
+      } else if (v.status === "Refunded") {
+        refundedAmount += v.refundRequestedAmount || 0;
+      }
+    }
+  });
+
+  const totalPaid = (booking.depositAmount || 0) + (booking.balanceAmount || 0);
+  const netPaid = totalPaid - refundedAmount;
+  const balanceDue = Math.max(0, (booking.totalCost || 0) - netPaid);
 
   const eventDate = new Date(booking.date);
-  // 70% Balance is due 7 days before event date
   const balanceDueDate = new Date(eventDate.getTime() - 7 * 24 * 60 * 60 * 1000);
   const balanceDeadlineString = balanceDueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // Vendor confirmation & 7-day pre-event window status check
   const vendorCategories = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
   const unacceptedVendors = booking.vendors ? vendorCategories.filter(cat => {
     const v = (booking.vendors as any)[cat];
@@ -222,10 +233,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
 
   const isHallConfirmed = booking.status === "Confirmed" || booking.status === "Completed";
   const isHallRejected = booking.status === "Rejected";
-  const isHallPending = booking.status === "Pending Hall Confirmation" || booking.status === "Pending Confirmation" || booking.status === "Pending";
-
-  const cancelDeadlineDate = new Date(eventDate);
-  cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 14);
+  
   const handleCancelClick = async () => {
     const today = new Date();
     const diffTime = eventDate.getTime() - today.getTime();
@@ -236,32 +244,12 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
       return;
     }
 
-    let confirmMsg = "";
-    if (diffDays < 14) {
-      alert("This event is less than 14 days away and cannot be cancelled online. Please contact the hotel directly.");
+    if (diffDays < 2) {
+      alert("This event is less than 2 days away and cannot be cancelled online. Please contact the hotel directly.");
       return;
-    } else if (diffDays >= 14 && diffDays <= 30) {
-      confirmMsg = `Your event is ${diffDays} days away. Cancellation requires review and approval by the Hotel Manager. Would you like to submit a cancellation request?`;
-    } else {
-      confirmMsg = `Your event is ${diffDays} days away. Are you sure you want to cancel this booking? This will cancel all hall and vendor allocations immediately.`;
     }
 
-    if (confirm(confirmMsg)) {
-      try {
-        const { customerBookingAPI } = await import("@/lib/api");
-        const res = await customerBookingAPI.cancelBooking(booking.id || booking._id);
-        const data = res.data;
-        if (res.ok && data.success) {
-          alert(data.message || "Action processed successfully!");
-          onClose();
-          window.location.reload();
-        } else {
-          alert(data.message || "Failed to process cancellation request.");
-        }
-      } catch (e) {
-        alert("An error occurred while processing cancellation.");
-      }
-    }
+    setShowRefundModal(true);
   };
 
   return createPortal(
@@ -282,7 +270,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="relative w-full max-w-4xl max-h-[90vh] bg-[#FDFBF7] dark:bg-[#111111] border border-[#E8DFC9] dark:border-[#C9A84C]/30 rounded-xl shadow-2xl flex flex-col overflow-hidden"
         >
-          {/* Header */}
           <div className="flex-shrink-0 border-b border-[#E8DFC9] dark:border-gray-800 p-6 flex items-start justify-between bg-white dark:bg-[#1A1A1A] z-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -309,14 +296,10 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
             </button>
           </div>
  
-          {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-              
-              {/* Left Column (Event Details) */}
               <div className="lg:col-span-2 space-y-6">
                 
-                {/* Rejected Hall Banner */}
                 {isHallRejected && (
                   <div className="p-4 bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-600 rounded-lg shadow-sm flex flex-col gap-2 animate-fadeIn">
                     <div className="flex items-center gap-2">
@@ -334,41 +317,76 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 )}
 
-                {/* Active Booking Credits Banner */}
-                {activeCredits.map((credit: any) => (
-                  <div key={credit._id} className="p-4 bg-[#FFFDF7] dark:bg-amber-950/20 border-2 border-amber-400 dark:border-amber-600 rounded-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded border border-amber-300">
-                          ⚠️ {credit.category.toUpperCase()} DECLINED &bull; REPLACEMENT CREDIT ACTIVE
-                        </span>
-                      </div>
-                      <p className="text-xs text-amber-900 dark:text-amber-200 mt-1.5 leading-relaxed">
-                        Your {credit.category} declined. You have <strong className="text-amber-950 dark:text-amber-100 font-bold font-mono">LKR {credit.creditAmount.toLocaleString()}</strong> credit — pick a replacement or request a refund.
-                      </p>
-                      <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Expires on: {new Date(credit.expiresAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                      <button
-                        onClick={() => setShowReplacementCategory(credit.category)}
-                        className="px-3.5 py-2 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-xs transition-colors"
-                      >
-                        Pick a Replacement
-                      </button>
-                      <button
-                        onClick={() => handleManualCreditRefund(credit._id, credit.creditAmount)}
-                        disabled={isRefundingCredit}
-                        className="px-3.5 py-2 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-[10px] font-bold uppercase tracking-widest rounded transition-colors disabled:opacity-50"
-                      >
-                        Request Refund Instead
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                {(() => {
+                  const declinedVendors: any[] = [];
+                  ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach(svc => {
+                    const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
+                    if (v && (v.status === "Declined" || v.status === "Refund Pending" || v.status === "Refunded")) {
+                      declinedVendors.push({ service: svc, ...v });
+                    }
+                  });
 
-                {/* Pending Vendor Advances */}
+                  if (declinedVendors.length === 0) return null;
+
+                  return (
+                    <div className="p-4 bg-red-50 dark:bg-red-950/20 border-2 border-red-300 dark:border-red-800 rounded-lg shadow-sm flex flex-col gap-4 animate-fadeIn">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-red-800 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-2 py-0.5 rounded border border-red-300">
+                            ⚠️ ACTION REQUIRED: VENDOR DECLINED
+                          </span>
+                        </div>
+                        <p className="text-xs text-red-900 dark:text-red-200 mt-1.5 leading-relaxed font-medium">
+                          Your hall booking remains active. Please review the status of the declined service(s).
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {declinedVendors.map((v, idx) => (
+                          <div key={idx} className="p-3 bg-white dark:bg-black/40 border border-red-200 dark:border-red-900/50 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[10px] font-bold uppercase text-gray-500">{v.service}</p>
+                              <p className="font-semibold text-sm">{v.vendorId || "Assigned Vendor"}</p>
+                              <div className="text-[10px] text-gray-500 mt-1">
+                                {v.rejectionReason && <p><span className="font-semibold">Reason:</span> "{v.rejectionReason}"</p>}
+                                {v.rejectedAt && <p><span className="font-semibold">Date:</span> {new Date(v.rejectedAt).toLocaleDateString()}</p>}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2 shrink-0">
+                              {v.status === "Declined" && booking.status !== "Completed" && !locallyRemovedVendors.includes(v.service) && (
+                                <>
+                                  <button
+                                    onClick={() => setSwapModalState({ isOpen: true, serviceCategory: v.service as any, currentVendorId: v.vendorId })}
+                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors"
+                                  >
+                                    Change Vendor
+                                  </button>
+                                  <button
+                                    onClick={() => setRemovalModalState({ isOpen: true, serviceCategory: v.service as any, currentVendorId: v.vendorId })}
+                                    className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 text-[10px] font-bold uppercase tracking-widest rounded transition-colors"
+                                  >
+                                    Continue Without {v.service}
+                                  </button>
+                                </>
+                              )}
+                              {v.status === "Refund Pending" && (
+                                <div className="px-3 py-1.5 bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest rounded border border-amber-300">
+                                  Refund Requested - Awaiting Approval
+                                </div>
+                              )}
+                              {v.status === "Refunded" && (
+                                <div className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-widest rounded border border-emerald-300">
+                                  Advance amount has been refunded on {new Date(v.rejectedAt || Date.now()).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {vendorAdvances.map((adv: any) => {
                   const isPaid = adv.status === "PAID";
                   const vendorTotal = (booking.pricingBreakdown as any)?.[`${adv.vendorRole}Cost`] || 0;
@@ -439,13 +457,11 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   );
                 })}
 
-                {/* Two-Stage Progress Flow */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" /> Booking Approval Progress
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Stage 1 Card */}
                     <div className={`p-4 rounded-lg border transition-all ${
                       isHallConfirmed 
                         ? "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800" 
@@ -475,7 +491,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       </p>
                     </div>
 
-                    {/* Stage 2 Card */}
                     <div className={`p-4 rounded-lg border transition-all ${
                       !isHallConfirmed 
                         ? "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 opacity-60" 
@@ -511,7 +526,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 </div>
 
-                {/* Event Info Card */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
                     <CalendarDays className="w-4 h-4" /> Event Details
@@ -548,7 +562,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 </div>
  
-                {/* Package & Menu */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
                     <Package className="w-4 h-4" /> Package & Menu
@@ -577,7 +590,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 </div>
  
-                {/* Vendors */}
                 {booking.vendors && (
                   <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                     <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
@@ -593,7 +605,37 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         { key: "florist", icon: Paintbrush, label: "Florist" }
                       ].map(({ key, icon: Icon, label }) => {
                         const vendor = booking.vendors[key as keyof typeof booking.vendors] as any;
-                        if (!vendor || vendor.status === "NotRequired") return null;
+                        if (!vendor) return null;
+                        
+                        const isHistoricallyRemoved = booking.vendorHistory?.some((history: any) => history.service === key);
+                        
+                        if (vendor.status === "Refund Pending" || vendor.status === "Refunded" || locallyRemovedVendors.includes(key) || (vendor.status === "NotRequired" && isHistoricallyRemoved)) {
+                          return (
+                            <div key={key} className="flex flex-col gap-2 p-3 rounded-md border bg-gray-50/50 border-gray-100 dark:bg-[#1A1A1A]/50 dark:border-gray-800 opacity-80">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-full bg-gray-100 dark:bg-[#111] shadow-sm text-gray-400">
+                                    <Ban className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-gray-500">{label}</p>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">Vendor Removed</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                    {vendor.status === "Refund Pending" ? "Refund Pending" : vendor.status === "Refunded" ? "Refunded" : "Removed"}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-gray-500 mt-1 pl-[44px]">
+                                {vendor.status === "Refund Pending" ? "A refund is currently being processed." : vendor.status === "Refunded" ? "Refund successfully processed." : vendor.status === "NotRequired" ? "Any applicable advance was applied as credit to your total balance." : "You have chosen to proceed without this service."}
+                              </p>
+                            </div>
+                          );
+                        }
+                        
+                        if (vendor.status === "NotRequired") return null;
                         
                         const vStatus = vendor.status || "Pending";
                         const isDeclined = vStatus === "Declined" || vStatus === "Expired";
@@ -607,7 +649,14 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                                 <Icon className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className="text-xs font-bold text-[#1A1512] dark:text-gray-200">{label}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-bold text-[#1A1512] dark:text-gray-200">{label}</p>
+                                  {vendor.advanceReceiptConfirmed && (
+                                    <span className="inline-flex items-center gap-1 px-1 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-[8px] font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800/50" title="Vendor has confirmed receipt of the advance payment">
+                                      <CheckCircle2 size={10} /> Receipt Confirmed
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-[10px] text-gray-500 mt-0.5">
                                   {vendor.requestedDesignId ? "Portfolio Design Requested" : (vendor.packageName || "Custom Service")}
                                 </p>
@@ -633,16 +682,12 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 )}
 
-                {/* Real-time Escrow Allocations */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <EscrowTracker bookingId={booking._id || booking.id!} />
                 </div>
               </div>
  
-              {/* Right Column (Client & Pricing) */}
               <div className="space-y-6">
-                
-                {/* Client Info */}
                 <div className="bg-white dark:bg-[#1A1A1A]/50 border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-5 shadow-sm">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
                     <User className="w-4 h-4" /> Contact Information
@@ -673,7 +718,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   </div>
                 </div>
  
-                {/* Pricing Summary */}
                 <div className="bg-[#FAF6EE] dark:bg-[#151515] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-lg p-5 shadow-[0_4px_20px_-4px_rgba(201,168,76,0.1)]">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-[#C9A84C] mb-4 flex items-center gap-2">
                     <Receipt className="w-4 h-4" /> Pricing Summary
@@ -704,7 +748,6 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         </div>
                       )}
                       
-                      {/* Vendor costs if they exist */}
                       {((booking.pricingBreakdown.decoratorCost || 0) + 
                         (booking.pricingBreakdown.djCost || 0) + 
                         (booking.pricingBreakdown.videographerCost || 0) +
@@ -759,7 +802,30 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       <span className="font-serif font-bold text-[#1A1512] dark:text-white text-base">{formatCurrency(booking.totalCost)}</span>
                     </div>
                     
-                    <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-[#E8DFC9]/50 dark:border-white/5 space-y-2">
+                    {(() => {
+                      let refundedAdvances = 0;
+                      ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach(svc => {
+                        const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
+                        if (v && v.status === "Refunded" && v.refundRequestedAmount) {
+                          refundedAdvances += v.refundRequestedAmount;
+                        }
+                      });
+                      if (refundedAdvances > 0) {
+                        return (
+                          <div className="flex justify-between items-center text-xs mt-1">
+                            <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                              <AlertCircle className="w-3.5 h-3.5" /> Vendor Advance Refunded
+                            </span>
+                            <span className="font-bold text-red-600 dark:text-red-400">
+                              - {formatCurrency(refundedAdvances)}
+                            </span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    
+                    <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-[#E8DFC9]/50 dark:border-white/5 space-y-2 mt-3">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                           {booking.depositAmount && booking.depositAmount > 0 ? (
@@ -780,6 +846,44 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                           <span className="font-bold text-emerald-600">{formatCurrency(booking.bookingCredit)}</span>
                         </div>
                       ) : null}
+
+                        {refundRequestedAmount > 0 && (
+                          <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
+                            <span className="text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider text-[10px]">Refund Requested</span>
+                            <span className="font-bold text-amber-600">LKR {refundRequestedAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        {refundedAmount > 0 && (
+                          <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
+                            <span className="text-red-500 font-bold uppercase tracking-wider text-[10px]">Amount Refunded</span>
+                            <span className="font-bold text-red-500">- LKR {refundedAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+
+
+
+                        {refundRequestedAmount > 0 && (
+                          <div className="flex items-center gap-2 text-[10px] text-amber-600 mt-1 pb-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            Pending Manager Approval
+                          </div>
+                        )}
+
+                      {booking.paymentHistory && booking.paymentHistory.map((payment, idx) => {
+                        if (payment.paymentType === "Balance Payment" || payment.paymentType === "Partial Balance Payment" || payment.status === "Paid") {
+                           if (payment.paymentType === "Deposit" || payment.paymentType === "Booking Advance") return null;
+                           return (
+                             <div key={idx} className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
+                               <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                                 <CheckCircle2 className="w-3.5 h-3.5" /> Offline Payment - {new Date(payment.timestamp).toLocaleDateString()}
+                               </span>
+                               <span className="font-bold text-emerald-600">{formatCurrency(payment.amount)}</span>
+                             </div>
+                           );
+                        }
+                        return null;
+                      })}
 
                       <div className="flex justify-between items-center text-xs pt-2 border-t border-[#E8DFC9] dark:border-white/5">
                         <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">Remaining Balance</span>
@@ -856,7 +960,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                                 : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border border-gray-300 dark:border-gray-700"
                             }`}
                           >
-                            <CreditCard className="w-4 h-4" /> Pay 70% Balance via PayHere 🇱🇰 ({formatCurrency(balanceDue)})
+                            <CreditCard className="w-4 h-4" /> Pay Remaining Balance via PayHere 🇱🇰 ({formatCurrency(balanceDue)})
                           </button>
                           <div className="text-center space-y-1">
                             <p className="text-[10px] text-gray-500">
@@ -892,14 +996,39 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                     </button>
                   )}
                 </div>
- 
               </div>
             </div>
           </div>
         </motion.div>
+        
+        {showRefundModal && (
+          <RefundRequestModal
+            booking={booking}
+            onClose={() => setShowRefundModal(false)}
+            onSuccess={() => window.location.reload()}
+          />
+        )}
       </div>
 
-      {/* Replacement Vendor Selection Modal */}
+      <VendorSwapModal
+        isOpen={swapModalState.isOpen}
+        onClose={() => setSwapModalState({ ...swapModalState, isOpen: false })}
+        bookingId={booking._id || booking.id!}
+        serviceCategory={swapModalState.serviceCategory}
+        currentVendorId={swapModalState.currentVendorId}
+      />
+
+      <VendorRemovalModal
+        isOpen={removalModalState.isOpen}
+        onClose={() => {
+          setRemovalModalState({ ...removalModalState, isOpen: false });
+          setLocallyRemovedVendors(prev => [...prev, removalModalState.serviceCategory]);
+        }}
+        bookingId={booking._id || booking.id!}
+        serviceCategory={removalModalState.serviceCategory}
+        currentVendorId={removalModalState.currentVendorId}
+      />
+
       {showReplacementCategory && (
         <ReplacementVendorModal
           isOpen={!!showReplacementCategory}

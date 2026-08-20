@@ -221,6 +221,7 @@ const VendorsListMain = () => {
                 <th className="px-6 py-4 font-bold">Contact Info</th>
                 <th className="px-6 py-4 font-bold">Bookings</th>
                 <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">Verification</th>
                 <th className="px-6 py-4 font-bold text-right">Actions</th>
               </tr>
             </thead>
@@ -270,6 +271,13 @@ const VendorsListMain = () => {
                         vendor.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}>
                         {vendor.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                        vendor.isVerified ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                      }`}>
+                        {vendor.isVerified ? 'Verified' : 'Unverified'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -432,6 +440,20 @@ const VendorsListMain = () => {
                   >
                     <option value="true">Active (Access Granted)</option>
                     <option value="false">Inactive (Access Revoked)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">Verification Status</label>
+                  <select 
+                    value={vendorToEdit.isVerified ? 'true' : 'false'}
+                    onChange={(e) => setVendorToEdit({...vendorToEdit, isVerified: e.target.value === 'true'})}
+                    className="w-full border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] bg-white"
+                  >
+                    <option value="true">Verified (Badge Shown)</option>
+                    <option value="false">Unverified</option>
                   </select>
                 </div>
               </div>

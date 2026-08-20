@@ -134,104 +134,100 @@ export default function RefundQueue() {
 
       {/* SUB-VIEW 1: NEEDS REVIEW */}
       {activeSubTab === "needsReview" && (
-        <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800 rounded-xl shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/40 text-gray-400 font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Booking Ref</th>
-                  <th className="py-3.5 px-4">Service Category</th>
-                  <th className="py-3.5 px-4">Requested By</th>
-                  <th className="py-3.5 px-4">Requested Amount</th>
-                  <th className="py-3.5 px-4">Reason / Notes</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-zinc-800/40">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#C9A84C] mx-auto" />
-                    </td>
-                  </tr>
-                ) : manualRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center text-gray-400 italic">
-                      No refund requests awaiting review.
-                    </td>
-                  </tr>
-                ) : (
-                  manualRequests.map((req) => (
-                    <tr key={req._id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 transition-colors">
-                      <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">
-                        {req.bookingId?.bookingRef || "N/A"}
-                      </td>
-                      <td className="py-4 px-4 capitalize font-semibold text-gray-700 dark:text-gray-300">
-                        {req.itemType}
-                      </td>
-                      <td className="py-4 px-4 text-gray-600 dark:text-gray-300">
-                        {req.requestedBy?.firstName} ({req.requesterRole})
-                      </td>
-                      <td className="py-4 px-4 font-serif font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(req.requestedAmount)}
-                      </td>
-                      <td className="py-4 px-4 text-gray-500 max-w-xs truncate">{req.reason}</td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase border ${
-                            req.status === "PendingReview"
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : req.status === "Approved"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-red-50 text-red-700 border-red-200"
-                          }`}
-                        >
-                          {req.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() =>
-                              setDisputeModal({
-                                isOpen: true,
-                                bookingId: req.bookingId?._id || req.bookingId,
-                                bookingRef: req.bookingId?.bookingRef,
-                                itemType: req.itemType,
-                              })
-                            }
-                            className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 rounded text-[10px] uppercase font-bold tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1"
-                          >
-                            <MessageSquare className="w-3 h-3 text-[#1E56A0]" /> Dispute Thread
-                          </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            <div className="col-span-full py-12 flex justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-[#C9A84C]" />
+            </div>
+          ) : manualRequests.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-gray-500 bg-white dark:bg-[#111111] border border-gray-200 dark:border-zinc-800 rounded-xl">
+              <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-emerald-500 opacity-50" />
+              <p className="text-lg font-medium">All caught up!</p>
+              <p className="text-sm">No refund requests awaiting review.</p>
+            </div>
+          ) : (
+            manualRequests.map((req) => (
+              <div key={req._id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xs overflow-hidden flex flex-col hover:border-[#C9A84C]/30 transition-colors">
+                <div className="p-5 flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-md border border-amber-200 dark:border-amber-800/30">
+                      Vendor Rejection Refund
+                    </span>
+                  </div>
 
-                          {req.status === "PendingReview" && (
-                            <>
-                              <button
-                                onClick={() => handleApprove(req._id, req.requestedAmount)}
-                                disabled={actionId === req._id}
-                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleDeny(req._id)}
-                                disabled={actionId === req._id}
-                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
-                              >
-                                Deny
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  <div className="space-y-3 font-mono text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex justify-between">
+                      <span className="font-sans text-gray-500 text-xs uppercase font-bold tracking-wider">Booking:</span>
+                      <span className="font-bold text-[#1A1512] dark:text-white">
+                        {req.bookingId?.bookingRef || "N/A"}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-sans text-gray-500 text-xs uppercase font-bold tracking-wider">Customer:</span>
+                      <span className="font-bold text-[#1A1512] dark:text-white truncate max-w-[150px]">
+                        {req.requestedBy?.firstName} {req.requestedBy?.lastName}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="font-sans text-gray-500 text-xs uppercase font-bold tracking-wider">Vendor:</span>
+                      <span className="font-bold text-[#1A1512] dark:text-white capitalize truncate max-w-[150px]">
+                        {req.itemType}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 border-t border-b border-gray-100 dark:border-zinc-800/60 my-2">
+                      <span className="font-sans text-gray-500 text-xs uppercase font-bold tracking-wider">Refund Amount:</span>
+                      <span className="font-bold text-[#C9A84C] text-base">
+                        {formatCurrency(req.requestedAmount)}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <span className="font-sans text-gray-500 text-xs uppercase font-bold tracking-wider">Reason:</span>
+                      <span className="text-gray-700 dark:text-gray-300 font-sans text-sm line-clamp-2">
+                        {req.reason || "Vendor declined"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-zinc-800 flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      if (req.bookingId?._id) {
+                        window.open(`/hotel-manager/bookings/${req.bookingId._id}`, "_blank");
+                      }
+                    }}
+                    className="w-full py-2.5 text-xs font-bold uppercase tracking-wider text-[#1A1512] dark:text-white bg-white dark:bg-[#111111] border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    View Booking
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleApprove(req._id, req.requestedAmount)}
+                      disabled={actionId === req._id}
+                      className="py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      {actionId === req._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                      Approve Refund
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDeny(req._id)}
+                      disabled={actionId === req._id}
+                      className="py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      {actionId === req._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                      Reject Request
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 

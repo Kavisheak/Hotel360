@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 export default function VendorsHero() {
   return (
-    <section className="relative w-full py-24 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white overflow-hidden border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20 transition-colors duration-300">
+    <section className="relative w-full pt-28 pb-12 md:pt-40 md:pb-24 bg-white dark:bg-[#0A0A0A] text-[#2C1E14] dark:text-white overflow-hidden border-b border-[#D4C9A8]/30 dark:border-[#C9A84C]/20 transition-colors duration-300">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image

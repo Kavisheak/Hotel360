@@ -17,6 +17,9 @@ interface GalleryItem {
   galleryImages?: string[];
   description?: string;
   price?: number;
+  rawDate?: number;
+  isVideo?: boolean;
+  originalData?: any;
 }
 
 const mockGalleryData: GalleryItem[] = [
@@ -90,12 +93,14 @@ const categories = ["All", "Wedding Film", "Engagement Session", "Corporate Even
 const GalleryGrid = () => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("date_desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [galleryData, setGalleryData] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<any>(null);
 
   const fetchPortfolio = async () => {
     try {
@@ -113,10 +118,13 @@ const GalleryGrid = () => {
             title: item.title || "Untitled Project",
             eventType: item.eventType || "Unknown",
             category: item.category || "cinematography",
-            year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : new Date().getFullYear().toString(),
+            year: item.eventDate ? new Date(item.eventDate).getFullYear().toString() : (item.year || new Date().getFullYear().toString()),
             image: imageUrl,
+            isVideo: coverMedia?.resourceType === 'video' || coverMedia?.mediaType === 'video' || imageUrl.includes('.mp4') || imageUrl.includes('.webm') || imageUrl.includes('/video/upload/'),
             description: item.description || "A professionally captured project featuring cinematic storytelling.",
             price: item.price || 0,
+            rawDate: item.eventDate ? new Date(item.eventDate).getTime() : new Date(item.createdAt || Date.now()).getTime(),
+            originalData: item,
           };
         });
         setGalleryData(items);
@@ -146,10 +154,18 @@ const GalleryGrid = () => {
     }
   };
 
-  const filtered = galleryData.filter((item: any) => {
+  let filtered = galleryData.filter((item: any) => {
     const matchesCategory = activeCategory === "All" || item.eventType === activeCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
+  });
+
+  filtered = [...filtered].sort((a: any, b: any) => {
+    if (sortBy === "name_asc") return a.title.localeCompare(b.title);
+    if (sortBy === "name_desc") return b.title.localeCompare(a.title);
+    if (sortBy === "date_asc") return (a.rawDate || 0) - (b.rawDate || 0);
+    if (sortBy === "date_desc") return (b.rawDate || 0) - (a.rawDate || 0);
+    return 0;
   });
 
   return (
@@ -181,20 +197,37 @@ const GalleryGrid = () => {
 
       {/* Filters Row */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-        {/* Category Filter Tabs */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors border ${activeCategory === cat
-                  ? "bg-[#7C6A2E] text-white border-[#7C6A2E]"
-                  : "bg-white text-gray-600 border-[#E0D8C3] hover:bg-[#F2EADA]"
-                }`}
+        
+        {/* Dropdown Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {/* Category Dropdown */}
+          <div className="relative">
+            <select
+              value={activeCategory}
+              onChange={(e) => setActiveCategory(e.target.value)}
+              className="appearance-none w-full sm:w-[180px] px-4 py-2.5 text-[10px] font-bold tracking-widest uppercase border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer shadow-sm"
             >
-              {cat}
-            </button>
-          ))}
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B08D2C] pointer-events-none" />
+          </div>
+
+          {/* Sort By Dropdown */}
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none w-full sm:w-[180px] px-4 py-2.5 text-[10px] font-bold tracking-widest uppercase border border-[#E0D8C3] bg-white text-gray-700 focus:outline-none focus:border-[#B08D2C] cursor-pointer shadow-sm"
+            >
+              <option value="date_desc">Newest First</option>
+              <option value="date_asc">Oldest First</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B08D2C] pointer-events-none" />
+          </div>
         </div>
 
         {/* Search */}
@@ -230,24 +263,44 @@ const GalleryGrid = () => {
               >
                 <Link href={`/videographer/gallery/${item.id}`} className="absolute inset-0 z-0" />
                 
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setItemToDelete(item.id as string);
-                  }}
-                  className="absolute top-4 right-4 z-20 bg-white/90 text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
-                  title="Delete Portfolio Item"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18"></path>
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
+                {/* Actions Container */}
+                <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  {/* Edit Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setItemToEdit(item);
+                      setIsAddModalOpen(true);
+                    }}
+                    className="bg-white/90 text-[#B08D2C] hover:text-white hover:bg-[#B08D2C] p-2 rounded-full shadow-sm backdrop-blur-sm transition-colors"
+                    title="Edit Portfolio Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setItemToDelete(item.id as string);
+                    }}
+                    className="bg-white/90 text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-full shadow-sm backdrop-blur-sm transition-colors"
+                    title="Delete Portfolio Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"></path>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                  </button>
+                </div>
 
                 {/* Image Container with Absolute Badge */}
                 <div className="relative aspect-[4/3] overflow-hidden z-10 pointer-events-none">
@@ -256,12 +309,23 @@ const GalleryGrid = () => {
                     {item.category?.replace(/([A-Z])/g, ' $1').toUpperCase() || "CINEMATOGRAPHY"}
                   </div>
                   
-                  {/* Portfolio Image */}
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
+                  {/* Portfolio Media */}
+                  {item.isVideo ? (
+                    <video
+                      src={item.image}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 opacity-90"
+                    />
+                  ) : (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  )}
                 </div>
 
                 {/* Card Details Panel */}
@@ -316,9 +380,13 @@ const GalleryGrid = () => {
 
       <AddPortfolioModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setItemToEdit(null);
+        }}
         vendorType="videographer"
         onSubmitSuccess={fetchPortfolio}
+        initialData={itemToEdit?.originalData}
       />
 
       <DeleteConfirmationModal

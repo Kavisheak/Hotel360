@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Circle, Flag, Send } from 'lucide-react';
 import { bookingAPI } from '../../../lib/api';
 import HallRejectReasonModal from './HallRejectReasonModal';
+import { useToastStore } from '../../../store/toastStore';
 
 // Hardcoded statusHistory removed.
 
@@ -11,6 +12,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
   const [status, setStatus] = useState<string>(
     booking.status ? booking.status.toUpperCase() : 'PENDING'
   );
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     if (booking.status) {
@@ -67,6 +69,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
       setStatus('REJECTED');
       setRejectReason(reason);
       setShowRejectForm(false);
+      addToast({ message: "Booking rejected and advance refunded successfully via PayHere.", type: "success" });
       if (onStatusUpdate) onStatusUpdate();
     } else {
       alert(res.data?.message || 'Failed to reject booking.');
@@ -126,6 +129,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           isOpen={showRejectForm}
           clientName={booking.clientName || "Customer"}
           isSubmitting={isLoading}
+          paidAdvance={booking.depositAmount || 0}
           onClose={() => setShowRejectForm(false)}
           onConfirm={handleRejectConfirm}
         />

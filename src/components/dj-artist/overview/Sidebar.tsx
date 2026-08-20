@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import SignOutModal from '@/components/landing/shared/SignOutModal';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -45,6 +46,7 @@ const DjSidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
@@ -77,7 +79,7 @@ const DjSidebar = () => {
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/dj-artist/events-bookings' },
     { icon: <User size={20} />, label: 'MY JOBS', href: '/dj-artist/my-jobs' },
     { icon: <Star size={20} />, label: 'RATINGS', href: '/dj-artist/ratings' },
-    { icon: <ImageIcon size={20} />, label: 'GALLERY', href: '/dj-artist/gallery' },
+    { icon: <BookOpen size={20} />, label: 'PACKAGES', href: '/dj-artist/packages' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/dj-artist/settings' },
   ];
 
@@ -158,9 +160,9 @@ const DjSidebar = () => {
               onClick={close}
             />
           ))}
-          {/* Logout — calls signout API first to destroy session cookie */}
+          {/* Logout — opens confirmation modal */}
           <button
-            onClick={() => { close(); handleLogout(); }}
+            onClick={() => { close(); setIsLogoutModalOpen(true); }}
             title={collapsedState ? 'LOGOUT' : undefined}
             className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
               }`}
@@ -194,6 +196,15 @@ const DjSidebar = () => {
       <div className={`hidden lg:flex border-r border-[#E0D8C3] bg-[#FDF9F1] flex-col p-6 h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${mounted && isCollapsed ? 'w-20' : 'w-64'}`}>
         {sidebarBody(mounted && isCollapsed)}
       </div>
+
+      <SignOutModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          handleLogout();
+        }}
+      />
     </>
   );
 };
