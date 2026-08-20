@@ -456,7 +456,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
           <h2 className="text-xl font-serif text-[#1A1512] dark:text-white mb-6 border-b border-[#E8DFC9] dark:border-zinc-800 pb-2">Service Providers</h2>
           <div className="space-y-4">
             {['decorator', 'videographer', 'dj', 'photographer', 'cake', 'florist'].map(serviceKey => {
-              const vendor = booking.vendors?.[serviceKey as keyof typeof booking.vendors];
+              const vendor = booking.vendors?.[serviceKey as keyof typeof booking.vendors] as any;
               if (!vendor) return null;
               
               const isHistoricallyRemoved = booking.vendorHistory?.some((history: any) => history.service === serviceKey);

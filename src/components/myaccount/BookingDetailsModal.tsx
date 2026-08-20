@@ -607,7 +607,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                         const vendor = booking.vendors[key as keyof typeof booking.vendors] as any;
                         if (!vendor) return null;
                         
-                        const isHistoricallyRemoved = booking.vendorHistory?.some((history: any) => history.service === key);
+                        const isHistoricallyRemoved = (booking as any).vendorHistory?.some((history: any) => history.service === key);
                         
                         if (vendor.status === "Refund Pending" || vendor.status === "Refunded" || locallyRemovedVendors.includes(key) || (vendor.status === "NotRequired" && isHistoricallyRemoved)) {
                           return (

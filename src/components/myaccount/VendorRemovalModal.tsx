@@ -18,7 +18,7 @@ export default function VendorRemovalModal({ isOpen, onClose, bookingId, service
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [financialChoice, setFinancialChoice] = useState<"apply_balance" | "refund" | null>(null);
+  const [financialChoice, setFinancialChoice] = useState<"apply_to_balance" | "refund" | null>(null);
 
   const { vendors, fetchVendors } = useVendorStore();
   const { bookings, removeVendor } = useBookingStore();
@@ -61,8 +61,8 @@ export default function VendorRemovalModal({ isOpen, onClose, bookingId, service
     if (!financialChoice && originalAdvance > 0) return;
     
     if (step === 1) {
-      if (financialChoice === 'apply_balance') {
-        // Submit immediately for apply_balance
+      if (financialChoice === 'apply_to_balance') {
+        // Submit immediately for apply_to_balance
         setIsSubmitting(true);
         await removeVendor(bookingId, serviceCategory, financialChoice);
         setIsSubmitting(false);
@@ -172,17 +172,17 @@ export default function VendorRemovalModal({ isOpen, onClose, bookingId, service
                         </label>
 
                         <label className="flex items-center gap-3 cursor-pointer">
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${financialChoice === 'apply_balance' ? 'border-[#C69C6D]' : 'border-gray-300'}`}>
-                            {financialChoice === 'apply_balance' && <div className="w-2 h-2 rounded-full bg-[#C69C6D]" />}
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${financialChoice === 'apply_to_balance' ? 'border-[#C69C6D]' : 'border-gray-300'}`}>
+                            {financialChoice === 'apply_to_balance' && <div className="w-2 h-2 rounded-full bg-[#C69C6D]" />}
                           </div>
-                          <input type="radio" name="financialChoice" className="hidden" checked={financialChoice === 'apply_balance'} onChange={() => setFinancialChoice('apply_balance')} />
+                          <input type="radio" name="financialChoice" className="hidden" checked={financialChoice === 'apply_to_balance'} onChange={() => setFinancialChoice('apply_to_balance')} />
                           <span className="text-sm font-bold text-gray-900 dark:text-white">Apply to Booking Balance</span>
                         </label>
                       </div>
                     </div>
                   )}
                 </>
-              ) : step === 2 && financialChoice === 'apply_balance' ? (
+              ) : step === 2 && financialChoice === 'apply_to_balance' ? (
                 <div className="space-y-8 animate-fadeIn">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">

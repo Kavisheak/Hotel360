@@ -46,7 +46,6 @@ const AssignedArtisans = ({ booking, onRefresh }: { booking: any, onRefresh?: ()
       img: imgUrl,
       rejectionReason: vendorObj.rejectionReason || vendorObj.declineReason || '',
       rejectedAt: vendorObj.rejectedAt || null,
-      rejectedAt: vendorObj.rejectedAt || null,
       serviceCategory: role.toLowerCase().includes('decorator') ? 'decorator' : role.toLowerCase().includes('dj') ? 'dj' : 'videographer',
     };
   };

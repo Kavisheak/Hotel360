@@ -81,7 +81,7 @@ const BookingsGrid = () => {
     }
   };
 
-  const handleAcceptConfirm = async (advanceAmount: number, advanceDeadline: string) => {
+  const handleAcceptConfirm = async (advanceAmount?: number, advanceDeadline?: string) => {
     if (!acceptEvent) return;
     setUpdatingId(acceptEvent._id);
     try {

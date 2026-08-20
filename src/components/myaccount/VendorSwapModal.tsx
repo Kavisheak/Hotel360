@@ -71,9 +71,9 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
     // if (v.isVerified === false) return false; // Relaxed for demo
 
     // Check Date Availability
-    if (bookingContext && v.blockedDates) {
+    if (bookingContext && (v as any).blockedDates) {
       const bDate = new Date(bookingContext.date).toDateString();
-      const isBlocked = v.blockedDates.some((d: any) => new Date(d).toDateString() === bDate);
+      const isBlocked = (v as any).blockedDates?.some((d: any) => new Date(d).toDateString() === bDate);
       if (isBlocked) return false;
     }
 
@@ -108,7 +108,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
       const advance = Math.round(numericPrice * ((v.advancePaymentPercentage || 0) / 100));
       return {
         vendorId: v.id,
-        vendorName: v.shopName || v.name || "Vendor",
+        vendorName: (v as any).shopName || v.name || "Vendor",
         packageName: pkg.name,
         priceDisplay: typeof pkg.price === 'string' ? pkg.price : `LKR ${numericPrice.toLocaleString()}`,
         advanceDisplay: advance > 0 ? `LKR ${advance.toLocaleString()}` : "LKR 0",
@@ -233,7 +233,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
   const oldAdvancePercentage = resolvedOldVendor?.advancePaymentPercentage || 10;
   const originalAdvance = Math.round(oldCost * (oldAdvancePercentage / 100));
 
-  const displayOldVendorName = resolvedOldVendor?.shopName || resolvedOldVendor?.name || oldVendor?.vendorName || oldVendor?.name || (effectiveOldVendorId ? "Previous Vendor" : "No Vendor Selected");
+  const displayOldVendorName = (resolvedOldVendor as any)?.shopName || resolvedOldVendor?.name || (oldVendor as any)?.vendorName || (oldVendor as any)?.name || (effectiveOldVendorId ? "Previous Vendor" : "No Vendor Selected");
 
   const selectedOptionInfo = availableOptions.find(o => o.vendorId === selectedVendor && o.packageName === selectedPackage);
   const newAdvance = selectedOptionInfo?.advanceValue || 0;
@@ -350,9 +350,9 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
                   }}
                 >
                   <div className="flex items-center gap-4">
-                    <img src={vendor.image.startsWith('http') ? vendor.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${vendor.image}`} alt={vendor.shopName || vendor.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-800" />
+                    <img src={vendor.image.startsWith('http') ? vendor.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${vendor.image}`} alt={(vendor as any).shopName || vendor.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-800" />
                     <div>
-                      <h4 className="text-base font-serif font-bold text-gray-900 dark:text-white mb-1">{vendor.shopName || vendor.name}</h4>
+                      <h4 className="text-base font-serif font-bold text-gray-900 dark:text-white mb-1">{(vendor as any).shopName || vendor.name}</h4>
                       <p className="text-xs text-gray-500">{pkgs.length} Package{pkgs.length > 1 ? 's' : ''} Available</p>
                     </div>
                   </div>
