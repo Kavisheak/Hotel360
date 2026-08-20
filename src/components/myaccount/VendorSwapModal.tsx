@@ -214,7 +214,7 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
             onClose();
           }
         } else {
-          alert(res?.message || "Failed to initiate vendor swap.");
+          alert((res as any)?.message || "Failed to initiate vendor swap.");
           setIsSubmitting(false);
         }
       } catch (err) {
