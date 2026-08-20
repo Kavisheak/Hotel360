@@ -70,7 +70,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
   const getVendorAdvanceInfoLocal = (category: string) => {
     const cost = (pricing as any)[`${category}Cost`] || 0;
     if (cost === 0) return 0;
-    const vendorId = booking.vendors?.[category as keyof typeof booking.vendors]?.vendorId;
+    const vendorId = (booking.vendors?.[category as keyof typeof booking.vendors] as any)?.vendorId;
     if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
     const v = globalVendors.find(v => v.id === vendorId || (v as any)._id === vendorId || v.userId === vendorId);
     if (!v) return 0;
@@ -153,7 +153,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
       // Automatically apply credits for declined vendors
       for (const cat of vendorCategories) {
         const v = booking.vendors?.[cat as keyof typeof booking.vendors];
-        if (v && v.status === "Declined") {
+        if (v && (v as any).status === "Declined") {
           const credit = activeCredits.find(c => c.category === cat && c.status === "Active");
           if (credit) {
             await customerBookingAPI.applyCreditToBalance(bId, credit._id);
@@ -459,7 +459,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
               const vendor = booking.vendors?.[serviceKey as keyof typeof booking.vendors] as any;
               if (!vendor) return null;
               
-              const isHistoricallyRemoved = booking.vendorHistory?.some((history: any) => history.service === serviceKey);
+              const isHistoricallyRemoved = (booking as any).vendorHistory?.some((history: any) => history.service === serviceKey);
               
               if (vendor.status === "Refund Pending" || vendor.status === "Refunded" || locallyRemovedVendors.includes(serviceKey) || (vendor.status === "NotRequired" && isHistoricallyRemoved)) {
                 return (
