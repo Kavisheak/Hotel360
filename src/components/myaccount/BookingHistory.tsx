@@ -296,7 +296,7 @@ export default function BookingHistory() {
             const getVendorAdvanceInfoLocal = (category: string) => {
               const cost = (pricing as any)[`${category}Cost`] || 0;
               if (cost === 0) return 0;
-              const vendorId = booking.vendors?.[category as keyof typeof booking.vendors]?.vendorId;
+              const vendorId = (booking.vendors?.[category as keyof typeof booking.vendors] as any)?.vendorId;
               if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
               const v = globalVendors.find(v => v.id === vendorId || (v as any)._id === vendorId || v.userId === vendorId);
               if (!v) return 0;
