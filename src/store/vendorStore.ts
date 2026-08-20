@@ -3,9 +3,24 @@ import { authAPI } from "@/lib/api";
 
 export interface VendorPackage {
   name: string;
+  description?: string;
   price: string;
   features: string[];
   image?: string;
+  eventTypes?: string[];
+  duration?: string;
+  coverageDuration?: string;
+  teamIncluded?: { videographers?: string | number, assistants?: string | number };
+  coverage?: string[];
+  videoServices?: string[];
+  deliverables?: string[];
+  videoQuality?: string;
+  cameraSetup?: string;
+  audio?: string[];
+  services?: string[];
+  sound?: string[];
+  lighting?: string[];
+  musicGenres?: string[];
 }
 
 export interface VendorReview {
@@ -17,6 +32,7 @@ export interface VendorReview {
 export interface Vendor {
   id: string;
   userId?: string;
+  createdAt?: string;
   name: string;
   category: "decorators" | "djs" | "videographers" | "photographers" | "cake" | "florists" | "others";
   categoryLabel: string;
@@ -25,6 +41,7 @@ export interface Vendor {
   priceLevel: "premium" | "luxury" | "elite";
   priceLevelLabel: string;
   startingPrice: string;
+  defaultPackagePrice?: number; // Fixed price for DJ artists
   image: string;
   avatar?: string;
   specialties: string[];
@@ -43,6 +60,7 @@ export interface Vendor {
   eventsCompleted?: string;
   responseTime?: string;
   depositReq?: string;
+  advancePaymentPercentage?: number;
   cancellation?: string;
   availableIslandWide?: boolean;
   contactPhone?: string;
@@ -88,8 +106,8 @@ export const useVendorStore = create<VendorState>((set, get) => ({
             name: 'Deco dec (Gilded Floral)',
             category: 'decorators',
             categoryLabel: 'Master Decorator',
-            rating: 4.9,
-            reviewsCount: 124,
+            rating: 0,
+            reviewsCount: 0,
             priceLevel: 'luxury',
             priceLevelLabel: 'Luxury',
             startingPrice: 'LKR 850,000',
@@ -114,20 +132,19 @@ export const useVendorStore = create<VendorState>((set, get) => ({
                 features: ['Imported white roses', 'Custom glass columns', 'Full venue ambient wash lights']
               }
             ],
-            reviews: [
-              { client: 'Saman & Nila', text: 'Absolutely spectacular stage. They exceeded all expectations.', rating: 5 }
-            ],
+            reviews: [],
             location: 'Colombo, Sri Lanka',
             eventsCompleted: '340+',
-            responseTime: 'within 1 hour'
+            responseTime: 'within 1 hour',
+            advancePaymentPercentage: 30
           },
           {
             id: '6a354e9f123d03e961d01dc2', // Matches the DB DJ ID
             name: 'DJ Elevate (Nawas)',
             category: 'djs',
             categoryLabel: 'Entertainment',
-            rating: 4.8,
-            reviewsCount: 89,
+            rating: 0,
+            reviewsCount: 0,
             priceLevel: 'premium',
             priceLevelLabel: 'Premium',
             startingPrice: 'LKR 150,000',
@@ -145,20 +162,19 @@ export const useVendorStore = create<VendorState>((set, get) => ({
                 features: ['4 High-fidelity speakers', 'Dual wireless mics', '4-hour live play set']
               }
             ],
-            reviews: [
-              { client: 'Roshan & Pooja', text: 'Kept the dancefloor packed all night long! Fantastic sound systems.', rating: 5 }
-            ],
+            reviews: [],
             location: 'Kandy, Sri Lanka',
             eventsCompleted: '190+',
-            responseTime: 'within 2 hours'
+            responseTime: 'within 2 hours',
+            advancePaymentPercentage: 20
           },
           {
             id: '6a354e88a4c9cc5cabc399f8', // matches DB videographer ID
             name: 'Luxe Lens Studios',
             category: 'videographers', // 'videographers' to match frontend expected string
             categoryLabel: 'Cinematography',
-            rating: 5.0,
-            reviewsCount: 210,
+            rating: 0,
+            reviewsCount: 0,
             priceLevel: 'elite',
             priceLevelLabel: 'Elite',
             startingPrice: 'LKR 450,000',
@@ -177,12 +193,11 @@ export const useVendorStore = create<VendorState>((set, get) => ({
                 features: ['2 Cinematographers', 'Full 4K edit', '5-minute highlight trailer', 'Drone coverage']
               }
             ],
-            reviews: [
-              { client: 'Isuru & Hiruni', text: 'Breathtaking video! The trailer felt like a movie. Truly worth it.', rating: 5 }
-            ],
+            reviews: [],
             location: 'Galle, Sri Lanka',
             eventsCompleted: '290+',
-            responseTime: 'within 1 hour'
+            responseTime: 'within 1 hour',
+            advancePaymentPercentage: 40
           }
         ];
       }
@@ -216,8 +231,8 @@ export const mockPhotographers: Vendor[] = [
     name: 'Vogue & Velvet Photography',
     category: 'photographers',
     categoryLabel: 'Fine Art Photography',
-    rating: 4.9,
-    reviewsCount: 145,
+    rating: 0,
+    reviewsCount: 0,
     priceLevel: 'luxury',
     priceLevelLabel: 'Luxury',
     startingPrice: 'LKR 650,000',
@@ -242,10 +257,7 @@ export const mockPhotographers: Vendor[] = [
         features: ['Full wedding day + pre-shoot', '3 Photographers', 'Same-Day Edit Slide Show', 'Custom leather album', 'Raw file delivery'],
       }
     ],
-    reviews: [
-      { client: 'Sahan & Nilani', text: 'Stunning images! They made us feel so comfortable, and the final gallery is beautiful.', rating: 5 },
-      { client: 'Dilan & Thilini', text: 'Professional and talented team. Highly recommend their film edit package.', rating: 4 }
-    ],
+    reviews: [],
     location: 'Colombo, Sri Lanka',
     eventsCompleted: '280+',
     responseTime: 'within 2 hours'
@@ -258,8 +270,8 @@ export const mockCakes: Vendor[] = [
     name: 'The Gold Crust Patisserie',
     category: 'cake',
     categoryLabel: 'Sugar Art & Patisserie',
-    rating: 4.8,
-    reviewsCount: 96,
+    rating: 0,
+    reviewsCount: 0,
     priceLevel: 'premium',
     priceLevelLabel: 'Premium',
     startingPrice: 'LKR 280,000',
@@ -283,9 +295,7 @@ export const mockCakes: Vendor[] = [
         features: ['5 grand tiers', 'Gold leaf detailing', 'Bespoke flavor combinations', 'Cake table styling'],
       }
     ],
-    reviews: [
-      { client: 'Aruni & Kasun', text: 'The cake was absolutely gorgeous and tasted heavenly! The salted caramel was a hit.', rating: 5 }
-    ],
+    reviews: [],
     location: 'Nugegoda, Sri Lanka',
     eventsCompleted: '140+',
     responseTime: 'within 4 hours'
@@ -298,8 +308,8 @@ export const mockFlorists: Vendor[] = [
     name: 'Champagne & Stems Florals',
     category: 'florists',
     categoryLabel: 'Luxury Floral Design',
-    rating: 5.0,
-    reviewsCount: 112,
+    rating: 0,
+    reviewsCount: 0,
     priceLevel: 'elite',
     priceLevelLabel: 'Elite',
     startingPrice: 'LKR 350,000',
@@ -323,9 +333,7 @@ export const mockFlorists: Vendor[] = [
         features: ['All bridal florals', '20 Guest table arrangements', 'Floral arch design', 'Rose petal pathway design'],
       }
     ],
-    reviews: [
-      { client: 'Minoli & Roshan', text: 'Exquisite designs! The table runners were full of orchids and roses.', rating: 5 }
-    ],
+    reviews: [],
     location: 'Battaramulla, Sri Lanka',
     eventsCompleted: '190+',
     responseTime: 'within 1 hour'

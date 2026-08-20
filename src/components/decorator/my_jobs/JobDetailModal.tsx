@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X, MapPin, Calendar, Clock, ShieldCheck, CheckCircle2, Camera, User, Phone, Mail, FileText, Check, Sparkles } from 'lucide-react';
 import { decoratorAPI } from '@/lib/api';
+import { useToastStore } from '@/store/toastStore';
 
 interface JobDetailModalProps {
   jobId: string | null;
@@ -12,9 +13,12 @@ interface JobDetailModalProps {
 }
 
 const JobDetailModal: React.FC<JobDetailModalProps> = ({ jobId, onClose, onRefresh }) => {
+  const { addToast } = useToastStore();
   const [job, setJob] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMarking, setIsMarking] = useState(false);
+  const [isConfirmingReceipt, setIsConfirmingReceipt] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   useEffect(() => {
     if (jobId) {
@@ -52,6 +56,27 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ jobId, onClose, onRefre
       console.error(e);
     } finally {
       setIsMarking(false);
+    }
+  };
+
+  const submitConfirmReceipt = async () => {
+    if (!jobId) return;
+    setIsConfirmingReceipt(true);
+    try {
+      const res = await decoratorAPI.confirmReceipt(jobId);
+      if (res.ok && res.data?.success) {
+        addToast({ message: 'Receipt confirmed successfully.', type: 'success' });
+        setShowReceiptModal(false);
+        fetchJobDetails(); // Refresh job details
+        onRefresh?.();
+      } else {
+        alert(res.data?.message || 'Failed to confirm receipt.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error confirming receipt.');
+    } finally {
+      setIsConfirmingReceipt(false);
     }
   };
 
@@ -199,27 +224,51 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ jobId, onClose, onRefre
                     <tr>
                       <td className="py-2.5 font-semibold text-gray-800">30% Advance Payment</td>
                       <td className="py-2.5 font-mono">LKR {(job.escrowBreakdown?.advanceHeld || 0).toLocaleString()}</td>
-                      <td className="py-2.5 text-right">
+                      <td className="py-2.5 text-right flex flex-col items-end gap-1">
                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${
                           job.escrowBreakdown?.advanceStatus === 'Released'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            : job.escrowBreakdown?.advanceStatus === 'ReceiptUploaded'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : job.escrowBreakdown?.advanceStatus === 'PendingTransfer'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-gray-50 text-gray-700 border-gray-200'
                         }`}>
-                          {job.escrowBreakdown?.advanceStatus || 'Held'}
+                          {job.escrowBreakdown?.advanceStatus === 'ReceiptUploaded' ? 'Awaiting Confirmation' : job.escrowBreakdown?.advanceStatus || 'Held'}
                         </span>
+                        {job.escrowBreakdown?.advanceStatus === 'ReceiptUploaded' && (
+                          <button
+                            onClick={() => setShowReceiptModal(true)}
+                            className="text-[9px] px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold tracking-wider uppercase"
+                          >
+                            View & Confirm
+                          </button>
+                        )}
                       </td>
                     </tr>
                     <tr>
                       <td className="py-2.5 font-semibold text-gray-800">70% Remaining Balance</td>
                       <td className="py-2.5 font-mono">LKR {(job.escrowBreakdown?.balanceHeld || 0).toLocaleString()}</td>
-                      <td className="py-2.5 text-right">
+                      <td className="py-2.5 text-right flex flex-col items-end gap-1">
                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${
                           job.escrowBreakdown?.balanceStatus === 'Released'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            : job.escrowBreakdown?.balanceStatus === 'ReceiptUploaded'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : job.escrowBreakdown?.balanceStatus === 'PendingTransfer'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-gray-50 text-gray-700 border-gray-200'
                         }`}>
-                          {job.escrowBreakdown?.balanceStatus || 'Held'}
+                          {job.escrowBreakdown?.balanceStatus === 'ReceiptUploaded' ? 'Awaiting Confirmation' : job.escrowBreakdown?.balanceStatus || 'Held'}
                         </span>
+                        {job.escrowBreakdown?.balanceStatus === 'ReceiptUploaded' && (
+                          <button
+                            onClick={() => setShowReceiptModal(true)}
+                            className="text-[9px] px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold tracking-wider uppercase"
+                          >
+                            View & Confirm
+                          </button>
+                        )}
                       </td>
                     </tr>
                   </tbody>
@@ -272,6 +321,62 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ jobId, onClose, onRefre
           </button>
         </div>
       </div>
+
+      {/* Confirm Receipt Modal */}
+      {showReceiptModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-blue-500" /> Confirm Payment Receipt
+              </h3>
+              <button onClick={() => setShowReceiptModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                The manager has uploaded a payment receipt for your payout. Please review the details below and confirm if you have received the funds.
+              </p>
+              
+              {job.escrowBreakdown?.payoutReference && (
+                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Bank Reference / Notes</span>
+                  <p className="text-sm text-gray-800 font-medium">{job.escrowBreakdown.payoutReference}</p>
+                </div>
+              )}
+
+              {job.escrowBreakdown?.payoutReceiptUrl ? (
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Uploaded Receipt</span>
+                  <a href={job.escrowBreakdown.payoutReceiptUrl} target="_blank" rel="noreferrer" className="block w-full h-48 border border-gray-200 rounded overflow-hidden relative group">
+                    <img src={job.escrowBreakdown.payoutReceiptUrl} alt="Receipt" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-white text-xs font-bold px-3 py-1.5 border border-white/30 rounded backdrop-blur-sm">Click to Enlarge</span>
+                    </div>
+                  </a>
+                </div>
+              ) : (
+                <div className="bg-amber-50 text-amber-700 p-3 rounded border border-amber-200 text-sm">
+                  No receipt image was uploaded by the manager.
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button onClick={() => setShowReceiptModal(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors">
+                Cancel
+              </button>
+              <button 
+                onClick={submitConfirmReceipt}
+                disabled={isConfirmingReceipt}
+                className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isConfirmingReceipt ? "Confirming..." : "Yes, I Confirm Receipt"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

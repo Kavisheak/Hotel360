@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Vendor } from "@/components/landing/vendors/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check, X, Phone, Mail, AlertTriangle, MessageSquare, ThumbsUp, Share2, MoreHorizontal } from "lucide-react";
+import { CheckCircle, MapPin, Star, Calendar, Truck, Headphones, Check, X, Phone, Mail, AlertTriangle, MessageSquare, ThumbsUp, Share2, MoreHorizontal, Package } from "lucide-react";
 import { useVendorCartStore } from "@/store/vendorCartStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,9 +18,11 @@ interface VendorProfileContentProps {
 export default function VendorProfileContent({ vendor, isBooking = false }: VendorProfileContentProps) {
   const router = useRouter();
   const { vendors: allVendors } = useVendorStore();
-  const { vendors: cartVendors, setVendor } = useVendorCartStore();
+  const { vendors: cartVendors, setVendor, requestedDesigns, setRequestedDesign } = useVendorCartStore();
 
-  const [activeTab, setActiveTab] = useState<string>("portfolio");
+  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [expandedReviews, setExpandedReviews] = useState<string | null>(null);
+  const [expandedAlbums, setExpandedAlbums] = useState<Record<string, boolean>>({});
 
   // Calendar State
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -84,7 +86,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
   const [selectedBackendAlbum, setSelectedBackendAlbum] = useState<any | null>(null);
 
   React.useEffect(() => {
-    if (activeTab === "portfolio" && vendor.id) {
+    if ((activeTab === "portfolio" || activeTab === "designs") && vendor.id) {
       fetchPublicPortfolio();
     }
   }, [activeTab, vendor.id]);
@@ -114,27 +116,61 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
     return "decorator";
   }
 
+  const [pendingDesignSelection, setPendingDesignSelection] = useState<{ id: string, price: number } | null>(null);
+
   const handleSelectVendorClick = () => {
     const existingId = cartVendors[storeCat];
 
     if (existingId === vendor.id) {
       // Deselect
       setVendor(storeCat, null);
+      setRequestedDesign(storeCat, null, null);
       return;
     }
 
     if (existingId) {
       const existing = allVendors.find(v => v.id === existingId);
       setExistingVendorName(existing ? existing.name : "another provider");
+      setPendingDesignSelection(null);
       setReplaceModalOpen(true);
     } else {
       // Select directly
       setVendor(storeCat, vendor.id);
+      setRequestedDesign(storeCat, null, null);
+    }
+  };
+
+  const handleSelectDesignClick = (albId: string, price: number) => {
+    const existingId = cartVendors[storeCat];
+    const existingDesignId = requestedDesigns[storeCat];
+
+    if (existingId === vendor.id && existingDesignId === albId) {
+      // Deselect
+      setVendor(storeCat, null);
+      setRequestedDesign(storeCat, null, null);
+      return;
+    }
+
+    if (existingId && existingId !== vendor.id) {
+      const existing = allVendors.find(v => v.id === existingId);
+      setExistingVendorName(existing ? existing.name : "another provider");
+      setPendingDesignSelection({ id: albId, price });
+      setReplaceModalOpen(true);
+    } else {
+      // Select directly or swap design for same vendor
+      setVendor(storeCat, vendor.id);
+      setRequestedDesign(storeCat, albId, price);
     }
   };
 
   const confirmReplace = () => {
     setVendor(storeCat, vendor.id);
+    if (pendingDesignSelection) {
+      setRequestedDesign(storeCat, pendingDesignSelection.id, pendingDesignSelection.price);
+    } else {
+      setRequestedDesign(storeCat, null, null);
+    }
+    setPendingDesignSelection(null);
     setReplaceModalOpen(false);
   };
 
@@ -146,12 +182,28 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
     }, 1200);
   };
 
-  const tabs = [
-    { id: "portfolio", label: "Portfolio" },
-    { id: "reviews", label: `Reviews (${vendor.reviewsCount})` },
-    { id: "availability", label: "Availability" },
-    { id: "about", label: "Vendor Profile" },
-  ] as const;
+  const tabs = (() => {
+    if (vendor.category === "videographers") {
+      return [
+        { id: "overview", label: "Overview" },
+        { id: "designs", label: "Portfolio" },
+        { id: "packages", label: "Packages" },
+        { id: "about", label: "About" },
+      ];
+    }
+    if (vendor.category === "djs") {
+      return [
+        { id: "overview", label: "Overview" },
+        { id: "packages", label: "Packages" },
+        { id: "about", label: "About" },
+      ];
+    }
+    return [
+      { id: "overview", label: "Overview" },
+      { id: "designs", label: "Designs" },
+      { id: "about", label: "About" },
+    ];
+  })();
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12">
@@ -159,19 +211,19 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
       {/* Main Content Area */}
       <div className="flex-1 min-w-0">
         {/* Tabs */}
-        <div className="flex gap-6 border-b border-[#E8DFC9] dark:border-white/10 overflow-x-auto pb-[1px] mb-8">
+        <div className="flex gap-8 border-b border-[#E8DFC9] dark:border-white/10 overflow-x-auto pb-[1px] mb-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-[11px] tracking-[0.1em] uppercase font-bold whitespace-nowrap transition-colors relative
+              className={`pb-4 px-2 text-[14px] md:text-[15px] tracking-[0.08em] uppercase font-bold whitespace-nowrap transition-all relative
                 ${activeTab === tab.id 
                   ? "text-[#1A1512] dark:text-[#C69C6D]" 
-                  : "text-gray-400 hover:text-[#1A1512] dark:hover:text-gray-300"}`}
+                  : "text-gray-400 hover:text-[#1A1512] dark:hover:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-white/5 rounded-t-sm"}`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <span className="absolute bottom-[-1px] left-0 w-full h-[3px] bg-[#1A1512] dark:bg-[#C69C6D]" />
+                <span className="absolute bottom-[-1px] left-0 w-full h-[4px] bg-[#1A1512] dark:bg-[#C69C6D] rounded-t-md" />
               )}
             </button>
           ))}
@@ -180,116 +232,202 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
         {/* Tab Panels */}
         <div className="min-h-100">
           
-          {/* ABOUT TAB */}
-          {activeTab === "about" && (
+          {/* OVERVIEW TAB */}
+          {activeTab === "overview" && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              
+              {/* About Section */}
               <section className="space-y-4">
-                <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">About {vendor.name}</h3>
+                <h3 className="text-xl font-serif text-[#1A1512] dark:text-white font-bold border-b border-[#E8DFC9] dark:border-white/10 pb-3">
+                  About {vendor.name}
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm max-w-3xl">
                   {vendor.description}
                 </p>
-                <div className="pt-4 flex flex-wrap gap-3">
-                  {vendor.specialties.map((spec, i) => (
-                    <span 
-                      key={i} 
-                      className="bg-[#FAF6EE] dark:bg-transparent text-[#A6955C] dark:text-[#C69C6D] text-[10px] font-bold tracking-widest uppercase px-4 py-2 border border-[#E8DFC9] dark:border-[#C69C6D]/30 rounded-sm"
-                    >
-                      {spec}
-                    </span>
-                  ))}
-                </div>
               </section>
 
-              {vendor.location && (
+              {/* Events We Serve Section */}
+              {vendor.eventTypesServed && vendor.eventTypesServed.filter(e => e !== 'Other' && e !== 'Islandwide').length > 0 && (
                 <section className="space-y-6">
-                  <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">Location</h3>
-                  <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-6 rounded-sm shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-[#FAF6EE] dark:bg-black rounded-sm shrink-0 border border-[#E8DFC9]/50 dark:border-white/5">
-                        <MapPin className="w-5 h-5 text-[#C69C6D]" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#1A1512] dark:text-white">Main Studio</h4>
-                        <p className="text-gray-500 text-sm mt-1">
-                          {vendor.location}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">Visits by appointment only.</p>
-                      </div>
-                    </div>
-                    <button className="shrink-0 px-6 py-2 border border-[#E8DFC9] dark:border-white/10 text-[#C69C6D] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                      Get Directions
-                    </button>
+                  <h3 className="text-[11px] uppercase tracking-widest font-bold text-gray-500">
+                    Events We Serve
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
+                    {vendor.eventTypesServed
+                      .filter(e => e !== 'Other' && e !== 'Islandwide')
+                      .map((eventType, i) => {
+                        let icon = "✨"; 
+                        if (eventType === "Wedding") icon = "💍";
+                        else if (eventType === "Engagement") icon = "💐";
+                        else if (eventType === "Birthday") icon = "🎂";
+                        else if (eventType === "Anniversary") icon = "🥂";
+                        else if (eventType === "Corporate") icon = "🏢";
+                        else if (eventType === "Graduation") icon = "🎓";
+                        else if (eventType === "Baby Shower") icon = "👶";
+                        else if (eventType === "Private Party") icon = "🎉";
+
+                        return (
+                          <div key={i} className="flex items-center gap-3">
+                            <span className="text-xl">{icon}</span>
+                            <span className="text-[13px] text-gray-800 dark:text-gray-200 font-medium">{eventType}</span>
+                          </div>
+                        );
+                      })}
                   </div>
-                  {/* Embedded Map Dummy */}
-                  <div className="w-full h-[300px] bg-[#FAF6EE]/50 dark:bg-[#111315] rounded-sm relative overflow-hidden flex flex-col items-center justify-center border border-[#E8DFC9] dark:border-white/10">
-                    <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')]"></div>
-                    <MapPin className="w-10 h-10 text-[#C69C6D] relative z-10 drop-shadow-md mb-2" />
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-gray-400 relative z-10">Map View</span>
+                </section>
+              )}
+
+              {/* Decoration Specialties */}
+              {vendor.specialties && vendor.specialties.length > 0 && (
+                <section className="space-y-6">
+                  <h3 className="text-[11px] uppercase tracking-widest font-bold text-gray-500">
+                    Decoration Specialties
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {vendor.specialties.map((spec, i) => (
+                      <span 
+                        key={i} 
+                        className="text-[#1A1512] dark:text-gray-200 text-[13px] font-medium tracking-widest uppercase border border-[#E8DFC9] dark:border-white/10 bg-[#FAF6EE]/50 dark:bg-black px-4 py-2 rounded-sm shadow-sm hover:border-[#C69C6D] transition-colors"
+                      >
+                        [ {spec} ]
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Cultural Expertise */}
+              {vendor.culturalExpertise && vendor.culturalExpertise.length > 0 && (
+                <section className="space-y-6">
+                  <h3 className="text-[11px] uppercase tracking-widest font-bold text-gray-500">
+                    Cultural & Religious Expertise
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {vendor.culturalExpertise.map((culture, i) => (
+                      <span 
+                        key={i} 
+                        className="text-[#C69C6D] text-[13px] font-bold tracking-widest uppercase border-b-2 border-[#C69C6D]/30 pb-1"
+                      >
+                        {culture}
+                      </span>
+                    ))}
                   </div>
                 </section>
               )}
             </div>
           )}
 
-          {/* PORTFOLIO TAB */}
-          {activeTab === "portfolio" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {selectedBackendAlbum ? (
-                /* Selected Album Detail View */
-                <div>
-                  <div className="flex items-center justify-between mb-4 border-b border-[#E8DFC9] pb-3">
-                    <div>
-                      <button
-                        onClick={() => setSelectedBackendAlbum(null)}
-                        className="text-xs font-bold uppercase tracking-wider text-[#C69C6D] hover:underline mb-1 flex items-center gap-1"
+          {/* PACKAGES TAB */}
+          {activeTab === "packages" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-4 mb-6">
+                <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">Our Packages</h3>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-[#E8DFC9] dark:from-[#C9A84C]/30 to-transparent" />
+              </div>
+              
+              {vendor.packages && vendor.packages.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {vendor.packages.map((pkg, idx) => (
+                    <div key={idx} className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl p-6 shadow-sm flex flex-col transition-all hover:-translate-y-1 hover:shadow-md">
+                      <h4 className="text-lg font-bold text-[#1A1512] dark:text-white mb-2">{pkg.name}</h4>
+                      <div className="text-2xl font-serif text-[#C69C6D] mb-4">Rs {Number(pkg.price).toLocaleString()}</div>
+                      <ul className="space-y-3 flex-1">
+                        {Array.isArray(pkg.features) 
+                          ? pkg.features.map((feature: any, fIdx: number) => (
+                            <li key={fIdx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <Check className="w-4 h-4 text-[#C69C6D] flex-shrink-0 mt-0.5" />
+                              <span>{feature}</span>
+                            </li>
+                          ))
+                          : (pkg as any).details ? (pkg as any).details.split(',').map((detail: string, dIdx: number) => (
+                            <li key={dIdx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <Check className="w-4 h-4 text-[#C69C6D] flex-shrink-0 mt-0.5" />
+                              <span>{detail.trim()}</span>
+                            </li>
+                          )) : null
+                        }
+                      </ul>
+                      <button 
+                        onClick={() => {
+                           const bookButton = document.getElementById('book-vendor-button');
+                           if (bookButton) bookButton.click();
+                        }}
+                        className="mt-6 w-full py-3 bg-[#FAF6EE] dark:bg-white/5 border border-[#E8DFC9] dark:border-[#C9A84C]/20 text-[#1A1512] dark:text-white text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#E8DFC9] dark:hover:bg-[#C9A84C]/20 transition-colors"
                       >
-                        &larr; Back to All Albums
+                        Select Package
                       </button>
-                      <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white font-bold">
-                        {selectedBackendAlbum.title}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {selectedBackendAlbum.photoCount || selectedBackendAlbum.images?.length || 0} Showcase Photos
-                      </p>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {(selectedBackendAlbum.images || []).map((img: any, i: number) => (
-                      <div key={i} className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-white/10 rounded-sm overflow-hidden shadow-xs group">
-                        <div className="aspect-4/3 overflow-hidden relative">
-                          <img
-                            src={typeof img === 'string' ? img : img.url}
-                            alt={img.caption || `Album photo ${i + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-                        {img.caption && (
-                          <div className="p-3 bg-white dark:bg-[#111315]">
-                            <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{img.caption}</p>
-                            {img.tags && img.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {img.tags.map((t: string) => (
-                                  <span key={t} className="text-[9px] font-bold uppercase tracking-wider bg-[#FAF6EE] text-[#A6955C] px-1.5 py-0.5 rounded border border-[#E8DFC9]">
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ) : dynamicAlbums && dynamicAlbums.length > 0 ? (
-                /* Published Albums Cards Grid */
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              ) : (
+                <div className="text-center py-12 bg-gray-50 dark:bg-[#111315] rounded-xl border border-dashed border-[#E8DFC9] dark:border-white/10">
+                  <Package className="w-8 h-8 text-gray-300 dark:text-white/20 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500">No specific packages listed. Please contact the vendor for custom quotes.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ABOUT TAB */}
+          {activeTab === "about" && (
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              
+              {/* About the business */}
+              <section className="space-y-3">
+                <h3 className="text-sm font-serif font-bold text-[#1A1512] dark:text-white border-b border-[#E8DFC9] dark:border-white/10 pb-2">
+                  About the business
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm max-w-3xl">
+                  {vendor.description || "No description provided."}
+                </p>
+              </section>
+
+              {/* Location */}
+              {vendor.location && (
+                <section className="space-y-3">
+                  <h3 className="text-sm font-serif font-bold text-[#1A1512] dark:text-white border-b border-[#E8DFC9] dark:border-white/10 pb-2">
+                    Location
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <MapPin className="w-4 h-4 text-[#C69C6D]" /> {vendor.location}
+                  </div>
+                </section>
+              )}
+
+              {/* Service areas */}
+              {(((vendor.serviceAreas?.length ?? 0) > 0) || vendor.availableIslandWide) && (
+                <section className="space-y-3">
+                  <h3 className="text-sm font-serif font-bold text-[#1A1512] dark:text-white border-b border-[#E8DFC9] dark:border-white/10 pb-2">
+                    Service areas
+                  </h3>
+                  <div className="text-sm text-gray-700 dark:text-gray-300 pt-1">
+                    {vendor.availableIslandWide || vendor.serviceAreas?.includes("Islandwide") ? (
+                      <span className="flex items-center gap-2 text-[#C69C6D] font-bold">
+                        Islandwide Service
+                      </span>
+                    ) : (
+                      <ul className="space-y-2 uppercase tracking-widest text-[11px] font-medium text-gray-600 dark:text-gray-400">
+                        {vendor.serviceAreas?.map((area, idx) => (
+                          <li key={idx}>{area}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {/* DESIGNS TAB */}
+          {activeTab === "designs" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-3xl mx-auto">
+              {dynamicAlbums && dynamicAlbums.length > 0 ? (
+                /* Published Albums Posts Feed */
+                <div className="flex flex-col gap-8">
                   {dynamicAlbums.map((alb) => (
                     <div
                       key={alb._id}
-                      onClick={() => setSelectedBackendAlbum(alb)}
-                      className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                      className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden shadow-sm flex flex-col"
                     >
                       {/* Facebook Post Header */}
                       <div className="flex items-center justify-between p-4">
@@ -297,7 +435,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                           <img src={vendor.avatar || vendor.image} className="w-10 h-10 rounded-full object-cover border border-[#E8DFC9] dark:border-[#C9A84C]/30 shadow-sm" alt={vendor.name} />
                           <div className="flex flex-col">
                             <span className="text-[14px] font-bold text-[#1A1512] dark:text-white leading-tight">
-                              {vendor.name} <span className="font-normal text-gray-500">added a new album.</span>
+                              {vendor.name} <span className="font-normal text-gray-500">added a new design showcase.</span>
                             </span>
                             <span className="text-[12px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
                               {formatTimeAgo(alb.createdAt)} • 🌍
@@ -312,47 +450,160 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                         <h4 className="font-bold text-[15px] text-[#1A1512] dark:text-white mb-1">
                           {alb.title}
                         </h4>
-                        <p className="text-[14px] text-gray-700 dark:text-gray-300">
-                          Check out our latest showcase photos from this beautiful event! Click to explore the full album.
-                        </p>
+                        {alb.description && (
+                          <p className="text-[14px] text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                            {alb.description}
+                          </p>
+                        )}
                       </div>
 
-                      <div>
-                        <div className="relative aspect-[4/3] bg-[#FAF6EE] dark:bg-black overflow-hidden border-y border-[#E8DFC9] dark:border-white/10">
-                          {alb.coverUrl ? (
-                            <img
-                              src={alb.coverUrl}
-                              alt={alb.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs uppercase font-bold">
-                              No Cover Photo
-                            </div>
-                          )}
-                          <span className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md text-white text-[12px] font-bold px-3 py-1.5 rounded-full shadow-xs">
-                            +{alb.photoCount || alb.images?.length || 0} Photos
-                          </span>
+                      {/* All Images Grid */}
+                      {(() => {
+                        const isExpanded = expandedAlbums[alb._id];
+                        const imagesList = alb.images || [];
+                        const visibleImages = isExpanded ? imagesList : imagesList.slice(0, 4);
+                        const hasMore = !isExpanded && imagesList.length > 4;
+                        const extraCount = imagesList.length - 4;
+
+                        return (
+                          <div className={`grid gap-0.5 border-t border-[#E8DFC9] dark:border-white/10 ${
+                            visibleImages.length === 1 ? 'grid-cols-1' :
+                            visibleImages.length === 2 ? 'grid-cols-2' :
+                            visibleImages.length === 3 ? 'grid-cols-2' :
+                            'grid-cols-2'
+                          }`}>
+                            {visibleImages.map((img: any, i: number) => {
+                              const isLastVisible = i === 3 && hasMore;
+                              return (
+                                <div 
+                                  key={i} 
+                                  onClick={() => {
+                                    if (isLastVisible) {
+                                      setExpandedAlbums(prev => ({...prev, [alb._id]: true}));
+                                    }
+                                  }}
+                                  className={`relative bg-[#FAF6EE] dark:bg-black group overflow-hidden ${
+                                    visibleImages.length === 1 ? 'aspect-[4/3] sm:aspect-video' :
+                                    (visibleImages.length === 3 && i === 0) ? 'col-span-2 aspect-video' : 
+                                    'aspect-square'
+                                  } ${isLastVisible ? 'cursor-pointer' : ''}`}
+                                >
+                                  <img 
+                                    src={typeof img === 'string' ? img : img.url} 
+                                    alt={img.caption || `${alb.title} photo ${i + 1}`}
+                                    className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                    loading="lazy"
+                                  />
+                                  {isLastVisible && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70">
+                                      <span className="text-white text-3xl font-bold">+{extraCount}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Post Footer Actions */}
+                      {vendor.category !== "videographers" && (
+                        <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
+                          {(() => {
+                            const isVendorSelected = cartVendors[storeCat] === vendor.id;
+                            const isThisDesignSelected = isVendorSelected && requestedDesigns[storeCat] === alb._id;
+                            
+                            return (
+                              <button 
+                                onClick={() => handleSelectDesignClick(alb._id, alb.price || 0)} 
+                                className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
+                                  isThisDesignSelected 
+                                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
+                                    : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
+                                }`}
+                              >
+                                {isThisDesignSelected ? (
+                                  <>
+                                    <X className="w-4 h-4" /> Deselect Design
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="w-4 h-4" /> Select This Design
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })()}
+                          <button 
+                            onClick={() => setExpandedReviews(expandedReviews === alb._id ? null : alb._id)}
+                            className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === alb._id ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
+                          >
+                            {expandedReviews === alb._id ? 'Hide Reviews' : 'View Reviews'} {(alb as any).reviews && (alb as any).reviews.length > 0 ? `(${(alb as any).reviews.length})` : ""}
+                          </button>
                         </div>
-                      </div>
+                      )}
 
-
+                      {/* Expandable Reviews Section for this specific design */}
+                      <AnimatePresence>
+                        {expandedReviews === alb._id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden border-t border-[#E8DFC9] dark:border-white/10"
+                          >
+                            <div className="p-4 bg-gray-50 dark:bg-[#111315] space-y-4">
+                              <h4 className="text-[11px] uppercase tracking-widest font-bold text-gray-500 mb-2">
+                                Customer Reviews for this Design
+                              </h4>
+                              {(alb as any).reviews && (alb as any).reviews.length > 0 ? (
+                                <div className="space-y-4">
+                                  {(alb as any).reviews.map((rev: any, idx: number) => (
+                                    <div key={idx} className="bg-white dark:bg-black border border-[#E8DFC9] dark:border-white/10 p-4 rounded-sm shadow-sm space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-6 h-6 rounded-full bg-[#FAF6EE] dark:bg-[#111315] text-[#A6955C] flex items-center justify-center font-bold text-[10px] uppercase">
+                                            {rev.client ? rev.client.substring(0, 2) : "C"}
+                                          </div>
+                                          <span className="font-bold text-[#1A1512] dark:text-white text-xs">{rev.client}</span>
+                                        </div>
+                                        <div className="flex items-center gap-0.5">
+                                          {[...Array(5)].map((_, starIdx) => (
+                                            <Star key={starIdx} className={`w-3 h-3 ${starIdx < Math.round(rev.rating) ? 'text-[#C69C6D] fill-[#C69C6D]' : 'text-gray-300 fill-gray-300'}`} />
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <p className="text-gray-600 dark:text-gray-400 text-xs italic">
+                                        "{rev.text}"
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="py-6 text-center border border-dashed border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                                  <p className="text-gray-500 text-xs">No reviews yet for this specific design.</p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ))}
                 </div>
               ) : (
                 /* Static Portfolio Fallback Grid */
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                  {vendor.portfolio.map((img, i) => (
-                    <div key={i} className="break-inside-avoid bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden group mb-4 flex flex-col shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col gap-8">
+                  {vendor.portfolio && vendor.portfolio.length > 0 && (
+                    <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden shadow-sm flex flex-col">
                       
-                      {/* Facebook Post Header */}
+                      {/* Post Header */}
                       <div className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                           <img src={vendor.avatar || vendor.image} className="w-10 h-10 rounded-full object-cover border border-[#E8DFC9] dark:border-[#C9A84C]/30 shadow-sm" alt={vendor.name} />
                           <div className="flex flex-col">
                             <span className="text-[14px] font-bold text-[#1A1512] dark:text-white leading-tight">
-                              {vendor.name} <span className="font-normal text-gray-500">shared a photo.</span>
+                              {vendor.name} <span className="font-normal text-gray-500">shared a design showcase.</span>
                             </span>
                             <span className="text-[12px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
                               Recently • 🌍
@@ -365,104 +616,146 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                       {/* Post Content */}
                       <div className="px-4 pb-4">
                         <p className="text-[14px] text-gray-700 dark:text-gray-300">
-                          Loving the vibes from this recent setup! ✨
+                          Loving the vibes from our showcase setups! ✨
                         </p>
                       </div>
 
-                      {/* Image */}
-                      <div className="relative w-full border-y border-[#E8DFC9] dark:border-white/10">
-                        <img 
-                          src={img} 
-                          alt={`${vendor.name} portfolio ${i + 1}`}
-                          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      </div>
+                      {/* All Images Grid */}
+                      {(() => {
+                        const isExpanded = expandedAlbums['static'];
+                        const imagesList = vendor.portfolio || [];
+                        const visibleImages = isExpanded ? imagesList : imagesList.slice(0, 4);
+                        const hasMore = !isExpanded && imagesList.length > 4;
+                        const extraCount = imagesList.length - 4;
 
+                        return (
+                          <div className={`grid gap-0.5 border-t border-[#E8DFC9] dark:border-white/10 ${
+                            visibleImages.length === 1 ? 'grid-cols-1' :
+                            visibleImages.length === 2 ? 'grid-cols-2' :
+                            visibleImages.length === 3 ? 'grid-cols-2' :
+                            'grid-cols-2'
+                          }`}>
+                            {visibleImages.map((img: string, i: number) => {
+                              const isLastVisible = i === 3 && hasMore;
+                              return (
+                                <div 
+                                  key={i} 
+                                  onClick={() => {
+                                    if (isLastVisible) {
+                                      setExpandedAlbums(prev => ({...prev, 'static': true}));
+                                    }
+                                  }}
+                                  className={`relative bg-[#FAF6EE] dark:bg-black group overflow-hidden ${
+                                    visibleImages.length === 1 ? 'aspect-[4/3] sm:aspect-video' :
+                                    (visibleImages.length === 3 && i === 0) ? 'col-span-2 aspect-video' : 
+                                    'aspect-square'
+                                  } ${isLastVisible ? 'cursor-pointer' : ''}`}
+                                >
+                                  <img 
+                                    src={img} 
+                                    alt={`${vendor.name} portfolio ${i + 1}`}
+                                    className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                    loading="lazy"
+                                  />
+                                  {isLastVisible && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70">
+                                      <span className="text-white text-3xl font-bold">+{extraCount}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
 
+                      {/* Post Footer Actions */}
+                      {vendor.category !== "videographers" && (
+                        <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
+                          {(() => {
+                            const isVendorSelected = cartVendors[storeCat] === vendor.id;
+                            return (
+                              <button 
+                                onClick={handleSelectVendorClick} 
+                                className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
+                                  isVendorSelected 
+                                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
+                                    : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
+                                }`}
+                              >
+                                {isVendorSelected ? (
+                                  <>
+                                    <X className="w-4 h-4" /> Deselect Design
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="w-4 h-4" /> Select This Design
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })()}
+                          <button 
+                            onClick={() => setExpandedReviews(expandedReviews === 'static' ? null : 'static')}
+                            className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === 'static' ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
+                          >
+                            {expandedReviews === 'static' ? 'Hide Reviews' : 'View Reviews'} {vendor.reviews && vendor.reviews.length > 0 ? `(${vendor.reviews.length})` : ""}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Expandable Reviews Section for Static Portfolio */}
+                      <AnimatePresence>
+                        {expandedReviews === 'static' && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden border-t border-[#E8DFC9] dark:border-white/10"
+                          >
+                            <div className="p-4 bg-gray-50 dark:bg-[#111315] space-y-4">
+                              <h4 className="text-[11px] uppercase tracking-widest font-bold text-gray-500 mb-2">
+                                General Customer Reviews
+                              </h4>
+                              {vendor.reviews && vendor.reviews.length > 0 ? (
+                                <div className="space-y-4">
+                                  {vendor.reviews.map((rev: any, idx: number) => (
+                                    <div key={idx} className="bg-white dark:bg-black border border-[#E8DFC9] dark:border-white/10 p-4 rounded-sm shadow-sm space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-6 h-6 rounded-full bg-[#FAF6EE] dark:bg-[#111315] text-[#A6955C] flex items-center justify-center font-bold text-[10px] uppercase">
+                                            {rev.client ? rev.client.substring(0, 2) : "C"}
+                                          </div>
+                                          <span className="font-bold text-[#1A1512] dark:text-white text-xs">{rev.client}</span>
+                                        </div>
+                                        <div className="flex items-center gap-0.5">
+                                          {[...Array(5)].map((_, starIdx) => (
+                                            <Star key={starIdx} className={`w-3 h-3 ${starIdx < Math.round(rev.rating) ? 'text-[#C69C6D] fill-[#C69C6D]' : 'text-gray-300 fill-gray-300'}`} />
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <p className="text-gray-600 dark:text-gray-400 text-xs italic">
+                                        "{rev.text}"
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="py-6 text-center border border-dashed border-[#E8DFC9] dark:border-white/10 rounded-sm">
+                                  <p className="text-gray-500 text-xs">No reviews yet.</p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
           )}
 
-          {/* REVIEWS TAB */}
-          {activeTab === "reviews" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#E8DFC9] dark:border-white/10 pb-6">
-                <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white">Customer Reviews & Feedback</h3>
-                <button className="px-6 py-2 border border-[#E8DFC9] dark:border-white/10 text-[#C69C6D] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                  Write a Review
-                </button>
-              </div>
-
-              <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-                {/* Overall Rating Card */}
-                <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-8 rounded-sm shadow-sm flex flex-col justify-center min-w-[320px] shrink-0">
-                  <div className="flex items-start gap-8 mb-6">
-                    <div className="flex flex-col items-center">
-                      <span className="text-5xl font-serif text-[#1A1512] dark:text-[#C69C6D] mb-2">{vendor.rating}</span>
-                      <div className="flex items-center gap-0.5 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(vendor.rating) ? 'text-[#C69C6D] fill-[#C69C6D]' : 'text-gray-300 dark:text-gray-700 fill-gray-300 dark:fill-gray-700'}`} />
-                        ))}
-                      </div>
-                      <p className="text-[10px] text-gray-500 font-bold tracking-wider uppercase mb-1">Out of 5</p>
-                      <p className="text-[10px] text-gray-400">Based on {vendor.reviewsCount} reviews</p>
-                    </div>
-                    
-                    {/* Rating Breakdown */}
-                    <div className="flex-1 flex flex-col gap-1.5">
-                      {[
-                        { stars: 5, count: 82, width: "85%" },
-                        { stars: 4, count: 10, width: "10%" },
-                        { stars: 3, count: 3, width: "3%" },
-                        { stars: 2, count: 1, width: "1%" },
-                        { stars: 1, count: 0, width: "0%" }
-                      ].map((row) => (
-                        <div key={row.stars} className="flex items-center gap-2 text-[10px]">
-                          <span className="text-gray-400 dark:text-gray-500 w-4 flex items-center gap-0.5">{row.stars} <Star className="w-2.5 h-2.5 fill-current" /></span>
-                          <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#C69C6D] rounded-full" style={{ width: row.width }}></div>
-                          </div>
-                          <span className="text-gray-400 dark:text-gray-500 w-4 text-right">{row.count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Horizontal Scrolling Reviews */}
-                <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
-                  {vendor.reviews.map((review, i) => (
-                    <div key={i} className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 p-6 rounded-sm shadow-sm space-y-4 min-w-[320px] max-w-[320px] shrink-0 snap-start flex flex-col">
-                      <div className="flex items-start gap-4 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-[#FAF6EE] dark:bg-black text-[#A6955C] flex items-center justify-center font-bold text-sm shrink-0 border border-[#E8DFC9] dark:border-[#C9A84C]/30">
-                          {review.client.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-[#1A1512] dark:text-white text-sm">{review.client}</h5>
-                          <p className="text-[10px] text-gray-400 mt-0.5">Recent Booking</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, idx) => (
-                          <Star key={idx} className={`w-3 h-3 ${idx < review.rating ? 'text-[#C69C6D] fill-[#C69C6D]' : 'text-gray-300 fill-gray-300'}`} />
-                        ))}
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed flex-1">"{review.text}"</p>
-                      <div className="mt-4 pt-4 border-t border-[#E8DFC9] dark:border-white/10">
-                        <span className="text-[9px] text-[#A6955C] border border-[#E8DFC9] dark:border-[#C9A84C]/30 bg-[#FAF6EE] dark:bg-black px-2 py-1 rounded-sm uppercase tracking-widest">
-                          Verified Booker
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* AVAILABILITY TAB */}
           {activeTab === "availability" && (
@@ -544,16 +837,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-            <button 
-              onClick={handleSelectVendorClick} 
-              className={`w-full sm:w-auto px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-md flex items-center gap-2 justify-center
-                ${isSelected 
-                  ? 'bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
-                  : 'bg-[#C69C6D] text-white border border-[#C69C6D] hover:bg-[#B58B5C] hover:border-[#B58B5C]'}`}
-            >
-              {isSelected ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-              {isSelected ? "Deselect Vendor" : "Select This Vendor"}
-            </button>
+
             <button 
               onClick={() => setContactModalOpen(true)} 
               className="w-full sm:w-auto border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 px-8 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:border-[#C69C6D] hover:text-[#C69C6D] transition-colors"
@@ -605,16 +889,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
             </div>
             
             <div className="flex flex-col gap-3">
-              <button 
-                onClick={handleSelectVendorClick} 
-                className={`w-full py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-md flex items-center justify-center gap-2
-                  ${isSelected 
-                    ? 'bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
-                    : 'bg-[#C69C6D] text-white border border-[#C69C6D] hover:bg-[#B58B5C]'}`}
-              >
-                {isSelected ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-                {isSelected ? "Deselect Vendor" : "Select This Vendor"}
-              </button>
+
               <button 
                 onClick={() => setContactModalOpen(true)} 
                 className="w-full border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-gray-300 py-3.5 text-[10px] uppercase font-bold tracking-widest rounded-sm hover:border-[#C69C6D] hover:text-[#C69C6D] transition-colors"
@@ -634,12 +909,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
               <Star className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
               <span className="text-sm text-gray-600 dark:text-gray-400">{vendor.reviewsCount} Reviews</span>
             </div>
-            {vendor.eventsCompleted && (
-              <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
-                <span className="text-sm text-gray-600 dark:text-gray-400">{vendor.eventsCompleted} Events Completed</span>
-              </div>
-            )}
+
             <div className="flex items-center gap-3">
               <Truck className="w-4 h-4 text-[#C69C6D]" strokeWidth={1.5} />
               <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -653,38 +923,45 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
       {/* Vendor Replacement Confirmation Modal */}
       <AnimatePresence>
         {replaceModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setReplaceModalOpen(false)}
+              onClick={() => {
+                setReplaceModalOpen(false);
+                setPendingDesignSelection(null);
+              }}
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white dark:bg-[#1A1A1A] p-8 max-w-md w-full rounded-sm shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-[#E8DFC9] dark:border-[#C9A84C]/30 text-center z-10"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+              className="relative bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-white/10 p-8 rounded-sm shadow-xl max-w-md w-full"
             >
-              <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle className="w-8 h-8 text-amber-500" />
+              <div className="flex items-center gap-4 text-[#C69C6D] mb-6">
+                <AlertTriangle className="w-8 h-8" />
+                <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">Replace Vendor?</h3>
               </div>
-              <h3 className="font-serif text-2xl text-[#2C1E14] dark:text-white mb-3">Replace Selected Partner?</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                You already have <strong className="text-black dark:text-white">"{existingVendorName}"</strong> selected in this category. Would you like to confirm and replace them with <strong className="text-black dark:text-white">"{vendor.name}"</strong>?
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                You already have <strong className="text-[#1A1512] dark:text-white">{existingVendorName}</strong> selected for {vendor.categoryLabel.toLowerCase()}s. Would you like to replace them with <strong className="text-[#1A1512] dark:text-white">{vendor.name}</strong>?
               </p>
-              
               <div className="flex gap-4">
                 <button 
-                  onClick={() => setReplaceModalOpen(false)}
-                  className="flex-1 py-3 border border-[#E8DFC9] dark:border-gray-700 text-[#1A1512] dark:text-gray-300 text-xs uppercase font-bold tracking-widest hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-sm"
+                  onClick={() => {
+                    setReplaceModalOpen(false);
+                    setPendingDesignSelection(null);
+                  }} 
+                  className="flex-1 py-3 text-[11px] uppercase font-bold tracking-widest border border-[#E8DFC9] dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
-                  onClick={confirmReplace}
-                  className="flex-1 py-3 bg-[#C9A84C] text-black text-xs uppercase font-bold tracking-widest hover:bg-opacity-95 transition-colors rounded-sm"
+                  onClick={confirmReplace} 
+                  className="flex-1 py-3 text-[11px] uppercase font-bold tracking-widest bg-[#C69C6D] text-white hover:bg-[#B58B5C] transition-colors shadow-sm"
                 >
-                  Confirm & Replace
+                  Replace
                 </button>
               </div>
             </motion.div>

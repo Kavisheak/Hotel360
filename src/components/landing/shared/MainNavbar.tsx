@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, LogOut, Phone, Calendar, AlertTriangle, Menu, X, Moon, Sun } from "lucide-react";
+import { Heart, LogOut, Phone, Calendar, AlertTriangle, Menu, X, Moon, Sun, User } from "lucide-react";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useVendorCartStore } from "@/store/vendorCartStore";
@@ -84,33 +84,33 @@ export default function MainNavbar() {
 
   return (
     <>
-      <header 
-        className={`sticky top-0 z-50 w-full transition-all duration-500 ease-out ${
-          isHome && !isScrolled 
-            ? "bg-transparent border-transparent text-gray-800 dark:text-white" 
-            : "bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800/80 text-gray-800 dark:text-gray-200 shadow-sm"
-        }`}
-      >
-        <div className="w-full px-6 md:px-12 lg:px-16 py-4 flex items-center justify-between">
+      <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 sm:px-6 pointer-events-none transition-all duration-500">
+        <header 
+          className={`pointer-events-auto w-full max-w-7xl rounded-[20px] px-5 sm:px-8 py-3 flex items-center justify-between transition-all duration-500 ${
+            isHome && !isScrolled 
+              ? "bg-[#FDFBF7]/85 dark:bg-[#1A1A1A]/85 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-sm" 
+              : "bg-[#FDFBF7]/95 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border border-[#E8DFC9]/80 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]"
+          }`}
+        >
           
           {/* Brand Logo */}
-          <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center gap-3 group">
+          <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center gap-3 group shrink-0">
             <LogoIcon />
             <div className="flex flex-col select-none">
-              <span className="font-serif text-2xl font-bold tracking-wider text-[#C9A84C] leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <span className="font-serif text-[22px] sm:text-2xl font-bold tracking-wider text-[#C9A84C] leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
                 EASCCA
               </span>
-              <span className="font-sans text-[9px] font-bold tracking-[0.12em] text-[#2c3e50] dark:text-[#E2E8F0] uppercase mt-1 leading-none" style={{ fontFamily: "'Jost', sans-serif" }}>
+              <span className="font-sans text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-[#2C3E50] dark:text-[#E2E8F0] uppercase mt-1 leading-none" style={{ fontFamily: "'Jost', sans-serif" }}>
                 CONFERENCE CENTRE
               </span>
-              <span className="font-sans text-[8px] font-semibold tracking-[0.2em] text-[#2c3e50]/80 dark:text-[#E2E8F0]/80 uppercase mt-0.5 leading-none" style={{ fontFamily: "'Jost', sans-serif" }}>
+              <span className="font-sans text-[7px] sm:text-[8px] font-semibold tracking-[0.2em] text-[#2C3E50]/80 dark:text-[#E2E8F0]/80 uppercase mt-0.5 leading-none" style={{ fontFamily: "'Jost', sans-serif" }}>
                 ERAVUR
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8 text-[16px] font-bold text-[#2C3E50] dark:text-gray-300">
+          <nav className="hidden lg:flex items-center gap-7 xl:gap-9 text-[16px] font-medium text-[#2C3E50] dark:text-gray-300 mx-auto absolute left-1/2 -translate-x-1/2">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
@@ -119,18 +119,18 @@ export default function MainNavbar() {
                   href={link.path}
                   onClick={(e) => handleNavClick(e, link.path)}
                   style={{ fontFamily: "'Jost', sans-serif" }}
-                  className={`relative py-2 transition-colors duration-200 ${
+                  className={`relative py-2 transition-colors duration-300 ${
                     isActive
-                      ? "text-[#E2952B] dark:text-[#F3BA46]"
-                      : "text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] dark:hover:text-[#F3BA46]"
+                      ? "text-[#C9A84C]"
+                      : "text-[#2C3E50] dark:text-gray-300 hover:text-[#C9A84C] dark:hover:text-[#C9A84C]"
                   }`}
                 >
-                  <span>{link.name}</span>
+                  <span className="relative z-10">{link.name}</span>
                   {isActive && (
                     <motion.div
                       layoutId="activeUnderline"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-[3px] bg-[#E2952B] dark:bg-[#F3BA46] rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-[2px] bg-[#C9A84C] rounded-full"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
                 </Link>
@@ -139,12 +139,12 @@ export default function MainNavbar() {
           </nav>
 
           {/* Call to Actions */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4 sm:gap-5 shrink-0">
             {/* Saved Items */}
-            <Link href="/customer/saved" onClick={(e) => handleNavClick(e, "/customer/saved")} className="hidden lg:flex relative group text-gray-600 dark:text-gray-300 hover:text-[#E2952B] transition-colors">
-              <Heart className="w-5 h-5" />
+            <Link href="/customer/saved" onClick={(e) => handleNavClick(e, "/customer/saved")} className="hidden lg:flex relative group text-[#2C3E50] dark:text-gray-300 hover:text-[#C9A84C] transition-colors">
+              <Heart className="w-[18px] h-[18px] stroke-[2px]" />
               {favoriteVendors?.length > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-1.5 -right-2 bg-[#C9A84C] text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold shadow-sm">
                   {favoriteVendors.length}
                 </span>
               )}
@@ -155,63 +155,53 @@ export default function MainNavbar() {
               {isLoggedIn && <NotificationCenter role="customer" />}
             </div>
 
+            {/* Call to Action Button */}
+            {isLoggedIn ? (
+              <Link
+                href="/book"
+                onClick={(e) => handleNavClick(e, "/book")}
+                className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-[#D4AF37] to-[#C9A84C] text-white hover:from-[#C9A84C] hover:to-[#B58B5C] px-5 py-2.5 rounded-xl text-[15px] font-bold transition-all duration-300 shadow-[0_4px_14px_rgba(201,168,76,0.25)] hover:shadow-[0_6px_20px_rgba(201,168,76,0.35)] shrink-0"
+                style={{ fontFamily: "'Jost', sans-serif", letterSpacing: "0.03em" }}
+              >
+                <Calendar className="w-[14px] h-[14px] text-white" strokeWidth={2.5} />
+                <span className="uppercase">Book Now</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                onClick={(e) => handleNavClick(e, "/login")}
+                className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-[#D4AF37] to-[#C9A84C] text-white hover:from-[#C9A84C] hover:to-[#B58B5C] px-5 py-2.5 rounded-xl text-[15px] font-bold transition-all duration-300 shadow-[0_4px_14px_rgba(201,168,76,0.25)] hover:shadow-[0_6px_20px_rgba(201,168,76,0.35)] shrink-0"
+                style={{ fontFamily: "'Jost', sans-serif", letterSpacing: "0.03em" }}
+              >
+                <User className="w-[14px] h-[14px] text-white" strokeWidth={2.5} />
+                <span className="uppercase">Sign In</span>
+              </Link>
+            )}
 
-
-            {/* Book Event Button */}
-            <Link
-              href="/book"
-              onClick={(e) => handleNavClick(e, "/book")}
-              className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-[#E2952B] to-[#F3BA46] text-white hover:from-[#D0841A] hover:to-[#E2A732] px-5 py-2.5 rounded-md text-[15px] font-bold transition-all duration-200 shadow-md shadow-orange-500/10 hover:shadow-orange-500/20"
-              style={{ fontFamily: "'Jost', sans-serif" }}
-            >
-              <Calendar className="w-4 h-4 text-white" strokeWidth={2.5} />
-              <span>Book Event</span>
-            </Link>
-
-            {/* Auth Actions */}
-            <div className="hidden lg:flex items-center">
-              {isLoading ? (
-                <div className="w-16 h-4 bg-[#E8DFC9]/40 dark:bg-gray-800 animate-pulse rounded-sm shrink-0"></div>
-              ) : isLoggedIn ? (
-                <button
-                  onClick={() => setIsSignOutModalOpen(true)}
-                  title="Sign Out"
-                  className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-              ) : (
-                <Link
-                  href="/login"
-                  onClick={(e) => handleNavClick(e, "/login")}
-                  className="text-[15px] font-bold text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B] dark:hover:text-[#F3BA46] transition-colors duration-200"
-                  style={{ fontFamily: "'Jost', sans-serif" }}
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
-
-            {/* Theme Toggle (Visible on all sizes) */}
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex items-center justify-center p-2 mr-1 lg:mr-4 lg:ml-4 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-              title="Toggle Theme"
-            >
-              {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
-            </button>
+            {/* Desktop Sign Out Button */}
+            {isLoggedIn && (
+              <button
+                onClick={() => setIsSignOutModalOpen(true)}
+                className="hidden lg:flex items-center justify-center group text-[#2C3E50] dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-1"
+                aria-label="Sign Out"
+                title="Sign Out"
+              >
+                <LogOut className="w-[18px] h-[18px] stroke-[2px]" />
+              </button>
+            )}
 
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex lg:hidden items-center justify-center p-2 text-gray-600 dark:text-gray-300 hover:text-[#E2952B] transition-colors"
+              className="flex lg:hidden items-center justify-center p-1.5 text-[#2C3E50] dark:text-gray-300 hover:text-[#C9A84C] transition-colors"
               aria-label="Toggle Menu"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5 stroke-[2px]" /> : <Menu className="w-5 h-5 stroke-[2px]" />}
             </button>
           </div>
 
-        </div>
+        </header>
+      </div>
 
         {/* Mobile Navigation Drawer */}
         <AnimatePresence>
@@ -235,7 +225,7 @@ export default function MainNavbar() {
                         setIsMobileMenuOpen(false);
                       }}
                       style={{ fontFamily: "'Jost', sans-serif" }}
-                      className={`text-center text-[16px] font-bold py-2 transition-colors duration-200 ${
+                      className={`text-center text-[18px] font-bold py-2 transition-colors duration-200 ${
                         isActive
                           ? "text-[#E2952B] dark:text-[#F3BA46]"
                           : "text-[#2b354e] dark:text-gray-300 hover:text-[#E2952B]"
@@ -289,7 +279,6 @@ export default function MainNavbar() {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
 
       {/* Sign Out Confirmation Modal */}
       <SignOutModal 

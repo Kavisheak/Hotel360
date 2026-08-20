@@ -81,19 +81,20 @@ const Metrics = () => {
   return (
     <div className="space-y-6 mb-8">
       {/* Operational KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((m) => (
           <div
             key={m.label}
-            className="bg-white border border-gray-200/80 rounded-xl p-4 flex flex-col justify-between shadow-xs hover:shadow-sm transition-all"
+            className="group relative bg-white border border-[#E0D8C3]/60 rounded-2xl p-6 flex flex-col justify-between shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${m.badgeColor}`}>{m.icon}</div>
-              <span className="text-2xl font-bold font-serif text-gray-900">{m.value}</span>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#E0D8C3] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-xl transition-colors duration-300 ${m.badgeColor.replace('bg-', 'bg-').replace('text-', 'text-')}`}>{m.icon}</div>
+              <span className="text-3xl font-serif font-semibold text-gray-900 tracking-tight group-hover:text-[#7C6A2E] transition-colors">{m.value}</span>
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-800 line-clamp-1">{m.label}</p>
-              <p className="text-[10px] text-gray-500 font-medium mt-0.5">{m.subText}</p>
+              <p className="text-sm font-semibold text-gray-800 tracking-wide">{m.label}</p>
+              <p className="text-xs text-gray-400 font-light mt-1">{m.subText}</p>
             </div>
           </div>
         ))}

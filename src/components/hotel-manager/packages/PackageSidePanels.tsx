@@ -1,5 +1,4 @@
-import React from 'react';
-import { Info, Plus } from 'lucide-react';
+import { Lock, ArrowRight } from 'lucide-react';
 
 const PackagePreview = () => {
   return (
@@ -9,12 +8,12 @@ const PackagePreview = () => {
         alt="Package Visual Preview"
         className="w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-5">
-        <p className="font-serif italic text-[#F3EFE9] text-base leading-snug mb-1">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-5">
+        <p className="font-serif italic text-white text-lg leading-snug mb-1">
           "Excellence is in the details."
         </p>
-        <p className="text-[9px] font-bold tracking-[0.25em] text-[#C5A040] uppercase">
-          Package Visual Preview
+        <p className="text-[10px] text-gray-300 font-medium">
+          Deliver unforgettable experiences.
         </p>
       </div>
     </div>
@@ -23,18 +22,16 @@ const PackagePreview = () => {
 
 const PriceLockReminder = () => {
   return (
-    <div className="bg-blue-50 border border-blue-200 p-4 flex gap-3 shadow-sm">
-      <div className="flex-1">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Info size={13} className="text-blue-500 shrink-0" />
-          <p className="text-[9px] font-bold tracking-[0.15em] text-blue-700 uppercase">Price Lock Reminder</p>
-        </div>
-        <p className="text-[10px] text-blue-600 font-medium leading-relaxed">
-          Adjusting these rates will affect all future quotes. Existing signed contracts will maintain their locked-in pricing structures.
-        </p>
+    <div className="bg-white border border-blue-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Lock size={14} className="text-blue-600" />
+        <p className="text-[11px] font-bold text-blue-800">Price Lock Reminder</p>
       </div>
-      <button className="shrink-0 w-8 h-8 rounded-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white flex items-center justify-center transition-colors self-start shadow-sm">
-        <Plus size={15} />
+      <p className="text-[11px] text-blue-600/80 font-medium leading-relaxed">
+        Adjusting these rates will affect future quotes. Existing signed contracts will maintain their locked-in pricing structures.
+      </p>
+      <button className="flex items-center justify-between w-full py-2.5 px-4 bg-blue-50/50 hover:bg-blue-100/50 border border-blue-100 rounded text-[10px] font-bold text-blue-800 transition-colors">
+        View Affected Bookings <ArrowRight size={12} />
       </button>
     </div>
   );

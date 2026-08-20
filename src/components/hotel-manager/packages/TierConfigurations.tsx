@@ -6,11 +6,10 @@ import TierCard from './TierCard';
 
 interface TierConfigurationsProps {
   tiers: Tier[];
-  onPriceChange: (id: string, val: number) => void;
   onEdit: (tier: Tier) => void;
 }
 
-const TierConfigurations = ({ tiers, onPriceChange, onEdit }: TierConfigurationsProps) => {
+const TierConfigurations = ({ tiers, onEdit }: TierConfigurationsProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] p-6 sm:p-10 shadow-sm">
       {/* Section Header */}
@@ -33,10 +32,9 @@ const TierConfigurations = ({ tiers, onPriceChange, onEdit }: TierConfigurations
         </Link>
       </div>
 
-      {/* Three Tier Cards — Gold is elevated */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-5 items-start">
         {tiers.map((tier, index) => (
-          <TierCard key={tier.id} tier={tier} index={index} onPriceChange={onPriceChange} onEdit={() => onEdit(tier)} />
+          <TierCard key={tier.id} tier={tier} index={index} onEdit={() => onEdit(tier)} />
         ))}
       </div>
 

@@ -43,7 +43,7 @@ const AboutSection = () => {
           className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] group bg-white"
         >
           <Image
-            src="/images/Frontimg.png"
+            src="/eascc.png"
             alt="EASCCA Conference Center"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -69,10 +69,9 @@ const AboutSection = () => {
           </motion.p>
           
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
             {[
-              { icon: Building2, count: '5+', label: 'Conference Halls' },
-              { icon: Users, count: '1000+', label: 'Guest Capacity' },
+              { icon: Users, count: '500+', label: 'Guest Capacity' },
               { icon: CalendarRange, count: '8+', label: 'Event Types' },
               { icon: Clock, count: '10+', label: 'Years of Service' },
             ].map((stat, idx) => (

@@ -59,6 +59,7 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Jost:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,400&display=swap"
         />
+        <script src="https://www.payhere.lk/lib/payhere.js" async />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>

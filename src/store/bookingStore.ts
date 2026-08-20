@@ -32,11 +32,21 @@ export interface Booking {
   durationHours: number;
   extraHours: number;
   guests: number;
-  status: "Pending" | "Pending Confirmation" | "Pending Hall Confirmation" | "Confirmed" | "Completed" | "Cancelled" | "Rejected" | "CancellationRequested";
+  status: "Pending" | "DEPOSIT_PAID" | "Pending Confirmation" | "Pending Hall Confirmation" | "Confirmed" | "Completed" | "Cancelled" | "Rejected" | "CancellationRequested";
   rejectionReason?: string;
   totalCost: number;
   depositAmount: number;
   balanceAmount: number;
+  balanceDueDate?: string;
+  paymentHistory?: {
+    _id?: string;
+    amount: number;
+    paymentType: string;
+    method: string;
+    status: string;
+    timestamp: string;
+    note?: string;
+  }[];
   bookingCredit?: number;
   packageId?: string;
   packageName: string;
@@ -90,6 +100,7 @@ export interface Booking {
     photographerCost?: number;
     cakeCost?: number;
     floristCost?: number;
+    customMenuSurcharge?: number;
   };
   createdAt: string;
   feedback?: Feedback;
@@ -106,8 +117,12 @@ interface BookingState {
   getConfirmedBookings: () => Booking[];
   updateBookingStatus: (id: string, status: string) => void;
   submitFeedback: (id: string, feedback: Feedback) => void;
-  swapVendor: (bookingId: string, service: string, newVendorId: string) => Promise<void>;
+  initiateVendorSwap: (bookingId: string, service: string, newVendorId: string, packageName?: string, financialChoice?: string) => Promise<{ success: boolean; pendingSwap?: boolean; data?: any }>;
+  confirmSwapPayment: (bookingId: string, pendingSwapId: string) => Promise<{ success: boolean; data?: any }>;
+  removeVendor: (bookingId: string, service: string, action?: 'refund' | 'apply_to_balance') => Promise<void>;
   vendorRespondBooking: (bookingId: string, service: string, status: "Accepted" | "Declined") => Promise<void>;
+  deleteBookingHistory: (id: string) => Promise<void>;
+  clearBookingHistory: () => Promise<void>;
 }
 
 export const useBookingStore = create<BookingState>()(
@@ -141,9 +156,29 @@ export const useBookingStore = create<BookingState>()(
       updateBookingStatus: (id, status) => set((state) => ({
         bookings: state.bookings.map((b) => ((b.id || b._id) === id ? { ...b, status: status as any } : b))
       })),
-      swapVendor: async (bookingId, service, newVendorId) => {
+      initiateVendorSwap: async (bookingId, service, newVendorId, packageName, financialChoice) => {
         try {
-          const res = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId });
+          const res = await customerBookingAPI.initiateVendorSwap(bookingId, { service, newVendorId, packageName, financialChoice });
+          if (res.ok && res.data) {
+            if (!res.data.pendingSwap && res.data.data) {
+              const updatedBooking = res.data.data;
+              set((state) => ({
+                bookings: state.bookings.map((b) =>
+                  (b.id || b._id) === bookingId ? updatedBooking : b
+                )
+              }));
+            }
+            return res.data;
+          }
+          return { success: false };
+        } catch (error) {
+          console.error("Initiate swap error:", error);
+          return { success: false };
+        }
+      },
+      confirmSwapPayment: async (bookingId, pendingSwapId) => {
+        try {
+          const res = await customerBookingAPI.confirmSwapPayment(bookingId, { pendingSwapId });
           if (res.ok && res.data?.data) {
             const updatedBooking = res.data.data;
             set((state) => ({
@@ -151,9 +186,29 @@ export const useBookingStore = create<BookingState>()(
                 (b.id || b._id) === bookingId ? updatedBooking : b
               )
             }));
+            return res.data;
+          }
+          return { success: false };
+        } catch (error) {
+          console.error("Confirm swap error:", error);
+          return { success: false };
+        }
+      },
+      removeVendor: async (bookingId, service, financialChoice) => {
+        try {
+          const res = await customerBookingAPI.removeVendor(bookingId, { service, financialChoice });
+          if (res.ok) {
+            const updatedBooking = res.data?.data || res.data?.booking;
+            if (updatedBooking) {
+              set((state) => ({
+                bookings: state.bookings.map((b) =>
+                  (b.id || b._id) === bookingId ? updatedBooking : b
+                )
+              }));
+            }
           }
         } catch (error) {
-          console.error("Swap vendor error:", error);
+          console.error("Remove vendor error:", error);
         }
       },
       vendorRespondBooking: async (bookingId, service, status) => {
@@ -179,6 +234,28 @@ export const useBookingStore = create<BookingState>()(
             b._id === id ? { ...b, feedback } : b
           )
         })),
+      deleteBookingHistory: async (id) => {
+        try {
+          const res = await customerBookingAPI.deleteBookingHistory(id);
+          if (res.ok && res.data.success) {
+            set((state) => ({
+              bookings: state.bookings.filter(b => (b.id || b._id) !== id)
+            }));
+          }
+        } catch (error) {
+          console.error("Delete booking history error:", error);
+        }
+      },
+      clearBookingHistory: async () => {
+        try {
+          const res = await customerBookingAPI.clearBookingHistory();
+          if (res.ok && res.data.success) {
+            set({ bookings: [] });
+          }
+        } catch (error) {
+          console.error("Clear booking history error:", error);
+        }
+      },
     }),
     {
       name: "booking-storage-v3",

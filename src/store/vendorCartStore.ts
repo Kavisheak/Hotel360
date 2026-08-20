@@ -22,6 +22,7 @@ interface VendorCartState {
   vendorPackages: Record<"decorator" | "photographer" | "cake" | "florist", string>;
   setVendorPackage: (category: "decorator" | "photographer" | "cake" | "florist", pkgName: string) => void;
   setVendor: (category: keyof VendorCartState["vendors"], id: string | null) => void;
+  setRequestedDesign: (category: keyof VendorCartState["vendors"], designId: string | null, price?: number | null) => void;
   toggleFavoriteVendor: (id: string) => void;
   setMenuType: (type: "signature" | "custom" | "none") => void;
   addMenuItem: (item: MenuItemSelection) => void;
@@ -94,6 +95,18 @@ export const useVendorCartStore = create<VendorCartState>()(
             ...state.vendors,
             [category]: id,
           },
+          // Also clear the requested design if the vendor is cleared or changed (optional, but good practice. For now, leave it alone to avoid side effects).
+        })),
+      setRequestedDesign: (category, designId, price) =>
+        set((state) => ({
+          requestedDesigns: {
+            ...state.requestedDesigns,
+            [category]: designId,
+          },
+          requestedDesignPrices: {
+            ...state.requestedDesignPrices,
+            [category]: price || null,
+          }
         })),
       setFavoriteVendors: (favorites) => set({ favoriteVendors: favorites }),
       toggleFavoriteVendor: (id) => {

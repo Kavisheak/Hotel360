@@ -34,9 +34,12 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ albumId, onBack, onAlbumUpdat
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("installations");
   const [price, setPrice] = useState("");
-  const [eventType, setEventType] = useState("Grand Wedding");
-  const [culturalStyle, setCulturalStyle] = useState("Western / Modern");
+  const [eventType, setEventType] = useState("Wedding");
   const [description, setDescription] = useState("");
+
+  const [decorationStyles, setDecorationStyles] = useState<string[]>([]);
+  const [colorThemes, setColorThemes] = useState<string[]>([]);
+  const [includedItems, setIncludedItems] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAlbumDetails();
@@ -55,9 +58,11 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ albumId, onBack, onAlbumUpdat
         setTitle(alb.title || "");
         setCategory(alb.category || "installations");
         setPrice(alb.price ? String(alb.price) : "");
-        setEventType(alb.eventType || "Grand Wedding");
-        setCulturalStyle(alb.culturalStyle || "Western / Modern");
+        setEventType(alb.eventType || "Wedding");
         setDescription(alb.description || "");
+        setDecorationStyles(alb.decorationStyle || []);
+        setColorThemes(alb.colorTheme || []);
+        setIncludedItems(alb.servicesProvided || []);
       } else {
         alert(res.data?.message || "Failed to load album details.");
         onBack();
@@ -83,8 +88,10 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ albumId, onBack, onAlbumUpdat
         category,
         price: price ? Number(price) : 0,
         eventType,
-        culturalStyle,
+        decorationStyle: JSON.stringify(decorationStyles),
+        colorTheme: JSON.stringify(colorThemes),
         description,
+        servicesProvided: JSON.stringify(includedItems),
       };
 
       const res = await decoratorAPI.updateAlbum(albumId, payload);
@@ -315,8 +322,8 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ albumId, onBack, onAlbumUpdat
           />
         </div>
 
-        {/* Section 2: Event Type, Cultural Style & Price */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Section 2: Event Type & Price */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
               Event Type
@@ -326,58 +333,98 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ albumId, onBack, onAlbumUpdat
               onChange={(e) => setEventType(e.target.value)}
               className="w-full bg-[#FAF6EE] border border-[#E0D8C3] p-3 text-sm font-semibold text-gray-800 focus:border-[#7C6A2E] outline-none rounded cursor-pointer"
             >
-              <option value="Grand Wedding">Grand Wedding</option>
-              <option value="Corporate Gala">Corporate Gala</option>
-              <option value="Intimate Reception">Intimate Reception</option>
-              <option value="Cultural Celebration">Cultural Celebration</option>
               <option value="Wedding">Wedding</option>
-              <option value="Reception">Reception</option>
               <option value="Engagement">Engagement</option>
-              <option value="Homecoming">Homecoming</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-              Cultural Style
-            </label>
-            <select
-              value={culturalStyle}
-              onChange={(e) => setCulturalStyle(e.target.value)}
-              className="w-full bg-[#FAF6EE] border border-[#E0D8C3] p-3 text-sm font-semibold text-gray-800 focus:border-[#7C6A2E] outline-none rounded cursor-pointer"
-            >
-              <option value="Western / Modern">Western / Modern</option>
-              <option value="Sinhala Traditional">Sinhala Traditional</option>
-              <option value="Tamil Traditional">Tamil Traditional</option>
-              <option value="Muslim Traditional">Muslim Traditional</option>
-              <option value="Mixed / Fusion">Mixed / Fusion</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-              Project Price (LKR)
+              Package Pricing (LKR)
             </label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="e.g. 250000"
+              placeholder="e.g. 150000"
               className="w-full bg-[#FAF6EE] border border-[#E0D8C3] p-3 text-sm font-semibold text-gray-800 focus:border-[#7C6A2E] outline-none rounded"
             />
           </div>
         </div>
 
+        {/* Decoration Style (Multi-select) */}
+        <div>
+          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 mt-4">
+            Decoration Style (Select multiple)
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {["Luxury", "Modern", "Minimalist", "Traditional", "Floral", "Glamorous", "Rustic", "Classic", "Theme-based"].map((opt) => (
+              <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={decorationStyles.includes(opt)} onChange={(e) => {
+                  if (e.target.checked) setDecorationStyles([...decorationStyles, opt]);
+                  else setDecorationStyles(decorationStyles.filter(i => i !== opt));
+                }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                {opt}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Color Theme (Multi-select) */}
+        <div>
+          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 mt-4">
+            Color Theme (Select multiple)
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {["White", "Gold", "Red", "Pink", "Blue", "Green", "Purple", "Silver", "Black", "Custom"].map((opt) => (
+              <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={colorThemes.includes(opt)} onChange={(e) => {
+                  if (e.target.checked) setColorThemes([...colorThemes, opt]);
+                  else setColorThemes(colorThemes.filter(i => i !== opt));
+                }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                {opt}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* What is Included (Multi-select) */}
+        <div>
+          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 mt-4">
+            What is Included? (Select multiple)
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {["Main Stage", "Stage Backdrop", "Entrance Decoration", "Head Table", "Cake Table", "Guest Table Decoration", "Floral Arrangements", "Centerpieces", "Chair Decoration", "Ceiling Decoration", "Lighting", "Welcome Board", "Photo Booth", "Carpet / Aisle"].map((opt) => (
+              <label key={opt} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={includedItems.includes(opt)} onChange={(e) => {
+                  if (e.target.checked) setIncludedItems([...includedItems, opt]);
+                  else setIncludedItems(includedItems.filter(i => i !== opt));
+                }} className="w-3.5 h-3.5 text-[#D4AF37] focus:ring-[#D4AF37] rounded border-gray-300" />
+                {opt}
+              </label>
+            ))}
+          </div>
+        </div>
+
         {/* Section 3: Narrative Description */}
         <div>
-          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-            Short Description
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              Short Description
+            </label>
+            <span className="text-[10px] text-gray-400">
+              {description.length}/100 chars
+            </span>
+          </div>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            placeholder="Describe the aesthetic, theme, setup, or highlights of this project..."
+            onChange={(e) => setDescription(e.target.value.slice(0, 100))}
+            rows={2}
+            placeholder="Describe the aesthetic or highlights (approx. 10 words)..."
             className="w-full bg-[#FAF6EE] border border-[#E0D8C3] p-3 text-sm font-semibold text-gray-800 focus:border-[#7C6A2E] outline-none rounded resize-none"
           />
         </div>

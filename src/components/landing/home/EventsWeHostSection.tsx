@@ -69,7 +69,7 @@ const EventsWeHostSection = () => {
                 variants={slideLeftVariants}
                 className="flex flex-col items-center text-center group cursor-default"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#EADDC4] bg-white flex items-center justify-center mb-4 md:mb-5 group-hover:border-[#CDA566] group-hover:-translate-y-2 transition-all duration-300 text-[#CDA566] shadow-[0_5px_15px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_30px_rgba(205,165,102,0.15)]">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#EADDC4] bg-white flex items-center justify-center mb-4 md:mb-5 group-hover:border-[#CDA566] group-hover:-translate-y-2 transition-all duration-300 text-[#CDA566] shadow-[0_0_15px_rgba(205,165,102,0.3)] group-hover:shadow-[0_0_35px_rgba(205,165,102,0.6)]">
                   <Icon strokeWidth={1.5} size={28} />
                 </div>
                 <span className="text-[12px] font-bold text-[#424242] leading-snug max-w-[100px] group-hover:text-[#2B4A3F] transition-colors">{event.name}</span>

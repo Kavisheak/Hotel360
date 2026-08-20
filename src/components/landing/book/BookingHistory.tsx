@@ -2,75 +2,50 @@
 
 import React, { useEffect, useState } from "react";
 import { customerBookingAPI } from "@/lib/api";
-import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare } from "lucide-react";
+import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVendorStore } from "@/store/vendorStore";
 
-interface Booking {
-  _id: string;
-  eventName: string;
-  eventType: string;
-  date: string;
-  timeslot: string;
-  guests: number;
-  status: string;
-  totalCost: number;
-  packageName?: string;
-  menuType?: string;
-  paymentMethod?: string;
-  depositAmount?: number;
-  balanceAmount?: number;
-  bookingCredit?: number;
-  vendors?: {
-    decorator?: { status: string };
-    dj?: { status: string };
-    videographer?: { status: string };
-  };
-  pricingBreakdown?: {
-    hallFixedPrice: number;
-    foodCost: number;
-    decoratorCost: number;
-    djCost: number;
-    videographerCost: number;
-  };
-}
+import BookingDetailView from "@/components/shared/BookingDetailView";
+import VendorSwapModal from "@/components/myaccount/VendorSwapModal";
+import RefundRequestModal from "@/components/myaccount/RefundRequestModal";
+import { useBookingStore, type Booking } from "@/store/bookingStore";
 
 export default function BookingHistory() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { bookings, isLoading, error: storeError, fetchUserBookings: storeFetchBookings } = useBookingStore();
   const [error, setError] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   
   // Vendor swapping state
   const [swappingService, setSwappingService] = useState<{ bookingId: string, service: string } | null>(null);
   const [selectedNewVendor, setSelectedNewVendor] = useState<string>("");
   const [isSwapping, setIsSwapping] = useState(false);
+  const [swapModalState, setSwapModalState] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    service: 'decorator' | 'videographer' | 'dj';
+    currentVendorId?: string;
+  }>({ isOpen: false, bookingId: "", service: "decorator" });
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<Booking | null>(null);
+
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean, type: 'single' | 'all', bookingId?: string }>({ isOpen: false, type: 'single' });
 
   const { vendors, fetchVendors } = useVendorStore();
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(prev => (prev === id ? null : id));
-  };
-
-  const fetchBookings = async () => {
-    try {
-      const { ok, data } = await customerBookingAPI.getMyBookings();
-      if (ok && data.success) {
-        setBookings(data.data || []);
-      } else {
-        setError(data.message || "Failed to load bookings");
-      }
-    } catch (err: any) {
-      setError("Error fetching booking history");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchBookings();
+    storeFetchBookings().catch(() => setError("Failed to load bookings"));
     fetchVendors();
   }, []);
+
+  useEffect(() => {
+    if (selectedBooking) {
+      const updated = bookings.find(b => (b._id || b.id) === (selectedBooking._id || selectedBooking.id));
+      if (updated) setSelectedBooking(updated);
+    }
+  }, [bookings]);
 
   if (isLoading) {
     return (
@@ -114,12 +89,12 @@ export default function BookingHistory() {
     if (!selectedNewVendor) return alert("Please select a vendor");
     setIsSwapping(true);
     try {
-      const { ok, data } = await customerBookingAPI.swapVendor(bookingId, { service, newVendorId: selectedNewVendor });
+      const { ok, data } = await customerBookingAPI.initiateVendorSwap(bookingId, { service, newVendorId: selectedNewVendor, financialChoice: "none" });
       if (ok && data.success) {
         alert("Vendor swap requested successfully!");
         setSwappingService(null);
         setSelectedNewVendor("");
-        await fetchBookings();
+        await storeFetchBookings();
       } else {
         alert(data.message || "Failed to swap vendor");
       }
@@ -130,36 +105,18 @@ export default function BookingHistory() {
     }
   };
 
-  const handleCancelClick = async (booking: Booking) => {
-    const today = new Date();
+  const handleCancelBooking = async (booking: Booking) => {
     const eventDate = new Date(booking.date);
-    const diffTime = eventDate.getTime() - today.getTime();
+    const diffTime = eventDate.getTime() - Date.now();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    let confirmMsg = "";
-    if (diffDays < 14) {
-      alert("This event is less than 14 days away and cannot be cancelled online. Please contact the hotel directly.");
+    if (diffDays < 2) {
+      alert("This event is less than 2 days away and cannot be cancelled online. Please contact the hotel directly.");
       return;
-    } else if (diffDays >= 14 && diffDays <= 30) {
-      confirmMsg = `Your event is ${diffDays} days away. Cancellation requires review and approval by the Hotel Manager. Would you like to submit a cancellation request?`;
-    } else {
-      confirmMsg = `Your event is ${diffDays} days away. Are you sure you want to cancel this booking? This will cancel all hall and vendor allocations immediately.`;
     }
-
-    if (confirm(confirmMsg)) {
-      try {
-        const res = await customerBookingAPI.cancelBooking(booking._id);
-        const data = res.data;
-        if (res.ok && data.success) {
-          alert(data.message || "Action processed successfully!");
-          await fetchBookings();
-        } else {
-          alert(data.message || "Failed to process cancellation request.");
-        }
-      } catch (e) {
-        alert("An error occurred while processing cancellation.");
-      }
-    }
+    
+    setSelectedBookingForCancel(booking);
+    setShowCancelModal(true);
   };
 
   const renderVendorRow = (bookingId: string, serviceKey: string, vendorData: any, icon: any, label: string, categoryMatcher: string) => {
@@ -267,10 +224,10 @@ export default function BookingHistory() {
                     if (confirm(`Are you sure you want to remove this ${serviceKey} vendor?`)) {
                       setIsSwapping(true);
                       try {
-                        const { ok, data } = await customerBookingAPI.swapVendor(bookingId, { service: serviceKey, newVendorId: "none" });
+                        const { ok, data } = await customerBookingAPI.initiateVendorSwap(bookingId, { service: serviceKey, newVendorId: "none", financialChoice: "none" });
                         if (ok && data.success) {
                           alert("Vendor removed successfully!");
-                          await fetchBookings();
+                          await storeFetchBookings();
                         } else {
                           alert(data.message || "Failed to remove vendor");
                         }
@@ -334,192 +291,248 @@ export default function BookingHistory() {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {bookings.map((booking, index) => (
+    <div className="animate-fadeIn">
+      {selectedBooking ? (
+        <BookingDetailView 
+          booking={selectedBooking} 
+          onBack={() => setSelectedBooking(null)} 
+          onCancelBooking={(bookingId) => handleCancelBooking(selectedBooking)}
+          onAddVendor={(bookingId, serviceKey) => {
+            setSwapModalState({
+              isOpen: true,
+              bookingId,
+              service: serviceKey as any,
+              currentVendorId: (selectedBooking?.vendors?.[serviceKey as keyof typeof selectedBooking.vendors] as any)?.vendorId || undefined
+            });
+          }}
+        />
+      ) : (
+      <>
+      {bookings.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <button 
+            onClick={() => setDeleteConfirmModal({ isOpen: true, type: 'all' })}
+            className="text-[10px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors"
+          >
+            Clear All History
+          </button>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+      {bookings.map((booking, index) => {
+        const pricing = booking.pricingBreakdown || {};
+        const hallPrice = (pricing.hallFixedPrice || 0) + (pricing.extraHoursPremium || 0) + (pricing.foodCost || 0) + (pricing.timeslotPremium || 0) + (pricing.customMenuSurcharge || 0);
+        
+        const getVendorAdvanceInfoLocal = (category: string) => {
+          const cost = (pricing as any)[`${category}Cost`] || 0;
+          if (cost === 0) return 0;
+          const vendorId = booking.vendors?.[category as keyof typeof booking.vendors]?.vendorId;
+          if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
+          const v = vendors.find(v => v.id === vendorId || (v as any)._id === vendorId || v.userId === vendorId);
+          if (!v) return 0;
+          const percentage = v.advancePaymentPercentage || 0;
+          return Math.round(cost * (percentage / 100));
+        };
+
+        const calculatedAdvance = Math.round(hallPrice * 0.30) 
+          + getVendorAdvanceInfoLocal("decorator")
+          + getVendorAdvanceInfoLocal("dj")
+          + getVendorAdvanceInfoLocal("videographer")
+          + getVendorAdvanceInfoLocal("photographer")
+          + getVendorAdvanceInfoLocal("cake")
+          + getVendorAdvanceInfoLocal("florist");
+
+        const actualDepositPaid = (booking.depositAmount || 0) > 0 ? calculatedAdvance : 0;
+        const actualTotalPaid = actualDepositPaid + (booking.balanceAmount || 0);
+
+        return (
         <motion.div 
           key={booking._id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+          className="group relative bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-zinc-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          {/* Decorative left border */}
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#C69C6D]"></div>
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#C9A84C] opacity-0 group-hover:opacity-100 transition-opacity"></div>
           
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">
-                  {booking.eventName}
-                </h3>
-                <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${getStatusColor(booking.status)}`}>
-                  {booking.status}
-                </span>
-              </div>
-              <p className="text-sm text-[#A6955C] font-medium tracking-wide uppercase mb-4">
-                {booking.eventType}
-              </p>
-              
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Calendar className="w-4 h-4 text-[#C69C6D]" />
-                  <span>{new Date(booking.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Clock className="w-4 h-4 text-[#C69C6D]" />
-                  <span>{booking.timeslot}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Users className="w-4 h-4 text-[#C69C6D]" />
-                  <span>{booking.guests} Guests</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <MapPin className="w-4 h-4 text-[#C69C6D]" />
-                  <span>EASCC Grand Hall</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="md:text-right mt-4 md:mt-0 pt-4 md:pt-0 border-t border-[#E8DFC9] dark:border-gray-800 md:border-0 w-full md:w-auto flex flex-col items-start md:items-end">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Cost</p>
-              <p className="text-2xl font-serif text-[#1A1512] dark:text-white mb-4">
-                LKR {booking.totalCost ? booking.totalCost.toLocaleString() : "N/A"}
-              </p>
+          {/* Header Row */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-mono text-gray-500 dark:text-gray-400">Booking #{booking._id?.slice(-6).toUpperCase()}</span>
               <button 
-                onClick={() => toggleExpand(booking._id)}
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#C69C6D] hover:text-[#A6955C] transition-colors"
+                onClick={() => setDeleteConfirmModal({ isOpen: true, type: 'single', bookingId: booking._id })}
+                className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                title="Remove from history"
               >
-                {expandedId === booking._id ? "Hide Details" : "View Details"}
-                {expandedId === booking._id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <Trash2 className="w-4 h-4" />
               </button>
+            </div>
+            <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                booking.status === "Confirmed" || booking.status === "Completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : 
+                booking.status === "Cancelled" || booking.status === "Rejected" ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : 
+                "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+              }`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+              {booking.status === "CancellationRequested" ? "Cancellation Pending" : booking.status === "Pending Hall Confirmation" ? "Awaiting Hall" : booking.status}
+            </span>
+          </div>
+
+          {/* Event Details */}
+          <div className="mb-4">
+            <h3 className="text-xl md:text-2xl font-serif text-[#1A1512] dark:text-white mb-2 leading-tight">
+              {booking.eventType || "Event"}
+            </h3>
+            <div className="space-y-1.5">
+              <p className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#C9A84C]" /> 
+                {new Date(booking.date).toLocaleDateString("en-US", { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} {booking.timeslot && `• ${booking.timeslot}`}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
+                <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[#C9A84C]/10 text-[#C9A84C]">📍</span> 
+                EASCCA Conference Centre
+              </p>
             </div>
           </div>
 
-          <AnimatePresence>
-            {expandedId === booking._id && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-6 pt-6 border-t border-dashed border-[#E8DFC9] dark:border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left: Package & Setup */}
-                  <div className="space-y-4">
-                    <h4 className="text-[11px] font-bold uppercase tracking-[2px] text-[#A6955C]">Package & Services</h4>
-                    
-                    <div className="flex items-start gap-3 bg-gray-50 dark:bg-[#1A1A1A] p-3 rounded-sm">
-                      <Package className="w-4 h-4 text-[#C69C6D] mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Selected Package</p>
-                        <p className="text-sm font-medium text-[#1A1512] dark:text-white capitalize">{booking.packageName || "N/A"}</p>
-                      </div>
-                    </div>
+          {/* Services List */}
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-zinc-900/50 rounded-lg border border-gray-100 dark:border-zinc-800">
+            <p className="text-[10px] font-bold text-[#A6955C] uppercase tracking-wider mb-1">
+              {(() => {
+                const svcs = ["Hall"];
+                if (booking.vendors?.decorator?.status && booking.vendors.decorator.status !== "NotRequired") svcs.push("Decorator");
+                if (booking.vendors?.videographer?.status && booking.vendors.videographer.status !== "NotRequired") svcs.push("Videographer");
+                if (booking.vendors?.dj?.status && booking.vendors.dj.status !== "NotRequired") svcs.push("DJ");
+                return `${svcs.length} Services`;
+              })()}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+              {(() => {
+                const svcs = ["Hall"];
+                if (booking.vendors?.decorator?.status && booking.vendors.decorator.status !== "NotRequired") svcs.push("Decorator");
+                if (booking.vendors?.videographer?.status && booking.vendors.videographer.status !== "NotRequired") svcs.push("Videographer");
+                if (booking.vendors?.dj?.status && booking.vendors.dj.status !== "NotRequired") svcs.push("DJ");
+                return svcs.join(" • ");
+              })()}
+            </p>
+          </div>
 
-                    <div className="flex items-start gap-3 bg-gray-50 dark:bg-[#1A1A1A] p-3 rounded-sm">
-                      <Receipt className="w-4 h-4 text-[#C69C6D] mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Food Menu & Payment</p>
-                        <p className="text-sm font-medium text-[#1A1512] dark:text-white capitalize">
-                          {booking.menuType || "N/A"} Menu • {booking.paymentMethod || "Card"}
-                        </p>
-                      </div>
-                    </div>
+          {/* Financials */}
+          <div className="space-y-1.5 mb-6 text-xs">
+            <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <span>Total</span>
+              <span className="font-medium text-[#1A1512] dark:text-white">LKR {(booking.totalCost || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <span>Total Paid</span>
+              <span className="font-medium text-emerald-600">LKR {actualTotalPaid.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600 dark:text-gray-400 font-bold border-t border-gray-100 dark:border-zinc-800 pt-3 mt-3">
+              <span className="uppercase tracking-widest text-xs mt-0.5">Balance</span>
+              <span className="text-[#C9A84C] text-base">LKR {Math.max(0, (booking.totalCost || 0) - actualTotalPaid).toLocaleString()}</span>
+            </div>
+          </div>
 
-                    {booking.vendors && (
-                      <div className="pt-2">
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 border-b border-gray-100 dark:border-gray-800 pb-2">Assigned Vendors</p>
-                        <div className="space-y-0">
-                          {renderVendorRow(booking._id, "decorator", booking.vendors.decorator, <Palette className="w-3.5 h-3.5 text-gray-400" />, "Decorator", "decorators")}
-                          {renderVendorRow(booking._id, "dj", booking.vendors.dj, <Music className="w-3.5 h-3.5 text-gray-400" />, "DJ Artist", "djs")}
-                          {renderVendorRow(booking._id, "videographer", booking.vendors.videographer, <Video className="w-3.5 h-3.5 text-gray-400" />, "Videographer", "videographers")}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+          {/* Actions */}
+          <button 
+            onClick={() => setSelectedBooking(booking)}
+            className="w-full py-3 bg-transparent border-2 border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-black rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
+          >
+            View Booking
+          </button>
 
-                  {/* Right: Pricing Breakdown */}
-                  {booking.pricingBreakdown && (
-                    <div className="space-y-4">
-                      <h4 className="text-[11px] font-bold uppercase tracking-[2px] text-[#A6955C]">Pricing Breakdown</h4>
-                      <div className="bg-gray-50 dark:bg-[#1A1A1A] p-4 rounded-sm space-y-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">Hall Fixed Price</span>
-                          <span className="font-medium text-[#1A1512] dark:text-white">LKR {booking.pricingBreakdown.hallFixedPrice?.toLocaleString() || 0}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">Food & Catering</span>
-                          <span className="font-medium text-[#1A1512] dark:text-white">LKR {booking.pricingBreakdown.foodCost?.toLocaleString() || 0}</span>
-                        </div>
-                        {booking.pricingBreakdown.decoratorCost > 0 && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Decorator</span>
-                            <span className="font-medium text-[#1A1512] dark:text-white">LKR {booking.pricingBreakdown.decoratorCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {booking.pricingBreakdown.djCost > 0 && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">DJ Artist</span>
-                            <span className="font-medium text-[#1A1512] dark:text-white">LKR {booking.pricingBreakdown.djCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {booking.pricingBreakdown.videographerCost > 0 && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Videographer</span>
-                            <span className="font-medium text-[#1A1512] dark:text-white">LKR {booking.pricingBreakdown.videographerCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        <div className="border-t border-[#E8DFC9] dark:border-gray-800 pt-3 mt-3 flex justify-between font-serif text-lg">
-                          <span className="text-[#1A1512] dark:text-white">Total</span>
-                          <span className="text-[#C69C6D]">LKR {booking.totalCost?.toLocaleString()}</span>
-                        </div>
-                        
-                        <div className="pt-3 border-t border-dashed border-[#E8DFC9] dark:border-gray-800 text-xs space-y-1.5 text-gray-500 dark:text-gray-400">
-                          <div className="flex justify-between">
-                            <span>Deposit (30%):</span>
-                            <span className={booking.depositAmount && booking.depositAmount > 0 ? "text-green-600 font-bold" : "text-amber-600 font-bold"}>
-                              {booking.depositAmount && booking.depositAmount > 0 
-                                ? `Paid: LKR ${booking.depositAmount.toLocaleString()}` 
-                                : `Pending: LKR ${(booking.totalCost * 0.3).toLocaleString()}`
-                              }
-                            </span>
-                          </div>
-                          
-                          {booking.bookingCredit && booking.bookingCredit > 0 ? (
-                            <div className="flex justify-between font-bold text-emerald-600">
-                              <span>Booking Credit:</span>
-                              <span>LKR {booking.bookingCredit.toLocaleString()}</span>
-                            </div>
-                          ) : null}
-
-                          <div className="flex justify-between">
-                            <span>Remaining Balance:</span>
-                            <span className={booking.balanceAmount && booking.balanceAmount > 0 ? "text-green-600 font-bold" : "text-amber-600 font-bold"}>
-                              {booking.balanceAmount && booking.balanceAmount > 0 
-                                ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
-                                : `Pending: LKR ${Math.max(0, booking.totalCost - (booking.depositAmount || 0) - (booking.balanceAmount || 0) - (booking.bookingCredit || 0)).toLocaleString()}`
-                              }
-                            </span>
-                          </div>
-
-                          {booking.status !== "Completed" && booking.status !== "Cancelled" && booking.status !== "CancellationRequested" && (
-                            <button 
-                              onClick={() => handleCancelClick(booking)}
-                              className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded text-[10px] uppercase tracking-widest font-bold transition-colors shadow-sm text-center"
-                            >
-                              Cancel Booking
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
-      ))}
+        );
+      })}
+      </div>
+      </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setDeleteConfirmModal({ isOpen: false, type: 'single' })}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-zinc-800 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white mb-3">
+                {deleteConfirmModal.type === 'all' ? 'Clear Booking History?' : 'Remove from History?'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-8 text-sm">
+                {deleteConfirmModal.type === 'all' 
+                  ? 'Are you sure you want to remove all bookings from your history? This action cannot be undone, but will not cancel any active bookings.' 
+                  : 'Are you sure you want to remove this booking from your history? It will no longer be visible here.'}
+              </p>
+              
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setDeleteConfirmModal({ isOpen: false, type: 'single' })}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[#1A1512] dark:text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (deleteConfirmModal.type === 'all') {
+                      const res = await customerBookingAPI.clearBookingHistory();
+                      if (res.ok && res.data?.success) {
+                        await storeFetchBookings();
+                      }
+                    } else if (deleteConfirmModal.bookingId) {
+                      const res = await customerBookingAPI.deleteBookingHistory(deleteConfirmModal.bookingId);
+                      if (res.ok && res.data?.success) {
+                        await storeFetchBookings();
+                      }
+                    }
+                    setDeleteConfirmModal({ isOpen: false, type: 'single' });
+                  }}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Yes, Remove
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {swapModalState.isOpen && (
+        <VendorSwapModal
+          isOpen={swapModalState.isOpen}
+          onClose={async () => {
+            setSwapModalState({ ...swapModalState, isOpen: false });
+            await storeFetchBookings();
+          }}
+          bookingId={swapModalState.bookingId}
+          serviceCategory={swapModalState.service}
+          currentVendorId={swapModalState.currentVendorId}
+        />
+      )}
+
+      {showCancelModal && selectedBookingForCancel && (
+        <RefundRequestModal
+          booking={selectedBookingForCancel}
+          onClose={() => {
+            setShowCancelModal(false);
+            setSelectedBookingForCancel(null);
+          }}
+          onSuccess={async () => {
+            await storeFetchBookings();
+          }}
+        />
+      )}
     </div>
   );
 }

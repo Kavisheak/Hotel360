@@ -16,6 +16,7 @@ export default function FloatingEventCart() {
   const { setStep } = useBookingFormStore();
   
   const [isOpen, setIsOpen] = useState(false);
+  const [prevVendorCount, setPrevVendorCount] = useState(0);
   
   useEffect(() => {
     fetchVendors();
@@ -28,26 +29,41 @@ export default function FloatingEventCart() {
   };
 
   const selectedVendorsList = [
+    { type: "Package", vendor: (cartVendors as any).decoratorPackage && (cartVendors as any).decoratorPackage !== "none" ? { id: "pkg", name: (cartVendors as any).decoratorPackage + " Package", image: "https://images.unsplash.com/photo-1549451371-64aa98a6f660?auto=format&fit=crop&q=80&w=200", category: "package" } : null },
     { type: "Decorator", vendor: getVendorDetails(cartVendors.decorator) },
     { type: "DJ", vendor: getVendorDetails(cartVendors.dj) },
-    { type: "Videographer", vendor: getVendorDetails(cartVendors.videographer) }
+    { type: "Videographer", vendor: getVendorDetails(cartVendors.videographer) },
+    { type: "Photographer", vendor: getVendorDetails(cartVendors.photographer) },
+    { type: "Cake", vendor: getVendorDetails(cartVendors.cake) },
+    { type: "Florist", vendor: getVendorDetails(cartVendors.florist) }
   ].filter(v => v.vendor !== null);
 
   const vendorCount = selectedVendorsList.length;
+
+  useEffect(() => {
+    if (vendorCount > prevVendorCount) {
+      setIsOpen(true);
+      // Auto close after 4 seconds
+      const timer = setTimeout(() => setIsOpen(false), 4000);
+      return () => clearTimeout(timer);
+    }
+    setPrevVendorCount(vendorCount);
+  }, [vendorCount, prevVendorCount]);
 
   const pathname = usePathname();
 
   // If nothing is selected, don't render the FAB
   if (vendorCount === 0) return null;
 
-  // Only show on vendor related pages
-  if (!pathname.startsWith("/customer/vendors") && !pathname.startsWith("/customer/vendorProfile")) {
+  // Only show on vendor and package related pages
+  if (!pathname.startsWith("/customer/vendors") && !pathname.startsWith("/customer/vendorProfile") && !pathname.startsWith("/customer/packages")) {
     return null;
   }
 
   const handleProceed = () => {
     setIsOpen(false);
     setStep(1); // Explicitly reset to step 1
+    sessionStorage.setItem("importFromCart", "true");
     // Pass fromCart parameter to trigger beautiful toast on the booking page
     router.push("/book?fromCart=true");
   };

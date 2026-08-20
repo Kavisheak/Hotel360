@@ -96,13 +96,21 @@ export default function VendorReplaceModal({
           {/* Buttons */}
           <div className="flex gap-4 relative z-10">
             <button 
-              onClick={onClose}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+              }}
               className="flex-1 py-3 px-4 border border-[#C9A84C] text-[#C9A84C] bg-white dark:bg-[#1A1A1A] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C9A84C]/5 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button 
-              onClick={() => onConfirm(dontAskAgain)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onConfirm(dontAskAgain);
+              }}
               className="flex-1 py-3 px-4 bg-[#C9A84C] text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#B89238] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#C9A84C]/20 cursor-pointer"
             >
               Confirm Replacement <ArrowRight className="w-4 h-4" />

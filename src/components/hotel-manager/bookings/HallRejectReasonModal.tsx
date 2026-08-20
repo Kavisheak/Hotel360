@@ -7,6 +7,7 @@ interface HallRejectReasonModalProps {
   isOpen: boolean;
   clientName: string;
   isSubmitting: boolean;
+  paidAdvance: number;
   onClose: () => void;
   onConfirm: (reason: string, note?: string) => void;
 }
@@ -22,6 +23,7 @@ const HallRejectReasonModal: React.FC<HallRejectReasonModalProps> = ({
   isOpen,
   clientName,
   isSubmitting,
+  paidAdvance,
   onClose,
   onConfirm,
 }) => {
@@ -44,7 +46,7 @@ const HallRejectReasonModal: React.FC<HallRejectReasonModalProps> = ({
         </div>
 
         <p className="text-xs text-gray-600 mb-4 leading-relaxed">
-          Please select a reason for rejecting this booking. Rejecting will immediately issue a <strong className="text-red-600">100% full refund</strong> of all held advance payments to the customer and silently cancel all vendor line items without affecting vendor reliability metrics.
+          Please select a reason for rejecting this booking. Rejecting will immediately issue a <strong className="text-red-600">100% full refund</strong> of <strong className="text-gray-900">LKR {paidAdvance.toLocaleString()}</strong> to the customer's bank account via PayHere. All vendor line items will be silently cancelled without affecting their reliability metrics.
         </p>
 
         <div className="space-y-2 mb-4">
@@ -95,7 +97,7 @@ const HallRejectReasonModal: React.FC<HallRejectReasonModalProps> = ({
             disabled={isSubmitting}
             className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded shadow-xs disabled:opacity-50"
           >
-            {isSubmitting ? "Processing Refund..." : "Reject & 100% Refund"}
+            {isSubmitting ? "Processing Refund..." : "Reject & Process Refund"}
           </button>
         </div>
       </div>

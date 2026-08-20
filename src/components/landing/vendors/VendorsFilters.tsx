@@ -123,20 +123,21 @@ export default function VendorsFilters({
              </button>
           </div>
 
-          {/* Location Dropdown */}
+          {/* Sort By Dropdown */}
           <div className="relative w-full lg:w-auto">
              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
-               <MapPin className="w-4 h-4"/>
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
              </div>
              <select
-               value={locationFilter}
-               onChange={(e) => setLocationFilter(e.target.value)}
+               value={sortBy}
+               onChange={(e) => setSortBy(e.target.value)}
                className="w-full lg:w-auto appearance-none pl-12 pr-12 py-3.5 bg-white dark:bg-[#111111] text-sm font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-zinc-800 rounded-full outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 shadow-sm cursor-pointer"
              >
-               <option value="all">All Locations</option>
-               <option value="colombo">Colombo</option>
-               <option value="kandy">Kandy</option>
-               <option value="galle">Galle</option>
+               <option value="popularity">Most Popular</option>
+               <option value="newest">Date Posted (Newest)</option>
+               <option value="rating">Highest Rated</option>
+               <option value="price_low">Price: Low to High</option>
+               <option value="price_high">Price: High to Low</option>
              </select>
              <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>

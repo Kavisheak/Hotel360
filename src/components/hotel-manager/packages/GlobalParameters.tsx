@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Globe, ChevronDown } from 'lucide-react';
+import { Globe, Settings } from 'lucide-react';
 
 interface GlobalParametersProps {
   deposit: number;
@@ -18,13 +18,16 @@ const GlobalParameters = ({
   enforcement, onEnforcementToggle
 }: GlobalParametersProps) => {
   return (
-    <div className="bg-white border border-[#E0D8C3] p-6 shadow-sm">
+    <div className="bg-white border border-[#E0D8C3] rounded-xl p-6 shadow-sm">
       {/* Title */}
-      <div className="flex items-center gap-2 mb-8">
-        <Globe size={16} className="text-[#B08D2C]" />
-        <span className="text-[10px] font-bold tracking-[0.25em] text-[#7C6A2E] uppercase">
-          Global Parameters
-        </span>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <Globe size={16} className="text-[#B08D2C]" />
+          <span className="text-[11px] font-bold text-gray-900">
+            Global Parameters
+          </span>
+        </div>
+        <Settings size={14} className="text-gray-400" />
       </div>
 
       {/* Deposit Slider */}

@@ -111,7 +111,6 @@ const FacilitiesSection = () => {
               </div>
               <div className="p-8 flex flex-col flex-1 bg-[#FAF8F5]">
                 <h3 className="text-2xl font-serif text-[#2B4A3F] mb-2">{facility.name}</h3>
-                <p className="text-[11px] font-bold text-[#CDA566] tracking-wider uppercase mb-4">Capacity: {facility.capacity}</p>
                 <p className="text-[#6B6B6B] text-[14px] leading-relaxed mb-8 flex-1">{facility.description}</p>
                 
                 <div className="flex items-center justify-between border-t border-[#E8DFC9] pt-6">
