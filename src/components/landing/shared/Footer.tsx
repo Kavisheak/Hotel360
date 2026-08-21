@@ -83,7 +83,7 @@ const FooterSection = () => {
  Visit
  </p>
  <div className="flex flex-col gap-3 text-gray-600 dark:text-gray-400 text-sm mb-6">
- <p>14 Galle Face Terrace<br />Colombo 03, Sri Lanka</p>
+ <p>Main Highway Road<br />Eravur, Sri Lanka</p>
  <p><a href="tel:+94115551820" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">+94 11 555 1820</a></p>
  <p><a href="mailto:concierge@eascc.lk" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">concierge@eascc.lk</a></p>
  </div>

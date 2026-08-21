@@ -23,6 +23,9 @@ export default function PackageSelector({ selectedPackage, onSelectPackage, dbPa
           base: `LKR ${pkg.price.toLocaleString()}`,
           pax: `${pkg.maxGuests} Guests included`
         };
+      }).sort((a, b) => {
+        const order = { "silver": 1, "gold": 2, "diamond": 3 };
+        return (order[a.id as keyof typeof order] || 4) - (order[b.id as keyof typeof order] || 4);
       })
     : [
         {
@@ -70,9 +73,6 @@ export default function PackageSelector({ selectedPackage, onSelectPackage, dbPa
               <span className={`text-[10px] font-bold tracking-widest uppercase block mb-2 ${isActive ? "text-[#C69C6D]" : "text-[#A6955C]"}`}>
                 {pkg.base} BASE
               </span>
-              <p className={`text-[9px] uppercase tracking-widest font-bold ${isActive ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}>
-                {pkg.pax}
-              </p>
             </div>
           );
         })}

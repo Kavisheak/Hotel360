@@ -100,6 +100,8 @@ function VendorsContent() {
     } else if (sortBy === "price_high") {
       const getNumericPrice = (p: string) => parseInt(p.replace(/[^0-9]/g, ""), 10) || 0;
       result.sort((a, b) => getNumericPrice(b.startingPrice) - getNumericPrice(a.startingPrice));
+    } else if (sortBy === "newest") {
+      result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     }
 
     return result;
@@ -189,6 +191,7 @@ function VendorsContent() {
               filteredVendors={filteredVendors} 
               onClearFilters={handleClearFilters}
               isGuest={isGuest}
+              sortBy={sortBy}
             />
           )
         )}

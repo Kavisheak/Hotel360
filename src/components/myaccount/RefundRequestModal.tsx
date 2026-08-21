@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { AlertTriangle, HelpCircle, Loader2, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { AlertTriangle, HelpCircle, Loader2, X, ExternalLink } from "lucide-react";
 import { customerBookingAPI } from "@/lib/api";
+import PolicyModal from "../landing/book/PolicyModal";
 
 interface RefundRequestModalProps {
   booking: any;
@@ -12,36 +14,64 @@ interface RefundRequestModalProps {
 
 export default function RefundRequestModal({ booking, onClose, onSuccess }: RefundRequestModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
 
   // Refund tier estimate calculations in frontend
+  // Use EASCCA booking timezone (Asia/Colombo) for calendar day calculation
+  const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  
+  const today = new Date();
   const eventDate = new Date(booking.date);
-  const diffTime = eventDate.getTime() - Date.now();
+  
+  const todayStr = getColomboDateStr(today);
+  const eventDateStr = getColomboDateStr(eventDate);
+  
+  const dToday = new Date(todayStr + 'T00:00:00Z');
+  const dEvent = new Date(eventDateStr + 'T00:00:00Z');
+  
+  const diffTime = dEvent.getTime() - dToday.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   let tierLabel = "";
-  let hallRefundPct = 100;
-  let vendorRefundPct = 100;
+  let penaltyPct = 0;
 
-  if (diffDays > 30) {
-    tierLabel = "Tier 1 (> 30 days before event)";
-    hallRefundPct = 50;
-    vendorRefundPct = 50;
+  if (booking.status === "Confirmed") {
+    if (diffDays >= 30) {
+      tierLabel = "Tier 1 (30+ days before event)";
+      penaltyPct = 0;
+    } else if (diffDays >= 15) {
+      tierLabel = "Tier 2 (15-29 days before event)";
+      penaltyPct = 10;
+    } else if (diffDays >= 7) {
+      tierLabel = "Tier 3 (7-14 days before event)";
+      penaltyPct = 25;
+    } else if (diffDays >= 3) {
+      tierLabel = "Tier 4 (3-6 days before event)";
+      penaltyPct = 50;
+    } else {
+      tierLabel = "Tier 5 (0-2 days before event)";
+      penaltyPct = 100;
+    }
   } else {
-    tierLabel = "Tier 2 (<= 30 days before event)";
-    hallRefundPct = 0;
-    vendorRefundPct = 0;
+    tierLabel = "Pending Confirmation";
+    penaltyPct = 0;
   }
-
   const handleCancel = async () => {
     try {
       setIsSubmitting(true);
       const { ok, data } = await customerBookingAPI.cancelBooking(booking._id || booking.id);
       if (ok) {
-        alert(data.message || "Booking cancelled and refund processed.");
-        onSuccess();
-        onClose();
+        setSuccessMessage(data.message || "Booking cancelled successfully.");
       } else {
         alert(data.message || "Failed to cancel booking.");
       }
@@ -53,8 +83,36 @@ export default function RefundRequestModal({ booking, onClose, onSuccess }: Refu
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+  const hasPaid = (booking.depositAmount || 0) > 0;
+
+  if (successMessage) {
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-zinc-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-center p-8">
+          <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-serif text-[#1A1512] dark:text-white mb-3">Cancellation Successful</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 text-sm leading-relaxed">{successMessage}</p>
+          <button
+            onClick={() => {
+              onSuccess();
+              onClose();
+            }}
+            className="w-full py-3 bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] rounded-xl text-xs font-bold uppercase tracking-widest transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-[#111111] border border-red-200 dark:border-zinc-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left">
         
         {/* Header */}
@@ -75,27 +133,45 @@ export default function RefundRequestModal({ booking, onClose, onSuccess }: Refu
           </p>
 
           <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-lg border border-zinc-100 dark:border-zinc-850 space-y-2 text-xs">
-            <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Cancellation Refund Tier Analysis</h4>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Cancellation Analysis</h4>
+              <button 
+                onClick={() => setShowPolicyModal(true)}
+                className="text-[#C9A84C] hover:text-[#A6955C] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
+              >
+                View Full Policy <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Proximity to Event:</span>
               <span className="font-semibold text-gray-800 dark:text-white">{diffDays} days away</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Active Tier:</span>
-              <span className="font-semibold text-[#C9A84C]">{tierLabel}</span>
-            </div>
-            <div className="flex justify-between border-t border-dashed border-gray-200 dark:border-zinc-800 pt-2">
-              <span className="text-gray-500">Hall Advance Refund %:</span>
-              <span className="font-bold text-gray-800 dark:text-white">{hallRefundPct}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Vendor Advance Refund %:</span>
-              <span className="font-bold text-gray-800 dark:text-white">{vendorRefundPct}%</span>
-            </div>
+            
+            {hasPaid ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Active Tier:</span>
+                  <span className="font-semibold text-[#C9A84C]">{tierLabel}</span>
+                </div>
+                <div className="flex justify-between border-t border-dashed border-gray-200 dark:border-zinc-800 pt-2">
+                  <span className="text-gray-500">Platform Cancellation Fee:</span>
+                  <span className="font-bold text-gray-800 dark:text-white">{penaltyPct}% of item total cost</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Refund Eligibility:</span>
+                  <span className="font-bold text-gray-800 dark:text-white">Amount paid minus cancellation fee</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between border-t border-dashed border-gray-200 dark:border-zinc-800 pt-2">
+                <span className="text-gray-500">Payment Status:</span>
+                <span className="font-bold text-gray-800 dark:text-white">No payments made yet</span>
+              </div>
+            )}
           </div>
 
           <p className="text-[11px] text-gray-500 leading-relaxed">
-            Note: Processing this request will instantly release the hall reservation and notify all assigned service partners. Payouts for non-refundable components will be split accordingly.
+            Note: Processing this request will instantly release the hall reservation and notify all assigned service partners. Payment allocations for non-refundable components will be distributed accordingly.
           </p>
         </div>
 
@@ -117,6 +193,15 @@ export default function RefundRequestModal({ booking, onClose, onSuccess }: Refu
         </div>
 
       </div>
+      
+      <PolicyModal 
+        isOpen={showPolicyModal}
+        onClose={() => setShowPolicyModal(false)}
+        policyType="cancellation"
+        cancellationTier="strict"
+      />
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

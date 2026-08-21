@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Building2,
@@ -99,18 +99,72 @@ export default function HallsMain() {
     });
   };
 
-  const addBlockedDate = () => {
-    if (!newDate) return;
-    if (!venue.blockedDates.includes(newDate)) {
-      updateVenue({ blockedDates: [...venue.blockedDates, newDate] });
+  const [actualBlocks, setActualBlocks] = useState<{date: string; reason: string}[]>([]);
+  const [blockReason, setBlockReason] = useState('Maintenance');
+  const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
+
+  useEffect(() => {
+    fetchBlocks();
+  }, []);
+
+  const fetchBlocks = async () => {
+    try {
+      const { bookingAPI } = await import('@/lib/api');
+      const res = await bookingAPI.getAllBlocks();
+      if (res.ok && res.data?.data) {
+        setActualBlocks(res.data.data.map((b: any) => {
+          const d = new Date(b.date);
+          const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return {
+            date: localDate,
+            reason: b.reason || 'Blocked'
+          };
+        }));
+      }
+    } catch (e) {
+      console.error(e);
     }
-    setNewDate('');
   };
 
-  const removeBlockedDate = (value: string) => {
-    updateVenue({ blockedDates: venue.blockedDates.filter((date) => date !== value) });
+  const addBlockedDate = async () => {
+    if (!newDate) return;
+    setIsLoadingBlocks(true);
+    try {
+      const { bookingAPI } = await import('@/lib/api');
+      const dateString = new Date(newDate).toISOString();
+      const res = await bookingAPI.createBlock({ date: dateString, reason: blockReason });
+      if (res.ok && res.data.success) {
+        await fetchBlocks();
+        setNewDate('');
+      } else {
+        alert(res.data.message || 'Failed to block date');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('An error occurred while blocking the date');
+    } finally {
+      setIsLoadingBlocks(false);
+    }
   };
 
+  const removeBlockedDate = async (value: string) => {
+    setIsLoadingBlocks(true);
+    try {
+      const { bookingAPI } = await import('@/lib/api');
+      const dateString = new Date(value).toISOString();
+      const res = await bookingAPI.releaseBlock({ date: dateString });
+      if (res.ok && res.data.success) {
+        await fetchBlocks();
+      } else {
+        alert(res.data.message || 'Failed to unblock date');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('An error occurred while unblocking the date');
+    } finally {
+      setIsLoadingBlocks(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -323,19 +377,35 @@ export default function HallsMain() {
                   onChange={(e) => setNewDate(e.target.value)}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#1E56A0] focus:outline-none"
                 />
+                <input
+                  type="text"
+                  value={blockReason}
+                  onChange={(e) => setBlockReason(e.target.value)}
+                  placeholder="Reason (e.g. Maintenance)"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#1E56A0] focus:outline-none"
+                />
                 <button
                   onClick={addBlockedDate}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-[#1E56A0] px-3 py-2 text-sm font-semibold text-white"
+                  disabled={isLoadingBlocks}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-[#1E56A0] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   <CalendarDays className="h-4 w-4" /> Add block out date
                 </button>
               </div>
 
               <div className="space-y-2">
-                {venue.blockedDates.map((date) => (
-                  <div key={date} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
-                    <span>{date}</span>
-                    <button onClick={() => removeBlockedDate(date)} className="text-red-600 hover:text-red-700">
+                {actualBlocks.length === 0 && <p className="text-sm text-gray-500 italic">No dates blocked.</p>}
+                {actualBlocks.map((block) => (
+                  <div key={block.date} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
+                    <div>
+                      <span className="font-semibold">{block.date}</span>
+                      <span className="text-gray-500 ml-2">— {block.reason}</span>
+                    </div>
+                    <button 
+                      onClick={() => removeBlockedDate(block.date)} 
+                      disabled={isLoadingBlocks}
+                      className="text-red-600 hover:text-red-700 disabled:opacity-50"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>

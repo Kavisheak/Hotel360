@@ -30,7 +30,7 @@ export default function FAQAccordion() {
                   onClick={() => setOpenFAQIndex(isOpen ? null : index)}
                   className="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none"
                 >
-                  <span className={`text-xs font-semibold transition-colors ${isOpen ? 'text-[#805D3A] dark:text-[#C9A84C]' : 'text-gray-200'}`}>
+                  <span className={`text-xs font-semibold transition-colors ${isOpen ? 'text-[#805D3A] dark:text-[#C9A84C]' : 'text-gray-700 dark:text-gray-300'}`}>
                     {faq.question}
                   </span>
                   {isOpen ? (

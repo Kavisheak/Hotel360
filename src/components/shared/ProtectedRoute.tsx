@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import ForcePasswordChangeModal from "./ForcePasswordChangeModal";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -60,7 +61,12 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   // Render children only if the user is authenticated with the correct role
   if (user && (!allowedRoles || allowedRoles.map(r => r.toLowerCase()).includes(user.role.toLowerCase()))) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <ForcePasswordChangeModal />
+      </>
+    );
   }
 
   // Fallback: return null while the redirect in useEffect fires

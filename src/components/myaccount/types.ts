@@ -38,7 +38,6 @@ export interface NotificationPref {
   title: string;
   description: string;
   email: boolean;
-  sms: boolean;
   push: boolean;
 }
 
@@ -109,7 +108,6 @@ export const NOTIFICATION_PREFS: NotificationPref[] = [
     title: "Booking Confirmations",
     description: "Receive confirmations when your booking status changes.",
     email: true,
-    sms: true,
     push: true,
   },
   {
@@ -117,7 +115,6 @@ export const NOTIFICATION_PREFS: NotificationPref[] = [
     title: "Concierge Messages",
     description: "Important directives and updates from your dedicated concierge.",
     email: true,
-    sms: true,
     push: false,
   },
   {
@@ -125,7 +122,6 @@ export const NOTIFICATION_PREFS: NotificationPref[] = [
     title: "Payment Reminders",
     description: "Alerts for upcoming installment deadlines and payment receipts.",
     email: true,
-    sms: false,
     push: true,
   },
   {
@@ -133,7 +129,6 @@ export const NOTIFICATION_PREFS: NotificationPref[] = [
     title: "Promotions & Offers",
     description: "Exclusive seasonal offers and early-bird discounts.",
     email: false,
-    sms: false,
     push: false,
   },
   {
@@ -141,7 +136,6 @@ export const NOTIFICATION_PREFS: NotificationPref[] = [
     title: "Vendor Updates",
     description: "Portfolio updates and new packages from your selected vendors.",
     email: true,
-    sms: false,
     push: false,
   },
 ];

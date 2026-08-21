@@ -55,7 +55,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
     return () => clearInterval(interval);
   }, [respondByMs]);
 
-  const handleAcceptConfirm = async (advanceAmount: number, advanceDeadline: string) => {
+  const handleAcceptConfirm = async (advanceAmount?: number, advanceDeadline?: string) => {
     setIsSubmitting(true);
     setExpiredError(null);
 

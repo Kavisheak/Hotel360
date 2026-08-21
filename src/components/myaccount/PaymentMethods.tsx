@@ -264,11 +264,11 @@ export default function PaymentMethods() {
         </div>
       </div>
 
-      {/* 2. Outstanding Balance & Escrow Tracker */}
+      {/* 2. Outstanding Balance & Payment Allocation Tracker */}
       <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 rounded-xl shadow-sm p-6 text-left space-y-6">
         <div>
           <h3 className="text-lg font-serif text-gray-900 dark:text-white">Active Event Payments</h3>
-          <p className="text-xs text-gray-500 mt-1 font-light">Monitor escrow statuses and pay remaining balances.</p>
+          <p className="text-xs text-gray-500 mt-1 font-light">Monitor payment allocations and pay remaining balances.</p>
         </div>
 
         {bookings.length > 0 ? (
@@ -325,9 +325,26 @@ export default function PaymentMethods() {
                             </p>
                           );
                         }
+                        
+                        const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+                        const todayStr = getColomboDateStr(new Date());
+                        const eventStr = getColomboDateStr(new Date(selectedBooking.date));
+                        const dToday = new Date(todayStr + 'T00:00:00Z');
+                        const dEvent = new Date(eventStr + 'T00:00:00Z');
+                        const diffTime = dEvent.getTime() - dToday.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays > 7) {
+                          return (
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                              ⏳ Venue and vendors have confirmed. The payment window opens exactly 7 days before the event date.
+                            </p>
+                          );
+                        }
+
                         return (
                           <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                            ✓ Venue and all selected partners have accepted. You can settle the remaining 70% balance now.
+                            ✓ Venue and all selected partners have accepted. You are within the 7-day window. You can settle the remaining balance now.
                           </p>
                         );
                       })()}
@@ -338,7 +355,21 @@ export default function PaymentMethods() {
                         const v = (selectedBooking.vendors as any)[cat];
                         return v && v.vendorId && v.status === "Pending";
                       }) : [];
-                      const canPay = pendingVendors.length === 0;
+                      
+                      // Enforce exactly 7 calendar days lock
+                      const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+                      const todayStr = getColomboDateStr(new Date());
+                      const eventStr = getColomboDateStr(new Date(selectedBooking.date));
+                      const dToday = new Date(todayStr + 'T00:00:00Z');
+                      const dEvent = new Date(eventStr + 'T00:00:00Z');
+                      const diffTime = dEvent.getTime() - dToday.getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      const withinPaymentWindow = diffDays <= 7;
+                      const allVendorsAccepted = pendingVendors.length === 0;
+                      
+                      const canPay = withinPaymentWindow && allVendorsAccepted;
+                      
                       return (
                         <button
                           onClick={() => handlePayBalance(selectedBooking._id || selectedBooking.id)}
@@ -357,7 +388,7 @@ export default function PaymentMethods() {
                   </div>
                 )}
 
-                {/* Mounted Escrow Allocations Tracker */}
+                {/* Mounted Payment Allocations Tracker */}
                 <EscrowTracker bookingId={selectedBooking._id || selectedBooking.id} />
 
                 {/* Cancellation trigger */}
@@ -387,8 +418,8 @@ export default function PaymentMethods() {
       {/* 4. Transaction History Log & Invoice downloads */}
       <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 rounded-xl shadow-sm p-6 text-left space-y-6">
         <div>
-          <h3 className="text-lg font-serif text-gray-900 dark:text-white">Transaction Logs</h3>
-          <p className="text-xs text-gray-500 mt-1 font-light">Audit trail of advance payments, refunds, and released escrows.</p>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-1">Transaction History</h3>
+        <p className="text-xs text-gray-500 mt-1 font-light">Audit trail of advance payments, refunds, and released allocations.</p>
         </div>
 
         <div className="overflow-x-auto">

@@ -9,7 +9,7 @@ import PackageCard from "./components/PackageCard";
 import PackageDetailsModal from "./components/PackageDetailsModal";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import CompareFrameworks from "./components/CompareFrameworks";
-import EstimateInvestment from "./components/EstimateInvestment";
+
 import FooterSection from "@/components/landing/shared/Footer";
 import { CheckCircle2, UserCheck, Star } from "lucide-react";
 
@@ -51,6 +51,14 @@ export default function PackagesPage() {
             };
           });
           if (apiPackages.length > 0) {
+            const getWeight = (name: string) => {
+              const lower = name.toLowerCase();
+              if (lower.includes("silver")) return 1;
+              if (lower.includes("gold")) return 2;
+              if (lower.includes("diamond")) return 3;
+              return 4;
+            };
+            apiPackages.sort((a: any, b: any) => getWeight(a.name) - getWeight(b.name));
             setPackages(apiPackages);
           }
         }
@@ -120,8 +128,7 @@ export default function PackagesPage() {
       {/* Detailed Analysis / Compare Frameworks */}
       <CompareFrameworks />
 
-      {/* Projection Tool / Estimate Investment */}
-      <EstimateInvestment />
+
 
 
       <section className="w-full bg-[#F0E6D0] dark:bg-[#2C1E14] py-16 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-colors duration-300">

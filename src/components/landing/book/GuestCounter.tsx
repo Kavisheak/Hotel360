@@ -1,74 +1,76 @@
-"use client";
-
-import React from "react";
-import { Users, Minus, Plus } from "lucide-react";
+import React from 'react';
+import { Minus, Plus, Users } from 'lucide-react';
 
 interface GuestCounterProps {
   count: number;
-  onChange: (n: number) => void;
-  min: number;
-  max: number;
+  onChange: (count: number) => void;
+  min?: number;
+  max?: number;
 }
 
-export default function GuestCounter({ count, onChange, min, max }: GuestCounterProps) {
-  
+export default function GuestCounter({ count, onChange, min = 1, max = 5000 }: GuestCounterProps) {
   const handleDecrement = () => {
-    if (count > min) onChange(count - 10);
+    if (count > min) {
+      onChange(count - 50 < min ? min : count - 50);
+    }
   };
 
   const handleIncrement = () => {
-    if (count < max) onChange(count + 10);
+    if (count < max) {
+      onChange(count + 50 > max ? max : count + 50);
+    }
   };
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(Number(e.target.value));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value);
+    if (!isNaN(val)) {
+      if (val >= min && val <= max) {
+        onChange(val);
+      } else if (val < min) {
+        onChange(min);
+      } else if (val > max) {
+        onChange(max);
+      }
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold flex items-center gap-1.5 mb-2">
-        <Users className="w-4 h-4 text-[#A6955C]" /> STEP 4: ESTIMATED GUEST COUNT
-      </label>
-
-      <div className="flex flex-col md:flex-row items-center justify-between gap-12 border-b border-[#E8DFC9] dark:border-[#C9A84C]/30 pb-10">
+    <div className="flex items-center gap-4 bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-[#C9A84C]/30 rounded-xl p-4">
+      <div className="flex-1 flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-[#FAF6EE] dark:bg-[#C9A84C]/10">
+          <Users className="w-5 h-5 text-[#C9A84C]" />
+        </div>
+        <div>
+          <h4 className="text-sm font-semibold text-[#1A1512] dark:text-white">Total Guests</h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Min {min} - Max {max}</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-1 bg-[#FAF6EE] dark:bg-zinc-900 rounded-lg border border-[#E8DFC9] dark:border-zinc-800 p-1">
+        <button
+          onClick={handleDecrement}
+          disabled={count <= min}
+          className="p-2 rounded hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors text-gray-600 dark:text-gray-400"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
         
-        {/* Slider Section */}
-        <div className="flex-1 w-full pt-4">
-          <input 
-            type="range" 
-            min={min} 
-            max={max} 
-            step="10"
-            value={count}
-            onChange={handleSliderChange}
-            className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-sm appearance-none cursor-pointer accent-[#C69C6D]"
-          />
-          <div className="flex justify-between text-[9px] text-[#1A1512] dark:text-gray-400 mt-3 font-bold uppercase tracking-widest">
-            <span>{min} MIN</span>
-            <span>{max} MAX</span>
-          </div>
-        </div>
-
-        {/* Number Input Section */}
-        <div className="flex items-center text-[#A6955C] border border-[#E8DFC9] dark:border-gray-700 w-40">
-          <button 
-            onClick={handleDecrement}
-            disabled={count <= min}
-            className="w-12 h-12 flex items-center justify-center bg-transparent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <Minus className="w-4 h-4" />
-          </button>
-          <div className="flex-1 text-center border-x border-[#E8DFC9] dark:border-gray-700 py-2">
-            <span className="text-2xl font-serif">{count}</span>
-          </div>
-          <button 
-            onClick={handleIncrement}
-            disabled={count >= max}
-            className="w-12 h-12 flex items-center justify-center bg-transparent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+        <input
+          type="number"
+          value={count}
+          onChange={handleChange}
+          className="w-16 text-center bg-transparent border-none focus:ring-0 text-sm font-bold text-[#1A1512] dark:text-white"
+          min={min}
+          max={max}
+        />
+        
+        <button
+          onClick={handleIncrement}
+          disabled={count >= max}
+          className="p-2 rounded hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors text-gray-600 dark:text-gray-400"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

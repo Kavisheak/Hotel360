@@ -14,12 +14,14 @@ export interface AuthUser {
   isVerified: boolean;
   shopName?: string;
   ownerNic?: string;
+  nic?: string;
   twoFactorEnabled?: boolean;
   preferences?: any;
   notifications?: any;
   favoriteVendors?: string[];
   savedCards?: any[];
   vendorProfile?: any;
+  requiresPasswordChange?: boolean;
   createdAt: string;
 }
 

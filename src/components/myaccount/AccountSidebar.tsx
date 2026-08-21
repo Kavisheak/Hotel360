@@ -15,12 +15,12 @@ interface AccountSidebarProps {
 
 const TABS: { id: AccountTab; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <LayoutGrid className="w-5 h-5" /> },
-  { id: "bookings", label: "My bookings", icon: <Calendar className="w-5 h-5" /> },
-  { id: "billing", label: "Payments & refunds", icon: <Receipt className="w-5 h-5" /> },
-  { id: "saved_vendors", label: "Saved vendors", icon: <Heart className="w-5 h-5" /> },
+  { id: "bookings", label: "My Bookings", icon: <Calendar className="w-5 h-5" /> },
+  { id: "billing", label: "Payments & Refunds", icon: <Receipt className="w-5 h-5" /> },
+  { id: "saved_vendors", label: "Saved Vendors", icon: <Heart className="w-5 h-5" /> },
   { id: "notifications", label: "Notifications", icon: <Bell className="w-5 h-5" /> },
-  { id: "profile", label: "Profile & settings", icon: <User className="w-5 h-5" /> },
-  { id: "help", label: "Help & support", icon: <HelpCircle className="w-5 h-5" /> },
+  { id: "profile", label: "Profile & Settings", icon: <User className="w-5 h-5" /> },
+  { id: "help", label: "Help & Support", icon: <HelpCircle className="w-5 h-5" /> },
 ];
 
 export default function AccountSidebar({ activeTab, onTabChange }: AccountSidebarProps) {
@@ -45,11 +45,11 @@ export default function AccountSidebar({ activeTab, onTabChange }: AccountSideba
             onClick={() => onTabChange(tab.id)}
             className={`w-full text-left flex items-center gap-3.5 px-4 py-3 rounded-lg transition-all duration-200 ${
               isActive
-                ? "bg-[#E8F0FE] dark:bg-blue-950/40 text-[#1A73E8] dark:text-blue-400 font-semibold"
+                ? "bg-[#FAF6EE] dark:bg-[#C9A84C]/10 text-[#C9A84C] font-semibold"
                 : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800/40 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
-            <span className={isActive ? "text-[#1A73E8] dark:text-blue-400" : "text-gray-500"}>
+            <span className={isActive ? "text-[#C9A84C]" : "text-gray-500"}>
               {tab.icon}
             </span>
             <span className="text-[14px] tracking-wide font-sans">{tab.label}</span>
@@ -61,7 +61,7 @@ export default function AccountSidebar({ activeTab, onTabChange }: AccountSideba
       <div className="border-t border-gray-100 dark:border-zinc-800/80 pt-2 mt-2">
         <button 
           onClick={handleSignOut}
-          className="w-full text-left flex items-center gap-3.5 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200"
+          className="w-full text-left flex items-center gap-3.5 px-4 py-3 rounded-lg text-red-500 bg-red-50/50 hover:bg-red-50 dark:bg-red-950/10 dark:hover:bg-red-950/20 transition-all duration-200"
         >
           <LogOut className="w-5 h-5" />
           <span className="text-[14px] tracking-wide font-sans font-medium">Sign Out</span>

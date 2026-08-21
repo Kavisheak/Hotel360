@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import SignOutModal from '@/components/landing/shared/SignOutModal';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -45,6 +46,7 @@ const Sidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
@@ -170,9 +172,9 @@ const Sidebar = () => {
               onClick={close}
             />
           ))}
-          {/* Logout — calls signout API first to destroy session cookie */}
+          {/* Logout — opens confirmation modal */}
           <button
-            onClick={() => { close(); handleLogout(); }}
+            onClick={() => { close(); setIsLogoutModalOpen(true); }}
             title={collapsedState ? 'LOGOUT' : undefined}
             className={`w-full flex items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${collapsedState ? 'justify-center p-3' : 'space-x-4 px-4 py-3'
               }`}
@@ -226,6 +228,15 @@ const Sidebar = () => {
       >
         {sidebarBody(mounted && isCollapsed)}
       </div>
+
+      <SignOutModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          handleLogout();
+        }}
+      />
     </>
   );
 };

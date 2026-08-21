@@ -71,7 +71,7 @@ const JobQueue: React.FC<JobQueueProps> = ({ externalBookings, loadingExternal, 
   const completedJobs = bookings.filter((b: any) => b.vendors?.dj?.status === 'Completed' || b.status === 'Completed');
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 gap-8">
       <div className="space-y-8">
         <div>
           <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">Current Priority</h3>
@@ -98,27 +98,6 @@ const JobQueue: React.FC<JobQueueProps> = ({ externalBookings, loadingExternal, 
             ))}
             </div>
           </div>
-        )}
-      </div>
-      
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">Preparation Checklist</h3>
-          {currentPriority ? (
-            <PreparationChecklist booking={currentPriority} onRefresh={handleRefresh} />
-          ) : (
-             <div className="bg-white border border-[#E0D8C3] p-8 text-center text-gray-500 text-sm font-serif italic">
-               No active checklists.
-             </div>
-          )}
-        </div>
-        
-        {completedJobs.length > 0 ? (
-          <LastCompleted booking={completedJobs[0]} />
-        ) : (
-           <div className="bg-[#4E411B] text-[#FDF9F1] p-6 text-center">
-             <p className="text-[10px] font-bold tracking-widest uppercase opacity-70">No completed jobs yet</p>
-           </div>
         )}
       </div>
     </div>

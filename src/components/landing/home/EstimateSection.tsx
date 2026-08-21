@@ -10,7 +10,7 @@ const EstimateSection = () => {
  const venueRental = 3400000; // Using Gold as base for estimate
  const foodCostPerGuest = 3500;
  const foodTotal = guests * foodCostPerGuest;
- const tax = (venueRental + foodTotal) * 0.15;
+ const tax = 0;
  const total = venueRental + foodTotal + tax;
 
  const formatLKR = (amount: number) => {
@@ -87,10 +87,6 @@ const EstimateSection = () => {
  <div className="flex justify-between items-center border-b border-[#D4C9A8] dark:border-white/10 pb-4">
  <span className="text-gray-700 dark:text-gray-300 text-sm font-light">Food & Catering ({guests} pax)</span>
  <span className="text-[#2C1E14] dark:text-white font-serif">{formatLKR(foodTotal)}</span>
- </div>
- <div className="flex justify-between items-center border-b border-[#D4C9A8] dark:border-white/10 pb-4">
- <span className="text-gray-700 dark:text-gray-300 text-sm font-light">Taxes & Fees (15%)</span>
- <span className="text-[#2C1E14] dark:text-white font-serif">{formatLKR(tax)}</span>
  </div>
  </div>
 

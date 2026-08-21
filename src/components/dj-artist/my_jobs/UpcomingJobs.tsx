@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Calendar, MapPin, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import { djAPI } from '@/lib/api';
 import { getClientDisplayName, VENUE_NAME } from '@/lib/vendorUtils';
+import DjJobDetailModal from './DjJobDetailModal';
 
 interface UpcomingJobsProps {
   booking: any;
@@ -20,6 +21,7 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
   const isPending = status === 'Pending';
 
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [modalStatus, setModalStatus] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -115,13 +117,13 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
                 )}
               </>
             )}
-            <Link
-              href={`/dj-artist/events-bookings/${booking._id}`}
+            <button
+              onClick={() => setShowDetailModal(true)}
               className="flex items-center gap-1 px-2 py-1 text-[9px] font-bold tracking-widest text-gray-400 hover:text-[#7C6A2E] uppercase"
             >
               Details
               <ArrowRight size={11} />
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -149,6 +151,14 @@ const UpcomingJobs = ({ booking, onRefresh, onMakePriority }: UpcomingJobsProps)
             </div>
           </div>
         </div>
+      )}
+
+      {showDetailModal && (
+        <DjJobDetailModal 
+          jobId={booking._id}
+          onClose={() => setShowDetailModal(false)}
+          onRefresh={onRefresh}
+        />
       )}
     </>
   );

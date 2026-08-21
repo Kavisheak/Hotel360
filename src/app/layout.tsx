@@ -38,6 +38,19 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (!localStorage.getItem('theme')) {
+                  localStorage.setItem('theme', 'light');
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
@@ -46,9 +59,10 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Jost:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,400&display=swap"
         />
+        <script src="https://www.payhere.lk/lib/payhere.js" async />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {children}
           <FloatingEventCart />
           <ToastProvider />

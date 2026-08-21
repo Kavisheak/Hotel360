@@ -24,7 +24,20 @@ const ClientInfo = ({ booking }: { booking: any }) => (
 
     <div>
       <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Guest Count</p>
-      <p className="text-sm text-gray-700">{booking.guests} Guests</p>
+      <p className="text-sm text-gray-700 mb-4">{booking.guests} Guests</p>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">NIC Number</p>
+        <p className="text-sm text-gray-700">{booking.nic || 'Not Provided'}</p>
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Address</p>
+        <p className="text-sm text-gray-700">
+          {booking.billingAddress ? `${booking.billingAddress}${booking.billingCity ? `, ${booking.billingCity}` : ''}` : 'Not Provided'}
+        </p>
+      </div>
     </div>
   </div>
 );

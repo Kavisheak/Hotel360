@@ -19,6 +19,7 @@ export default function ProfileSettings() {
     lastName: authUser?.lastName || "",
     email: authUser?.email || "",
     phone: authUser?.phone || "",
+    nic: authUser?.nic || "",
     address: authUser?.address || "",
     city: authUser?.city || "",
   });
@@ -36,7 +37,7 @@ export default function ProfileSettings() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [errors, setErrors] = useState<{email?: string, phone?: string, firstName?: string, lastName?: string, address?: string, city?: string}>({});
+  const [errors, setErrors] = useState<{email?: string, phone?: string, firstName?: string, lastName?: string, address?: string, city?: string, nic?: string}>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -69,6 +70,10 @@ export default function ProfileSettings() {
     }
     if (!validatePhone(profile.phone)) {
       newErrors.phone = "Please enter a valid Sri Lankan phone number.";
+      hasError = true;
+    }
+    if (profile.nic.trim() && !/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(profile.nic.trim())) {
+      newErrors.nic = "Please enter a valid Sri Lankan NIC (e.g., 123456789V or 123456789012).";
       hasError = true;
     }
     if (!profile.address.trim()) {
@@ -256,6 +261,17 @@ export default function ProfileSettings() {
               className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
             />
             {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
+          </div>
+          <div>
+            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">NIC Number</label>
+            <input
+              type="text"
+              value={profile.nic}
+              onChange={(e) => handleChange("nic", e.target.value)}
+              placeholder="e.g., 123456789V or 123456789012"
+              className="w-full border border-gray-200 bg-transparent px-4 py-3 rounded text-[13px] text-[#1A1512] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-all"
+            />
+            {errors.nic && <p className="text-red-500 text-[10px] mt-1">{errors.nic}</p>}
           </div>
           <div className="md:col-span-2">
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Street Address</label>

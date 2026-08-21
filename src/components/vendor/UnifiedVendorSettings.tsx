@@ -19,29 +19,102 @@ import {
   User, 
   FileText,
   Key,
-  Compass
+  Compass,
+  Image as ImageIcon,
+  CalendarCheck
 } from "lucide-react";
 import ImageCropModal from "./ImageCropModal";
 import LocationMapModal from "./LocationMapModal";
 import { authAPI, decoratorAPI, videographerAPI, djAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { validateEmail, validatePhone } from "@/lib/validation";
+import { useRouter } from "next/navigation";
 
 interface UnifiedVendorSettingsProps {
   vendorRole: "decorator" | "videographer" | "dj_artist";
   roleTitle: string;
 }
 
+const EVENT_TYPES = [
+  "Wedding", "Engagement", "Birthday", "Anniversary", "Corporate",
+  "Conference", "Graduation", "Baby Shower", "Homecoming", "Private Party", "Other", "Islandwide"
+];
+
+const DECORATION_SPECIALTIES = [
+  "Wedding Stage", "Floral Decoration", "Balloon Decoration", "Entrance Decoration",
+  "Table Decoration", "Ceiling Decoration", "Backdrop Decoration", "Theme Decoration",
+  "Luxury Decoration", "Traditional Decoration", "Modern / Minimalist", "Outdoor Decoration",
+  "Lighting", "Photo Booth", "Custom Decoration"
+];
+
+const CULTURAL_EXPERTISE = [
+  "Buddhist", "Hindu", "Muslim", "Christian", "Catholic",
+  "Traditional Sinhalese", "Traditional Tamil", "Western Style", "Fusion"
+];
+
+const VIDEOGRAPHY_SPECIALTIES = [
+  "Wedding Cinematography", "Candid Videography", "Cinematic Films", "Traditional Event Videography",
+  "Pre-shoot / Couple Shoot", "Drone Videography", "Highlight Films", "Same-Day Edits",
+  "Live Streaming", "Corporate Videography", "Concert / Stage Events", "Documentary Style",
+  "Social Media Reels"
+];
+
+const VIDEO_STYLES = [
+  "Cinematic", "Traditional", "Documentary", "Storytelling", "Candid",
+  "Editorial", "Luxury", "Natural / Minimal", "Creative"
+];
+
+const EQUIPMENT_LIST = [
+  "4K Video", "Multiple Cameras", "Drone", "Gimbal", "Professional Audio",
+  "Wireless Microphones", "Professional Lighting", "Stabilization Equipment", "Live Streaming"
+];
+
+const SERVICE_AREAS_LIST = [
+  "Colombo", "Gampaha", "Kalutara", "Kandy", "Galle", "Matara", "Kurunegala", "Nuwara Eliya", "Ratnapura", "Anuradhapura", "Jaffna", "Batticaloa", "Trincomalee", "Other", "Islandwide"
+];
+
+const DJ_SPECIALTIES = [
+  "Wedding DJ", "Party DJ", "Corporate DJ", "Club-style DJ", 
+  "Traditional Event DJ", "MC / Announcer", "Live DJ Mixing", 
+  "Background Music", "Special Entrance Music"
+];
+
+const MUSIC_GENRES = [
+  "Sinhala", "Tamil", "English", "Hindi / Bollywood", "Baila", 
+  "Pop", "Rock", "EDM", "House", "Hip-Hop", "R&B", "Oldies / Classics", 
+  "Mixed / All Genres"
+];
+
+const DJ_SERVICES = [
+  "DJ Performance", "MC", "Sound System", 
+  "Stage Lighting", "Dance Floor Lighting", "Background Music", 
+  "Special Entrance Music", "Event Announcements", "Wireless Microphone"
+];
+
+const DJ_EQUIPMENT = [
+  "DJ Controller", "DJ Mixer", "Professional Speakers", 
+  "Subwoofers", "Wireless Microphones", "Stage Lighting", "Moving Head Lights", 
+  "LED Lighting", "Laser / Effects", "Fog / Smoke Machine"
+];
+
+const DJ_PERFORMANCE = [
+  "Live Mixing", "Crowd Interaction", "Song Requests", 
+  "Custom Playlist", "Special Entrance Music", "First Dance Music", 
+  "Cultural / Traditional Music", "Dinner Background Music"
+];
+
 export default function UnifiedVendorSettings({
   vendorRole,
   roleTitle,
 }: UnifiedVendorSettingsProps) {
+  const router = useRouter();
   const { user: authUser, updateUser } = useAuthStore();
 
   // 11 Core Form Fields State
   const [formData, setFormData] = useState({
     shopName: "",         // 2. Business Name
     experience: "",       // 3. Years of Experience
+    eventsCompleted: "",  // Events Completed
     email: "",            // 4. Email
     phone: "",            // 5. Phone Number
     website: "",          // 6. Website URL
@@ -49,6 +122,23 @@ export default function UnifiedVendorSettings({
     facebook: "",         // 7. Social Media (Facebook/Pinterest)
     bio: "",              // 8. About
     location: "",         // 9. Location
+    defaultPackagePrice: 0, // Fixed DJ Package Price
+    contactPerson: "",
+    serviceAreas: [] as string[],
+    eventTypesServed: [] as string[],
+    culturalExpertise: [] as string[],
+    specialties: [] as string[],
+    whatsappNumber: "",
+    youtube: "",
+    teamSize: "",
+    teamBreakdown: "",
+    videoStyles: [] as string[],
+    equipment: [] as string[],
+    musicGenres: [] as string[],
+    servicesOffered: [] as string[],
+    equipmentDetails: "",
+    performanceCapabilities: [] as string[],
+    advancePaymentPercentage: 0,
   });
 
   // Owner details provisioned by Manager (Read-only)
@@ -58,8 +148,11 @@ export default function UnifiedVendorSettings({
     ownerNic: "",
   });
 
-  // Avatar state (1. Profile Picture)
+  // Avatar and Cover state
   const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
 
   // Password Change State (11. Password Change Option)
   const [passwordData, setPasswordData] = useState({
@@ -110,6 +203,7 @@ export default function UnifiedVendorSettings({
         const u = res.data.user;
         
         setAvatarUrl(u.avatar || "");
+        setCoverImageUrl(u.vendorProfile?.coverImage || "");
         setOwnerInfo({
           firstName: u.firstName || "",
           lastName: u.lastName || "",
@@ -118,7 +212,8 @@ export default function UnifiedVendorSettings({
 
         setFormData({
           shopName: u.shopName || "",
-          experience: u.vendorProfile?.experience || "3 Years",
+          experience: u.vendorProfile?.experience || "",
+          eventsCompleted: u.vendorProfile?.eventsCompleted || "",
           email: u.email || "",
           phone: u.phone || "",
           website: u.vendorProfile?.website || "",
@@ -126,6 +221,23 @@ export default function UnifiedVendorSettings({
           facebook: u.vendorProfile?.pinterest || u.vendorProfile?.facebook || "",
           bio: u.vendorProfile?.bio || u.vendorProfile?.description || "",
           location: u.vendorProfile?.location || u.city || u.address || "Colombo, Sri Lanka",
+          defaultPackagePrice: u.vendorProfile?.defaultPackagePrice || 0,
+          contactPerson: u.vendorProfile?.contactPerson || "",
+          serviceAreas: u.vendorProfile?.serviceAreas || [],
+          eventTypesServed: u.vendorProfile?.eventTypesServed || [],
+          culturalExpertise: u.vendorProfile?.culturalExpertise || [],
+          specialties: Array.isArray(u.vendorProfile?.specialties) ? u.vendorProfile.specialties : (u.vendorProfile?.specialty ? u.vendorProfile.specialty.split(",").map((s: string) => s.trim()) : []),
+          whatsappNumber: u.vendorProfile?.whatsappNumber || "",
+          youtube: u.vendorProfile?.youtube || "",
+          teamSize: u.vendorProfile?.teamSize || "",
+          teamBreakdown: u.vendorProfile?.teamBreakdown || "",
+          videoStyles: u.vendorProfile?.videoStyles || [],
+          equipment: u.vendorProfile?.equipment || [],
+          musicGenres: u.vendorProfile?.musicGenres || [],
+          servicesOffered: u.vendorProfile?.servicesOffered || [],
+          equipmentDetails: u.vendorProfile?.equipmentDetails || "",
+          performanceCapabilities: u.vendorProfile?.performanceCapabilities || [],
+          advancePaymentPercentage: u.vendorProfile?.advancePaymentPercentage || 0,
         });
       }
     } catch (e) {
@@ -182,6 +294,43 @@ export default function UnifiedVendorSettings({
     }
   };
 
+  // Cover Image Upload
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCover(true);
+    try {
+      const fd = new FormData();
+      fd.append("cover", file);
+      const res = await authAPI.uploadCoverImage(fd);
+      if (res.ok && res.data?.coverImage) {
+        setCoverImageUrl(res.data.coverImage);
+        showToast("Cover image updated successfully!");
+      } else {
+        showToast(res.data?.message || "Failed to upload cover.", "error");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("Error uploading cover picture.", "error");
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
+
+  // Toggle Checkbox for arrays
+  const toggleSelection = (field: 'serviceAreas' | 'eventTypesServed' | 'specialties' | 'culturalExpertise' | 'videoStyles' | 'equipment' | 'musicGenres' | 'servicesOffered' | 'performanceCapabilities', value: string) => {
+    setFormData(prev => {
+      const arr = prev[field];
+      if (arr.includes(value)) {
+        return { ...prev, [field]: arr.filter(v => v !== value) };
+      } else {
+        return { ...prev, [field]: [...arr, value] };
+      }
+    });
+  };
+
+
   // Profile Form Submission
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,11 +366,30 @@ export default function UnifiedVendorSettings({
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         experience: formData.experience.trim(),
+        eventsCompleted: formData.eventsCompleted.trim(),
         website: formData.website.trim(),
         instagram: formData.instagram.trim(),
         pinterest: formData.facebook.trim(),
         bio: formData.bio.trim(),
         location: formData.location.trim(),
+        defaultPackagePrice: formData.defaultPackagePrice,
+        contactPerson: formData.contactPerson.trim(),
+        serviceAreas: formData.serviceAreas,
+        eventTypesServed: formData.eventTypesServed,
+        culturalExpertise: formData.culturalExpertise,
+        specialty: formData.specialties,
+        whatsappNumber: formData.whatsappNumber.trim(),
+        youtube: formData.youtube.trim(),
+        teamSize: formData.teamSize.trim(),
+        teamBreakdown: formData.teamBreakdown.trim(),
+        videoStyles: formData.videoStyles,
+        equipment: formData.equipment,
+        musicGenres: formData.musicGenres,
+        servicesOffered: formData.servicesOffered,
+        equipmentDetails: formData.equipmentDetails.trim(),
+        performanceCapabilities: formData.performanceCapabilities,
+        facebook: formData.facebook.trim(),
+        advancePaymentPercentage: formData.advancePaymentPercentage,
       };
 
       let res;
@@ -246,6 +414,7 @@ export default function UnifiedVendorSettings({
             instagram: formData.instagram,
             bio: formData.bio,
             location: formData.location,
+            defaultPackagePrice: formData.defaultPackagePrice,
           },
         });
       } else {
@@ -294,12 +463,19 @@ export default function UnifiedVendorSettings({
       });
 
       if (res.ok) {
-        showToast("Security password updated successfully!");
+        showToast("Security password updated successfully! Please login again with your new password.");
         setPasswordData({
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
         });
+        setTimeout(async () => {
+          try {
+            await authAPI.signout();
+          } catch (err) {}
+          useAuthStore.getState().clearUser();
+          router.replace("/login");
+        }, 2000);
       } else {
         showToast(res.data?.message || "Password update failed. Check current password.", "error");
       }
@@ -406,6 +582,46 @@ export default function UnifiedVendorSettings({
               </div>
             </div>
 
+            {/* Cover Image Upload */}
+            {(vendorRole === "decorator" || vendorRole === "videographer" || vendorRole === "dj_artist") && (
+              <div className="flex flex-col gap-4 pb-6 border-b border-[#E0D8C3]/50 dark:border-gray-800">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-gray-800 dark:text-white">
+                      Cover Image
+                    </h4>
+                    <p className="text-xs text-gray-500 max-w-md mt-1">
+                      Upload a wide, high-quality banner image for your public profile.
+                    </p>
+                  </div>
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="cover-upload"
+                      className="hidden"
+                      onChange={handleCoverUpload}
+                    />
+                    <label
+                      htmlFor="cover-upload"
+                      className="px-4 py-2 bg-[#FAF6EE] dark:bg-[#222] border border-[#E0D8C3] dark:border-gray-700 hover:border-[#7C6A2E] text-xs font-bold text-[#7C6A2E] dark:text-[#C9A84C] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ImageIcon size={14} /> {isUploadingCover ? "Uploading..." : "Change Cover"}
+                    </label>
+                  </div>
+                </div>
+                <div className="w-full h-40 sm:h-48 rounded-xl overflow-hidden border border-[#E0D8C3] dark:border-gray-700 bg-[#FAF6EE] dark:bg-[#252525] relative">
+                  {coverImageUrl ? (
+                    <img src={coverImageUrl} alt="Cover Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <ImageIcon size={32} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 2. Business Name */}
               <div>
@@ -423,6 +639,23 @@ export default function UnifiedVendorSettings({
                 />
               </div>
 
+              {/* Owner / Contact Person */}
+              {(vendorRole === "decorator" || vendorRole === "videographer") && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <User size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Owner / Contact Person
+                  </label>
+                  <input
+                    type="text"
+                    name="contactPerson"
+                    value={formData.contactPerson}
+                    onChange={handleInputChange}
+                    placeholder="e.g. John Doe"
+                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                  />
+                </div>
+              )}
+
               {/* 3. Years of Experience */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
@@ -433,9 +666,58 @@ export default function UnifiedVendorSettings({
                   name="experience"
                   value={formData.experience}
                   onChange={handleInputChange}
-                  placeholder="e.g. 5+ Years"
+                  placeholder="e.g. 5"
                   className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
                 />
+              </div>
+
+              {/* Events Completed */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                  <CalendarCheck size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Events Completed
+                </label>
+                <input
+                  type="text"
+                  name="eventsCompleted"
+                  value={formData.eventsCompleted}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 120+"
+                  className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                />
+              </div>
+              {vendorRole === "dj_artist" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Fixed Package Price (LKR)
+                  </label>
+                  <input
+                    type="number"
+                    name="defaultPackagePrice"
+                    value={formData.defaultPackagePrice || ""}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 45000"
+                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">This price will be used automatically when customers book your DJ services.</p>
+                </div>
+              )}
+              
+              {/* Advance Payment Percentage */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                  <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Advance Payment (%)
+                </label>
+                <input
+                  type="number"
+                  name="advancePaymentPercentage"
+                  value={formData.advancePaymentPercentage || ""}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 20 (for 20%)"
+                  min="0"
+                  max="100"
+                  className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                />
+                <p className="text-[10px] text-gray-500 mt-1">Percentage of total cost required as advance payment (e.g. 20, 30, 40).</p>
               </div>
             </div>
 
@@ -453,6 +735,318 @@ export default function UnifiedVendorSettings({
                 className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
               />
             </div>
+
+            {/* Team Information */}
+            {vendorRole === "videographer" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E0D8C3]/50 dark:border-gray-800">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <User size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Team Size
+                  </label>
+                  <input
+                    type="text"
+                    name="teamSize"
+                    value={formData.teamSize}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 3 Members"
+                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <User size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Team Breakdown (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="teamBreakdown"
+                    value={formData.teamBreakdown}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 2 Videographers, 1 Editor"
+                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Checklists for Decorators & Videographers */}
+            {(vendorRole === "decorator" || vendorRole === "videographer" || vendorRole === "dj_artist") && (
+              <div className="space-y-6 pt-4 border-t border-[#E0D8C3]/50 dark:border-gray-800">
+                {/* Event Types Served */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                    Event Types Served
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {EVENT_TYPES.map(type => (
+                      <label key={type} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                        <input
+                          type="checkbox"
+                          checked={formData.eventTypesServed.includes(type)}
+                          onChange={() => toggleSelection('eventTypesServed', type)}
+                          className="accent-[#7C6A2E] w-4 h-4 rounded"
+                        />
+                        {type}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Decoration Specialties */}
+                {vendorRole === "decorator" && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                        Decoration Specialties
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {DECORATION_SPECIALTIES.map(specialty => (
+                          <label key={specialty} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={formData.specialties.includes(specialty)}
+                              onChange={() => toggleSelection('specialties', specialty)}
+                              className="accent-[#7C6A2E] w-4 h-4 rounded"
+                            />
+                            {specialty}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Cultural / Religious Expertise */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                        Cultural & Religious Expertise
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {CULTURAL_EXPERTISE.map(culture => (
+                          <label key={culture} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={formData.culturalExpertise.includes(culture)}
+                              onChange={() => toggleSelection('culturalExpertise', culture)}
+                              className="accent-[#7C6A2E] w-4 h-4 rounded"
+                            />
+                            {culture}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Videography Specialties */}
+                {vendorRole === "videographer" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                      Videography Specialties
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {VIDEOGRAPHY_SPECIALTIES.map(specialty => (
+                        <label key={specialty} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.specialties.includes(specialty)}
+                            onChange={() => toggleSelection('specialties', specialty)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {specialty}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* DJ Specialties */}
+                {vendorRole === "dj_artist" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> DJ Specialties
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {DJ_SPECIALTIES.map(specialty => (
+                        <label key={specialty} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.specialties.includes(specialty)}
+                            onChange={() => toggleSelection('specialties', specialty)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {specialty}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Music Genres */}
+                {vendorRole === "dj_artist" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Music Genres
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {MUSIC_GENRES.map(genre => (
+                        <label key={genre} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.musicGenres.includes(genre)}
+                            onChange={() => toggleSelection('musicGenres', genre)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {genre}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* DJ Services Offered */}
+                {vendorRole === "dj_artist" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Services Offered
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {DJ_SERVICES.map(service => (
+                        <label key={service} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.servicesOffered.includes(service)}
+                            onChange={() => toggleSelection('servicesOffered', service)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {service}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Video Style */}
+                {vendorRole === "videographer" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                      Video Style
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {VIDEO_STYLES.map(style => (
+                        <label key={style} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.videoStyles.includes(style)}
+                            onChange={() => toggleSelection('videoStyles', style)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {style}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Equipment & Capabilities */}
+                {vendorRole === "videographer" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                      Equipment & Technical Capabilities
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {EQUIPMENT_LIST.map(eq => (
+                        <label key={eq} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.equipment.includes(eq)}
+                            onChange={() => toggleSelection('equipment', eq)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {eq}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* DJ Equipment Available */}
+                {vendorRole === "dj_artist" && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                        <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Equipment Available
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        {DJ_EQUIPMENT.map(eq => (
+                          <label key={eq} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={formData.equipment.includes(eq)}
+                              onChange={() => toggleSelection('equipment', eq)}
+                              className="accent-[#7C6A2E] w-4 h-4 rounded"
+                            />
+                            {eq}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
+                        Equipment Details (Optional)
+                      </label>
+                      <textarea
+                        name="equipmentDetails"
+                        rows={2}
+                        value={formData.equipmentDetails}
+                        onChange={handleInputChange}
+                        placeholder="e.g. Pioneer DJ controller, JBL sound system, wireless microphones..."
+                        className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* DJ Performance Features */}
+                {vendorRole === "dj_artist" && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Award size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Performance Capabilities
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {DJ_PERFORMANCE.map(cap => (
+                        <label key={cap} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={formData.performanceCapabilities.includes(cap)}
+                            onChange={() => toggleSelection('performanceCapabilities', cap)}
+                            className="accent-[#7C6A2E] w-4 h-4 rounded"
+                          />
+                          {cap}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Service Areas */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+                    Service Areas
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {SERVICE_AREAS_LIST.map(area => (
+                      <label key={area} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
+                        <input
+                          type="checkbox"
+                          checked={formData.serviceAreas.includes(area)}
+                          onChange={() => toggleSelection('serviceAreas', area)}
+                          className="accent-[#7C6A2E] w-4 h-4 rounded"
+                        />
+                        {area}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -488,34 +1082,57 @@ export default function UnifiedVendorSettings({
                 )}
               </div>
 
-              {/* 5. Phone Number */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
-                  <Phone size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Phone Number (Sri Lankan Format)
-                </label>
-                <div className="flex">
-                  <span className="bg-[#FAF6EE] dark:bg-[#222] border border-[#E0D8C3] dark:border-gray-700 border-r-0 px-3.5 py-3 text-gray-600 dark:text-gray-300 text-xs font-bold flex items-center rounded-l-lg">
-                    +94
-                  </span>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="077 123 4567"
-                    required
-                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-r-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
-                  />
+              {/* 5. Phone Number & WhatsApp */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <Phone size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> Phone Number (Sri Lankan Format)
+                  </label>
+                  <div className="flex">
+                    <span className="bg-[#FAF6EE] dark:bg-[#222] border border-[#E0D8C3] dark:border-gray-700 border-r-0 px-3.5 py-3 text-gray-600 dark:text-gray-300 text-xs font-bold flex items-center rounded-l-lg">
+                      +94
+                    </span>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="077 123 4567"
+                      required
+                      className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-r-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                    />
+                  </div>
+                  {profileErrors.phone && (
+                    <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                      <AlertCircle size={12} /> {profileErrors.phone}
+                    </p>
+                  )}
                 </div>
-                {profileErrors.phone && (
-                  <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
-                    <AlertCircle size={12} /> {profileErrors.phone}
-                  </p>
+
+                {(vendorRole === "decorator" || vendorRole === "videographer" || vendorRole === "dj_artist") && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                      <Phone size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> WhatsApp Number
+                    </label>
+                    <div className="flex">
+                      <span className="bg-[#FAF6EE] dark:bg-[#222] border border-[#E0D8C3] dark:border-gray-700 border-r-0 px-3.5 py-3 text-gray-600 dark:text-gray-300 text-xs font-bold flex items-center rounded-l-lg">
+                        +94
+                      </span>
+                      <input
+                        type="tel"
+                        name="whatsappNumber"
+                        value={formData.whatsappNumber}
+                        onChange={handleInputChange}
+                        placeholder="077 123 4567"
+                        className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-r-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* 6. Website URL */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
@@ -565,6 +1182,23 @@ export default function UnifiedVendorSettings({
                   className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
                 />
               </div>
+
+              {/* 7. Social Media (YouTube) */}
+              {(vendorRole === "decorator" || vendorRole === "videographer" || vendorRole === "dj_artist") && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                    <Link size={14} className="text-[#7C6A2E] dark:text-[#C9A84C]" /> YouTube Channel
+                  </label>
+                  <input
+                    type="text"
+                    name="youtube"
+                    value={formData.youtube}
+                    onChange={handleInputChange}
+                    placeholder="https://youtube.com/c/yourchannel"
+                    className="w-full border border-[#E0D8C3] dark:border-gray-700 bg-[#FDF9F1] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#7C6A2E]"
+                  />
+                </div>
+              )}
             </div>
 
             {/* 9. Location & Interactive Map Picker */}

@@ -22,6 +22,13 @@ export default function AuthPage() {
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Forgot Password State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+
   // Register State
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -99,6 +106,22 @@ export default function AuthPage() {
       </div>
     );
   }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setIsForgotLoading(true);
+    setForgotError("");
+    setForgotSuccess(false);
+
+    const { ok, data } = await authAPI.forgotPassword(forgotEmail);
+    if (ok) {
+      setForgotSuccess(true);
+    } else {
+      setForgotError(data.message || "Failed to send temporary password.");
+    }
+    setIsForgotLoading(false);
+  };
 
   const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -213,149 +236,124 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center lg:justify-end p-6 lg:p-20 font-sans overflow-x-hidden overflow-y-auto">
+    <div className="h-screen relative flex items-center justify-center lg:justify-end p-6 lg:p-16 font-sans overflow-hidden">
       {/* Background Image */}
       <div className="fixed inset-0 z-0">
         <Image
-          src="/images/Frontimg.png"
-          alt="Luxury Hall"
+          src="/eascc.png"
+          alt="EASCC Venue"
           fill
           priority
           sizes="100vw"
           className="object-cover"
         />
-        {/* Dark Overlays for depth and readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-[#0a0a0a]/50 to-[#0a0a0a]/80" />
+        {/* Very subtle dark gradient to ensure white card pops without making image too dark */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-black/30" />
       </div>
 
-      {/* Top Left Logo (Always visible) */}
-      <div className="fixed top-12 left-12 z-10 hidden lg:flex items-center gap-4">
-        <div className="w-14 h-14 relative flex items-center justify-center border border-[#C9A84C] rounded-full">
-           <svg className="absolute -top-3 text-[#C9A84C] w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-             <path d="M12 2l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4l2-4z" />
-           </svg>
-           <span className="text-[#C9A84C] font-serif text-3xl">E</span>
+      {/* Bottom Left Floating Features */}
+      <div className="fixed bottom-12 left-12 z-10 hidden lg:flex items-center gap-8 bg-white/20 backdrop-blur-3xl px-10 py-5 rounded-[20px] shadow-2xl border border-white/40">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full border border-white/50 bg-white/40 flex items-center justify-center text-gray-900 shadow-sm">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-gray-900 text-sm font-bold mb-0.5">Trusted Venue</h4>
+            <p className="text-gray-500 text-xs leading-relaxed">A premier venue for<br/>memorable events.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-white text-3xl tracking-widest font-serif">EASCC</h1>
-          <p className="text-[#C9A84C] text-[9px] uppercase tracking-[0.3em]">Conference Center</p>
+        <div className="w-px h-12 bg-gray-200"></div>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full border border-white/50 bg-white/40 flex items-center justify-center text-gray-900 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h4 className="text-gray-900 text-sm font-bold mb-0.5">Seamless Planning</h4>
+            <p className="text-gray-500 text-xs leading-relaxed">Everything you need<br/>in one place.</p>
+          </div>
         </div>
-      </div>
-
-      {/* Dynamic Left Side Content */}
-      <div className="fixed bottom-16 left-12 z-10 hidden lg:block max-w-[500px]">
-        <AnimatePresence mode="wait">
-          {isLogin ? (
-            <motion.div key="login-text" variants={leftSideVariants} initial="initial" animate="animate" exit="exit">
-              <p className="uppercase tracking-[5px] text-[#C9A84C] text-xs mb-4 font-bold">
-                Client Portal
-              </p>
-              <h2 className="text-white text-5xl md:text-6xl leading-tight font-serif mb-6">
-                Your evening,<br/>
-                <span className="italic text-[#C9A84C]">in your hands.</span>
-              </h2>
-              <p className="text-gray-300 text-sm font-light leading-relaxed">
-                Plan, personalize, and perfect every detail of<br/> your celebration with ease.
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div key="register-text" variants={leftSideVariants} initial="initial" animate="animate" exit="exit">
-              <h2 className="text-white text-5xl md:text-6xl leading-tight font-serif mb-4">
-                Your perfect stay<br/>
-                <span className="italic text-[#C9A84C]">starts here.</span>
-              </h2>
-              <p className="text-gray-300 text-sm font-light leading-relaxed mb-12 max-w-sm">
-                Create an account to explore exclusive offers, manage your bookings, and enjoy a seamless experience with EASCC.
-              </p>
-              
-              <div className="grid grid-cols-3 gap-6">
-                <div className="flex flex-col gap-2">
-                  <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
-                  <h4 className="text-white text-[10px] font-bold">Secure & Safe</h4>
-                  <p className="text-gray-400 text-[9px] leading-relaxed">Your data is protected with top security.</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Tag className="w-6 h-6 text-[#C9A84C]" />
-                  <h4 className="text-white text-[10px] font-bold">Best Rates</h4>
-                  <p className="text-gray-400 text-[9px] leading-relaxed">Access exclusive deals and special offers.</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Headset className="w-6 h-6 text-[#C9A84C]" />
-                  <h4 className="text-white text-[10px] font-bold">Personalized Service</h4>
-                  <p className="text-gray-400 text-[9px] leading-relaxed">Personalized support for a seamless experience.</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="w-px h-12 bg-gray-200"></div>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full border border-white/50 bg-white/40 flex items-center justify-center text-gray-900 shadow-sm">
+            <User className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-gray-900 text-sm font-bold mb-0.5">Dedicated Support</h4>
+            <p className="text-gray-500 text-xs leading-relaxed">We're here to help<br/>you succeed.</p>
+          </div>
+        </div>
       </div>
 
       {/* Glassmorphism Right Panel */}
-      <div className="relative z-10 w-full max-w-[500px] backdrop-blur-xl bg-[#111111]/40 border border-white/10 rounded-2xl shadow-2xl my-auto">
+      <div className="relative z-10 w-full max-w-[440px] lg:mr-16 bg-white/20 backdrop-blur-2xl rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-white/40 my-auto ml-auto max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <AnimatePresence mode="wait">
           {isLogin ? (
-            <motion.div key="login-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-6 md:p-8">
+            <motion.div key="login-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Login Form Content */}
               <div className="flex flex-col items-center mb-5">
-                <div className="text-[#C9A84C] mb-2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C12 2 14 6 18 6C18 6 15 8 15 12C15 16 18 18 18 18C14 18 12 22 12 22C12 22 10 18 6 18C6 18 9 16 9 12C9 8 6 6 6 6C10 6 12 2 12 2Z" fill="currentColor"/>
-                  </svg>
+                <div className="w-32 h-14 relative">
+                  <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
                 </div>
-                <p className="uppercase tracking-[4px] text-[#C9A84C] text-[9px] font-bold mb-2">
+                <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Welcome Back
-                </p>
-                <h1 className="text-3xl font-serif text-white text-center">
-                  Sign in to <span className="italic text-[#C9A84C]">EASCC</span>
                 </h1>
-                <p className="text-gray-300 text-xs mt-2 font-light">
+                <p className="text-white text-sm font-serif mb-0.5">
+                  Sign in to EASCC
+                </p>
+                <p className="text-white/90 text-xs font-light mt-0.5">
                   Continue planning your evening.
                 </p>
               </div>
 
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <form onSubmit={handleLoginSubmit} className="space-y-3">
                 {/* Email */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-2 font-bold">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                       <Mail className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type="email"
-                      placeholder="customer@gmail.com"
-                      className="w-full bg-white/5 border border-white/10 rounded-md py-2.5 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-xs"
+                      placeholder="manager@gmail.com"
+                      className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-8 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
                         if (errors.email) setErrors({ ...errors, email: undefined });
                       }}
                     />
+                    {email && !errors.email && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-green-500">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                   </div>
-                  {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
 
-                {/* Password */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 mt-2.5">
                     Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                       <Lock className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full bg-white/5 border border-white/10 rounded-md py-2.5 pl-10 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-xs"
+                      className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <button 
                       type="button" 
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-[#C9A84C] transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -363,105 +361,85 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Options */}
                 <div className="flex items-center justify-between pt-1">
-                  <label className="flex items-center gap-2 text-gray-300 text-[10px] cursor-pointer hover:text-white transition-colors">
+                  <label className="flex items-center gap-1.5 text-gray-600 text-xs cursor-pointer hover:text-gray-900 transition-colors">
                     <div className="relative flex items-center">
                       <input type="checkbox" className="peer w-3.5 h-3.5 opacity-0 absolute" />
-                      <div className="w-3.5 h-3.5 border border-white/30 rounded bg-white/5 peer-checked:bg-[#C9A84C] peer-checked:border-[#C9A84C] flex items-center justify-center transition-all">
-                         <svg className="w-2.5 h-2.5 text-[#1A1512] opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                      <div className="w-3.5 h-3.5 border border-[#C9A84C] rounded bg-transparent peer-checked:bg-[#C9A84C] flex items-center justify-center transition-all">
+                         <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                          </svg>
                       </div>
                     </div>
                     Remember me
                   </label>
-                  <Link href="#" className="text-[#C9A84C] text-[10px] hover:underline hover:text-[#B89238] transition-colors">
+                  <button type="button" onClick={() => setShowForgotModal(true)} className="text-white font-medium text-xs hover:underline hover:text-white/80 transition-colors shadow-sm">
                     Forgot password?
-                  </Link>
+                  </button>
                 </div>
 
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#B89238] via-[#D4C9A8] to-[#B89238] text-[#1A1512] py-3 rounded-md flex items-center justify-center gap-2 uppercase tracking-[3px] text-[11px] font-bold hover:shadow-[0_0_20px_rgba(201,168,76,0.3)] transition-all duration-300 mt-2 bg-[length:200%_auto] hover:bg-right"
+                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 mt-3 shadow-sm border border-[#C9A84C]/20"
                 >
                   Sign In <ArrowRight className="w-3.5 h-3.5" />
                 </button>
 
-                {loginError && <p className="text-xs text-red-400 text-center">{loginError}</p>}
+                {loginError && <p className="text-xs text-red-500 text-center">{loginError}</p>}
               </form>
 
-              <div className="relative flex py-5 items-center">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="shrink-0 mx-4 text-gray-500 text-[9px] uppercase tracking-[2px]">Or</span>
-                <div className="flex-grow border-t border-white/10"></div>
+              <div className="relative flex py-4 items-center">
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="shrink-0 mx-4 text-gray-400 text-[10px] uppercase">Or</span>
+                <div className="flex-grow border-t border-gray-200"></div>
               </div>
 
-              <div className="text-center text-[11px] text-gray-300 mb-5">
-                New to EASCC? <button type="button" onClick={toggleMode} className="text-[#C9A84C] hover:underline cursor-pointer bg-transparent border-none p-0">Create an account</button>
+              <div className="text-center w-full mb-4">
+                <button type="button" onClick={toggleMode} className="w-full bg-white border border-[#C9A84C]/40 text-gray-600 py-2.5 rounded-lg hover:bg-[#FAF7F2] transition-colors text-xs flex justify-center items-center gap-1.5 shadow-sm">
+                  <User className="w-3.5 h-3.5 text-[#C9A84C]" /> New to EASCC? <span className="text-[#C9A84C] font-semibold">Create an account.</span>
+                </button>
               </div>
 
-              {/* Dashboard Links */}
-              <div className="flex items-center justify-between border-t border-white/10 pt-5">
-                <Link href="/decorator" className="flex items-center gap-2 text-gray-400 hover:text-[#C9A84C] transition-colors group">
-                  <Paintbrush className="w-5 h-5 text-[#C9A84C] group-hover:scale-110 transition-transform" />
-                  <div className="flex flex-col">
-                    <span className="text-[8px] uppercase tracking-widest leading-none mb-1">Decorator</span>
-                    <span className="text-[9px] font-bold leading-none">Dashboard</span>
-                  </div>
-                </Link>
-                
-                <Link href="/hotel-manager" className="flex items-center gap-2 text-gray-400 hover:text-[#C9A84C] transition-colors group">
-                  <Briefcase className="w-5 h-5 text-[#C9A84C] group-hover:scale-110 transition-transform" />
-                  <div className="flex flex-col">
-                    <span className="text-[8px] uppercase tracking-widest leading-none mb-1">Manager</span>
-                    <span className="text-[9px] font-bold leading-none">Dashboard</span>
-                  </div>
-                </Link>
-
-                <Link href="/super-admin" className="flex items-center gap-2 text-gray-400 hover:text-[#C9A84C] transition-colors group">
-                  <ShieldCheck className="w-5 h-5 text-[#C9A84C] group-hover:scale-110 transition-transform" />
-                  <div className="flex flex-col">
-                    <span className="text-[8px] uppercase tracking-widest leading-none mb-1">Admin</span>
-                    <span className="text-[9px] font-bold leading-none">Dashboard</span>
-                  </div>
-                </Link>
+              <div className="flex justify-center items-center gap-1.5 text-[10px] text-gray-400 pb-1">
+                <svg className="w-3.5 h-3.5 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                EASCCA Conference Centre, Eravur, Sri Lanka
               </div>
             </motion.div>
           ) : (
-            <motion.div key="register-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-6 md:p-8">
+            <motion.div key="register-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Register Form Content */}
-              <div className="flex flex-col items-center mb-4">
-                <div className="text-[#C9A84C] mb-2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C12 2 14 6 18 6C18 6 15 8 15 12C15 16 18 18 18 18C14 18 12 22 12 22C12 22 10 18 6 18C6 18 9 16 9 12C9 8 6 6 6 6C10 6 12 2 12 2Z" fill="currentColor"/>
-                  </svg>
+              <div className="flex flex-col items-center mb-2">
+                <div className="w-24 h-12 relative">
+                   <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
                 </div>
-                <h1 className="text-3xl font-serif text-white text-center">
-                  Create <span className="italic text-[#C9A84C]">Your Account</span>
+                <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
+                  Create Account
                 </h1>
-                <p className="text-gray-300 text-[11px] mt-1.5 font-light text-center max-w-xs">
-                  Join EASCC and unlock a world of comfort and convenience.
+                <p className="text-white/90 text-xs text-center">
+                  Join EASCC to manage your bookings.
                 </p>
               </div>
 
-              <form onSubmit={handleRegisterSubmit} className="space-y-3" autoComplete="off">
+              <form onSubmit={handleRegisterSubmit} className="space-y-2.5" autoComplete="off">
                 <div className="flex gap-3">
                   {/* First Name */}
                   <div className="flex-1">
-                    <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                    <label className="block text-[11px] font-medium text-gray-700 mb-1">
                       First Name
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                         <User className="w-3.5 h-3.5" />
                       </div>
                       <input
                         type="text"
                         placeholder="First name"
                         autoComplete="off"
-                        className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                        className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                         value={firstName}
                         onChange={(e) => {
                           setFirstName(e.target.value);
@@ -469,23 +447,23 @@ export default function AuthPage() {
                         }}
                       />
                     </div>
-                    {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName}</p>}
+                    {errors.firstName && <p className="text-red-500 text-[10px] mt-0.5">{errors.firstName}</p>}
                   </div>
 
                   {/* Last Name */}
                   <div className="flex-1">
-                    <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                    <label className="block text-[11px] font-medium text-gray-700 mb-1">
                       Last Name
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                         <User className="w-3.5 h-3.5" />
                       </div>
                       <input
                         type="text"
                         placeholder="Last name"
                         autoComplete="off"
-                        className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                        className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                         value={lastName}
                         onChange={(e) => {
                           setLastName(e.target.value);
@@ -493,24 +471,24 @@ export default function AuthPage() {
                         }}
                       />
                     </div>
-                    {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName}</p>}
+                    {errors.lastName && <p className="text-red-500 text-[10px] mt-0.5">{errors.lastName}</p>}
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                  <label className="block text-[11px] font-medium text-gray-700 mb-1">
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                       <Mail className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type="email"
                       placeholder="youremail@gmail.com"
                       autoComplete="off"
-                      className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                      className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                       value={regEmail}
                       onChange={(e) => {
                         setRegEmail(e.target.value);
@@ -518,33 +496,32 @@ export default function AuthPage() {
                       }}
                     />
                   </div>
-                  {errors.regEmail && <p className="text-red-500 text-[10px] mt-1">{errors.regEmail}</p>}
+                  {errors.regEmail && <p className="text-red-500 text-[10px] mt-0.5">{errors.regEmail}</p>}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                  <label className="block text-[11px] font-medium text-gray-700 mb-1">
                     Phone Number
                   </label>
-                  <div className="relative flex">
-                    <div className="bg-white/5 border border-white/10 rounded-l-md border-r-0 py-2 pl-3 pr-2 flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-gray-400" />
-                      {/* Sri Lanka Flag */}
+                  <div className="relative flex shadow-sm rounded-lg">
+                    <div className="bg-gray-50 border border-gray-200 rounded-l-lg border-r-0 py-2 pl-3 pr-2 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[#C9A84C]" />
                       <img 
                         src="https://flagcdn.com/w20/lk.png" 
-                        width="16" 
-                        height="12" 
+                        width="14" 
+                        height="10" 
                         alt="Sri Lanka" 
-                        className="ml-0.5 object-cover rounded-[1px]"
+                        className="object-cover rounded-[2px]"
                       />
-                      <span className="text-white text-[10px] ml-0.5">+94</span>
+                      <span className="text-gray-600 text-[11px] font-medium">+94</span>
                     </div>
                     <input
                       type="tel"
                       title="Please enter a valid Sri Lankan phone number (e.g., 0771234567 or 771234567)."
-                      placeholder="Your mobile number"
+                      placeholder="Mobile number"
                       autoComplete="off"
-                      className="w-full bg-white/5 border border-white/10 rounded-r-md py-2 pl-2 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                      className="w-full bg-white border border-gray-200 rounded-r-lg py-2 pl-2 pr-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs"
                       value={phone}
                       onChange={(e) => {
                         setPhone(e.target.value);
@@ -552,23 +529,23 @@ export default function AuthPage() {
                       }}
                     />
                   </div>
-                  {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
+                  {errors.phone && <p className="text-red-500 text-[10px] mt-0.5">{errors.phone}</p>}
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                  <label className="block text-[11px] font-medium text-gray-700 mb-1">
                     Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                       <Lock className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type={showRegPassword ? "text" : "password"}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                      className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-9 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                       value={regPassword}
                       onChange={(e) => {
                         setRegPassword(e.target.value);
@@ -577,29 +554,29 @@ export default function AuthPage() {
                     />
                     <button 
                       type="button" 
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#C9A84C] transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowRegPassword(!showRegPassword)}
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  {errors.regPassword && <p className="text-red-500 text-[10px] mt-1">{errors.regPassword}</p>}
+                  {errors.regPassword && <p className="text-red-500 text-[10px] mt-0.5">{errors.regPassword}</p>}
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block uppercase tracking-[2px] text-[9px] text-gray-300 mb-1.5 font-bold">
+                  <label className="block text-[11px] font-medium text-gray-700 mb-1">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C9A84C]">
                       <Lock className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
                       autoComplete="new-password"
-                      className="w-full bg-white/5 border border-white/10 rounded-md py-2 pl-9 pr-10 text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] focus:bg-white/10 transition-all text-[11px]"
+                      className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-9 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-all text-xs shadow-sm"
                       value={confirmPassword}
                       onChange={(e) => {
                         setConfirmPassword(e.target.value);
@@ -608,53 +585,53 @@ export default function AuthPage() {
                     />
                     <button 
                       type="button" 
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#C9A84C] transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-1">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5">{errors.confirmPassword}</p>}
                 </div>
 
                 {/* Password strength indicators */}
                 {showPasswordRequirements && !isStrongPassword && (
-                  <div className="pt-1 pb-1">
-                    <p className="text-[9px] text-red-500 mb-1.5 font-bold">Password must contain:</p>
+                  <div className="pt-1 pb-1 bg-red-50 p-3 rounded-lg border border-red-100 mt-2">
+                    <p className="text-xs text-red-600 mb-2 font-bold">Password must contain:</p>
                     <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                      <div className={`flex items-center gap-1 transition-colors ${validations.length ? 'text-[#C9A84C]' : 'text-red-500'}`}>
-                        <CheckCircle2 className="w-2.5 h-2.5" />
-                        <span className="text-[8px] uppercase tracking-wider">At least 8 chars</span>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.length ? 'text-green-600' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="text-[10px] font-medium">At least 8 chars</span>
                       </div>
-                      <div className={`flex items-center gap-1 transition-colors ${validations.uppercase ? 'text-[#C9A84C]' : 'text-red-500'}`}>
-                        <CheckCircle2 className="w-2.5 h-2.5" />
-                        <span className="text-[8px] uppercase tracking-wider">Uppercase letter</span>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.uppercase ? 'text-green-600' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="text-[10px] font-medium">Uppercase letter</span>
                       </div>
-                      <div className={`flex items-center gap-1 transition-colors ${validations.number ? 'text-[#C9A84C]' : 'text-red-500'}`}>
-                        <CheckCircle2 className="w-2.5 h-2.5" />
-                        <span className="text-[8px] uppercase tracking-wider">Number</span>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.number ? 'text-green-600' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="text-[10px] font-medium">Number</span>
                       </div>
-                      <div className={`flex items-center gap-1 transition-colors ${validations.special ? 'text-[#C9A84C]' : 'text-red-500'}`}>
-                        <CheckCircle2 className="w-2.5 h-2.5" />
-                        <span className="text-[8px] uppercase tracking-wider">Special character</span>
+                      <div className={`flex items-center gap-1 transition-colors ${validations.special ? 'text-green-600' : 'text-red-500'}`}>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="text-[10px] font-medium">Special character</span>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Terms */}
-                <div className="flex items-start pt-0.5 mb-2">
-                  <label className="flex items-start gap-2 text-gray-300 text-[9px] cursor-pointer hover:text-white transition-colors">
+                <div className="flex items-start pt-1">
+                  <label className="flex items-start gap-1.5 text-gray-600 text-[11px] cursor-pointer hover:text-gray-900 transition-colors">
                     <div className="relative flex items-center mt-0.5">
-                      <input type="checkbox" className="peer w-2.5 h-2.5 opacity-0 absolute" />
-                      <div className="w-3 h-3 border border-white/30 rounded bg-white/5 peer-checked:bg-[#C9A84C] peer-checked:border-[#C9A84C] flex items-center justify-center transition-all">
-                         <svg className="w-2 h-2 text-[#1A1512] opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                      <input type="checkbox" className="peer w-3.5 h-3.5 opacity-0 absolute" />
+                      <div className="w-3.5 h-3.5 border border-[#C9A84C] rounded bg-transparent peer-checked:bg-[#C9A84C] flex items-center justify-center transition-all">
+                         <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                          </svg>
                       </div>
                     </div>
                     <span className="leading-tight">
-                      I agree to the <Link href="#" className="text-[#C9A84C] hover:underline">Terms & Conditions</Link> and <Link href="#" className="text-[#C9A84C] hover:underline">Privacy Policy</Link>
+                      I agree to the <Link href="#" className="text-[#C9A84C] hover:underline font-medium">Terms</Link> and <Link href="#" className="text-[#C9A84C] hover:underline font-medium">Privacy Policy</Link>
                     </span>
                   </label>
                 </div>
@@ -662,22 +639,22 @@ export default function AuthPage() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#B89238] via-[#D4C9A8] to-[#B89238] text-[#1A1512] py-2.5 rounded-md flex items-center justify-center gap-2 uppercase tracking-[3px] text-[10px] font-bold hover:shadow-[0_0_20px_rgba(201,168,76,0.3)] transition-all duration-300 bg-[length:200%_auto] hover:bg-right"
+                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 shadow-sm border border-[#C9A84C]/20 mt-1"
                 >
                   Create Account <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>
 
-              <div className="relative flex py-4 items-center">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="shrink-0 mx-4 text-gray-500 text-[8px] uppercase tracking-[2px]">Or</span>
-                <div className="flex-grow border-t border-white/10"></div>
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="shrink-0 mx-4 text-gray-400 text-[10px] uppercase">Or</span>
+                <div className="flex-grow border-t border-gray-200"></div>
               </div>
 
               {/* Social Logins */}
-              <div className="flex gap-2 mb-4">
-                <button className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors py-1.5 rounded-md flex items-center justify-center gap-2 text-white text-[9px] font-medium">
-                  <svg viewBox="0 0 24 24" className="w-3 h-3">
+              <div className="flex gap-2 mb-2">
+                <button className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 transition-colors py-2 rounded-lg flex items-center justify-center gap-1.5 text-gray-600 text-xs font-medium shadow-sm">
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -685,21 +662,112 @@ export default function AuthPage() {
                   </svg>
                   Google
                 </button>
-                <button className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors py-1.5 rounded-md flex items-center justify-center gap-2 text-white text-[9px] font-medium">
-                  <svg viewBox="0 0 24 24" className="w-3 h-3" fill="#1877F2">
+                <button className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 transition-colors py-2 rounded-lg flex items-center justify-center gap-1.5 text-gray-600 text-xs font-medium shadow-sm">
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="#1877F2">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                   </svg>
                   Facebook
                 </button>
               </div>
 
-              <div className="text-center text-[12px] text-gray-300">
-                Already have an account? <button type="button" onClick={toggleMode} className="text-[#C9A84C] hover:underline cursor-pointer bg-transparent border-none p-0">Sign in</button>
+              <div className="text-center text-xs text-gray-600 font-medium pb-0.5">
+                Already have an account? <button type="button" onClick={toggleMode} className="text-[#C9A84C] font-semibold hover:underline cursor-pointer bg-transparent border-none p-0">Sign in</button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white/20 backdrop-blur-3xl border border-white/40 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden relative"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowForgotModal(false);
+                  setForgotSuccess(false);
+                  setForgotError("");
+                  setForgotEmail("");
+                }}
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="p-6 md:p-8">
+                <div className="w-12 h-12 rounded-full border border-white/50 bg-white/40 flex items-center justify-center text-white shadow-sm mb-4">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-serif text-white mb-2">Reset Password</h3>
+                
+                {forgotSuccess ? (
+                  <div className="space-y-4">
+                    <p className="text-white/90 text-sm">
+                      A temporary 15-minute password has been sent to your email address. Please use it to log in.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setShowForgotModal(false);
+                        setForgotSuccess(false);
+                      }}
+                      className="w-full bg-[#C9A84C] text-gray-900 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#B89238] transition-colors"
+                    >
+                      Return to Login
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <p className="text-white/90 text-sm">
+                      Enter your email address and we'll send you a temporary password to regain access to your account.
+                    </p>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-white/90 mb-1">Email Address</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/70">
+                          <Mail className="w-3.5 h-3.5" />
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          className="w-full bg-white/10 border border-white/30 rounded-lg py-2 pl-9 pr-3 text-white placeholder-white/50 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all text-xs"
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    {forgotError && <p className="text-red-400 text-xs">{forgotError}</p>}
+
+                    <button
+                      type="submit"
+                      disabled={isForgotLoading || !forgotEmail}
+                      className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isForgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Temporary Password"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
