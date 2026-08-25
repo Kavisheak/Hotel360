@@ -42,7 +42,7 @@ const OverviewMain = () => {
     }
   };
 
-  const greeting = overview?.greeting || `Welcome back, ${profile?.firstName || 'Decorator'}!`;
+  const greeting = overview?.greeting || `Welcome back, ${profile?.shopName || profile?.firstName || 'Decorator'}!`;
   const businessName = overview?.businessName || profile?.shopName || `${profile?.firstName || 'Decorator'}'s Studio`;
 
   const pendingRequestsCount = overview?.pendingRequestsCount ?? 0;

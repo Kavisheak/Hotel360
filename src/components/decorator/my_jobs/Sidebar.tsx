@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, Calendar, FolderHeart, BarChart3, Clock, User, BookOpen,
-  Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen
+  Settings, HelpCircle, LogOut, Menu, X, PanelLeftClose, PanelLeftOpen, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -80,6 +80,7 @@ const Sidebar = () => {
     { icon: <LayoutGrid size={20} />, label: 'OVERVIEW', href: '/decorator/overview' },
     { icon: <BookOpen size={20} />, label: 'BOOKINGS', href: '/decorator/bookings' },
     { icon: <User size={20} />, label: 'MY JOBS', href: '/decorator/my-jobs' },
+    { icon: <DollarSign size={20} />, label: 'PAYOUTS', href: '/decorator/payouts' },
     { icon: <FolderHeart size={20} />, label: 'MY PORTFOLIO', href: '/decorator/portfolio' },
     { icon: <BarChart3 size={20} />, label: 'RATINGS', href: '/decorator/ratings' },
     { icon: <Settings size={20} />, label: 'SETTINGS', href: '/decorator/settings' },
@@ -145,7 +146,7 @@ const Sidebar = () => {
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
         <div
           className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
-          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Lead Decorator` : undefined}
+          title={collapsedState ? `${user?.shopName || (user ? `${user.firstName} ${user.lastName}` : '')} — Lead Decorator` : undefined}
         >
           <img
             src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
@@ -154,7 +155,7 @@ const Sidebar = () => {
           />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "Lead Decorator"}</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? (user.shopName || `${user.firstName} ${user.lastName}`) : "Lead Decorator"}</span>
               <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">LEAD DECORATOR</span>
             </div>
           )}

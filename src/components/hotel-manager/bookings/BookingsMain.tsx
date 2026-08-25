@@ -33,6 +33,7 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
   const [selectedReplacementPackage, setSelectedReplacementPackage] = useState('');
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [refundModalState, setRefundModalState] = useState<{isOpen: boolean, cat: string, amount: number}>({isOpen: false, cat: '', amount: 0});
   
   const fetchBooking = async () => {
     if (!bookingId) {
@@ -103,7 +104,7 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
   const venueAdvance = venueTotal * 0.3;
 
   const vendorCats = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
-  const activeVendors = vendorCats.map(cat => ({ cat, data: booking.vendors?.[cat] })).filter(v => v.data && v.data.vendorId && v.data.vendorId !== "none");
+  const activeVendors = vendorCats.map(cat => ({ cat, data: booking.vendors?.[cat] })).filter(v => v.data && ((v.data.vendorId && v.data.vendorId !== "none") || ["Refund Pending", "Refunded", "Removed"].includes(v.data.status)));
   
   const vendorsTotal = activeVendors.reduce((sum, v) => {
     const isInactive = ["Declined", "Refund Pending", "Refunded", "Removed", "NotRequired"].includes(v.data.status);
@@ -344,15 +345,20 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
     setIsProcessing(false);
   };
 
-  const handleRefund = async (itemType: string) => {
-    if (!confirm('Are you sure you want to process this refund for the customer?')) return;
+  const handleRefund = (itemType: string, amount: number) => {
+    setRefundModalState({ isOpen: true, cat: itemType, amount });
+  };
+
+  const confirmRefund = async () => {
+    const itemType = refundModalState.cat;
     setIsProcessing(true);
     try {
-      const res = await apiFetch(`/api/manager/payments/bookings/${booking._id || booking.id}/items/${itemType}/refund`, {
+      const res = await apiFetch(`/api/payments/bookings/${booking._id || booking.id}/items/${itemType}/refund`, {
         method: "POST"
       });
       if (res.ok) {
         addToast({ message: "Refund processed successfully.", type: "success" });
+        setRefundModalState({ isOpen: false, cat: '', amount: 0 });
         fetchBooking();
       } else {
         alert(res.data?.message || "Failed to process refund.");
@@ -482,7 +488,7 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs">Time</p>
-                    <p className="font-bold text-gray-800 flex items-center gap-1"><Clock size={14} className="text-emerald-600"/> {booking.time || '5:00 PM - 11:00 PM'}</p>
+                    <p className="font-bold text-gray-800 flex items-center gap-1"><Clock size={14} className="text-emerald-600"/> {booking.timeslot || '18:00 - 23:00'}</p>
                   </div>
                   <div className="col-span-2 pt-2 border-t border-emerald-200/50">
                     <span className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Available</span>
@@ -577,8 +583,8 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                       </div>
                       <div className="text-left sm:text-right w-full sm:w-auto shrink-0 flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end gap-2">
                         <div className="flex flex-col items-end">
-                          <p className="text-lg font-bold text-gray-900">LKR {(v.data.cost ?? booking.pricingBreakdown?.[`${v.cat}Cost`] ?? 0).toLocaleString()}</p>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">Advance: <span className="text-[#7C6A2E]">LKR {(v.data.advancePaid ?? getVendorAdvanceInfo(v.cat)).toLocaleString()}</span></p>
+                          <p className="text-lg font-bold text-gray-900">LKR {(v.data.requirements?.historicalCost ?? v.data.cost ?? booking.pricingBreakdown?.[`${v.cat}Cost`] ?? 0).toLocaleString()}</p>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">Advance: <span className="text-[#7C6A2E]">LKR {(v.data.requirements?.historicalAdvance ?? v.data.advancePaid ?? getVendorAdvanceInfo(v.cat)).toLocaleString()}</span></p>
                         </div>
                         {v.data.status === 'Awaiting Hall Confirmation' ? (
                           <span className="flex items-center gap-1.5 text-gray-500 text-[10px] font-bold bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
@@ -598,7 +604,7 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                               <AlertCircle size={10} className="text-amber-500" /> Refund Pending
                             </span>
                             <button
-                              onClick={() => handleRefund(v.cat)}
+                              onClick={() => handleRefund(v.cat, v.data.refundRequestedAmount || v.data.requirements?.historicalAdvance || v.data.advancePaid || getVendorAdvanceInfo(v.cat))}
                               disabled={isProcessing}
                               className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-[10px] py-2 px-3 rounded transition-colors disabled:opacity-50 shadow-sm"
                             >
@@ -1079,6 +1085,54 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
             
             <div className="p-4 bg-gray-50 flex justify-end border-t border-gray-100">
               <button onClick={() => setVendorToManage(null)} disabled={isProcessing} className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-200 rounded transition-colors">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Refund Confirmation Modal */}
+      {refundModalState.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-purple-500" />
+                Confirm Refund
+              </h3>
+              <button 
+                onClick={() => setRefundModalState({ isOpen: false, cat: '', amount: 0 })} 
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-700">
+                Are you sure you want to approve a refund of <strong className="text-gray-900 font-mono text-base">LKR {refundModalState.amount.toLocaleString()}</strong>?
+              </p>
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 flex gap-3 items-start">
+                <AlertCircle className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-purple-800 font-medium">
+                  This action will immediately process the refund to the customer's bank account via the PayHere payment gateway. This cannot be undone.
+                </p>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button 
+                  onClick={() => setRefundModalState({ isOpen: false, cat: '', amount: 0 })}
+                  className="px-4 py-2 border border-gray-200 rounded text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmRefund}
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-purple-600 text-white rounded text-sm font-bold hover:bg-purple-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isProcessing ? "Processing..." : "Confirm Refund"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

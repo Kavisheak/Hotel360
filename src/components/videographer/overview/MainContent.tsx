@@ -21,7 +21,7 @@ export default function MainContent() {
 
   if (!mounted) return null;
 
-  const displayName = user ? `${user.firstName} ${user.lastName}` : 'Videographer';
+  const displayName = user ? (user.shopName || `${user.firstName} ${user.lastName}`) : 'Videographer';
 
   return (
     <main className="flex min-h-[calc(100vh-73px)] flex-col bg-[#FDF9F1]">

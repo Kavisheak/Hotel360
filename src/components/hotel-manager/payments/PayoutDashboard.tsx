@@ -213,6 +213,8 @@ export default function PayoutDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "REFUNDED":
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded text-[10px] font-bold tracking-wider flex items-center gap-1 w-fit"><CheckCircle2 className="w-3 h-3"/> REFUNDED</span>;
       case "PAID":
         return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-[10px] font-bold tracking-wider">PAID</span>;
       case "PAYOUT_ELIGIBLE":

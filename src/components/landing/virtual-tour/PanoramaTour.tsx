@@ -33,58 +33,69 @@ interface Scene {
 // 2 nodes inside the hall as requested
 const scenes: Scene[] = [
   {
-    id: "gate-entrance",
-    name: "Gate Entrance",
-    image: "/tour/gate-entrance.png",
-    thumbnail: "/tour/gate-entrance.png",
-    defaultYaw: 0,
-    hotspots: [
-      { target: "front-entrance", label: "Front Entrance", yaw: 0, pitch: -5 },
-    ],
-  },
-  {
-    id: "front-entrance",
+    id: "room360",
     name: "Front Entrance",
-    image: "/tour/front-entrance.png",
-    thumbnail: "/tour/front-entrance.png",
+    image: "/images/entrance360.webp",
+    thumbnail: "/images/entrance360.webp",
     defaultYaw: 0,
     hotspots: [
-      { target: "gate-entrance", label: "Gate Entrance", yaw: 180, pitch: -5 },
-      { target: "side-walkway", label: "Side Walkway", yaw: 90, pitch: -5 },
+      { target: "hall-interior", label: "Enter Hall Entrance", yaw: -135, pitch: -2 },
     ],
   },
   {
-    id: "side-walkway",
-    name: "Side Walkway",
-    image: "/tour/side-walkway.png",
-    thumbnail: "/tour/side-walkway.png",
+    id: "hall-interior",
+    name: "Hall Interior",
+    image: "/images/entrancedoor.png",
+    thumbnail: "/images/entrancedoor.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "front-entrance", label: "Front Entrance", yaw: -90, pitch: -5 },
-      { target: "hall-center", label: "Enter Hall", yaw: 0, pitch: -10 },
+      { target: "room360", label: "Exit to Entrance", yaw: 180, pitch: -5 },
+      { target: "hall-inner", label: "Enter Main Hall", yaw: 0, pitch: -5 },
     ],
   },
   {
-    id: "hall-center",
-    name: "Hall Center",
-    image: "/tour/hall-center.png",
-    thumbnail: "/tour/hall-center.png",
+    id: "hall-inner",
+    name: "Main Hall",
+    image: "/images/mainhall.png",
+    thumbnail: "/images/mainhall.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "hall-stage", label: "Stage Area", yaw: 0, pitch: -5 },
-      { target: "side-walkway", label: "Exit to Walkway", yaw: 180, pitch: -10 },
+      { target: "hall-interior", label: "Go Back", yaw: 180, pitch: -5 },
+      { target: "small-room", label: "Groom Room", yaw: 45, pitch: -5 },
+      { target: "conference-hall", label: "Enter Conference Hall", yaw: -45, pitch: -5 },
+      { target: "hall-stage", label: "Go to Stage", yaw: 0, pitch: -5 },
+    ],
+  },
+  {
+    id: "small-room",
+    name: "Groom Room",
+    image: "/images/room360.webp",
+    thumbnail: "/images/room360.webp",
+    defaultYaw: 0,
+    hotspots: [
+      { target: "hall-inner", label: "Back to Main Hall", yaw: 180, pitch: -5 },
     ],
   },
   {
     id: "hall-stage",
     name: "Stage Area",
-    image: "/tour/hall-stage.png",
-    thumbnail: "/tour/hall-stage.png",
+    image: "/images/stage.png",
+    thumbnail: "/images/stage.png",
     defaultYaw: 0,
     hotspots: [
-      { target: "hall-center", label: "Hall Center", yaw: 180, pitch: -10 },
+      { target: "hall-inner", label: "Back to Main Hall", yaw: 180, pitch: -5 },
     ],
   },
+  {
+    id: "conference-hall",
+    name: "Conference Hall",
+    image: "/images/conference.png",
+    thumbnail: "/images/conference.png",
+    defaultYaw: 0,
+    hotspots: [
+      { target: "hall-inner", label: "Back to Main Hall", yaw: 180, pitch: -5 },
+    ],
+  }
 ];
 
 // ─── 3D Sphere Environment ──────────────────────────────────────────────
@@ -300,7 +311,7 @@ function CameraController({ zoom, autoRotate, compassAngleCallback }: { zoom: nu
 export default function PanoramaTour() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [currentSceneId, setCurrentSceneId] = useState("gate-entrance");
+  const [currentSceneId, setCurrentSceneId] = useState("room360");
   const [nextSceneId, setNextSceneId] = useState<string | null>(null);
   const [transitionOpacity, setTransitionOpacity] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);

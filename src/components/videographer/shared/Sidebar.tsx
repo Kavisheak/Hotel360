@@ -105,7 +105,7 @@ const Sidebar = () => {
           {!collapsedState ? (
             <div>
               <h1 className="text-3xl font-serif italic text-[#7C6A2E] font-semibold tracking-wide leading-tight">
-                {user ? `${user.firstName} ${user.lastName}` : "Videographer"}
+                {user ? (user.shopName || `${user.firstName} ${user.lastName}`) : "Videographer"}
               </h1>
               <p className="text-xs font-semibold tracking-[0.2em] text-[#A6955C] mt-1">VIDEOGRAPHER PORTAL</p>
             </div>
@@ -152,7 +152,7 @@ const Sidebar = () => {
       <div className="border-t border-[#E0D8C3] pt-6 space-y-4">
         <div
           className={`flex items-center ${collapsedState ? 'justify-center px-0' : 'space-x-3 px-2'} py-1`}
-          title={collapsedState ? `${user?.firstName} ${user?.lastName} — Lead Videographer` : undefined}
+          title={collapsedState ? `${user?.shopName || (user ? `${user.firstName} ${user.lastName}` : '')} — Lead Videographer` : undefined}
         >
           <img
             src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100"}
@@ -161,7 +161,7 @@ const Sidebar = () => {
           />
           {!collapsedState && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? `${user.firstName} ${user.lastName}` : "A. Malik"}</span>
+              <span className="text-xs font-bold text-gray-800 tracking-wide truncate">{user ? (user.shopName || `${user.firstName} ${user.lastName}`) : "Lead Videographer"}</span>
               <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">LEAD VIDEOGRAPHER</span>
             </div>
           )}

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle2, XCircle, RefreshCw, Briefcase, Lock, Info } from 'lucide-react';
 import { decoratorAPI } from '@/lib/api';
 import JobCard from './JobCard';
-import JobDetailModal from './JobDetailModal';
 import CalendarView from '../schedule/CalendarView';
 import BlockDateModal from '../schedule/BlockDateModal';
 
@@ -14,7 +13,7 @@ const MyJobsMain: React.FC = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>({ page: 1, pages: 1, total: 0 });
   const [isJobsLoading, setIsJobsLoading] = useState(true);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
 
   // Schedule State
   const now = new Date();
@@ -39,6 +38,7 @@ const MyJobsMain: React.FC = () => {
       if (res.ok && res.data?.data) {
         setJobs(res.data.data);
         if (res.data.pagination) setPagination(res.data.pagination);
+        setExpandedJobId(null);
       } else {
         setJobs([]);
       }
@@ -254,13 +254,18 @@ const MyJobsMain: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1">
-                  {jobs.map((job) => (
-                    <JobCard
-                      key={job._id}
-                      job={job}
-                      onOpenDetails={(id) => setSelectedJobId(id)}
-                    />
-                  ))}
+                  {jobs.map((job) => {
+                    if (expandedJobId && expandedJobId !== job._id) return null;
+                    return (
+                      <JobCard
+                        key={job._id}
+                        job={job}
+                        onRefresh={() => fetchJobs(pagination.page)}
+                        isExpanded={expandedJobId === job._id}
+                        onToggleExpand={() => setExpandedJobId(expandedJobId === job._id ? null : job._id)}
+                      />
+                    );
+                  })}
                 </div>
 
                 {/* Pagination controls */}
@@ -301,14 +306,6 @@ const MyJobsMain: React.FC = () => {
         onBlockSubmit={handleBlockSubmit}
       />
 
-      {/* Detail Modal */}
-      {selectedJobId && (
-        <JobDetailModal
-          jobId={selectedJobId}
-          onClose={() => setSelectedJobId(null)}
-          onRefresh={() => fetchJobs(pagination.page)}
-        />
-      )}
     </div>
   );
 };

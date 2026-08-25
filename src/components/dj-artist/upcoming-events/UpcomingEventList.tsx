@@ -5,7 +5,7 @@ import { djAPI } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { getClientFullName } from "@/lib/vendorUtils";
 import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
-import DjJobDetailModal from '../my_jobs/DjJobDetailModal';
+import Link from 'next/link';
 
 const UpcomingEventList = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -15,7 +15,6 @@ const UpcomingEventList = () => {
   const [declineEventId, setDeclineEventId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState("");
   const [acceptEvent, setAcceptEvent] = useState<any | null>(null);
-  const [detailEventId, setDetailEventId] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     try {
@@ -142,12 +141,12 @@ const UpcomingEventList = () => {
                     {clientName} — {event.eventType}
                   </p>
                   {status !== "Pending" && (
-                    <button
-                      onClick={() => setDetailEventId(event._id)}
+                    <Link
+                      href={`/dj-artist/events-bookings/${event._id}`}
                       className="text-[10px] font-bold tracking-widest text-gray-400 hover:text-[#7C6A2E] uppercase"
                     >
                       Details
-                    </button>
+                    </Link>
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -242,13 +241,6 @@ const UpcomingEventList = () => {
         />
       )}
 
-      {detailEventId && (
-        <DjJobDetailModal
-          jobId={detailEventId}
-          onClose={() => setDetailEventId(null)}
-          onRefresh={fetchEvents}
-        />
-      )}
     </article>
   );
 };

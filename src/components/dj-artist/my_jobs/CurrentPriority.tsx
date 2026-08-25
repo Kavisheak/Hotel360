@@ -5,7 +5,7 @@ import { MapPin, Users, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { djAPI } from '@/lib/api';
 import { getClientDisplayName, getPackageName, VENUE_NAME } from '@/lib/vendorUtils';
-import DjJobDetailModal from './DjJobDetailModal';
+import DeclineRequestModal from '@/components/vendor/bookings/DeclineRequestModal';
 
 interface CurrentPriorityProps {
   booking: any;
@@ -22,13 +22,17 @@ const CurrentPriority = ({ booking, onRefresh }: CurrentPriorityProps) => {
   const isPending = status === 'Pending';
 
   const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [modalStatus, setModalStatus] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChange = (newStatus: string) => {
-    setModalStatus(newStatus);
-    setShowModal(true);
+    if (newStatus === 'Declined') {
+      setShowDeclineModal(true);
+    } else {
+      setModalStatus(newStatus);
+      setShowModal(true);
+    }
   };
 
   const confirmStatusChange = async () => {
@@ -40,6 +44,23 @@ const CurrentPriority = ({ booking, onRefresh }: CurrentPriorityProps) => {
         onRefresh?.();
       } else {
         alert(res.data?.message || 'Failed to update status');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const confirmDecline = async (reason: string) => {
+    try {
+      setIsUpdating(true);
+      const res = await djAPI.updateBookingStatus(booking._id, 'Declined', { declineReason: reason });
+      if (res.ok) {
+        setShowDeclineModal(false);
+        onRefresh?.();
+      } else {
+        alert(res.data?.message || 'Failed to decline request');
       }
     } catch (e) {
       console.error(e);
@@ -109,13 +130,13 @@ const CurrentPriority = ({ booking, onRefresh }: CurrentPriorityProps) => {
                 <div className="bg-[#7C6A2E] h-1" style={{ width: `${progress}%` }} />
               </div>
             </div>
-            <button
-              onClick={() => setShowDetailModal(true)}
+            <Link
+              href={`/dj-artist/events-bookings/${booking._id}`}
               className="flex items-center space-x-2 text-[10px] font-bold tracking-widest text-[#7C6A2E] uppercase hover:text-[#5E4F20] transition-colors"
             >
               <span>View Details</span>
               <ArrowRight size={14} />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -145,13 +166,15 @@ const CurrentPriority = ({ booking, onRefresh }: CurrentPriorityProps) => {
         </div>
       )}
 
-      {showDetailModal && (
-        <DjJobDetailModal 
-          jobId={booking._id}
-          onClose={() => setShowDetailModal(false)}
-          onRefresh={onRefresh}
+      {showDeclineModal && (
+        <DeclineRequestModal
+          isOpen={true}
+          onClose={() => setShowDeclineModal(false)}
+          onSubmit={confirmDecline}
+          isSubmitting={isUpdating}
         />
       )}
+
     </div>
   );
 };
