@@ -6,7 +6,7 @@ import { Loader2, Camera, Video, CheckCircle2, Star } from "lucide-react";
 
 export default function StatCards() {
   const [stats, setStats] = useState({
-    totalEvents: 0,
+    pending: 0,
     upcoming: 0,
     completed: 0,
     avgRating: 0 
@@ -21,13 +21,13 @@ export default function StatCards() {
           videographerAPI.getRatings()
         ]);
 
-        let total = 0;
+        let pending = 0;
         let upcoming = 0;
         let completed = 0;
         
         if (bookingsRes.ok && bookingsRes.data?.data) {
           const d = bookingsRes.data.data;
-          total = d.totalBookings ?? 0;
+          pending = d.pendingCount ?? 0;
           upcoming = d.upcomingCount ?? 0;
           completed = d.completedCount ?? 0;
         }
@@ -37,7 +37,7 @@ export default function StatCards() {
           avgRating = ratingsRes.data.data.stats.averageRating || 0;
         }
 
-        setStats({ totalEvents: total, upcoming, completed, avgRating });
+        setStats({ pending, upcoming, completed, avgRating });
       } catch (error) {
         console.error("Error fetching stats:", error);
       } finally {
@@ -49,7 +49,7 @@ export default function StatCards() {
   }, []);
 
   const cards = [
-    { title: "TOTAL EVENTS COVERED", value: stats.totalEvents.toString(), sub: "All time bookings", icon: <Camera size={22} className="text-[#B08D2C]" /> },
+    { title: "PENDING REQUESTS", value: stats.pending.toString(), sub: "Awaiting your response", icon: <Camera size={22} className="text-[#B08D2C]" /> },
     { title: "UPCOMING SHOOTS", value: stats.upcoming.toString(), sub: "Pending or Accepted", icon: <Video size={22} className="text-[#B08D2C]" /> },
     { title: "COMPLETED PROJECTS", value: stats.completed.toString(), sub: "Successfully delivered", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
     { title: "AVERAGE RATING", value: stats.avgRating > 0 ? stats.avgRating.toString() : "N/A", sub: stats.avgRating > 0 ? "★★★★★" : "No ratings yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
