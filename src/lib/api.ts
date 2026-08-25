@@ -1,6 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== "undefined" 
-    ? `${window.location.protocol}//${window.location.hostname}:5000` 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
     : "http://localhost:5000");
 
 interface ApiOptions extends RequestInit {
@@ -266,7 +266,7 @@ export const decoratorAPI = {
   getJobById: (id: string) => apiFetch(`/api/decorator/jobs/${id}`),
   confirmReceipt: (id: string) => apiFetch(`/api/vendor/bookings/${id}/confirm-receipt`, { method: "POST" }),
   markJobComplete: (id: string) => apiFetch(`/api/decorator/jobs/${id}/mark-complete`, { method: "POST" }),
-  getPendingRequests: () => apiFetch("/api/decorator/bookings/pending"),
+  getPendingRequests: (status?: string) => apiFetch(`/api/decorator/bookings/pending${status ? `?status=${status}` : ''}`),
   acceptRequest: (id: string, advanceAmount?: number, advanceDeadline?: string) => apiFetch(`/api/decorator/bookings/${id}/accept`, { method: "POST", body: JSON.stringify({ advanceRequestedAmount: advanceAmount, advanceDeadline }) }),
   declineRequest: (id: string, reason: string) =>
     apiFetch(`/api/decorator/bookings/${id}/decline`, { method: "POST", body: JSON.stringify({ reason }) }),
@@ -308,7 +308,7 @@ export const djAPI = {
     apiFetch(`/api/dj-artist/portfolio/albums${status && status !== "All" ? `?status=${status}` : ""}`),
   createAlbum: (body: { title: string; linkedBookingId?: string }) =>
     apiFetch("/api/dj-artist/portfolio/albums", { method: "POST", body: JSON.stringify(body) }),
-  createGalleryItem: (formData: FormData) => 
+  createGalleryItem: (formData: FormData) =>
     apiFetch("/api/dj-artist/gallery", { method: "POST", body: formData }),
   uploadAlbumMedia: (id: string, body: any) =>
     apiFetch(`/api/dj-artist/portfolio/albums/${id}/media`, {
@@ -401,7 +401,7 @@ export const videographerAPI = {
   deletePortfolioItem: (id: string) => apiFetch(`/api/videographer/portfolio/${id}`, { method: "DELETE" }),
   getRatings: () => apiFetch("/api/videographer/ratings"),
   updateProfile: (body: any) => apiFetch("/api/videographer/profile", { method: "PUT", body: JSON.stringify(body) }),
-  
+
   // Package Management
   getPackages: () => apiFetch("/api/videographer/packages"),
   createPackage: (body: any) =>
@@ -523,13 +523,13 @@ export const customerBookingAPI = {
     }),
   applyCreditToBalance: (bookingId: string, creditId: string) =>
     apiFetch(`/api/customer/bookings/${bookingId}/credits/${creditId}/apply-to-balance`, { method: "POST" }),
-  getVendorAdvances: (bookingId: string) => 
+  getVendorAdvances: (bookingId: string) =>
     apiFetch(`/api/customer/bookings/${bookingId}/vendor-advances`),
-  payVendorAdvance: (bookingId: string, advanceId: string) => 
+  payVendorAdvance: (bookingId: string, advanceId: string) =>
     apiFetch(`/api/customer/bookings/${bookingId}/vendor-advances/${advanceId}/payhere-hash`, { method: "POST" }),
-  clearBookingHistory: () => 
+  clearBookingHistory: () =>
     apiFetch("/api/customer/bookings/history/clear", { method: "DELETE" }),
-  deleteBookingHistory: (id: string) => 
+  deleteBookingHistory: (id: string) =>
     apiFetch(`/api/customer/bookings/${id}/history`, { method: "DELETE" }),
 };
 

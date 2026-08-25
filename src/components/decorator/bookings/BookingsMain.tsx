@@ -9,22 +9,23 @@ import Footer from '../my_jobs/Footer';
 const BookingsMain: React.FC = () => {
   const [requests, setRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState("Pending");
 
   useEffect(() => {
-    fetchPendingRequests();
-  }, []);
+    fetchRequests();
+  }, [activeFilter]);
 
-  const fetchPendingRequests = async () => {
+  const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const res = await decoratorAPI.getPendingRequests();
+      const res = await decoratorAPI.getPendingRequests(activeFilter);
       if (res.ok && res.data?.data) {
         setRequests(res.data.data);
       } else {
         setRequests([]);
       }
     } catch (e) {
-      console.error("Failed to fetch pending requests:", e);
+      console.error("Failed to fetch requests:", e);
       setRequests([]);
     } finally {
       setIsLoading(false);
@@ -32,14 +33,12 @@ const BookingsMain: React.FC = () => {
   };
 
   const handleAcceptRequest = async (id: string, advanceAmount?: number, advanceDeadline?: string) => {
-    // Optimistic UI update: remove item from pending queue immediately
     const prevRequests = [...requests];
     setRequests((prev) => prev.filter((r) => r._id !== id));
 
     try {
       const res = await decoratorAPI.acceptRequest(id, advanceAmount, advanceDeadline);
       if (!res.ok) {
-        // Rollback optimistic update on error (including 409 conflict)
         setRequests(prevRequests);
       }
       return { ok: res.ok, status: res.status, data: res.data };
@@ -74,27 +73,44 @@ const BookingsMain: React.FC = () => {
           <div>
             <span className="text-xs font-serif italic text-[#A6955C]">Decorator Response Center</span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-900 font-bold tracking-tight leading-none mt-1">
-              Pending Booking Queue
+              Booking Requests
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed mt-2 max-w-2xl">
-              New event decoration requests assigned to your studio. Review customer requirements and accept or decline before the 24-hour response window expires.
+              Manage your event decoration requests. Review pending customer requirements or check your historically accepted and declined assignments.
             </p>
           </div>
 
           <button
-            onClick={fetchPendingRequests}
+            onClick={fetchRequests}
             disabled={isLoading}
             className="self-start md:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 border border-[#E0D8C3] bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 rounded transition-colors shadow-xs"
           >
             <RefreshCw size={14} className={isLoading ? "animate-spin text-[#7C6A2E]" : "text-gray-400"} />
-            Refresh Queue
+            Refresh
           </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex space-x-2 border-b border-[#E0D8C3] mb-6">
+          {["Pending", "Accepted", "Declined"].map((status) => (
+            <button
+              key={status}
+              onClick={() => setActiveFilter(status)}
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${
+                activeFilter === status
+                  ? "border-[#7C6A2E] text-[#7C6A2E]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              {status === "Accepted" ? "Confirmed" : status === "Declined" ? "Rejected" : status}
+            </button>
+          ))}
         </div>
 
         {/* Requests List */}
         {isLoading ? (
           <div className="py-16 text-center text-sm font-serif italic text-gray-400 bg-white border border-[#E0D8C3] rounded-lg">
-            Checking pending requests...
+            Loading {activeFilter.toLowerCase()} requests...
           </div>
         ) : requests.length === 0 ? (
           /* Empty state */
@@ -103,10 +119,12 @@ const BookingsMain: React.FC = () => {
               <CheckCircle2 size={32} />
             </div>
             <h3 className="text-xl font-serif font-bold text-gray-800 mb-1">
-              No Pending Requests Right Now
+              No {activeFilter === "Accepted" ? "Confirmed" : activeFilter === "Declined" ? "Rejected" : "Pending"} Requests
             </h3>
             <p className="text-xs text-gray-500 max-w-md leading-relaxed">
-              Your response queue is all clear! New booking requests from customers will appear here with a 24-hour countdown timer.
+              {activeFilter === "Pending" && "Your response queue is all clear! New booking requests from customers will appear here."}
+              {activeFilter === "Accepted" && "You haven't accepted any booking requests yet."}
+              {activeFilter === "Declined" && "You haven't declined any booking requests."}
             </p>
           </div>
         ) : (
