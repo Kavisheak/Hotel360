@@ -68,20 +68,13 @@ const Metrics = () => {
       value: isClient && !loading ? formatCurrency(metricsData.totalMonthlyIncome) : '...',
       subText: 'Hall & vendor payments received this month',
       badgeColor: 'bg-amber-50 text-amber-700'
-    },
-    {
-      icon: <Star size={22} className="text-purple-600" />,
-      label: 'Average Rating',
-      value: isClient && !loading ? `${metricsData.averageRating} / 5` : '...',
-      subText: 'Overall platform rating',
-      badgeColor: 'bg-purple-50 text-purple-700'
-    },
+    }
   ];
 
   return (
     <div className="space-y-6 mb-8">
       {/* Operational KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
         {metrics.map((m) => (
           <div
             key={m.label}
