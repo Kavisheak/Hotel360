@@ -51,7 +51,7 @@ const PortfolioCard = ({ portfolio, router }: any) => {
   return (
     <div 
       className="relative group overflow-hidden cursor-pointer rounded-sm shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gray-100 dark:bg-gray-800 break-inside-avoid"
-      onClick={() => router.push(`/customer/vendorProfile/${vendorId}`)}
+      onClick={() => router.push(`/vendorProfile/${vendorId}`)}
     >
       {/* Carousel Container */}
       <div className="relative w-full h-[400px] overflow-hidden rounded-sm bg-black">
@@ -145,7 +145,7 @@ const PortfolioCard = ({ portfolio, router }: any) => {
           <button 
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/customer/vendorProfile/${vendorId}`);
+              router.push(`/vendorProfile/${vendorId}`);
             }}
             className="px-4 py-2 border border-white text-white hover:bg-white hover:text-black text-[10px] uppercase font-bold tracking-widest rounded-sm transition-colors shadow-sm"
           >

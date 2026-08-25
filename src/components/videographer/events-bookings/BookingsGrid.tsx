@@ -15,6 +15,7 @@ import {
 } from "@/lib/vendorUtils";
 import AdvanceRequestModal from '@/components/vendor/bookings/AdvanceRequestModal';
 import DeclineRequestModal from '@/components/vendor/bookings/DeclineRequestModal';
+import PendingBookingDetailsModal from './PendingBookingDetailsModal';
 
 const BookingsGrid = () => {
   const router = useRouter();
@@ -26,6 +27,7 @@ const BookingsGrid = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [acceptEvent, setAcceptEvent] = useState<any | null>(null);
   const [declineEvent, setDeclineEvent] = useState<any | null>(null);
+  const [pendingDetailsEvent, setPendingDetailsEvent] = useState<any | null>(null);
 
   const [hiddenBookings, setHiddenBookings] = useState<string[]>([]);
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
@@ -204,20 +206,28 @@ const BookingsGrid = () => {
                     <p className="text-xs font-serif italic text-gray-500 border-l-2 border-[#E0D8C3] pl-3 mb-4">{getPackageName(booking, "videographer")}</p>
                   </div>
                   {status === "Pending" ? (
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-1.5 w-full">
+                        <button
+                          onClick={() => setDeclineEvent(booking)}
+                          disabled={updatingId === booking._id}
+                          className="flex-1 px-2 py-1.5 border border-red-300 text-red-500 hover:bg-red-50 text-[9px] font-bold tracking-widest uppercase disabled:opacity-50 text-center"
+                        >
+                          Decline
+                        </button>
+                        <button
+                          onClick={() => setAcceptEvent(booking)}
+                          disabled={updatingId === booking._id}
+                          className="flex-1 px-2 py-1.5 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[9px] font-bold tracking-widest uppercase disabled:opacity-50 text-center"
+                        >
+                          Accept
+                        </button>
+                      </div>
                       <button
-                        onClick={() => setAcceptEvent(booking)}
-                        disabled={updatingId === booking._id}
-                        className="px-3 py-1 bg-[#7C6A2E] hover:bg-[#685724] text-white text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
+                        onClick={() => setPendingDetailsEvent(booking)}
+                        className="w-full border border-[#B08D2C] hover:bg-[#FDF9F1] text-[#7C6A2E] py-1.5 text-xs font-bold tracking-widest uppercase transition-colors"
                       >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => setDeclineEvent(booking)}
-                        disabled={updatingId === booking._id}
-                        className="px-3 py-1 border border-red-300 text-red-500 hover:bg-red-50 text-[9px] font-bold tracking-widest uppercase disabled:opacity-50"
-                      >
-                        Decline
+                        VIEW DETAILS
                       </button>
                     </div>
                   ) : (
@@ -251,6 +261,22 @@ const BookingsGrid = () => {
           onClose={() => setDeclineEvent(null)}
           onSubmit={(reason) => handleStatusUpdate(declineEvent._id, "Declined", reason)}
           isSubmitting={updatingId === declineEvent._id}
+        />
+      )}
+
+      {pendingDetailsEvent && (
+        <PendingBookingDetailsModal
+          isOpen={!!pendingDetailsEvent}
+          booking={pendingDetailsEvent}
+          onClose={() => setPendingDetailsEvent(null)}
+          onAccept={(booking) => {
+            setPendingDetailsEvent(null);
+            setAcceptEvent(booking);
+          }}
+          onDecline={(booking) => {
+            setPendingDetailsEvent(null);
+            setDeclineEvent(booking);
+          }}
         />
       )}
 

@@ -78,7 +78,7 @@ const FacilitiesSection = () => {
             </h2>
           </div>
           <button 
-            onClick={() => router.push('/customer/packages')}
+            onClick={() => router.push('/packages')}
             className="w-fit mx-auto md:mx-0 bg-transparent border border-[#CDA566] text-[#7D7D7D] px-8 py-3.5 rounded-md flex items-center justify-center gap-2 text-[12px] tracking-wider font-bold hover:bg-[#FAF8F5] transition-all whitespace-nowrap"
           >
             VIEW ALL FACILITIES
@@ -123,7 +123,7 @@ const FacilitiesSection = () => {
                   </div>
 
                   <button 
-                    onClick={() => router.push('/customer/packages')}
+                    onClick={() => router.push('/packages')}
                     className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-[#2B4A3F] group-hover:text-[#CDA566] transition-colors"
                   >
                     View Details

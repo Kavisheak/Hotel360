@@ -98,7 +98,7 @@ export default function BookingCreditsList() {
               {credit.status === "Active" && (
                 <div className="flex items-center gap-2 pt-2 border-t border-amber-100/50 dark:border-amber-900/20">
                   <Link
-                    href="/customer/vendors"
+                    href="/vendors"
                     className="flex-1 text-center py-2 bg-[#C9A84C] text-[#2C1E14] font-bold text-[9px] uppercase tracking-widest rounded hover:bg-[#B58B5C] transition-colors"
                   >
                     Swap Partner

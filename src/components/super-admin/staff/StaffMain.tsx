@@ -90,6 +90,38 @@ const StaffMain = () => {
     }
   };
 
+  const handleExportRecords = () => {
+    if (staffData.length === 0) return;
+
+    const headers = ["Name", "Email", "Role", "Status", "Rating", "Reviews", "Completed Events", "Assigned This Week", "Availability"];
+    
+    const csvContent = [
+      headers.join(","),
+      ...staffData.map(s => 
+        [
+          `"${s.name}"`, 
+          `"${s.email}"`, 
+          `"${s.roleBadge}"`, 
+          `"${s.status}"`, 
+          s.rating, 
+          s.reviews, 
+          s.completedEvents, 
+          s.assignedThisWeek, 
+          `"${s.availability}"`
+        ].join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `staff_records_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
       <Header />
@@ -98,6 +130,7 @@ const StaffMain = () => {
         <StaffHeader
           onOpenChangeManager={() => setIsManagerModalOpen(true)}
           onOpenRegisterStaff={() => setIsRegisterModalOpen(true)}
+          onExport={handleExportRecords}
         />
 
         <StaffFilters

@@ -43,14 +43,14 @@ function VendorProfileInner() {
             await useVendorStore.getState().fetchVendors();
             const localVendor = useVendorStore.getState().vendors.find(v => v.id === id);
             if (localVendor) setVendor(localVendor);
-            else router.push("/customer/vendors");
+            else router.push("/vendors");
           }
         } catch (error) {
           // Fallback to checking local mock vendors if API fails
           await useVendorStore.getState().fetchVendors();
           const localVendor = useVendorStore.getState().vendors.find(v => v.id === id);
           if (localVendor) setVendor(localVendor);
-          else router.push("/customer/vendors");
+          else router.push("/vendors");
         } finally {
           setIsLoading(false);
         }

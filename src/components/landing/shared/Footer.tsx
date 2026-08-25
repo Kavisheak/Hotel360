@@ -69,9 +69,9 @@ const FooterSection = () => {
  Explore
  </p>
  <ul className="flex flex-col gap-3 text-gray-600 dark:text-gray-400 text-sm">
- <li><Link href="/customer/packages" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Packages</Link></li>
- <li><Link href="/customer/vendors" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Vendors</Link></li>
- <li><Link href="/customer/virtual-tour" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Virtual Tour</Link></li>
+ <li><Link href="/packages" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Packages</Link></li>
+ <li><Link href="/vendors" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Vendors</Link></li>
+ <li><Link href="/virtual-tour" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Virtual Tour</Link></li>
  <li><Link href="/customer/book" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Reserve a Date</Link></li>
  <li><Link href="/customer/myaccount" className="hover:text-[#D4AF37] :text-[#C9A84C] transition-colors duration-200">Client Portal</Link></li>
  </ul>
