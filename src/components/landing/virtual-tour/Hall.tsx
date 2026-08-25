@@ -50,6 +50,22 @@ export const Hall = () => {
         <meshStandardMaterial color="#f5f2e8" />
       </Box>
 
+      {/* Main Door Opposite Stage */}
+      <group position={[0, 0, 19.4]}>
+        {/* Door Frame */}
+        <Box args={[5.6, 6.4, 0.1]} position={[0, 3.2, 0.1]}>
+          <meshStandardMaterial color="#3a2517" roughness={0.9} />
+        </Box>
+        {/* Left Door */}
+        <Box args={[2.6, 6, 0.2]} position={[-1.35, 3, 0]}>
+          <meshStandardMaterial color="#5c3f2d" roughness={0.8} />
+        </Box>
+        {/* Right Door */}
+        <Box args={[2.6, 6, 0.2]} position={[1.35, 3, 0]}>
+          <meshStandardMaterial color="#5c3f2d" roughness={0.8} />
+        </Box>
+      </group>
+
       {/* Doors and Curtains on BOTH Sides */}
       {[-9.4, 9.4].map((sideX, sideIdx) => (
         <group key={`side-${sideIdx}`}>

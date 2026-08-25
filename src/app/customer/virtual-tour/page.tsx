@@ -18,7 +18,7 @@ export default function VirtualTourPage() {
   useEffect(() => {
     if (eventType === "Wedding") setArrangementStyle("Banquet");
     else if (eventType === "Meeting") setArrangementStyle("Theater");
-    else if (eventType === "Birthday Party") setArrangementStyle("Banquet");
+    else if (eventType === "Seminar") setArrangementStyle("Classroom");
   }, [eventType, setArrangementStyle]);
 
   return (
@@ -87,7 +87,7 @@ export default function VirtualTourPage() {
                   >
                     <option value="Wedding">Wedding</option>
                     <option value="Meeting">Meeting / Conference</option>
-                    <option value="Birthday Party">Birthday Party</option>
+                    <option value="Seminar">Seminar</option>
                   </select>
                 </div>
 
@@ -116,7 +116,9 @@ export default function VirtualTourPage() {
                 <div className="text-xs text-gray-600 dark:text-gray-300 bg-[#F0E6D0]/50 dark:bg-[#1A1A1A]/50 p-4 rounded-sm border border-[#D4C9A8] dark:border-[#C9A84C]/30">
                   <p className="font-bold uppercase tracking-wider text-[10px] text-[#A67C52] mb-1">Arrangement Style:</p>
                   <p className="leading-relaxed font-light">
-                    {eventType === "Meeting" ? "Theater seating with stage" : "Banquet style with round tables (8 guests/table)"}
+                    {eventType === "Meeting" ? "Theater seating with stage" : 
+                     eventType === "Seminar" ? "Classroom setup with study tables" : 
+                     "Banquet style with round tables (8 guests/table)"}
                   </p>
                 </div>
               </div>

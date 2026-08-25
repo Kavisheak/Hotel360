@@ -18,20 +18,32 @@ const HALL_MAX_Z = 17;
  */
 export function generateTheaterLayout(guestCount: number, spacing: number): Position[] {
   const positions: Position[] = [];
-  const chairsPerRow = Math.floor((HALL_MAX_X - HALL_MIN_X) / (0.7 * spacing));
+  const chairsPerSide = 10;
+  const chairsPerRow = chairsPerSide * 2;
   const rows = Math.ceil(guestCount / chairsPerRow);
   let id = 0;
 
+  const chairSpacing = 0.65 * spacing;
+  const centerGap = 3.0 * spacing;
+
   for (let row = 0; row < rows; row++) {
     const chairsInThisRow = Math.min(chairsPerRow, guestCount - id);
-    const rowWidth = chairsInThisRow * 0.7 * spacing;
-    const startX = -rowWidth / 2 + 0.35 * spacing;
-    const z = HALL_MIN_Z + 2 + row * (1.0 * spacing);
+    const z = HALL_MIN_Z + 2 + row * (1.2 * spacing);
 
     if (z > HALL_MAX_Z) break;
 
     for (let col = 0; col < chairsInThisRow; col++) {
-      const x = startX + col * 0.7 * spacing;
+      let x = 0;
+      if (col < chairsPerSide) {
+        // Left side
+        const leftStartX = -(centerGap / 2) - (chairsPerSide * chairSpacing) + (chairSpacing / 2);
+        x = leftStartX + col * chairSpacing;
+      } else {
+        // Right side
+        const rightStartX = (centerGap / 2) + (chairSpacing / 2);
+        x = rightStartX + (col - chairsPerSide) * chairSpacing;
+      }
+
       if (x < HALL_MIN_X || x > HALL_MAX_X) continue;
       positions.push({
         id: `chair-${id++}`,
@@ -52,47 +64,54 @@ export function generateTheaterLayout(guestCount: number, spacing: number): Posi
  */
 export function generateClassroomLayout(guestCount: number, spacing: number): Position[] {
   const positions: Position[] = [];
-  const tablesPerRow = Math.floor((HALL_MAX_X - HALL_MIN_X) / (2.0 * spacing));
-  const chairsPerTable = 2;
-  const rowCapacity = tablesPerRow * chairsPerTable;
-  const totalRows = Math.ceil(guestCount / rowCapacity);
-  let chairId = 0;
+  const chairsPerSide = 5;
+  const chairsPerRow = chairsPerSide * 2;
+  const rows = Math.ceil(guestCount / chairsPerRow);
+  let id = 0;
   let tableId = 0;
 
-  for (let row = 0; row < totalRows; row++) {
-    const z = HALL_MIN_Z + 2 + row * (2.2 * spacing);
+  const chairSpacing = 1.2 * spacing; // Wide enough for individual study tables
+  const centerGap = 3.0 * spacing; 
+
+  for (let row = 0; row < rows; row++) {
+    const chairsInThisRow = Math.min(chairsPerRow, guestCount - id);
+    const z = HALL_MIN_Z + 2 + row * (2.2 * spacing); // Extra Z spacing for table + chair
+
     if (z > HALL_MAX_Z) break;
 
-    const tablesInRow = Math.min(tablesPerRow, Math.ceil((guestCount - chairId) / chairsPerTable));
-    const rowWidth = tablesInRow * 2.0 * spacing;
-    const startX = -rowWidth / 2 + 1.0 * spacing;
+    for (let col = 0; col < chairsInThisRow; col++) {
+      let x = 0;
+      if (col < chairsPerSide) {
+        // Left side
+        const leftStartX = -(centerGap / 2) - (chairsPerSide * chairSpacing) + (chairSpacing / 2);
+        x = leftStartX + col * chairSpacing;
+      } else {
+        // Right side
+        const rightStartX = (centerGap / 2) + (chairSpacing / 2);
+        x = rightStartX + (col - chairsPerSide) * chairSpacing;
+      }
 
-    for (let t = 0; t < tablesInRow; t++) {
-      const tx = startX + t * 2.0 * spacing;
-      if (tx - 0.75 < HALL_MIN_X || tx + 0.75 > HALL_MAX_X) continue;
-
+      if (x < HALL_MIN_X || x > HALL_MAX_X) continue;
+      
+      // Table in front of chair
       positions.push({
         id: `table-${tableId++}`,
-        x: tx,
+        x,
         y: 0,
         z,
         rotation: 0,
         type: 'table',
       });
-
-      // Two chairs behind each table
-      for (let c = 0; c < chairsPerTable; c++) {
-        if (chairId >= guestCount) break;
-        const cx = tx + (c === 0 ? -0.35 : 0.35) * spacing;
-        positions.push({
-          id: `chair-${chairId++}`,
-          x: cx,
-          y: 0,
-          z: z + 0.7 * spacing,
-          rotation: Math.PI,
-          type: 'chair',
-        });
-      }
+      
+      // Chair behind table
+      positions.push({
+        id: `chair-${id++}`,
+        x,
+        y: 0,
+        z: z + 0.6 * spacing, // Chair pushed slightly behind the table
+        rotation: Math.PI, // Facing forward to stage
+        type: 'chair',
+      });
     }
   }
 
@@ -106,26 +125,27 @@ export function generateBanquetLayout(guestCount: number, spacing: number): Posi
   const positions: Position[] = [];
   const chairsPerTable = 8;
   const tableCount = Math.ceil(guestCount / chairsPerTable);
-
-  // Grid layout for tables
-  const cols = Math.floor((HALL_MAX_X - HALL_MIN_X) / (3.0 * spacing));
-  const effectiveCols = Math.max(1, cols);
-  const rows = Math.ceil(tableCount / effectiveCols);
+  const tablesPerRow = 4;
+  const rows = Math.ceil(tableCount / tablesPerRow);
 
   let tableId = 0;
   let chairId = 0;
 
   for (let row = 0; row < rows; row++) {
-    const tablesInRow = Math.min(effectiveCols, tableCount - tableId);
-    const rowWidth = tablesInRow * 3.0 * spacing;
-    const startX = -rowWidth / 2 + 1.5 * spacing;
-    const z = HALL_MIN_Z + 3 + row * (3.2 * spacing);
+    const tablesInRow = Math.min(tablesPerRow, tableCount - tableId);
+    const z = HALL_MIN_Z + 3 + row * (4.0 * spacing);
 
     if (z > HALL_MAX_Z - 1) break;
 
     for (let col = 0; col < tablesInRow; col++) {
-      const tx = startX + col * 3.0 * spacing;
-      if (tx < HALL_MIN_X + 1 || tx > HALL_MAX_X - 1) continue;
+      let tx = 0;
+      const tableSpacing = 3.5 * spacing;
+      const centerGap = 5.0 * spacing; // distance between the two middle tables
+
+      if (col === 0) tx = -(centerGap / 2) - tableSpacing;
+      else if (col === 1) tx = -(centerGap / 2);
+      else if (col === 2) tx = (centerGap / 2);
+      else if (col === 3) tx = (centerGap / 2) + tableSpacing;
 
       positions.push({
         id: `table-${tableId++}`,
@@ -146,7 +166,8 @@ export function generateBanquetLayout(guestCount: number, spacing: number): Posi
           x: tx + Math.cos(angle) * radius,
           y: 0,
           z: z + Math.sin(angle) * radius,
-          rotation: angle + Math.PI,
+          // Calculate exact rotation to face the table center (-cos(angle), -sin(angle))
+          rotation: Math.atan2(-Math.cos(angle), -Math.sin(angle)),
           type: 'chair',
         });
       }
