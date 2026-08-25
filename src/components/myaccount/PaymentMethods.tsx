@@ -121,13 +121,13 @@ export default function PaymentMethods() {
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
 
   const selectedBooking = bookings.find((b) => (b._id || b.id) === selectedBookingId);
-  const balanceDue = selectedBooking 
-    ? (selectedBooking.totalCost - selectedBooking.depositAmount - (selectedBooking.balanceAmount || 0)) 
+  const balanceDue = selectedBooking
+    ? (selectedBooking.totalCost - selectedBooking.depositAmount - (selectedBooking.balanceAmount || 0))
     : 0;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      
+
       {/* 1. Payment Methods Registry */}
       <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 rounded-xl shadow-sm overflow-hidden text-left">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-[#1A1A1A]/40">
@@ -157,11 +157,10 @@ export default function PaymentMethods() {
             return (
               <div
                 key={card._id || idx}
-                className={`relative overflow-hidden rounded-xl border transition-all duration-300 ${
-                  card.isDefault 
-                    ? "border-[#C9A84C] bg-[#FAF6EE]/20 dark:bg-amber-950/5 shadow-sm" 
+                className={`relative overflow-hidden rounded-xl border transition-all duration-300 ${card.isDefault
+                    ? "border-[#C9A84C] bg-[#FAF6EE]/20 dark:bg-amber-950/5 shadow-sm"
                     : "border-gray-100 dark:border-zinc-800 hover:border-gray-250 dark:hover:border-zinc-700"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-5 p-4">
                   <div className="w-12 h-8 rounded bg-[#2C1E14] text-white flex items-center justify-center font-bold text-[9px] uppercase tracking-wider shrink-0">
@@ -290,7 +289,7 @@ export default function PaymentMethods() {
 
             {selectedBooking && (
               <div className="border border-gray-100 dark:border-zinc-850 p-5 rounded-xl space-y-6">
-                
+
                 {/* Event Summary and Balance Panel */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-50 dark:bg-zinc-900/40 p-4 rounded-lg">
                   <div>
@@ -325,7 +324,7 @@ export default function PaymentMethods() {
                             </p>
                           );
                         }
-                        
+
                         const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
                         const todayStr = getColomboDateStr(new Date());
                         const eventStr = getColomboDateStr(new Date(selectedBooking.date));
@@ -333,7 +332,7 @@ export default function PaymentMethods() {
                         const dEvent = new Date(eventStr + 'T00:00:00Z');
                         const diffTime = dEvent.getTime() - dToday.getTime();
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
+
                         if (diffDays > 7) {
                           return (
                             <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
@@ -355,7 +354,7 @@ export default function PaymentMethods() {
                         const v = (selectedBooking.vendors as any)[cat];
                         return v && v.vendorId && v.status === "Pending";
                       }) : [];
-                      
+
                       // Enforce exactly 7 calendar days lock
                       const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
                       const todayStr = getColomboDateStr(new Date());
@@ -364,21 +363,20 @@ export default function PaymentMethods() {
                       const dEvent = new Date(eventStr + 'T00:00:00Z');
                       const diffTime = dEvent.getTime() - dToday.getTime();
                       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                      
+
                       const withinPaymentWindow = diffDays <= 7;
                       const allVendorsAccepted = pendingVendors.length === 0;
-                      
+
                       const canPay = withinPaymentWindow && allVendorsAccepted;
-                      
+
                       return (
                         <button
                           onClick={() => handlePayBalance(selectedBooking._id || selectedBooking.id)}
                           disabled={isPayingBalance || !canPay}
-                          className={`px-5 py-2.5 font-bold text-[10px] uppercase tracking-widest rounded transition-colors shrink-0 flex items-center gap-1.5 ${
-                            canPay 
-                              ? "bg-[#C9A84C] text-[#2C1E14] hover:bg-[#B58B5C]" 
+                          className={`px-5 py-2.5 font-bold text-[10px] uppercase tracking-widest rounded transition-colors shrink-0 flex items-center gap-1.5 ${canPay
+                              ? "bg-[#C9A84C] text-[#2C1E14] hover:bg-[#B58B5C]"
                               : "bg-gray-200 text-gray-400 dark:bg-zinc-800 dark:text-zinc-600 cursor-not-allowed border border-gray-300 dark:border-zinc-700"
-                          }`}
+                            }`}
                         >
                           {isPayingBalance ? <Loader2 className="w-3 animate-spin" /> : <DollarSign className="w-3.5 h-3.5" />}
                           Pay Balance via PayHere 🇱🇰
@@ -419,7 +417,7 @@ export default function PaymentMethods() {
       <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 rounded-xl shadow-sm p-6 text-left space-y-6">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-1">Transaction History</h3>
-        <p className="text-xs text-gray-500 mt-1 font-light">Audit trail of advance payments, refunds, and released allocations.</p>
+          <p className="text-xs text-gray-500 mt-1 font-light">Audit trail of advance payments, refunds, and released allocations.</p>
         </div>
 
         <div className="overflow-x-auto">
@@ -464,9 +462,15 @@ export default function PaymentMethods() {
                                   .meta { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; }
                                   .amount { font-size: 32px; font-weight: bold; color: #C9A84C; margin: 30px 0; }
                                   .footer { border-top: 1px solid #eee; padding-top: 20px; font-size: 12px; color: #999; text-align: center; margin-top: 50px; }
+                                  .btn-print { position: absolute; top: 30px; right: 40px; background: #c9a84c; color: white; border: none; padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                                  .btn-print:hover { background: #b08d2c; }
+                                  @media print {
+                                    .btn-print { display: none !important; }
+                                  }
                                 </style>
                               </head>
                               <body>
+                                <button class="btn-print" onclick="window.print()">Download (PDF)</button>
                                 <div class="header">
                                   <div class="title">EASCCA Conference Centre</div>
                                   <p>Official Transaction Receipt</p>
