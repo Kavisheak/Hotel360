@@ -3,16 +3,33 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
+import { paymentAPI } from '@/lib/api';
 
 const CashPayments = ({ payments = [] }: { payments: any[] }) => {
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
 
-  const toggle = (id: string) => {
+  const toggle = async (id: string) => {
+    // Optimistic UI update
     setConfirmed(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+
+    try {
+      const res = await paymentAPI.confirmPayment(id);
+      if (!res.ok) {
+        throw new Error(res.data?.message || "Failed to confirm payment");
+      }
+    } catch (err: any) {
+      alert(err.message || "Error verifying payment.");
+      // Rollback UI update on failure
+      setConfirmed(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+    }
   };
 
   const pending = payments.length - confirmed.size;
@@ -37,24 +54,23 @@ const CashPayments = ({ payments = [] }: { payments: any[] }) => {
           payments.map((p) => (
             <div
               key={p.id}
-            className="flex items-center justify-between bg-[#FAF8F2] border border-[#E0D8C3] px-4 py-3 rounded-sm"
-          >
-            <div>
-              <p className="text-xs font-bold text-[#7C6A2E]">{p.bookingRef}</p>
-              <p className="text-[10px] text-gray-500 font-semibold">{p.eventType} · LKR {p.amount.toLocaleString()}</p>
-            </div>
-            <button
-              onClick={() => toggle(p.id)}
-              className={`w-7 h-7 border flex items-center justify-center rounded-sm transition-colors ${
-                confirmed.has(p.id)
+              className="flex items-center justify-between bg-[#FAF8F2] border border-[#E0D8C3] px-4 py-3 rounded-sm"
+            >
+              <div>
+                <p className="text-xs font-bold text-[#7C6A2E]">{p.bookingRef}</p>
+                <p className="text-[10px] text-gray-500 font-semibold">{p.eventType} · LKR {p.amount.toLocaleString()}</p>
+              </div>
+              <button
+                onClick={() => toggle(p.id)}
+                className={`w-7 h-7 border flex items-center justify-center rounded-sm transition-colors ${confirmed.has(p.id)
                   ? 'bg-[#B08D2C] border-[#B08D2C] text-white'
                   : 'border-[#B08D2C] text-transparent hover:bg-[#FAF6EE]'
-              }`}
-            >
-              <Check size={14} />
-            </button>
-          </div>
-        ))
+                  }`}
+              >
+                <Check size={14} />
+              </button>
+            </div>
+          ))
         ) : (
           <p className="text-xs text-gray-500 italic">No cash payments pending.</p>
         )}
