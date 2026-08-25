@@ -42,11 +42,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                if (!localStorage.getItem('theme')) {
-                  localStorage.setItem('theme', 'light');
-                  document.documentElement.classList.remove('dark');
-                  document.documentElement.classList.add('light');
-                }
+                localStorage.setItem('theme', 'light');
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
               } catch (e) {}
             `,
           }}
@@ -62,7 +60,7 @@ export default function RootLayout({
         <script src="https://www.payhere.lk/lib/payhere.js" async />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
           {children}
           <FloatingEventCart />
           <ToastProvider />
