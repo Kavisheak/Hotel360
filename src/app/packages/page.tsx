@@ -96,14 +96,15 @@ export default function PackagesPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:from-transparent dark:via-[#0A0A0A]/60 dark:to-[#0A0A0A]"></div>
         </div>
         
-        <div className="relative max-w-5xl mx-auto text-left mt-10 section-reveal">
+        <div className="relative max-w-5xl mx-auto text-center mt-10 px-6 section-reveal">
           <p className="text-[#805D3A] dark:text-[#C9A84C] text-[10px] tracking-[0.2em] uppercase font-bold mb-4">
             Event Packages
           </p>
           <h1 className="text-5xl md:text-7xl font-serif text-[#2C1E14] dark:text-white mb-6 drop-shadow-sm leading-tight stagger-1">
-            Tailored Experience.<br />Timeless Moments.
+            Tailored Experience.<br />
+            <span className="italic text-[#805D3A] dark:text-[#C9A84C]">Timeless Moments.</span>
           </h1>
-          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-xl mb-10 font-light leading-relaxed stagger-2">
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-xl mx-auto mb-10 font-light leading-relaxed stagger-2">
             Choose the perfect package that fits your vision.<br />We'll handle the rest.
           </p>
         </div>

@@ -111,7 +111,7 @@ const PackagesSection = () => {
 
  {/* Action Button */}
  <a 
- href="/customer/packages"
+ href="/packages"
  className={`w-full py-3.5 flex items-center justify-center gap-2 text-[10px] tracking-widest uppercase font-bold transition-all duration-300 ${
  pkg.isMostLoved 
  ? 'bg-[#C69C6D] dark:bg-transparent dark:border dark:border-[#C69C6D] text-white hover:bg-[#B58B5C] dark:hover:bg-[#C69C6D]/20'

@@ -56,7 +56,7 @@ export default function FloatingEventCart() {
   if (vendorCount === 0) return null;
 
   // Only show on vendor and package related pages
-  if (!pathname.startsWith("/customer/vendors") && !pathname.startsWith("/customer/vendorProfile") && !pathname.startsWith("/customer/packages")) {
+  if (!pathname.startsWith("/vendors") && !pathname.startsWith("/vendorProfile") && !pathname.startsWith("/packages")) {
     return null;
   }
 
