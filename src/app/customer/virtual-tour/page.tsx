@@ -65,13 +65,7 @@ export default function VirtualTourPage() {
         {activeTab === "360" ? (
           <div className="flex flex-col w-full stagger-2">
             
-            {/* Info Banner */}
-            <div className="bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 rounded-sm p-4 flex items-center gap-4 mb-6 shadow-sm">
-              <div className="w-8 h-8 rounded-full border border-[#C69C6D]/30 flex items-center justify-center text-[#C69C6D] shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-              </div>
-              <p className="text-xs text-[#1A1512] dark:text-gray-300 font-medium">Navigate through 5 panoramic locations of the EASCC Conference Hall, Eravur. Start from the Gate Entrance and walk through to the Hall interior. Drag to look around, click hotspots to move between areas.</p>
-            </div>
+
             <div className="border border-[#D4C9A8] dark:border-[#C9A84C]/40 shadow-xl dark:shadow-[#C9A84C]/5 rounded-sm overflow-hidden hover-glow transition-all duration-300">
               <Tour360Viewer />
             </div>
