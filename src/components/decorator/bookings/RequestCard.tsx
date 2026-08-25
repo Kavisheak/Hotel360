@@ -106,16 +106,25 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
             </div>
 
             {/* Color-Shifting Countdown Badge */}
-            <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border ${
-              urgencyLevel === 'urgent'
-                ? 'bg-red-50 text-red-700 border-red-200 animate-pulse'
-                : urgencyLevel === 'warning'
-                ? 'bg-amber-50 text-amber-800 border-amber-200'
-                : 'bg-gray-100 text-gray-700 border-gray-200'
-            }`}>
-              <Clock size={13} className={urgencyLevel === 'urgent' ? 'text-red-600' : 'text-gray-500'} />
-              <span>{timeLeftStr}</span>
-            </div>
+            {request.status === "Pending" ? (
+              <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border ${
+                urgencyLevel === 'urgent'
+                  ? 'bg-red-50 text-red-700 border-red-200 animate-pulse'
+                  : urgencyLevel === 'warning'
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-gray-100 text-gray-700 border-gray-200'
+              }`}>
+                <Clock size={13} className={urgencyLevel === 'urgent' ? 'text-red-600' : 'text-gray-500'} />
+                <span>{timeLeftStr}</span>
+              </div>
+            ) : (
+              <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border ${
+                request.status === "Accepted" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
+              }`}>
+                {request.status === "Accepted" ? <Check size={12} /> : <X size={12} />}
+                <span>{request.status === "Accepted" ? "Confirmed" : "Rejected"}</span>
+              </div>
+            )}
           </div>
 
           {/* 409 Race Condition Error Alert */}
@@ -194,24 +203,32 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline 
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="pt-3 border-t border-[#F2EADA] flex items-center justify-end gap-3 mt-2">
-          <button
-            onClick={() => setIsDeclineModalOpen(true)}
-            disabled={isSubmitting || !!expiredError}
-            className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 text-xs font-bold tracking-wider uppercase rounded transition-colors disabled:opacity-50 flex items-center gap-1.5"
-          >
-            <X size={14} /> Decline
-          </button>
+        {/* Action Buttons - Only show for Pending requests */}
+        {request.status === "Pending" ? (
+          <div className="pt-3 border-t border-[#F2EADA] flex items-center justify-end gap-3 mt-2">
+            <button
+              onClick={() => setIsDeclineModalOpen(true)}
+              disabled={isSubmitting || !!expiredError}
+              className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 text-xs font-bold tracking-wider uppercase rounded transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <X size={14} /> Decline
+            </button>
 
-          <button
-            onClick={() => setIsAdvanceModalOpen(true)}
-            disabled={isSubmitting || !!expiredError}
-            className="px-5 py-2 bg-[#7C6A2E] hover:bg-[#685724] text-white text-xs font-bold tracking-wider uppercase rounded shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
-          >
-            <Check size={14} /> {isSubmitting ? "Processing..." : "Accept Job Request"}
-          </button>
-        </div>
+            <button
+              onClick={() => setIsAdvanceModalOpen(true)}
+              disabled={isSubmitting || !!expiredError}
+              className="px-5 py-2 bg-[#7C6A2E] hover:bg-[#685724] text-white text-xs font-bold tracking-wider uppercase rounded shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Check size={14} /> {isSubmitting ? "Processing..." : "Accept Job Request"}
+            </button>
+          </div>
+        ) : (
+          <div className="pt-3 border-t border-[#F2EADA] flex items-center justify-end mt-2">
+             <span className={`text-xs font-bold uppercase tracking-wider ${request.status === "Accepted" ? "text-emerald-600" : "text-red-600"}`}>
+               Status: {request.status}
+             </span>
+          </div>
+        )}
       </div>
 
       {/* Decline Reason Modal */}
