@@ -26,7 +26,7 @@ const BookingsListMain = () => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [unblockDates, setUnblockDates] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [existingBlocks, setExistingBlocks] = useState<{date: string, reason: string}[]>([]);
+  const [existingBlocks, setExistingBlocks] = useState<{ date: string, reason: string }[]>([]);
 
   useEffect(() => {
     if (isBlockModalOpen) {
@@ -102,7 +102,7 @@ const BookingsListMain = () => {
             depositAmount: b.depositAmount || 0,
             balanceAmount: b.balanceAmount || 0,
             totalAmount: b.totalCost || ((b.depositAmount || 0) + (b.balanceAmount || 0)),
-            paymentStatus: b.paymentStatus || (b.depositAmount > 0 ? (b.balanceAmount > 0 ? "Balance Paid" : "30% Paid") : "Unpaid"),
+            paymentStatus: b.paymentStatus || (b.depositAmount > 0 ? (b.balanceAmount > 0 ? "Balance Paid" : "Deposit Paid") : "Unpaid"),
             vendors: b.vendors,
             bookingSource,
           };
@@ -118,8 +118,8 @@ const BookingsListMain = () => {
 
   const filteredBookings = bookings.filter(b => {
     const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
-      b.clientName.toLowerCase().includes(searchLower) || 
+    const matchesSearch = !searchTerm ||
+      b.clientName.toLowerCase().includes(searchLower) ||
       b.bookingRef.toLowerCase().includes(searchLower) ||
       b.clientEmail.toLowerCase().includes(searchLower) ||
       b.clientPhone.toLowerCase().includes(searchLower) ||
@@ -134,13 +134,13 @@ const BookingsListMain = () => {
       matchesStatus = b.status === filterStatus;
     }
     const matchesEventType = filterEventType === 'All' || b.eventType === filterEventType;
-    
+
     // Vendor Status Logic
     let matchesVendor = true;
     if (filterVendorStatus !== 'All') {
       const vendorCats = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
       const activeVendors = vendorCats.map(cat => b.vendors?.[cat]).filter(v => v && v.vendorId);
-      
+
       if (activeVendors.length === 0) {
         matchesVendor = filterVendorStatus === 'No Vendors';
       } else {
@@ -153,9 +153,9 @@ const BookingsListMain = () => {
     // Payment Logic
     let matchesPayment = true;
     if (filterPaymentStatus !== 'All') {
-       if (filterPaymentStatus === 'Unpaid') matchesPayment = !b.depositAmount;
-       if (filterPaymentStatus === 'Deposit Paid') matchesPayment = b.depositAmount > 0 && !b.balanceAmount;
-       if (filterPaymentStatus === 'Balance Paid') matchesPayment = b.balanceAmount > 0;
+      if (filterPaymentStatus === 'Unpaid') matchesPayment = !b.depositAmount;
+      if (filterPaymentStatus === 'Deposit Paid') matchesPayment = b.depositAmount > 0 && !b.balanceAmount;
+      if (filterPaymentStatus === 'Balance Paid') matchesPayment = b.balanceAmount > 0;
     }
 
     // Date Logic
@@ -226,7 +226,7 @@ const BookingsListMain = () => {
     const dToday = new Date(todayStr + 'T00:00:00Z');
     const dEvent = new Date(eventStr + 'T00:00:00Z');
     const diffDays = Math.ceil((dEvent.getTime() - dToday.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays <= 7 && !b.balanceAmount) {
       return (
         <div className="flex items-center gap-1.5 text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 shadow-sm w-fit">
@@ -263,13 +263,13 @@ const BookingsListMain = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => setIsBlockModalOpen(true)}
             className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all shadow-sm"
           >
             <Lock size={14} /> Block Hall
           </button>
-          <button 
+          <button
             onClick={() => setIsNewBookingOpen(true)}
             className="flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#6A5A27] text-white px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
@@ -301,15 +301,15 @@ const BookingsListMain = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
               <div className="relative w-full sm:flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Search by Booking ID, Customer Name, Email, Phone, or Event Name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-11 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#7C6A2E] focus:ring-1 focus:ring-[#7C6A2E] bg-white transition-all shadow-sm"
                 />
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setSearchTerm('');
                   setFilterStatus('All');
@@ -327,7 +327,7 @@ const BookingsListMain = () => {
 
             {/* Bottom row: Dropdowns */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
-              <select 
+              <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full border border-gray-200 py-1.5 px-3 rounded-md text-xs text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E] shadow-sm transition-all"
@@ -341,7 +341,7 @@ const BookingsListMain = () => {
                 <option value="Rejected">Rejected</option>
               </select>
 
-              <select 
+              <select
                 value={filterEventType}
                 onChange={(e) => setFilterEventType(e.target.value)}
                 className="w-full border border-gray-200 py-1.5 px-3 rounded-md text-xs text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E] shadow-sm transition-all"
@@ -353,7 +353,7 @@ const BookingsListMain = () => {
                 <option value="Other">Other</option>
               </select>
 
-              <select 
+              <select
                 value={filterPaymentStatus}
                 onChange={(e) => setFilterPaymentStatus(e.target.value)}
                 className="w-full border border-gray-200 py-1.5 px-3 rounded-md text-xs text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E] shadow-sm transition-all"
@@ -364,7 +364,7 @@ const BookingsListMain = () => {
                 <option value="Balance Paid">Balance Paid</option>
               </select>
 
-              <select 
+              <select
                 value={filterVendorStatus}
                 onChange={(e) => setFilterVendorStatus(e.target.value)}
                 className="w-full border border-gray-200 py-1.5 px-3 rounded-md text-xs text-gray-700 bg-white focus:outline-none focus:border-[#7C6A2E] shadow-sm transition-all"
@@ -377,7 +377,7 @@ const BookingsListMain = () => {
               </select>
 
               <div className="flex flex-col xl:flex-row items-center gap-1 w-full col-span-2 md:col-span-1 lg:col-span-1">
-                <input 
+                <input
                   type="date"
                   value={filterDateFrom}
                   onChange={(e) => setFilterDateFrom(e.target.value)}
@@ -385,7 +385,7 @@ const BookingsListMain = () => {
                   title="Event Date From"
                 />
                 <span className="text-gray-400 text-xs hidden xl:inline">-</span>
-                <input 
+                <input
                   type="date"
                   value={filterDateTo}
                   onChange={(e) => setFilterDateTo(e.target.value)}
@@ -425,7 +425,7 @@ const BookingsListMain = () => {
                     const vendorCats = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
                     const activeVendors = vendorCats.map(cat => b.vendors?.[cat]).filter(v => v && v.vendorId);
                     const acceptedCount = activeVendors.filter(v => v.status === 'Accepted' || v.status === 'Confirmed').length;
-                    
+
                     return (
                       <tr key={b.id} className="bg-white hover:bg-gray-50/50 transition-colors duration-200 group">
                         <td className="px-4 py-4 font-mono text-xs text-gray-800 font-bold hover:text-[#7C6A2E] transition-colors">
@@ -444,7 +444,7 @@ const BookingsListMain = () => {
                           LKR {(b.totalCost || b.totalAmount || 0).toLocaleString()}
                         </td>
                         <td className="px-4 py-4 text-xs">
-                          <span className={`px-2 py-0.5 rounded font-bold ${b.paymentStatus === 'Balance Paid' ? 'bg-emerald-100 text-emerald-700' : b.paymentStatus === '30% Paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                          <span className={`px-2 py-0.5 rounded font-bold ${b.paymentStatus === 'Balance Paid' ? 'bg-emerald-100 text-emerald-700' : b.paymentStatus === 'Deposit Paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
                             {b.paymentStatus}
                           </span>
                         </td>
@@ -455,7 +455,7 @@ const BookingsListMain = () => {
                           {getStatusBadge(b)}
                         </td>
                         <td className="px-4 py-4 text-right">
-                          <Link 
+                          <Link
                             href={`/hotel-manager/bookings/${b.id}`}
                             className="inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-[#7C6A2E] hover:text-[#5E4F20] bg-[#FAF6EE] hover:bg-[#E0D8C3]/50 px-3 py-1.5 rounded-md transition-all"
                           >
@@ -469,10 +469,10 @@ const BookingsListMain = () => {
               </tbody>
             </table>
           </div>
-          
+
           {filteredBookings.length > visibleCount && (
             <div className="p-6 border-t border-gray-100 bg-white flex justify-center">
-              <button 
+              <button
                 onClick={() => setVisibleCount(prev => prev + 10)}
                 className="px-8 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-xl border border-gray-200"
               >
@@ -497,23 +497,23 @@ const BookingsListMain = () => {
 
             <p className="text-xs text-gray-500">Manually lock dates for hall maintenance, structural renovations, or private non-customer events.</p>
 
-            <form 
-              onSubmit={async (e) => { 
-                e.preventDefault(); 
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
                 if (selectedDates.length === 0 && unblockDates.length === 0) {
                   alert('Please select dates to block or unblock.');
                   return;
                 }
                 try {
-                  const blockPromises = selectedDates.map(dateStr => 
+                  const blockPromises = selectedDates.map(dateStr =>
                     bookingAPI.createBlock({ date: new Date(dateStr).toISOString(), reason: blockReason })
                   );
-                  const unblockPromises = unblockDates.map(dateStr => 
+                  const unblockPromises = unblockDates.map(dateStr =>
                     bookingAPI.releaseBlock({ date: new Date(dateStr).toISOString() })
                   );
                   const results = await Promise.all([...blockPromises, ...unblockPromises]);
                   const failed = results.filter(r => !r.ok || !r.data?.success);
-                  
+
                   if (failed.length > 0) {
                     alert(`Failed to process ${failed.length} date(s). Please try again.`);
                   } else {
@@ -526,15 +526,15 @@ const BookingsListMain = () => {
                 } catch (err) {
                   alert('An error occurred while saving the changes');
                 }
-              }} 
+              }}
               className="space-y-4 text-xs"
             >
               <div>
                 <label className="block font-semibold text-gray-700 mb-2">Select Dates</label>
                 <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
                       className="p-1 hover:bg-gray-200 rounded text-gray-600"
                     >
@@ -543,7 +543,7 @@ const BookingsListMain = () => {
                     <div className="font-semibold text-gray-800 text-sm">
                       {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </div>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
                       className="p-1 hover:bg-gray-200 rounded text-gray-600"
@@ -567,8 +567,8 @@ const BookingsListMain = () => {
                         const isSelected = selectedDates.includes(dateStr);
                         const isExisting = existingBlocks.find(b => b.date === dateStr);
                         const isUnblocking = unblockDates.includes(dateStr);
-                        const isPast = new Date(dateStr).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
-                        
+                        const isPast = new Date(dateStr).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+
                         days.push(
                           <button
                             key={d}
@@ -582,12 +582,11 @@ const BookingsListMain = () => {
                                 setSelectedDates(prev => prev.includes(dateStr) ? prev.filter(x => x !== dateStr) : [...prev, dateStr]);
                               }
                             }}
-                            className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-[11px] transition-colors ${
-                              isExisting && !isUnblocking ? 'bg-red-500 text-white font-bold shadow-sm cursor-pointer hover:bg-red-600' :
+                            className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-[11px] transition-colors ${isExisting && !isUnblocking ? 'bg-red-500 text-white font-bold shadow-sm cursor-pointer hover:bg-red-600' :
                               isUnblocking ? 'bg-gray-100 text-gray-400 line-through border border-gray-300 font-bold shadow-inner cursor-pointer hover:bg-gray-200' :
-                              isPast ? 'text-gray-300 cursor-not-allowed' :
-                              isSelected ? 'bg-[#1E56A0] text-white font-bold shadow-sm' : 'text-gray-700 hover:bg-gray-200 font-medium'
-                            }`}
+                                isPast ? 'text-gray-300 cursor-not-allowed' :
+                                  isSelected ? 'bg-[#1E56A0] text-white font-bold shadow-sm' : 'text-gray-700 hover:bg-gray-200 font-medium'
+                              }`}
                           >
                             {d}
                           </button>
@@ -613,9 +612,9 @@ const BookingsListMain = () => {
                 <button type="button" onClick={() => setIsBlockModalOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={selectedDates.length === 0 && unblockDates.length === 0} 
+                <button
+                  type="submit"
+                  disabled={selectedDates.length === 0 && unblockDates.length === 0}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-lg transition-colors"
                 >
                   Save Changes
@@ -630,7 +629,7 @@ const BookingsListMain = () => {
       {isNewBookingOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#FDF9F1] w-full max-w-6xl rounded shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-[#E0D8C3] animate-fadeIn">
-            <NewBookingMain 
+            <NewBookingMain
               onClose={() => setIsNewBookingOpen(false)}
               onSuccess={() => {
                 setIsNewBookingOpen(false);
