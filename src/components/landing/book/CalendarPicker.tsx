@@ -157,7 +157,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-gray-100 border-2 border-gray-300 block"></span>
-          <span>PENDING</span>
+          <span>AWAITING APPROVAL</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-green-100 border-2 border-green-200 block"></span>
@@ -231,7 +231,7 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-[#D94F4F]">BOOKED</span>
               )}
               {dayObj.status === "pending" && (
-                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-500">PENDING</span>
+                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-500">AWAITING APPROVAL</span>
               )}
               {dayObj.status === "held" && (
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-amber-600">HELD</span>

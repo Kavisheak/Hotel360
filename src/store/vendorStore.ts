@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { authAPI } from "@/lib/api";
+import { authAPI, vendorAPI } from "@/lib/api";
 
 export interface VendorPackage {
   name: string;
@@ -88,8 +88,8 @@ export const useVendorStore = create<VendorState>((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE}/api/customer/vendors`);
-      const responseData = await res.json();
+      const res = await vendorAPI.getAllVendors();
+      const responseData = res.data;
 
       let fetchedData: Vendor[] = [];
 
