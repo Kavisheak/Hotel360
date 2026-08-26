@@ -155,6 +155,7 @@ export default function BookPage() {
   const [unavailableDates, setUnavailableDates] = useState<{ date: string, status: string }[]>([]);
   const { addToast } = useToastStore();
   const [policyModalType, setPolicyModalType] = useState<"vendor" | "cancellation" | null>(null);
+  const [showDraftModal, setShowDraftModal] = useState(false);
   useEffect(() => {
     fetchVendors();
     packageAPI.getAllPackages().then((res) => {
@@ -243,9 +244,17 @@ export default function BookPage() {
 
     // 1. Load from Draft
     const saved = sessionStorage.getItem("bookingDraft");
+    const searchParams = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || "");
+    const importFromCart = sessionStorage.getItem("importFromCart");
+    const fromCartParam = searchParams.get("fromCart");
+    const isCartImport = importFromCart === "true" || fromCartParam === "true";
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        if (!isCartImport && (parsed.currentStep > 1 || parsed.selectedDate || parsed.selectedPackage)) {
+          setShowDraftModal(true);
+        }
         if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate).getTime());
         if (parsed.eventType) setEventType(parsed.eventType);
         if (parsed.guestCount) setGuestCount(parsed.guestCount);
@@ -262,7 +271,6 @@ export default function BookPage() {
     }
 
     // 2. Load from URL parameters
-    const searchParams = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || "");
     const prePackage = searchParams.get("package") || searchParams.get("pkg");
     const preDecorator = searchParams.get("decorator") || searchParams.get("decorators");
     const preDj = searchParams.get("dj") || searchParams.get("djs");
@@ -297,8 +305,6 @@ export default function BookPage() {
     }
 
     // 3. Load from Cart
-    const importFromCart = sessionStorage.getItem("importFromCart");
-    const fromCartParam = searchParams.get("fromCart");
 
     if (importFromCart === "true" || fromCartParam === "true") {
       sessionStorage.removeItem("importFromCart");
@@ -1069,6 +1075,38 @@ export default function BookPage() {
         }
       `}} />
       <MainNavbar />
+
+      {/* Draft Modal */}
+      {showDraftModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-[#111111] p-8 rounded-xl shadow-2xl max-w-md w-full text-center border border-[#E8DFC9] dark:border-gray-800">
+            <div className="w-16 h-16 bg-[#FDFBF7] dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#F2E5C5] dark:border-gray-700">
+              <Calendar className="w-8 h-8 text-[#C9A84C]" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-[#1A1512] dark:text-white mb-3">Continue Booking?</h3>
+            <p className="text-[15px] text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              We noticed you have an unfinished booking. Would you like to pick up where you left off, or start a new booking?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => {
+                  setShowDraftModal(false);
+                  resetBookingForm();
+                }}
+                className="px-6 py-3.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors font-bold text-[13px] uppercase tracking-wider w-full sm:w-auto"
+              >
+                New Booking
+              </button>
+              <button 
+                onClick={() => setShowDraftModal(false)}
+                className="px-6 py-3.5 bg-[#C9A84C] text-white rounded-lg hover:bg-[#b8953f] transition-colors font-bold text-[13px] uppercase tracking-wider w-full sm:w-auto shadow-md"
+              >
+                Continue Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="flex-grow relative pt-28 md:pt-32">
 
