@@ -4,9 +4,10 @@ import { Download, UserRoundPlus, UserCog } from 'lucide-react';
 interface StaffHeaderProps {
   onOpenChangeManager: () => void;
   onOpenRegisterStaff: () => void;
+  onExport: () => void;
 }
 
-const StaffHeader = ({ onOpenChangeManager, onOpenRegisterStaff }: StaffHeaderProps) => {
+const StaffHeader = ({ onOpenChangeManager, onOpenRegisterStaff, onExport }: StaffHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
       {/* Title & Subtitle */}
@@ -21,7 +22,10 @@ const StaffHeader = ({ onOpenChangeManager, onOpenRegisterStaff }: StaffHeaderPr
 
       {/* Action Buttons */}
       <div className="flex items-center gap-3 shrink-0">
-        <button className="flex items-center gap-2 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#FAF6EE] transition-colors">
+        <button 
+          onClick={onExport}
+          className="flex items-center gap-2 border border-[#7C6A2E] text-[#7C6A2E] font-bold text-[10px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#FAF6EE] transition-colors"
+        >
           <Download size={13} />
           EXPORT RECORDS
         </button>

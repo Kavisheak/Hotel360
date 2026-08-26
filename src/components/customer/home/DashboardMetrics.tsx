@@ -32,7 +32,7 @@ export default function DashboardMetrics({ progressPercent, totalCompleted, tota
       value: "3 Secured",
       subtext: "Decorator, DJ & Venue",
       icon: <Heart className="w-5 h-5 text-[#C9A84C]" />,
-      link: "/customer/vendors"
+      link: "/vendors"
     }
   ];
 

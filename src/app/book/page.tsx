@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock, X, ArrowRight, Edit2, Headphones, ShieldCheck, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Sparkles, Calendar, Clock, Users, Building, Gift, Check, Plus, ChevronUp, ChevronDown, Lock, X, ArrowRight, Edit2, Headphones, ShieldCheck, AlertTriangle, Gem, Cake, Heart, Briefcase, Users2, GraduationCap, MessageSquare } from "lucide-react";
 import MainNavbar from "@/components/landing/shared/MainNavbar";
 import Footer from "@/components/landing/shared/Footer";
 import PackageCards from "@/components/landing/packages/PackageCards";
@@ -37,7 +37,7 @@ function AnimatedPrice({ value, format }: { value: number; format: (val: number)
     const duration = 800; // ms
     const startTime = performance.now();
     let animationFrame: number;
-    
+
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
@@ -73,7 +73,7 @@ export default function BookPage() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   // Toast state
-  const [toast, setToast] = useState<{show: boolean; title: string; subtitle: string}>({ show: false, title: "", subtitle: "" });
+  const [toast, setToast] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: "", subtitle: "" });
   const [isToastVisible, setIsToastVisible] = useState(false);
   const toastTimeoutRef = React.useRef<NodeJS.Timeout[]>([]);
 
@@ -85,19 +85,19 @@ export default function BookPage() {
 
     // Start by hiding the toast if it's currently visible
     setIsToastVisible(false);
-    
+
     // Wait a brief moment for the CSS to reset before showing the new one
     const t1 = setTimeout(() => {
       console.log("SETTING TOAST STATE", { title, subtitle });
       setToast({ show: true, title, subtitle });
-      
+
       const t2 = setTimeout(() => setIsToastVisible(true), 100);
       const t3 = setTimeout(() => setIsToastVisible(false), 4500);
       const t4 = setTimeout(() => setToast({ show: false, title: "", subtitle: "" }), 5500);
-      
+
       toastTimeoutRef.current.push(t2, t3, t4);
     }, 150);
-    
+
     toastTimeoutRef.current.push(t1);
   };
 
@@ -160,7 +160,7 @@ export default function BookPage() {
   const [dbPackages, setDbPackages] = useState<any[]>([]);
   const [maxCapacity, setMaxCapacity] = useState<number>(600);
   const [venueSettings, setVenueSettings] = useState<any>(null);
-  const [unavailableDates, setUnavailableDates] = useState<{date: string, status: string}[]>([]);
+  const [unavailableDates, setUnavailableDates] = useState<{ date: string, status: string }[]>([]);
   const { addToast } = useToastStore();
   const [policyModalType, setPolicyModalType] = useState<"vendor" | "cancellation" | null>(null);
   useEffect(() => {
@@ -203,14 +203,14 @@ export default function BookPage() {
       setEmail(user.email || "");
       setPhone(user.phone || "");
       setNic(user.nic || "");
-      
+
       if (user.savedCards && user.savedCards.length > 0) {
         const defaultCard = user.savedCards.find((c: any) => c.isDefault) || user.savedCards[0];
         if (defaultCard) {
           setCardNumber(defaultCard.cardNumber || "");
           setCardExpiry(defaultCard.expiry || "");
           setCardCvc("***");
-          
+
           if (defaultCard.cardNumber?.startsWith("4")) setPaymentMethod("Visa");
           else if (defaultCard.cardNumber?.startsWith("5")) setPaymentMethod("MasterCard");
           else if (defaultCard.cardNumber?.startsWith("3")) setPaymentMethod("Stripe");
@@ -266,7 +266,7 @@ export default function BookPage() {
           finalVendors = { ...finalVendors, ...parsed.vendors };
           isVendorUpdate = true;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // 2. Load from URL parameters
@@ -307,7 +307,7 @@ export default function BookPage() {
     // 3. Load from Cart
     const importFromCart = sessionStorage.getItem("importFromCart");
     const fromCartParam = searchParams.get("fromCart");
-    
+
     if (importFromCart === "true" || fromCartParam === "true") {
       sessionStorage.removeItem("importFromCart");
       sessionStorage.removeItem("bookingDraft");
@@ -497,7 +497,7 @@ export default function BookPage() {
   const getVendorCost = (category: "decorator" | "dj" | "videographer" | "photographer" | "cake" | "florist") => {
     const vendorId = vendors[category];
     if (!vendorId || vendorId === "none" || vendorId === "custom_preference") return 0;
-    
+
     // Check if there is a specific requested design price first
     if (requestedDesignPrices && requestedDesignPrices[category] !== undefined && requestedDesignPrices[category] !== null) {
       return requestedDesignPrices[category] as number;
@@ -592,10 +592,10 @@ export default function BookPage() {
     const eventTypeName = matchedPkg
       ? matchedPkg.name
       : selectedPackage === "silver"
-      ? "Classic Silver Package"
-      : selectedPackage === "diamond"
-      ? "Luxury Diamond Gala"
-      : "Grand Gold Celebration";
+        ? "Classic Silver Package"
+        : selectedPackage === "diamond"
+          ? "Luxury Diamond Gala"
+          : "Grand Gold Celebration";
 
     const dateString = selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString();
 
@@ -713,7 +713,7 @@ export default function BookPage() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdExpiresAt, selectedDate]);
 
   const handleHoldExpired = async () => {
@@ -722,7 +722,7 @@ export default function BookPage() {
       const dateString = new Date(selectedDate).toISOString();
       try {
         await customerBookingAPI.releaseHold({ date: dateString });
-      } catch (e) {}
+      } catch (e) { }
     }
     // We no longer reset the date or send them back to Step 1
     // They can continue from where they stopped.
@@ -735,7 +735,7 @@ export default function BookPage() {
       addToast({ message: "Please accept the terms and conditions.", type: "error" });
       return;
     }
-    
+
     // Validate Contact & Billing Form
     setErrors({});
     let hasError = false;
@@ -777,7 +777,7 @@ export default function BookPage() {
       notes,
       paymentMethod,
     });
-    
+
     if (typeof bookingResult === "string") {
       // Hand off entirely to PayHere's official Hosted Checkout Modal
       const { startPayHerePayment } = await import("@/utils/payhere");
@@ -977,9 +977,15 @@ export default function BookPage() {
               .details-table th { background: #faf6ee; color: #805d3a; font-size: 12px; text-transform: uppercase; }
               .total-box { background: #faf6ee; border: 1px solid #c9a84c; padding: 20px; margin-top: 20px; text-align: right; }
               .status-badge { display: inline-block; padding: 4px 12px; background: #d1fae5; color: #065f46; font-size: 12px; font-weight: bold; border-radius: 4px; }
+              .btn-print { position: absolute; top: 30px; right: 40px; background: #c9a84c; color: white; border: none; padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+              .btn-print:hover { background: #b08d2c; }
+              @media print {
+                .btn-print { display: none !important; }
+              }
             </style>
           </head>
           <body>
+            <button class="btn-print" onclick="window.print()">Download (PDF)</button>
             <div class="header">
               <div class="title">EASCCA CONFERENCE CENTRE</div>
               <p style="margin: 5px 0 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #805d3a;">Official Advance Payment Receipt</p>
@@ -1059,7 +1065,8 @@ export default function BookPage() {
 
   return (
     <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes goldGlow {
           0% { box-shadow: 0 0 0 0 rgba(198, 156, 109, 0.4); border-color: #c69c6d; }
           50% { box-shadow: 0 0 15px 5px rgba(198, 156, 109, 0.6); border-color: #c69c6d; transform: scale(1.02); }
@@ -1072,18 +1079,17 @@ export default function BookPage() {
       <MainNavbar />
 
       <main className="flex-grow relative pt-28 md:pt-32">
-        
+
         {/* Toast Notification */}
         {toast.show && (
-          <div 
-            className={`fixed left-1/2 -translate-x-1/2 z-[40] transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isToastVisible 
-                ? 'top-[110px] opacity-100 scale-100' 
-                : '-top-[100px] opacity-0 scale-95 pointer-events-none'
-            }`}
+          <div
+            className={`fixed left-1/2 -translate-x-1/2 z-[40] transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isToastVisible
+              ? 'top-[110px] opacity-100 scale-100'
+              : '-top-[100px] opacity-0 scale-95 pointer-events-none'
+              }`}
           >
             <div className="bg-white rounded-r-2xl rounded-l-md border-l-[6px] border-[#C9A84C] shadow-[0_20px_50px_rgba(0,0,0,0.1)] max-w-xl w-[90vw] md:w-[600px] flex items-center p-3 md:p-5 relative overflow-hidden text-left">
-              
+
               {/* Faint leaf background graphics */}
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-32 h-32 opacity-[0.07] pointer-events-none">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-[#C9A84C] fill-current">
@@ -1092,7 +1098,7 @@ export default function BookPage() {
                   <path d="M40 70 Q60 90 80 70 Q60 50 40 70 Z" />
                 </svg>
               </div>
-              
+
               {/* Faint stars corners */}
               <div className="absolute right-4 top-3 text-[#C9A84C] opacity-30 text-xl">✦</div>
               <div className="absolute right-8 bottom-2 text-[#C9A84C] opacity-30 text-lg">✧</div>
@@ -1107,8 +1113,8 @@ export default function BookPage() {
               </div>
 
               <div className="border-l border-gray-200 h-8 md:h-10 mx-2 md:mx-5 relative z-10"></div>
-              
-              <button 
+
+              <button
                 onClick={(e) => { e.stopPropagation(); setIsToastVisible(false); }}
                 className="text-gray-400 hover:text-[#5C4520] transition-colors relative z-10 p-2"
               >
@@ -1150,7 +1156,7 @@ export default function BookPage() {
                 <div className="w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto shadow-inner">
                   <span className="text-3xl text-emerald-600 dark:text-emerald-500">✓</span>
                 </div>
-                
+
                 <h2 className="text-2xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C] tracking-wide">
                   Advance Payment Successful
                 </h2>
@@ -1174,13 +1180,13 @@ export default function BookPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center">
-                  <button 
+                  <button
                     onClick={() => router.push("/customer/myaccount?tab=bookings")}
                     className="px-6 py-3 bg-[#C9A84C] hover:bg-[#B58B5C] text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm shadow-sm"
                   >
                     View Booking
                   </button>
-                  <button 
+                  <button
                     onClick={handleDownloadReceipt}
                     className="px-6 py-3 border border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm"
                   >
@@ -1205,7 +1211,7 @@ export default function BookPage() {
                 {/* Step 1: Event Details */}
                 {currentStep === 1 && (
                   <div className="space-y-8 animate-fadeIn">
-                    
+
                     {/* Step 1 Header */}
                     <div className="bg-[#FAF9F6] border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-10 relative overflow-hidden shadow-sm flex flex-col justify-center items-center text-center">
                       <div className="absolute right-0 top-0 h-full w-1/3 opacity-80 pointer-events-none" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'multiply' }}></div>
@@ -1227,21 +1233,21 @@ export default function BookPage() {
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {[
-                          { id: 'Wedding', icon: '💍' },
-                          { id: 'Engagement', icon: '💎' },
-                          { id: 'Birthday', icon: '🎂' },
-                          { id: 'Anniversary', icon: '❤️' },
-                          { id: 'Corporate', icon: '💼' },
-                          { id: 'Conference', icon: '👥' },
-                          { id: 'Graduation', icon: '🎓' },
-                          { id: 'Other', icon: '💬' },
+                          { id: 'Wedding', icon: <Sparkles className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Engagement', icon: <Gem className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Birthday', icon: <Cake className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Anniversary', icon: <Heart className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Corporate', icon: <Briefcase className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Conference', icon: <Users2 className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Graduation', icon: <GraduationCap className="w-6 h-6 stroke-[1.5]" /> },
+                          { id: 'Other', icon: <MessageSquare className="w-6 h-6 stroke-[1.5]" /> },
                         ].map((type) => (
-                          <div 
+                          <div
                             key={type.id}
                             onClick={() => setEventType(type.id)}
                             className={`cursor-pointer rounded-lg p-5 flex flex-col items-center justify-center gap-3 transition-all ${eventType === type.id ? 'border-2 border-[#C9A84C] bg-[#FDFBF7] shadow-[0_4px_15px_rgba(201,168,76,0.15)] scale-[1.02]' : 'border border-gray-200 hover:border-[#C9A84C] hover:bg-gray-50'}`}
                           >
-                            <span className="text-2xl">{type.icon}</span>
+                            <span className={eventType === type.id ? 'text-[#C9A84C]' : 'text-gray-400'}>{type.icon}</span>
                             <span className={`text-[13px] font-bold ${eventType === type.id ? 'text-[#C9A84C]' : 'text-gray-600'}`}>{type.id}</span>
                           </div>
                         ))}
@@ -1254,7 +1260,7 @@ export default function BookPage() {
                         <div className="w-7 h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center font-bold text-xs shadow-md">2</div>
                         <h3 className="text-xl font-bold text-[#1A1512] dark:text-white">Event Date & Time</h3>
                       </div>
-                      
+
                       <div className="mb-6">
                         <CalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                       </div>
@@ -1264,8 +1270,8 @@ export default function BookPage() {
                           <label className="block text-xs font-bold text-gray-700 mb-2">Event Start Time</label>
                           <div className="relative">
                             <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            <input 
-                              type="time" 
+                            <input
+                              type="time"
                               className="w-full border border-gray-200 rounded-lg py-3.5 pl-11 pr-4 text-sm font-medium text-gray-700 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-shadow"
                               value={startTime}
                               onChange={(e) => setStartTime(e.target.value)}
@@ -1276,8 +1282,8 @@ export default function BookPage() {
                           <label className="block text-xs font-bold text-gray-700 mb-2">Event End Time</label>
                           <div className="relative">
                             <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            <input 
-                              type="time" 
+                            <input
+                              type="time"
                               className="w-full border border-gray-200 rounded-lg py-3.5 pl-11 pr-4 text-sm font-medium text-gray-700 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-shadow"
                               value={endTime}
                               onChange={(e) => setEndTime(e.target.value)}
@@ -1290,7 +1296,7 @@ export default function BookPage() {
                         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-lg py-3 px-4 mb-6 flex items-start gap-3 text-sm text-amber-700 dark:text-amber-500 font-medium shadow-sm">
                           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                           <div>
-                            Your event duration is {durationHours} hours. Base packages include up to 8 hours. 
+                            Your event duration is {durationHours} hours. Base packages include up to 8 hours.
                             An extra premium of <span className="font-bold">LKR {(durationHours - 8) * 5000}</span> will be applied for the additional {durationHours - 8} hour(s).
                           </div>
                         </div>
@@ -1320,14 +1326,14 @@ export default function BookPage() {
                         <div className="w-7 h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center font-bold text-xs shadow-md">3</div>
                         <h3 className="text-xl font-bold text-[#1A1512] dark:text-white">Guest Count</h3>
                       </div>
-                      
+
                       <div className="flex flex-col sm:flex-row items-center gap-8">
                         <div className="flex-1 w-full">
                           <label className="block text-[13px] font-bold text-gray-700 mb-3">Expected Number of Guests</label>
                           <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-[#FAF9F6]">
                             <button onClick={() => setGuestCount(Math.max(50, guestCount - 10))} className="px-6 py-3.5 text-[#C9A84C] hover:bg-white hover:text-[#805D3A] font-bold text-xl transition-colors border-r border-gray-200">-</button>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               value={guestCount}
                               onChange={(e) => {
                                 let val = Number(e.target.value);
@@ -1342,7 +1348,7 @@ export default function BookPage() {
                             <button onClick={() => setGuestCount(Math.min(1000, guestCount + 10))} className="px-6 py-3.5 text-[#C9A84C] hover:bg-white hover:text-[#805D3A] font-bold text-xl transition-colors border-l border-gray-200">+</button>
                           </div>
                         </div>
-                        
+
                         <div className="flex-1 w-full bg-[#FDFBF7] border border-[#E8DFC9] rounded-xl p-6 flex items-start gap-4 shadow-sm">
                           <div className="text-[#C9A84C] bg-white p-3 rounded-full shadow-[0_2px_10px_rgba(201,168,76,0.15)]"><Users className="w-6 h-6" /></div>
                           <div>
@@ -1368,9 +1374,9 @@ export default function BookPage() {
                       <p className="text-xs text-gray-500">
                         Based on your guest count of <strong>{guestCount}</strong>, we recommend the <strong>{guestCount <= 250 ? "Silver" : guestCount <= 450 ? "Gold" : "Diamond"}</strong> package.
                       </p>
-                      <PackageCards 
-                        activePackage={selectedPackage} 
-                        setActivePackage={setSelectedPackage} 
+                      <PackageCards
+                        activePackage={selectedPackage}
+                        setActivePackage={setSelectedPackage}
                         packages={dbPackages && dbPackages.length > 0 ? dbPackages.map((pkg) => {
                           const nameLower = pkg.name.toLowerCase();
                           let slug = "gold";
@@ -1408,9 +1414,9 @@ export default function BookPage() {
                       <p className="text-xs text-gray-500 leading-relaxed mb-4">
                         Add curated third-party vendor services to complete your event. You can also proceed without selecting them if you have alternative arrangements.
                       </p>
-                      <BookingVendorSelector 
-                        vendors={vendors} 
-                        onChange={setVendors} 
+                      <BookingVendorSelector
+                        vendors={vendors}
+                        onChange={setVendors}
                         decoratorRequirements={decoratorRequirements}
                         setDecoratorRequirements={setDecoratorRequirements}
                         videographerRequirements={videographerRequirements}
@@ -1874,12 +1880,22 @@ export default function BookPage() {
                   <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Live Booking Summary</h3>
                   <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> All changes saved</span>
                 </div>
-                
+
                 <h4 className="text-xs font-bold text-[#1A1512] mb-4 uppercase tracking-widest">Event Overview</h4>
-                
+
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 flex items-center gap-2"><div className="w-4 h-4 bg-gray-100 rounded-sm" /> Event Type</span>
+                    <span className="text-gray-500 flex items-center gap-2">
+                      {eventType === 'Wedding' && <Sparkles className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Engagement' && <Gem className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Birthday' && <Cake className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Anniversary' && <Heart className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Corporate' && <Briefcase className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Conference' && <Users2 className="w-4 h-4 text-gray-400" />}
+                      {eventType === 'Graduation' && <GraduationCap className="w-4 h-4 text-gray-400" />}
+                      {(!eventType || eventType === 'Other') && <MessageSquare className="w-4 h-4 text-gray-400" />}
+                      Event Type
+                    </span>
                     <span className="font-bold text-[#1A1512]">{eventType || 'Not selected'}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -1953,8 +1969,8 @@ export default function BookPage() {
                     </div>
                   </>
                 )}
-                
-                <button 
+
+                <button
                   onClick={() => handleStepClick(1)}
                   className="w-full bg-[#FDFBF7] hover:bg-[#F2E5C5] border border-[#E8DFC9] text-[#805D3A] py-3 rounded-md text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
@@ -2036,7 +2052,7 @@ export default function BookPage() {
               <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-[#111111] border-t-2 border-[#C69C6D] shadow-[0_-5px_30px_rgba(0,0,0,0.15)] transition-all duration-300">
                 {/* Collapsed view */}
                 {!mobileSummaryExpanded ? (
-                  <div 
+                  <div
                     onClick={() => setMobileSummaryExpanded(true)}
                     className="p-4 flex items-center justify-between cursor-pointer active:bg-gray-50/50 dark:active:bg-zinc-900/50"
                   >
@@ -2064,16 +2080,16 @@ export default function BookPage() {
                 ) : (
                   <>
                     {/* Backdrop */}
-                    <div 
+                    <div
                       onClick={() => setMobileSummaryExpanded(false)}
                       className="fixed inset-0 bg-black/40 z-[-1]"
                     />
-                    
+
                     {/* Expanded Bottom Sheet */}
                     <div className="max-h-[80vh] overflow-y-auto rounded-t-[20px] p-6 space-y-6">
                       <div className="flex items-center justify-between border-b border-gray-150 dark:border-zinc-800 pb-3">
                         <h3 className="text-lg font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">Your Live Event Summary</h3>
-                        <button 
+                        <button
                           onClick={() => setMobileSummaryExpanded(false)}
                           className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                         >
@@ -2083,7 +2099,7 @@ export default function BookPage() {
 
                       {/* Accordion List */}
                       <div className="space-y-3">
-                        
+
 
                         {/* Package Accordion */}
                         <div className="border border-[#E8DFC9] dark:border-zinc-800 rounded-xl overflow-hidden">
@@ -2202,11 +2218,10 @@ export default function BookPage() {
                               setMobileSummaryExpanded(false);
                             }}
                             disabled={!termsAccepted || isProcessing}
-                            className={`w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] rounded-xl shadow-md transition-colors ${
-                              !termsAccepted || isProcessing
-                                ? "bg-gray-400 cursor-not-allowed opacity-50"
-                                : "bg-[#C69C6D] hover:bg-[#B58B5C]"
-                            }`}
+                            className={`w-full py-4 text-white text-xs uppercase font-bold tracking-[0.2em] rounded-xl shadow-md transition-colors ${!termsAccepted || isProcessing
+                              ? "bg-gray-400 cursor-not-allowed opacity-50"
+                              : "bg-[#C69C6D] hover:bg-[#B58B5C]"
+                              }`}
                           >
                             {isProcessing ? "Processing..." : "Confirm & Pay Deposit"}
                           </button>
@@ -2236,7 +2251,7 @@ export default function BookPage() {
             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
               Your 30% deposit has been successfully processed. The artisan team has been notified and your date is secured.
             </p>
-            <button 
+            <button
               onClick={() => {
                 setShowSuccessModal(false);
                 router.push("/customer/myaccount?tab=bookings");
@@ -2255,7 +2270,7 @@ export default function BookPage() {
             <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto shadow-inner">
               <span className="text-3xl">⚠️</span>
             </div>
-            
+
             <div className="space-y-2">
               <h3 className="text-xl font-serif font-bold text-[#805D3A] dark:text-[#C9A84C]">
                 Payment Not Completed
@@ -2269,7 +2284,7 @@ export default function BookPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <button 
+              <button
                 onClick={() => {
                   setPaymentPendingNotice(null);
                   router.push("/customer/myaccount?tab=bookings");
@@ -2278,8 +2293,8 @@ export default function BookPage() {
               >
                 <span>Go to My Account & Pay Now</span> &rarr;
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setPaymentPendingNotice(null)}
                 className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors"
               >

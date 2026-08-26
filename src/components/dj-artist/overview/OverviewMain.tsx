@@ -43,7 +43,7 @@ const OverviewMain = () => {
   };
 
   const totalBookings = overview?.totalBookings ?? 0;
-  const upcomingCount = overview?.upcomingCount ?? 0;
+  const pendingCount = overview?.pendingCount ?? 0;
   const completedCount = overview?.completedCount ?? 0;
   const recentActivity = overview?.recentActivity ?? [];
   const allMonthlyData: number[] = overview?.monthlyData ?? Array(12).fill(0);
@@ -63,8 +63,8 @@ const OverviewMain = () => {
   const ratingDisplay = avgRating > 0 ? avgRating.toFixed(1) : "—";
 
   const statCards = [
+    { title: "PENDING BOOKINGS", value: pendingCount.toString(), sub: "Awaiting your response", icon: <Calendar size={22} className="text-[#B08D2C]" /> },
     { title: "TOTAL BOOKINGS", value: totalBookings.toString(), sub: "All time jobs", icon: <Music size={22} className="text-[#B08D2C]" /> },
-    { title: "UPCOMING EVENTS", value: upcomingCount.toString(), sub: "Needs preparation", icon: <Calendar size={22} className="text-[#B08D2C]" /> },
     { title: "COMPLETED SETS", value: completedCount.toString(), sub: "Successfully finished", icon: <CheckCircle2 size={22} className="text-[#B08D2C]" /> },
     { title: "AVERAGE RATING", value: ratingDisplay, sub: avgRating > 0 ? "★★★★★" : "No reviews yet", icon: <Star size={22} className="text-[#B08D2C]" /> },
   ];

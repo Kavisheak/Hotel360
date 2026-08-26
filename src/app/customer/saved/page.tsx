@@ -51,7 +51,7 @@ export default function SavedVendorsPage() {
               Explore our wide range of professional vendors and add them to your favorites to easily find them later.
             </p>
             <button 
-              onClick={() => router.push("/customer/vendors")}
+              onClick={() => router.push("/vendors")}
               className="btn-interactive bg-[#C9A84C] text-[#2C1E14] px-6 py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B89238] transition-colors rounded-sm mt-4 inline-block"
             >
               Browse Vendors

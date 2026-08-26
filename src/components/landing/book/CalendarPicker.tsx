@@ -111,8 +111,10 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
       let status = "available";
       let reason = "";
       if (dateStringMatch) {
-        if (dateStringMatch.status === "confirmed" || dateStringMatch.status === "completed" || dateStringMatch.status === "pending") {
+        if (dateStringMatch.status === "confirmed" || dateStringMatch.status === "completed") {
           status = "reserved";
+        } else if (dateStringMatch.status === "pending") {
+          status = "pending";
         } else if (dateStringMatch.status === "held") {
           status = "held";
         } else if (dateStringMatch.status === "blocked") {
@@ -152,6 +154,10 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-red-100 border-2 border-red-200 block"></span>
           <span>RESERVED</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-gray-100 border-2 border-gray-300 block"></span>
+          <span>PENDING</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-green-100 border-2 border-green-200 block"></span>
@@ -197,6 +203,8 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
             cellStyle = "bg-gray-50 dark:bg-gray-900/20 text-gray-400 dark:text-gray-600 border border-transparent cursor-not-allowed opacity-50";
           } else if (dayObj.status === "reserved") {
             cellStyle = "bg-[#FFF0F0] dark:bg-[#2A1111] text-[#D94F4F] border border-[#FFD6D6] dark:border-red-900/50 cursor-not-allowed";
+          } else if (dayObj.status === "pending") {
+            cellStyle = "bg-[#F3F4F6] dark:bg-gray-800 text-gray-500 border border-gray-300 dark:border-gray-600 cursor-not-allowed";
           } else if (dayObj.status === "held") {
             cellStyle = "bg-amber-50 dark:bg-amber-950/30 text-amber-700 border border-amber-300 dark:border-amber-900 cursor-not-allowed";
           } else if (dayObj.status === "blocked") {
@@ -221,6 +229,9 @@ export default function CalendarPicker({ selectedDate, onSelectDate }: CalendarP
               
               {dayObj.status === "reserved" && (
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-[#D94F4F]">BOOKED</span>
+              )}
+              {dayObj.status === "pending" && (
+                <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-gray-500">PENDING</span>
               )}
               {dayObj.status === "held" && (
                 <span className="text-[7px] uppercase tracking-widest font-bold mt-0.5 text-amber-600">HELD</span>

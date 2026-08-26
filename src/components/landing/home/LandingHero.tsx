@@ -132,7 +132,7 @@ const LandingHero = () => {
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" />
             </button>
             <button 
-              onClick={() => router.push('/customer/packages')}
+              onClick={() => router.push('/packages')}
               className="group btn-interactive w-full sm:w-auto border border-[#D4C9A8] dark:border-[#C9A84C]/50 bg-white dark:bg-transparent backdrop-blur-sm text-[#805D3A] dark:text-[#C9A84C] px-8 py-3.5 flex items-center justify-center gap-3 text-[11px] tracking-widest uppercase font-bold rounded-full hover:bg-gray-50 dark:hover:bg-[#C9A84C]/10 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300"
             >
               Explore Packages

@@ -463,7 +463,6 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                 <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 border-b pb-2">Hall + Facilities</h5>
                 <div className="space-y-2 text-sm text-gray-700 mb-6">
                   <div className="flex justify-between"><span>Hall rental</span><span>LKR {hallCost.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span>Food ({booking.guests || 250} pax)</span><span>LKR {foodCost.toLocaleString()}</span></div>
                   <div className="flex justify-between text-gray-500"><span>AC</span><span>Included</span></div>
                   <div className="flex justify-between text-gray-500"><span>Sound system</span><span>Included</span></div>
                   <div className="flex justify-between text-gray-500"><span>Generator</span><span>Included</span></div>

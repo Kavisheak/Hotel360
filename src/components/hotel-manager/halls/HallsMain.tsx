@@ -48,7 +48,7 @@ const initialVenue: VenueState = {
     { id: 'img-2', src: '/gold_package.png', alt: 'Dining setup' },
     { id: 'img-3', src: '/silver_package.png', alt: 'Stage arrangement' },
   ],
-  virtualTourUrl: '/customer/virtual-tour',
+  virtualTourUrl: '/virtual-tour',
   blockedDates: ['2026-08-15', '2026-11-14', '2026-12-25'],
   paused: false,
 };

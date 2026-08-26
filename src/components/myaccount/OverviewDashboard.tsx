@@ -15,7 +15,7 @@ export default function OverviewDashboard() {
   const totalBookings = bookings.length;
   const completedEvents = bookings.filter(b => b.status?.toLowerCase() === "completed").length;
   const pendingEvents = bookings.filter(b => b.status?.toLowerCase() === "pending").length;
-  
+
   // Find the next upcoming reservation (Confirmed/Pending on a future date)
   const upcomingBooking = bookings
     .filter(b => b.status?.toLowerCase() === "confirmed" || b.status?.toLowerCase() === "pending")
@@ -25,7 +25,7 @@ export default function OverviewDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      
+
       {/* Welcome Card */}
       <div className="relative overflow-hidden bg-[#FDF8EE] dark:bg-[#111111] p-8 border border-[#E8DFC9] dark:border-[#C9A84C]/20 shadow-sm rounded-xl text-left flex items-center justify-between">
         <div className="flex items-start gap-6 z-10 relative">
@@ -33,7 +33,12 @@ export default function OverviewDashboard() {
             <LayoutGrid className="w-8 h-8 text-[#C9A84C]" strokeWidth={1.5} />
           </div>
           <div>
-            <h2 className="font-serif text-3xl text-[#1A1512] dark:text-white mb-2">Welcome Back, {user?.firstName || "Guest"}!</h2>
+            <h2 className="font-serif text-3xl text-[#1A1512] dark:text-white mb-2">
+              {user?.createdAt && (Date.now() - new Date(user.createdAt).getTime() < 1000 * 60 * 60 * 24)
+                ? `Welcome to EASCCA, ${user?.firstName || "Guest"}!`
+                : `Welcome Back, ${user?.firstName || "Guest"}!`
+              }
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm font-light max-w-md leading-relaxed">
               Manage your luxury event arrangements, review payments, and customize your preferences from one central interface.
             </p>
@@ -73,7 +78,7 @@ export default function OverviewDashboard() {
 
       {/* Main Grid: Active Reservation & Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+
         {/* Next Active Reservation Card */}
         <div className="bg-white dark:bg-[#111111] border border-gray-100 dark:border-zinc-800/80 p-6 rounded-xl shadow-sm flex flex-col text-left">
           <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800/80 pb-4 mb-5">
@@ -85,7 +90,7 @@ export default function OverviewDashboard() {
               View All
             </Link>
           </div>
-          
+
           <div className="flex-1 flex flex-col justify-center">
             {upcomingBooking ? (
               <div className="space-y-6">
@@ -110,7 +115,7 @@ export default function OverviewDashboard() {
                     {upcomingBooking.status || "CONFIRMED"}
                   </span>
                 </div>
-                
+
                 <Link href="?tab=bookings" className="block w-full py-3.5 mt-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 rounded-lg text-center text-[10px] font-bold uppercase tracking-widest text-[#C9A84C] hover:bg-[#FAF6EE] dark:hover:bg-[#C9A84C]/10 transition-colors">
                   VIEW BOOKING DETAILS <ChevronRight className="w-3 h-3 inline ml-1 -mt-0.5" />
                 </Link>
@@ -162,7 +167,7 @@ export default function OverviewDashboard() {
             Thank you for being a valued member. Enjoy exclusive benefits and priority support.
           </p>
         </div>
-        
+
         <div className="md:w-2/3 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "Priority Booking", icon: CheckCircle2 },

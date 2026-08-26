@@ -14,9 +14,9 @@ export default function BookFooter() {
         
         <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-semibold">
           <Link href="/" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Home</Link>
-          <Link href="/customer/packages" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Packages</Link>
-          <Link href="/customer/vendors" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Vendors</Link>
-          <Link href="/customer/virtual-tour" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Virtual Tour</Link>
+          <Link href="/packages" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Packages</Link>
+          <Link href="/vendors" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Vendors</Link>
+          <Link href="/virtual-tour" className="hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Virtual Tour</Link>
           <Link href="/customer/book" className="text-[#C69C6D] hover:text-[#2C1E14] dark:text-white transition-colors duration-200">Book</Link>
         </div>
         

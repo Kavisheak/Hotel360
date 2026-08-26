@@ -28,7 +28,7 @@ export default function SavedVendors() {
             You haven&apos;t saved any service partners yet. Explore our marketplace to bookmark decorators, DJs, videographers, and other event experts.
           </p>
           <Link
-            href="/customer/vendors"
+            href="/vendors"
             className="inline-block bg-[#C69C6D] text-white px-6 py-2.5 text-[10px] uppercase font-bold tracking-widest hover:bg-[#B58B5C] transition-colors rounded-sm shadow-md"
           >
             Browse Marketplace
@@ -100,7 +100,7 @@ export default function SavedVendors() {
 
                 <div className="pt-2">
                   <Link 
-                    href={`/customer/vendorProfile/${vendor.id}`}
+                    href={`/vendorProfile/${vendor.id}`}
                     className="w-full text-center flex items-center justify-center gap-1.5 py-2 border border-[#C9A84C] text-[#C9A84C] hover:bg-[#FAF6EE] dark:hover:bg-[#1A1A1A] font-bold text-[10px] uppercase tracking-widest rounded transition-all"
                   >
                     Explore Portfolio

@@ -23,7 +23,7 @@ const initialBanners: HeroBanner[] = [
     subtitle: 'Step into luxury at EASCCA Conference Centre, Eravur.',
     imageUrl: '/packages_hero_bg.png',
     ctaText: 'Explore Packages',
-    ctaLink: '/customer/packages',
+    ctaLink: '/packages',
     active: true,
   },
   {
@@ -32,7 +32,7 @@ const initialBanners: HeroBanner[] = [
     subtitle: 'Walk the aisle before you walk it.',
     imageUrl: '/virtual_tour_bg.png',
     ctaText: 'Launch Virtual Tour',
-    ctaLink: '/customer/virtual-tour',
+    ctaLink: '/virtual-tour',
     active: true,
   },
 ];
@@ -169,7 +169,7 @@ export default function ContentMain() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div className="p-4 border rounded-lg bg-gray-50 space-y-2">
               <span className="font-bold text-gray-900 block">360° Main Hall Panorama</span>
-              <p className="text-gray-500 text-[11px]">Target: `/customer/virtual-tour`</p>
+              <p className="text-gray-500 text-[11px]">Target: `/virtual-tour`</p>
               <div className="flex items-center gap-2 pt-2">
                 <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px]">VERIFIED</span>
               </div>

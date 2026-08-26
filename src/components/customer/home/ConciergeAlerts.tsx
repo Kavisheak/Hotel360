@@ -114,7 +114,7 @@ export default function ConciergeAlerts() {
         </p>
         <div className="mt-4">
           <Link 
-            href="/customer/vendors"
+            href="/vendors"
             className="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold tracking-widest text-[#C9A84C] hover:text-[#2C1E14] transition-colors"
           >
             <span>Browse Creative Vendors</span>

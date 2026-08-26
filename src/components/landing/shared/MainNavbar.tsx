@@ -64,9 +64,9 @@ export default function MainNavbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Packages", path: "/customer/packages" },
-    { name: "Vendors", path: "/customer/vendors" },
-    { name: "Virtual Tour", path: "/customer/virtual-tour" },
+    { name: "Packages", path: "/packages" },
+    { name: "Vendors", path: "/vendors" },
+    { name: "Virtual Tour", path: "/virtual-tour" },
     { name: "Book", path: "/book" },
     ...(isLoggedIn ? [{ name: "My Account", path: "/customer/myaccount" }] : []),
   ];

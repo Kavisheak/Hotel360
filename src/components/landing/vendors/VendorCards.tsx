@@ -485,7 +485,7 @@ export default function VendorCards({
                     <img 
                       src={vendor.avatar || vendor.image} 
                       alt={vendor.name} 
-                      onClick={() => handleRestrictedAction("Please log in to explore this profile.", () => router.push(`/customer/vendorProfile/${vendor.id}`))}
+                      onClick={() => handleRestrictedAction("Please log in to explore this profile.", () => router.push(`/vendorProfile/${vendor.id}`))}
                       className="w-[84px] h-[84px] rounded-full object-cover border-[4px] border-white bg-white shadow-md pointer-events-auto cursor-pointer hover:scale-105 transition-transform" 
                     />
                   </div>
@@ -610,7 +610,7 @@ export default function VendorCards({
                       {galleryMedia.length > 4 && (
                         <div 
                           className="h-full w-[60px] flex-shrink-0 bg-gray-50 border border-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors" 
-                          onClick={() => { if(portfolioItem) { setSelectedPortfolio({ vendor, item: portfolioItem }); setIsViewerOpen(true); } else { router.push(`/customer/vendorProfile/${vendor.id}`); } }}
+                          onClick={() => { if(portfolioItem) { setSelectedPortfolio({ vendor, item: portfolioItem }); setIsViewerOpen(true); } else { router.push(`/vendorProfile/${vendor.id}`); } }}
                         >
                           <ImageIcon className="w-4 h-4 mb-0.5" />
                           <span className="text-[9px] font-bold">+{galleryMedia.length - 4}<br/>More</span>
@@ -627,7 +627,7 @@ export default function VendorCards({
                           setSelectedPortfolio({ vendor, item: portfolioItem });
                           setIsViewerOpen(true);
                         } else {
-                          router.push(`/customer/vendorProfile/${vendor.id}`);
+                          router.push(`/vendorProfile/${vendor.id}`);
                         }
                       })}
                       className="flex-1 py-3.5 rounded-xl border-2 border-gray-100 text-gray-700 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
