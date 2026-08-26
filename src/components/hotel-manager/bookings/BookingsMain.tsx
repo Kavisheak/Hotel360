@@ -163,6 +163,8 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
   // Balance payable condition: Hall confirmed, Vendors accepted (or no vendors), and balance > 0
   const isBalancePayable = (booking.status === 'Confirmed' || booking.status === 'DepositPaid' || booking.status === 'BalancePaid') && remainingBalance > 0 && activeVendors.every(v => v.data.status === 'Accepted' || v.data.status === 'Confirmed');
 
+  const hasAnyVendorDeclined = activeVendors.some(v => ['Declined', 'declined', 'Cancelled', 'cancelled', 'Rejected', 'rejected'].includes(v.data.status) && !v.data.replacement);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Pending':
@@ -520,28 +522,40 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                         
                         {/* Vendor Rejection UI */}
                         {['Declined', 'declined', 'Cancelled', 'cancelled', 'Rejected', 'rejected', 'Expired', 'expired'].includes(v.data.status) && !v.data.replacement && (
-                          <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-lg">
-                            <div className="flex items-center gap-2 text-red-700 font-bold mb-2">
-                              <AlertCircle size={16} /> Vendor Rejected
-                            </div>
-                            <div className="text-xs text-gray-700 mb-2">
-                              <span className="font-semibold text-gray-500 block uppercase tracking-wider text-[10px]">Reason:</span>
-                              {v.data.rejectionReason || "Unavailable on event date."}
-                            </div>
-                            <div className="text-xs text-amber-700 font-semibold bg-amber-100/50 p-2 rounded border border-amber-200 flex justify-between items-center">
-                              <div>
-                                <span className="font-bold text-gray-500 uppercase tracking-wider text-[10px] block mb-0.5">Customer Action:</span>
-                                Awaiting customer decision
+                          booking.status === 'Rejected' ? (
+                            <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                              <div className="flex items-center gap-2 text-red-700 font-bold mb-2">
+                                <AlertCircle size={16} /> Booking Rejected by Manager
                               </div>
-                              <button 
-                                onClick={() => openManageVendor(v.cat, v.data)}
-                                disabled={isProcessing}
-                                className="bg-white border border-red-200 hover:bg-red-50 text-red-600 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
-                              >
-                                Manage Vendor
-                              </button>
+                              <div className="text-xs text-gray-700 mb-2">
+                                <span className="font-semibold text-gray-500 block uppercase tracking-wider text-[10px]">Note:</span>
+                                This vendor request was cancelled because the entire booking was rejected.
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                              <div className="flex items-center gap-2 text-red-700 font-bold mb-2">
+                                <AlertCircle size={16} /> Vendor Rejected
+                              </div>
+                              <div className="text-xs text-gray-700 mb-2">
+                                <span className="font-semibold text-gray-500 block uppercase tracking-wider text-[10px]">Reason:</span>
+                                {v.data.rejectionReason || "Unavailable on event date."}
+                              </div>
+                              <div className="text-xs text-amber-700 font-semibold bg-amber-100/50 p-2 rounded border border-amber-200 flex justify-between items-center">
+                                <div>
+                                  <span className="font-bold text-gray-500 uppercase tracking-wider text-[10px] block mb-0.5">Customer Action:</span>
+                                  Awaiting customer decision
+                                </div>
+                                <button 
+                                  onClick={() => openManageVendor(v.cat, v.data)}
+                                  disabled={isProcessing}
+                                  className="bg-white border border-red-200 hover:bg-red-50 text-red-600 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                                >
+                                  Manage Vendor
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )}
 
                         {/* Replacement Request UI */}
@@ -782,7 +796,8 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
                           setPayAmount(remainingBalance);
                           setIsRecordPaymentModalOpen(true);
                         }}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-xs py-3 rounded flex items-center justify-center gap-2 transition-colors shadow-[0_0_15px_rgba(5,150,105,0.3)]"
+                        disabled={hasAnyVendorDeclined}
+                        className={`w-full font-bold uppercase tracking-widest text-xs py-3 rounded flex items-center justify-center gap-2 transition-colors ${hasAnyVendorDeclined ? 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_0_15px_rgba(5,150,105,0.3)]'}`}
                       >
                         <CheckCircle2 size={16} /> Record Offline Payment
                       </button>
@@ -1142,3 +1157,4 @@ const BookingsMain = ({ bookingId }: { bookingId?: string }) => {
 };
 
 export default BookingsMain;
+
