@@ -239,7 +239,7 @@ export const useBookingStore = create<BookingState>()(
           for (const service of validServices) {
             const rating = feedback[service as keyof typeof feedback] as number;
             const reviewText = (feedback.comments as any)[service];
-            const vendorId = booking.vendors?.[service as keyof typeof booking.vendors]?.vendorId;
+            const vendorId = (booking.vendors?.[service as keyof typeof booking.vendors] as any)?.vendorId;
             
             if (rating && vendorId && vendorId !== "none") {
               reviewsPayload.push({
