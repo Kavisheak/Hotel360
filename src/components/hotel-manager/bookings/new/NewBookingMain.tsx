@@ -68,6 +68,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [defaultDeposit, setDefaultDeposit] = useState<number>(40);
 
   // Toast state
   const [toast, setToast] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: "", subtitle: "" });
@@ -183,6 +184,15 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
         setUnavailableDates(res.data.data);
       }
     });
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/system-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.defaultDeposit !== undefined) {
+          setDefaultDeposit(data.defaultDeposit);
+        }
+      })
+      .catch(() => { });
   }, [fetchVendors]);
 
   const isSelectedDateUnavailable = () => {
@@ -475,7 +485,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
     return { advance: Math.round(cost * (percentage / 100)), percentage, cost };
   };
 
-  const hallAdvance = Math.round(hallBase * 0.30);
+  const hallAdvance = Math.round(hallBase * (defaultDeposit / 100));
   const decoratorAdv = getVendorAdvanceInfo("decorator");
   const djAdv = getVendorAdvanceInfo("dj");
   const videographerAdv = getVendorAdvanceInfo("videographer");
@@ -872,7 +882,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
               <p style="margin:0 0 5px 0; font-size:12px; color:gray; text-transform:uppercase;">Advance Deposit Paid</p>
               <h3 style="margin:0 0 10px 0; color:#805d3a; font-size:24px;">${formatCurrency(successAdvancePaid)}</h3>
               <div style="font-size:10px; color:#555; text-align:right; margin-bottom:10px;">
-                <p style="margin:2px 0;">Hall Advance (25%): ${formatCurrency(hallAdvance)}</p>
+                <p style="margin:2px 0;">Hall Advance (${defaultDeposit}%): ${formatCurrency(hallAdvance)}</p>
                 ${decoratorAdv.advance > 0 ? `<p style="margin:2px 0;">Decorator Advance (${decoratorAdv.percentage}%): ${formatCurrency(decoratorAdv.advance)}</p>` : ""}
                 ${djAdv.advance > 0 ? `<p style="margin:2px 0;">DJ Advance (${djAdv.percentage}%): ${formatCurrency(djAdv.advance)}</p>` : ""}
                 ${videographerAdv.advance > 0 ? `<p style="margin:2px 0;">Videographer Advance (${videographerAdv.percentage}%): ${formatCurrency(videographerAdv.advance)}</p>` : ""}
@@ -996,7 +1006,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                   Advance Payment Successful
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Your 30% advance deposit payment has been received and verified. Your event date is officially secured.
+                  Your advance deposit payment has been received and verified. Your event date is officially secured.
                 </p>
 
                 <div className="bg-[#FAF6EE] dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800/80 p-5 rounded-md space-y-3.5 text-sm text-left max-w-sm mx-auto font-mono">
@@ -1625,7 +1635,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Payable Now (Advance)</p>
                               <p className="text-3xl font-serif text-[#1A1512] dark:text-white">{formatCurrency(depositToday)}</p>
                               <div className="mt-2 text-xs text-gray-500 space-y-1">
-                                <p className="flex justify-between w-48"><span className="text-gray-400">Hall (25%)</span> <span>{formatCurrency(hallAdvance)}</span></p>
+                                <p className="flex justify-between w-48"><span className="text-gray-400">Hall ({defaultDeposit}%)</span> <span>{formatCurrency(hallAdvance)}</span></p>
                                 {decoratorAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Decorator ({decoratorAdv.percentage}%)</span> <span>{formatCurrency(decoratorAdv.advance)}</span></p>}
                                 {djAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">DJ ({djAdv.percentage}%)</span> <span>{formatCurrency(djAdv.advance)}</span></p>}
                                 {videographerAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Videographer ({videographerAdv.percentage}%)</span> <span>{formatCurrency(videographerAdv.advance)}</span></p>}
@@ -2066,7 +2076,7 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
             </div>
             <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Confirmed!</h3>
             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
-              Your 30% deposit has been successfully processed. The artisan team has been notified and your date is secured.
+              Your advance deposit has been successfully processed. The artisan team has been notified and your date is secured.
             </p>
             <button
               onClick={() => {
@@ -2093,10 +2103,10 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                 Payment Not Completed
               </h3>
               <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                Your booking reservation has been saved, but your <strong>30% advance deposit</strong> has not been completed yet.
+                Your booking reservation has been saved, but your <strong>advance deposit</strong> has not been completed yet.
               </p>
               <div className="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
-                ⏳ Please complete your 30% advance payment within <strong>15 minutes</strong> to secure your date.
+                ⏳ Please complete your advance payment within <strong>15 minutes</strong> to secure your date.
               </div>
             </div>
 

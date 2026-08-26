@@ -15,7 +15,7 @@ export default function AuthPage() {
   const router = useRouter();
   const { user, fetchUser, isLoading } = useAuthStore();
   const [isLogin, setIsLogin] = useState(true);
-  
+
   // Login State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,6 +50,8 @@ export default function AuthPage() {
   }>({});
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+
   // Toggle mode
   const toggleMode = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -59,17 +61,27 @@ export default function AuthPage() {
 
   useEffect(() => {
     fetchUser();
+
+    // Check maintenance mode strictly for UI rendering
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/system-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.maintenanceMode) {
+          setIsMaintenanceActive(true);
+        }
+      })
+      .catch(() => { });
   }, [fetchUser]);
 
   useEffect(() => {
     if (!isLoading && user) {
       const role = user.role.toLowerCase();
-      if      (role === "super_admin")   router.replace("/super-admin");
-      else if (role === "manager")       router.replace("/hotel-manager");
-      else if (role === "decorator")     router.replace("/decorator");
-      else if (role === "videographer")  router.replace("/videographer");
-      else if (role === "dj_artist")     router.replace("/dj-artist");
-      else                               router.replace("/");
+      if (role === "super_admin") router.replace("/super-admin");
+      else if (role === "manager") router.replace("/hotel-manager");
+      else if (role === "decorator") router.replace("/decorator");
+      else if (role === "videographer") router.replace("/videographer");
+      else if (role === "dj_artist") router.replace("/dj-artist");
+      else router.replace("/");
     }
   }, [isLoading, user, router]);
 
@@ -81,12 +93,12 @@ export default function AuthPage() {
           if (ok && data.user) {
             useAuthStore.getState().updateUser(data.user);
             const role = data.user.role.toLowerCase();
-            if      (role === "super_admin")   window.location.replace("/super-admin");
-            else if (role === "manager")       window.location.replace("/hotel-manager");
-            else if (role === "decorator")     window.location.replace("/decorator");
-            else if (role === "videographer")  window.location.replace("/videographer");
-            else if (role === "dj_artist")     window.location.replace("/dj-artist");
-            else                               window.location.replace("/");
+            if (role === "super_admin") window.location.replace("/super-admin");
+            else if (role === "manager") window.location.replace("/hotel-manager");
+            else if (role === "decorator") window.location.replace("/decorator");
+            else if (role === "videographer") window.location.replace("/videographer");
+            else if (role === "dj_artist") window.location.replace("/dj-artist");
+            else window.location.replace("/");
           } else {
             useAuthStore.getState().clearUser();
           }
@@ -144,23 +156,22 @@ export default function AuthPage() {
     await fetchUser(true);
 
     // Redirect based on role
-    const role = data.user.role;
-    
-    if      (role === "super_admin")   router.replace("/super-admin");
-    else if (role === "manager")       router.replace("/hotel-manager");
-    else if (role === "decorator")     router.replace("/decorator");
-    else if (role === "videographer")  router.replace("/videographer");
-    else if (role === "dj_artist")     router.replace("/dj-artist");
-    else                               router.replace("/");
+    const role = data.user.role.toLowerCase();
+    if (role === "super_admin") router.replace("/super-admin");
+    else if (role === "manager") router.replace("/hotel-manager");
+    else if (role === "decorator") router.replace("/decorator");
+    else if (role === "videographer") router.replace("/videographer");
+    else if (role === "dj_artist") router.replace("/dj-artist");
+    else router.replace("/");
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrors({});
-    
+
     let hasError = false;
     const newErrors: typeof errors = {};
-    
+
     if (!firstName.trim()) {
       newErrors.firstName = "First name is required.";
       hasError = true;
@@ -259,7 +270,7 @@ export default function AuthPage() {
           </div>
           <div>
             <h4 className="text-gray-900 text-sm font-bold mb-0.5">Trusted Venue</h4>
-            <p className="text-gray-500 text-xs leading-relaxed">A premier venue for<br/>memorable events.</p>
+            <p className="text-gray-500 text-xs leading-relaxed">A premier venue for<br />memorable events.</p>
           </div>
         </div>
         <div className="w-px h-12 bg-gray-200"></div>
@@ -271,7 +282,7 @@ export default function AuthPage() {
           </div>
           <div>
             <h4 className="text-gray-900 text-sm font-bold mb-0.5">Seamless Planning</h4>
-            <p className="text-gray-500 text-xs leading-relaxed">Everything you need<br/>in one place.</p>
+            <p className="text-gray-500 text-xs leading-relaxed">Everything you need<br />in one place.</p>
           </div>
         </div>
         <div className="w-px h-12 bg-gray-200"></div>
@@ -281,7 +292,7 @@ export default function AuthPage() {
           </div>
           <div>
             <h4 className="text-gray-900 text-sm font-bold mb-0.5">Dedicated Support</h4>
-            <p className="text-gray-500 text-xs leading-relaxed">We're here to help<br/>you succeed.</p>
+            <p className="text-gray-500 text-xs leading-relaxed">We're here to help<br />you succeed.</p>
           </div>
         </div>
       </div>
@@ -296,6 +307,16 @@ export default function AuthPage() {
                 <div className="w-32 h-14 relative">
                   <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
                 </div>
+                {isMaintenanceActive && (
+                  <div className="mt-3 bg-red-900/60 border border-red-500/50 rounded-lg p-2.5 w-full max-w-[280px] text-center shadow-lg backdrop-blur-md">
+                    <p className="text-red-300 font-bold text-xs uppercase tracking-wider animate-pulse flex items-center justify-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Maintenance Mode
+                    </p>
+                    <p className="text-red-200/90 text-[10px] mt-1 hidden sm:block">
+                      Public access disabled. Please check back later.
+                    </p>
+                  </div>
+                )}
                 <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Welcome Back
                 </h1>
@@ -351,8 +372,8 @@ export default function AuthPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -366,9 +387,9 @@ export default function AuthPage() {
                     <div className="relative flex items-center">
                       <input type="checkbox" className="peer w-3.5 h-3.5 opacity-0 absolute" />
                       <div className="w-3.5 h-3.5 border border-[#C9A84C] rounded bg-transparent peer-checked:bg-[#C9A84C] flex items-center justify-center transition-all">
-                         <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
-                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                         </svg>
+                        <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
                       </div>
                     </div>
                     Remember me
@@ -395,16 +416,18 @@ export default function AuthPage() {
                 <div className="flex-grow border-t border-gray-200"></div>
               </div>
 
-              <div className="text-center w-full mb-4">
-                <button type="button" onClick={toggleMode} className="w-full bg-white border border-[#C9A84C]/40 text-gray-600 py-2.5 rounded-lg hover:bg-[#FAF7F2] transition-colors text-xs flex justify-center items-center gap-1.5 shadow-sm">
-                  <User className="w-3.5 h-3.5 text-[#C9A84C]" /> New to EASCC? <span className="text-[#C9A84C] font-semibold">Create an account.</span>
-                </button>
-              </div>
+              {!isMaintenanceActive && (
+                <div className="text-center w-full mb-4">
+                  <button type="button" onClick={toggleMode} className="w-full bg-white border border-[#C9A84C]/40 text-gray-600 py-2.5 rounded-lg hover:bg-[#FAF7F2] transition-colors text-xs flex justify-center items-center gap-1.5 shadow-sm">
+                    <User className="w-3.5 h-3.5 text-[#C9A84C]" /> New to EASCC? <span className="text-[#C9A84C] font-semibold">Create an account.</span>
+                  </button>
+                </div>
+              )}
 
               <div className="flex justify-center items-center gap-1.5 text-[10px] text-gray-400 pb-1">
                 <svg className="w-3.5 h-3.5 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 EASCCA Conference Centre, Eravur, Sri Lanka
               </div>
@@ -414,7 +437,7 @@ export default function AuthPage() {
               {/* Register Form Content */}
               <div className="flex flex-col items-center mb-2">
                 <div className="w-24 h-12 relative">
-                   <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
+                  <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
                 </div>
                 <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Create Account
@@ -507,11 +530,11 @@ export default function AuthPage() {
                   <div className="relative flex shadow-sm rounded-lg">
                     <div className="bg-gray-50 border border-gray-200 rounded-l-lg border-r-0 py-2 pl-3 pr-2 flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-[#C9A84C]" />
-                      <img 
-                        src="https://flagcdn.com/w20/lk.png" 
-                        width="14" 
-                        height="10" 
-                        alt="Sri Lanka" 
+                      <img
+                        src="https://flagcdn.com/w20/lk.png"
+                        width="14"
+                        height="10"
+                        alt="Sri Lanka"
                         className="object-cover rounded-[2px]"
                       />
                       <span className="text-gray-600 text-[11px] font-medium">+94</span>
@@ -552,8 +575,8 @@ export default function AuthPage() {
                         if (errors.regPassword) setErrors({ ...errors, regPassword: undefined });
                       }}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowRegPassword(!showRegPassword)}
                     >
@@ -583,8 +606,8 @@ export default function AuthPage() {
                         if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
                       }}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
@@ -625,9 +648,9 @@ export default function AuthPage() {
                     <div className="relative flex items-center mt-0.5">
                       <input type="checkbox" className="peer w-3.5 h-3.5 opacity-0 absolute" />
                       <div className="w-3.5 h-3.5 border border-[#C9A84C] rounded bg-transparent peer-checked:bg-[#C9A84C] flex items-center justify-center transition-all">
-                         <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
-                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                         </svg>
+                        <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
                       </div>
                     </div>
                     <span className="leading-tight">
@@ -655,16 +678,16 @@ export default function AuthPage() {
               <div className="flex gap-2 mb-2">
                 <button className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 transition-colors py-2 rounded-lg flex items-center justify-center gap-1.5 text-gray-600 text-xs font-medium shadow-sm">
                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                   Google
                 </button>
                 <button className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 transition-colors py-2 rounded-lg flex items-center justify-center gap-1.5 text-gray-600 text-xs font-medium shadow-sm">
                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="#1877F2">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                   Facebook
                 </button>
@@ -713,7 +736,7 @@ export default function AuthPage() {
                   <Lock className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-serif text-white mb-2">Reset Password</h3>
-                
+
                 {forgotSuccess ? (
                   <div className="space-y-4">
                     <p className="text-white/90 text-sm">
@@ -734,7 +757,7 @@ export default function AuthPage() {
                     <p className="text-white/90 text-sm">
                       Enter your email address and we'll send you a temporary password to regain access to your account.
                     </p>
-                    
+
                     <div>
                       <label className="block text-xs font-medium text-white/90 mb-1">Email Address</label>
                       <div className="relative">

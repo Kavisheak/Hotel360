@@ -155,7 +155,19 @@ export default function BookPage() {
   const [unavailableDates, setUnavailableDates] = useState<{ date: string, status: string }[]>([]);
   const { addToast } = useToastStore();
   const [policyModalType, setPolicyModalType] = useState<"vendor" | "cancellation" | null>(null);
+  const [defaultDeposit, setDefaultDeposit] = useState<number>(30); // Default to 30%
+
   useEffect(() => {
+    // Fetch dynamic deposit from system settings
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/system-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.defaultDeposit !== undefined) {
+          setDefaultDeposit(data.defaultDeposit);
+        }
+      })
+      .catch(() => { });
+
     fetchVendors();
     packageAPI.getAllPackages().then((res) => {
       if (res.ok && res.data?.data) {
@@ -566,7 +578,7 @@ export default function BookPage() {
     return { advance: Math.round(cost * (percentage / 100)), percentage, cost };
   };
 
-  const hallAdvance = Math.round(hallBase * 0.30);
+  const hallAdvance = Math.round(hallBase * (defaultDeposit / 100));
   const decoratorAdv = getVendorAdvanceInfo("decorator");
   const djAdv = getVendorAdvanceInfo("dj");
   const videographerAdv = getVendorAdvanceInfo("videographer");
@@ -789,7 +801,7 @@ export default function BookPage() {
                 setSuccessBookingId(matched._id || matched.id);
                 setIsProcessing(false);
                 resetBookingForm();
-                triggerToast("30% Deposit Paid!", "Booking Confirmed. Waiting for manager approval.");
+                triggerToast(`${defaultDeposit}% Deposit Paid!`, "Booking Confirmed. Waiting for manager approval.");
                 return;
               }
             }
@@ -1153,7 +1165,7 @@ export default function BookPage() {
                   Advance Payment Successful
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Your 30% advance deposit payment has been received and verified. Your event date is officially secured.
+                  Your {defaultDeposit}% advance deposit payment has been received and verified. Your event date is officially secured.
                 </p>
 
                 <div className="bg-[#FAF6EE] dark:bg-zinc-900/60 border border-[#E8DFC9] dark:border-zinc-800/80 p-5 rounded-md space-y-3.5 text-sm text-left max-w-sm mx-auto font-mono">
@@ -1809,7 +1821,7 @@ export default function BookPage() {
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Payable Now (Advance)</p>
                               <p className="text-3xl font-serif text-[#1A1512] dark:text-white">{formatCurrency(depositToday)}</p>
                               <div className="mt-2 text-xs text-gray-500 space-y-1">
-                                <p className="flex justify-between w-48"><span className="text-gray-400">Hall (30%)</span> <span>{formatCurrency(hallAdvance)}</span></p>
+                                <p className="flex justify-between w-48"><span className="text-gray-400">Hall ({defaultDeposit}%)</span> <span>{formatCurrency(hallAdvance)}</span></p>
                                 {decoratorAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Decorator ({decoratorAdv.percentage}%)</span> <span>{formatCurrency(decoratorAdv.advance)}</span></p>}
                                 {djAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">DJ ({djAdv.percentage}%)</span> <span>{formatCurrency(djAdv.advance)}</span></p>}
                                 {videographerAdv.advance > 0 && <p className="flex justify-between w-48"><span className="text-gray-400">Videographer ({videographerAdv.percentage}%)</span> <span>{formatCurrency(videographerAdv.advance)}</span></p>}
@@ -2185,7 +2197,7 @@ export default function BookPage() {
                                 <span className="text-[#C69C6D]">{formatCurrency(depositToday)}</span>
                               </div>
                               <div className="pl-4 pt-1 text-xs text-gray-500 space-y-0.5">
-                                <div className="flex justify-between"><span>Hall (30%)</span><span>{formatCurrency(hallAdvance)}</span></div>
+                                <div className="flex justify-between"><span>Hall ({defaultDeposit}%)</span><span>{formatCurrency(hallAdvance)}</span></div>
                                 {decoratorAdv.advance > 0 && <div className="flex justify-between"><span>Decorator ({decoratorAdv.percentage}%)</span><span>{formatCurrency(decoratorAdv.advance)}</span></div>}
                                 {djAdv.advance > 0 && <div className="flex justify-between"><span>DJ ({djAdv.percentage}%)</span><span>{formatCurrency(djAdv.advance)}</span></div>}
                                 {videographerAdv.advance > 0 && <div className="flex justify-between"><span>Videographer ({videographerAdv.percentage}%)</span><span>{formatCurrency(videographerAdv.advance)}</span></div>}
@@ -2256,7 +2268,7 @@ export default function BookPage() {
             </div>
             <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Booking Confirmed!</h3>
             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
-              Your 30% deposit has been successfully processed. The artisan team has been notified and your date is secured.
+              Your {defaultDeposit}% deposit has been successfully processed. The artisan team has been notified and your date is secured.
             </p>
             <button
               onClick={() => {
@@ -2283,10 +2295,10 @@ export default function BookPage() {
                 Payment Not Completed
               </h3>
               <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                Your booking reservation has been saved, but your <strong>30% advance deposit</strong> has not been completed yet.
+                Your booking reservation has been saved, but your <strong>{defaultDeposit}% advance deposit</strong> has not been completed yet.
               </p>
               <div className="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
-                ⏳ Please complete your 30% advance payment within <strong>15 minutes</strong> to secure your date.
+                ⏳ Please complete your {defaultDeposit}% advance payment within <strong>15 minutes</strong> to secure your date.
               </div>
             </div>
 
