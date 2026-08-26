@@ -21,6 +21,11 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Rate Limiting State
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutTimeEnd, setLockoutTimeEnd] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Forgot Password State
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -56,6 +61,46 @@ export default function AuthPage() {
     setIsLogin(!isLogin);
     setLoginError("");
   };
+
+  useEffect(() => {
+    const storedAttempts = localStorage.getItem("loginFailedAttempts");
+    const storedLockout = localStorage.getItem("loginLockoutTime");
+    
+    if (storedAttempts) setFailedAttempts(parseInt(storedAttempts, 10));
+    
+    if (storedLockout) {
+      const lockEnd = parseInt(storedLockout, 10);
+      if (Date.now() < lockEnd) {
+        setLockoutTimeEnd(lockEnd);
+      } else {
+        localStorage.removeItem("loginFailedAttempts");
+        localStorage.removeItem("loginLockoutTime");
+        setFailedAttempts(0);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (lockoutTimeEnd) {
+      const interval = setInterval(() => {
+        const remaining = Math.ceil((lockoutTimeEnd - Date.now()) / 1000);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setLockoutTimeEnd(null);
+          setTimeRemaining(0);
+          setFailedAttempts(0);
+          localStorage.removeItem("loginFailedAttempts");
+          localStorage.removeItem("loginLockoutTime");
+          setLoginError("");
+        } else {
+          setTimeRemaining(remaining);
+        }
+      }, 1000);
+      // Run once immediately to avoid 1s delay in UI update
+      setTimeRemaining(Math.ceil((lockoutTimeEnd - Date.now()) / 1000));
+      return () => clearInterval(interval);
+    }
+  }, [lockoutTimeEnd]);
 
   useEffect(() => {
     fetchUser();
@@ -128,6 +173,11 @@ export default function AuthPage() {
     setLoginError("");
     setErrors({});
 
+    if (lockoutTimeEnd && Date.now() < lockoutTimeEnd) {
+      setLoginError(`Account locked. Please try again in ${timeRemaining} seconds.`);
+      return;
+    }
+
     if (!validateEmail(email)) {
       setErrors({ email: "Please enter a valid email address." });
       return;
@@ -136,9 +186,25 @@ export default function AuthPage() {
     const { ok, data } = await authAPI.signin({ email, password });
 
     if (!ok) {
-      setLoginError(data?.message || "Invalid email or password.");
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      localStorage.setItem("loginFailedAttempts", newAttempts.toString());
+      
+      if (newAttempts >= 3) {
+        const lockEnd = Date.now() + 120 * 1000; // 120 seconds lockout
+        setLockoutTimeEnd(lockEnd);
+        localStorage.setItem("loginLockoutTime", lockEnd.toString());
+        setLoginError("Too many failed attempts. Try again in 120 seconds.");
+      } else {
+        setLoginError(data?.message || `Invalid email or password. You have ${3 - newAttempts} attempt(s) left.`);
+      }
       return;
     }
+
+    // Reset attempts on successful login
+    localStorage.removeItem("loginFailedAttempts");
+    localStorage.removeItem("loginLockoutTime");
+    setFailedAttempts(0);
 
     // Update global state now that we have a valid session
     await fetchUser(true);
@@ -381,9 +447,10 @@ export default function AuthPage() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 mt-3 shadow-sm border border-[#C9A84C]/20"
+                  disabled={!!lockoutTimeEnd}
+                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 mt-3 shadow-sm border border-[#C9A84C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sign In <ArrowRight className="w-3.5 h-3.5" />
+                  {lockoutTimeEnd ? `Try again in ${timeRemaining}s` : <>Sign In <ArrowRight className="w-3.5 h-3.5" /></>}
                 </button>
 
                 {loginError && <p className="text-xs text-red-500 text-center">{loginError}</p>}
@@ -676,6 +743,12 @@ export default function AuthPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div className="text-center mt-6">
+          <Link href="/admin/login" className="text-gray-400 hover:text-[#C9A84C] transition-colors text-[10px] font-medium uppercase tracking-wider">
+            Staff / Administrator Login
+          </Link>
+        </div>
       </div>
 
       {/* Forgot Password Modal */}

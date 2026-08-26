@@ -54,6 +54,11 @@ export const authAPI = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  adminSignin: (body: any) =>
+    apiFetch("/api/auth/admin-signin", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   forgotPassword: (email: string) =>
     apiFetch("/api/auth/forgot-password", {
       method: "POST",
@@ -461,6 +466,11 @@ export const customerBookingAPI = {
       body: JSON.stringify(body),
     }),
   getMyBookings: () => apiFetch("/api/customer/bookings"),
+  submitReview: (id: string, body: any) =>
+    apiFetch(`/api/customer/bookings/${id}/review`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   initiateVendorSwap: (id: string, body: any) =>
     apiFetch(`/api/customer/bookings/${id}/swap-vendor`, {
       method: "PATCH",

@@ -441,7 +441,7 @@ const BookingsListMain = () => {
                           {b.date}
                         </td>
                         <td className="px-4 py-4 text-gray-800 text-xs font-semibold">
-                          LKR {(b.totalAmount || 0).toLocaleString()}
+                          LKR {(b.totalCost || b.totalAmount || 0).toLocaleString()}
                         </td>
                         <td className="px-4 py-4 text-xs">
                           <span className={`px-2 py-0.5 rounded font-bold ${b.paymentStatus === 'Balance Paid' ? 'bg-emerald-100 text-emerald-700' : b.paymentStatus === '30% Paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
