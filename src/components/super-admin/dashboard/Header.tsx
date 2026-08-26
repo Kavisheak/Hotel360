@@ -22,7 +22,7 @@ const Header = () => {
 
       {/* Right: Notification, Help, Profile */}
       <div className="flex items-center gap-3">
-        <NotificationCenter role="hotel_manager" />
+        <NotificationCenter role="super_admin" />
         <button className="p-2 rounded-md hover:bg-[#F2EADA] text-gray-500 transition-colors">
           <HelpCircle size={18} />
         </button>

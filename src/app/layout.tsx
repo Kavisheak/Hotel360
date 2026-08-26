@@ -6,6 +6,8 @@ import ToastProvider from "@/components/landing/shared/ToastProvider";
 import FloatingEventCart from "@/components/landing/shared/FloatingEventCart";
 import AutoLogout from "@/components/shared/AutoLogout";
 
+import MaintenanceGuard from "@/components/shared/MaintenanceGuard";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -51,10 +53,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
-          {children}
-          <FloatingEventCart />
-          <ToastProvider />
-          <AutoLogout />
+          <MaintenanceGuard>
+            {children}
+            <FloatingEventCart />
+            <ToastProvider />
+            <AutoLogout />
+          </MaintenanceGuard>
         </ThemeProvider>
       </body>
     </html>
