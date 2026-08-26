@@ -4,10 +4,11 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/super-admin/dashboard/Sidebar";
 import ConfigHeader from "@/components/super-admin/configuration/ConfigHeader";
 import { superAdminAPI } from "@/lib/api";
-import { AlertOctagon, AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertOctagon, AlertTriangle, CheckCircle, BrainCircuit, Activity, BarChart4 } from "lucide-react";
 
 export default function AISentimentAnalytics() {
     const [data, setData] = useState<any>(null);
+    const [resolvedAlerts, setResolvedAlerts] = useState<string[]>([]);
 
     useEffect(() => {
         superAdminAPI.getOverview()
@@ -42,58 +43,90 @@ export default function AISentimentAnalytics() {
             <Sidebar />
             <div className="flex-1 min-w-0 flex flex-col pt-14 lg:pt-0">
                 <ConfigHeader />
-                <div className="p-10 font-bold text-[#7C6A2E]">Loading AI Engine...</div>
+                <div className="flex-1 flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B08D2C]"></div>
+                </div>
             </div>
         </div>
     );
 
     const total = data.distribution.total || 1;
     const positivePct = Math.round((data.distribution.positive / total) * 100);
+    const activeAlerts = data.negativeAlerts.filter((a: any) => !resolvedAlerts.includes(a.id));
 
     return (
         <div className="flex min-h-screen bg-[#FDF9F1] font-sans text-gray-800 flex-col lg:flex-row">
             <Sidebar />
 
-            <div className="flex-1 min-w-0 flex flex-col pt-14 lg:pt-0">
+            <div className="flex-1 min-w-0 flex flex-col pt-14 lg:pt-0 bg-[#FDF9F1]">
                 <ConfigHeader />
 
-                <div className="p-6 md:p-8 space-y-8 max-w-[1400px] mx-auto w-full">
+                <div className="p-8 md:p-12 space-y-10 max-w-[1500px] mx-auto w-full">
                     {/* Header */}
-                    <div className="mb-2">
-                        <h1 className="text-4xl sm:text-5xl font-serif font-bold text-[#3D3000] tracking-tight">AI Sentiment Analytics</h1>
-                        <p className="text-sm font-serif italic text-gray-500 mt-1">
-                            Live Analysis updated just now.
-                        </p>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between border-b pb-6 border-[#E0D8C3]">
+                        <div>
+                            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#3D3000] tracking-tight">
+                                Neural Sentiment Engine
+                            </h1>
+                            <p className="text-sm font-serif italic text-gray-500 mt-2 flex items-center gap-2">
+                                <BrainCircuit size={16} className="text-[#B08D2C]" />
+                                AI-driven analysis of guest experiences and service provider performance.
+                            </p>
+                        </div>
+                        <div className="mt-4 md:mt-0 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#7C6A2E] bg-white px-4 py-2 border border-[#E0D8C3] rounded-sm shadow-sm transition-all hover:bg-[#FAF6EE]">
+                            <Activity size={14} className="animate-pulse" /> Live Feed Active
+                        </div>
                     </div>
 
-                    {/* Top Cards */}
+                    {/* Top KPI Metrics */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-6 bg-white border border-[#E0D8C3] shadow-sm rounded-lg border-t-4 border-t-[#A48F40]">
-                            <p className="font-bold tracking-widest text-[#7C6A2E] text-[10px] uppercase">Positive Reviews</p>
-                            <h2 className="text-4xl font-serif font-bold text-gray-900 mt-3">{positivePct}%</h2>
-                            <p className="text-xs text-gray-400 mt-2 font-medium">Based on {total} analyzed testimonials</p>
+                        <div className="flex flex-col bg-white border border-[#E0D8C3] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-sm overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                            <div className="h-1 w-full bg-gradient-to-r from-[#A48F40] to-[#E0D8C3]"></div>
+                            <div className="p-8">
+                                <p className="font-bold tracking-widest text-gray-400 text-[10px] uppercase mb-4">Positive Resonance</p>
+                                <h2 className="text-3xl font-serif font-bold text-[#3D3000] flex items-baseline">{positivePct}<span className="text-xl text-[#7C6A2E] ml-0.5">%</span></h2>
+                                <p className="text-xs text-[#7C6A2E] mt-3 font-medium uppercase tracking-widest flex justify-between items-center">
+                                    <span>{data.distribution.positive} Reviews</span>
+                                    <BarChart4 size={14} className="opacity-50" />
+                                </p>
+                            </div>
                         </div>
-                        <div className="p-6 bg-white border border-[#E0D8C3] shadow-sm rounded-lg border-t-4 border-t-[#8C4A4A]">
-                            <p className="font-bold tracking-widest text-[#7C6A2E] text-[10px] uppercase">Negative Alerts</p>
-                            <h2 className="text-4xl font-serif font-bold text-gray-900 mt-3">{data.negativeAlerts.length}</h2>
-                            <p className="text-xs text-[#8C4A4A] mt-2 font-medium">Require manager attention</p>
+
+                        <div className="flex flex-col bg-white border border-[#E0D8C3] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-sm overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                            <div className="h-1 w-full bg-gradient-to-r from-[#8C4A4A] to-[#FDF2F2]"></div>
+                            <div className="p-8">
+                                <p className="font-bold tracking-widest text-gray-400 text-[10px] uppercase mb-4">Critical Alerts</p>
+                                <h2 className="text-3xl font-serif font-bold text-[#8C4A4A]">{activeAlerts.length}</h2>
+                                <p className="text-xs text-[#8C4A4A] mt-3 font-medium uppercase tracking-widest flex justify-between items-center">
+                                    <span>Immediate Action Required</span>
+                                    <AlertTriangle size={14} className="opacity-50" />
+                                </p>
+                            </div>
                         </div>
-                        <div className="p-6 bg-white border border-[#E0D8C3] shadow-sm rounded-lg border-t-4 border-t-[#7B8B6F]">
-                            <p className="font-bold tracking-widest text-[#7C6A2E] text-[10px] uppercase">Average Satisfaction</p>
-                            <h2 className="text-4xl font-serif font-bold text-gray-900 mt-3">{data.averageCsat} / 5.0</h2>
-                            <p className="text-xs text-gray-400 mt-2 font-medium">Combined hall and service rating</p>
+
+                        <div className="flex flex-col bg-white border border-[#E0D8C3] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-sm overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                            <div className="h-1 w-full bg-gradient-to-r from-[#4E5A44] to-[#7B8B6F]"></div>
+                            <div className="p-8">
+                                <p className="font-bold tracking-widest text-gray-400 text-[10px] uppercase mb-4">Global Satisfaction</p>
+                                <h2 className="text-3xl font-serif font-bold text-[#3D3000] flex items-baseline">{data.averageCsat}<span className="text-xl text-[#7C6A2E] ml-1">/ 5.0</span></h2>
+                                <p className="text-xs text-[#4E5A44] mt-3 font-medium uppercase tracking-widest flex justify-between items-center">
+                                    <span>Across {total} Testimonials</span>
+                                    <CheckCircle size={14} className="opacity-50" />
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Sentiment Distribution */}
-                        <div className="lg:col-span-1 bg-white border border-[#E0D8C3] p-6 shadow-sm rounded-lg">
-                            <h2 className="text-sm font-bold tracking-widest text-[#7C6A2E] uppercase mb-1">Sentiment Distribution</h2>
-                            <p className="text-xs text-gray-400 mb-6 font-medium">Share of positive, neutral, and negative customer reviews.</p>
-
-                            <div className="flex flex-col items-center justify-center p-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+                        {/* Sentiment Distribution Ring */}
+                        <div className="xl:col-span-1 bg-white border border-[#E0D8C3] shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] rounded-sm flex flex-col h-full">
+                            <div className="p-6 border-b border-[#F2EADA]">
+                                <h2 className="text-xs font-bold tracking-widest text-[#3D3000] uppercase">Aggregated Sentiment</h2>
+                            </div>
+                            <div className="p-8 flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6EE] to-white opacity-50 pointer-events-none"></div>
                                 <div
-                                    className="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner"
+                                    className="relative z-10 w-56 h-56 rounded-full flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] transition-transform hover:scale-105 duration-700"
                                     style={{
                                         background: `conic-gradient(
                                             #8C4A4A 0% ${(data.distribution.negative / total) * 100}%,
@@ -102,61 +135,78 @@ export default function AISentimentAnalytics() {
                                         )`
                                     }}
                                 >
-                                    {/* Inner white circle for donut effect */}
-                                    <div className="w-36 h-36 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                        <span className="text-2xl font-serif font-bold text-[#3D3000]">{total}</span>
+                                    {/* Ultra-premium inset core */}
+                                    <div className="w-44 h-44 bg-white rounded-full flex flex-col items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.08)] border-[3px] border-white">
+                                        <span className="text-3xl font-serif font-bold text-[#3D3000]">{total}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">Total Data</span>
                                     </div>
                                 </div>
-                                <div className="flex gap-4 mt-8">
-                                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[#8C4A4A] rounded-full"></span><span className="text-xs font-bold text-gray-600">Negative</span></div>
-                                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[#E0D8C3] rounded-full"></span><span className="text-xs font-bold text-gray-600">Neutral</span></div>
-                                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[#A48F40] rounded-full"></span><span className="text-xs font-bold text-gray-600">Positive</span></div>
+                                <div className="z-10 flex flex-col w-full gap-3 mt-10">
+                                    <div className="flex items-center justify-between px-4 py-2.5 bg-[#FDF9F1] rounded-sm border border-[#E0D8C3]">
+                                        <div className="flex items-center gap-2"><span className="w-2 h-2 bg-[#A48F40] rounded-full shadow-sm"></span><span className="text-[10px] uppercase tracking-widest font-bold text-gray-600">Positive</span></div>
+                                        <span className="font-bold font-serif text-[#7C6A2E]">{data.distribution.positive}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-2.5 bg-[#F8F9FA] rounded-sm border border-[#DEE2E6]">
+                                        <div className="flex items-center gap-2"><span className="w-2 h-2 bg-[#E0D8C3] rounded-full shadow-sm"></span><span className="text-[10px] uppercase tracking-widest font-bold text-gray-600">Neutral</span></div>
+                                        <span className="font-bold font-serif text-gray-500">{data.distribution.neutral}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-2.5 bg-[#FDF2F2] rounded-sm border border-[#FAD2D2]">
+                                        <div className="flex items-center gap-2"><span className="w-2 h-2 bg-[#8C4A4A] rounded-full shadow-sm"></span><span className="text-[10px] uppercase tracking-widest font-bold text-[#8C4A4A]">Negative</span></div>
+                                        <span className="font-bold font-serif text-[#8C4A4A]">{data.distribution.negative}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Review Analysis Table */}
-                        <div className="lg:col-span-2 bg-white border border-[#E0D8C3] shadow-sm rounded-lg flex flex-col">
-                            <div className="p-6 border-b border-[#F2EADA]">
-                                <h2 className="text-sm font-bold tracking-widest text-[#7C6A2E] uppercase">Review Analysis Table</h2>
+                        {/* Interactive Review Ledger Table */}
+                        <div className="xl:col-span-2 bg-white border border-[#E0D8C3] shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] rounded-sm flex flex-col h-full">
+                            <div className="p-6 border-b border-[#F2EADA] flex justify-between items-center bg-[#FAF6EE]">
+                                <h2 className="text-xs font-bold tracking-widest text-[#3D3000] uppercase">Neural Flag Ledger</h2>
+                                <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold bg-white px-3 py-1.5 rounded-full border border-[#E0D8C3] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">Latest Extraction</span>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead className="bg-[#FAF6EE] text-[#7C6A2E] border-b border-[#E0D8C3]">
+                            <div className="overflow-x-auto flex-1">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-white">
                                         <tr>
-                                            <th className="px-6 py-4 text-[9px] font-bold tracking-[0.18em] uppercase">Customer Review</th>
-                                            <th className="px-6 py-4 text-[9px] font-bold tracking-[0.18em] uppercase">AI Result</th>
-                                            <th className="px-6 py-4 text-[9px] font-bold tracking-[0.18em] uppercase">Score</th>
+                                            <th className="px-6 py-5 text-[9px] font-bold text-gray-400 tracking-widest uppercase border-b border-[#E0D8C3]">Guest Submission</th>
+                                            <th className="px-6 py-5 text-[9px] font-bold text-gray-400 tracking-widest uppercase border-b border-[#E0D8C3]">Classification</th>
+                                            <th className="px-6 py-5 text-[9px] font-bold text-gray-400 tracking-widest uppercase border-b border-[#E0D8C3]">Impact Factor</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#F2EADA] bg-white">
-                                        {data.negativeAlerts.length > 0 ? data.negativeAlerts.map((alert: any, i: number) => (
-                                            <tr key={i} className="hover:bg-[#FDF9F1]">
-                                                <td className="px-6 py-4 font-serif text-sm">"{alert.reviewText}"</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-[#8C4A4A] font-bold text-xs bg-[#FDF2F2] px-2 flex w-max items-center gap-1 py-1 rounded border border-[#8C4A4A]/20">
-                                                        <AlertTriangle size={12} strokeWidth={3} /> Negative
+                                        {activeAlerts.length > 0 ? activeAlerts.map((alert: any, i: number) => (
+                                            <tr key={alert.id || i} className="hover:bg-[#FDF9F1] transition-colors group">
+                                                <td className="px-6 py-6 w-1/2">
+                                                    <p className="font-serif text-[15px] text-gray-800 leading-relaxed italic border-l-[3px] border-[#8C4A4A]/30 pl-4 py-1">
+                                                        "{alert.reviewText}"
+                                                    </p>
+                                                </td>
+                                                <td className="px-6 py-6 font-sans">
+                                                    <span className="text-[#8C4A4A] font-bold text-[9px] tracking-widest uppercase bg-[#FDF2F2] px-3 flex w-max items-center gap-1.5 py-1.5 rounded-sm border border-[#8C4A4A]/20 shadow-sm">
+                                                        <AlertTriangle size={12} strokeWidth={2.5} /> Flagged
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 font-bold text-[#8C4A4A]">{alert.score}</td>
+                                                <td className="px-6 py-6 font-sans">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-10 h-10 rounded-full border border-[#8C4A4A]/20 bg-[#FDF2F2] flex items-center justify-center text-[#8C4A4A] font-bold shadow-sm">
+                                                            {alert.score}
+                                                        </div>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan={3} className="px-6 py-8 text-center text-gray-500 font-serif italic">
-                                                    No negative alerts detected! Customer satisfaction is optimal.
+                                                <td colSpan={3} className="px-8 py-20 text-center bg-[#FAF6EE]/50">
+                                                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 mb-4 shadow-sm">
+                                                        <CheckCircle size={28} className="text-emerald-500" />
+                                                    </div>
+                                                    <p className="text-lg font-serif italic text-[#3D3000]">
+                                                        No critical anomalies detected in recent feedback.
+                                                    </p>
+                                                    <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-widest">
+                                                        Customer Satisfaction is within optimal parameters.
+                                                    </p>
                                                 </td>
-                                            </tr>
-                                        )}
-                                        {/* Positive Fake Entry for visual reference if empty */}
-                                        {data.negativeAlerts.length === 0 && (
-                                            <tr className="hover:bg-[#FDF9F1] opacity-60">
-                                                <td className="px-6 py-4 font-serif text-sm text-gray-400">"Example: The DJ was amazing and kept everyone dancing."</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-[#7C6A2E] font-bold text-xs bg-[#FAF6EE] border border-[#E0D8C3] px-2 flex w-max items-center gap-1 py-1 rounded">
-                                                        <CheckCircle size={12} strokeWidth={3} /> Positive
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 font-bold text-[#7C6A2E]">+5</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -165,29 +215,41 @@ export default function AISentimentAnalytics() {
                         </div>
                     </div>
 
-                    {/* Smart Alerts */}
-                    <div className="pb-10">
-                        <h2 className="text-sm font-bold tracking-widest uppercase mb-4 flex items-center gap-2 text-[#8C4A4A]">
-                            <div className="bg-[#FDF2F2] p-1.5 rounded border border-[#8C4A4A]/20">
-                                <AlertOctagon size={18} strokeWidth={2.5} />
-                            </div>
-                            Priority Attention Required
-                        </h2>
-                        <div className="bg-[#FDF2F2] p-6 rounded-lg border border-[#F2EADA] grid gap-4">
-                            {data.negativeAlerts.map((alert: any) => (
-                                <div key={alert.id} className="bg-white p-5 border border-[#F2EADA] shadow-sm rounded-lg flex justify-between items-center hover:shadow-md transition-shadow">
-                                    <div>
-                                        <h3 className="text-[10px] font-bold text-[#8C4A4A] uppercase tracking-widest mb-2">Detected Automatically by AI</h3>
-                                        <p className="font-serif italic text-gray-800 text-lg">"{alert.reviewText}"</p>
-                                        <p className="text-[10px] tracking-wider uppercase mt-4 font-bold text-gray-400">Score Impact: {alert.score}</p>
+                    {/* Operational Action Items */}
+                    {activeAlerts.length > 0 && (
+                        <div className="pt-4 pb-12">
+                            <h2 className="text-xs font-bold tracking-widest text-[#8C4A4A] uppercase flex items-center gap-3 mb-6">
+                                <span className="bg-[#FDF2F2] p-1.5 rounded-sm border border-[#8C4A4A]/20 shadow-[0_1px_3px_rgba(140,74,74,0.1)]">
+                                    <AlertOctagon size={16} strokeWidth={2.5} />
+                                </span>
+                                Immediate Escalation Required
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {activeAlerts.map((alert: any) => (
+                                    <div key={alert.id} className="bg-white p-8 border-l-4 border-l-[#8C4A4A] border-t border-r border-b border-[#E0D8C3] shadow-[0_8px_30px_-4px_rgba(140,74,74,0.06)] rounded-r-sm flex flex-col justify-between group hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                                        <div>
+                                            <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                                                <span>AI Detected Grievance</span>
+                                                <span className="text-[#8C4A4A] bg-[#FDF2F2] px-2.5 py-1 rounded-sm shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] border border-[#8C4A4A]/10">{alert.score} Sev</span>
+                                            </h3>
+                                            <p className="font-serif italic text-gray-800 text-lg md:text-xl leading-relaxed mb-6">
+                                                "{alert.reviewText}"
+                                            </p>
+                                        </div>
+                                        <div className="pt-6 border-t border-[#FDF2F2] flex justify-end">
+                                            <button
+                                                onClick={() => setResolvedAlerts(prev => [...prev, alert.id])}
+                                                title="Dismiss this alert"
+                                                className="bg-[#8C4A4A] hover:bg-[#723C3C] text-white font-bold text-[9px] tracking-widest uppercase px-6 py-3.5 rounded-sm shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-[#8C4A4A] flex items-center gap-2 group-hover:bg-[#723C3C]"
+                                            >
+                                                Resolve Grievance
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button className="bg-[#8C4A4A] hover:bg-[#723C3C] text-white font-bold text-[10px] tracking-widest uppercase px-5 py-3 rounded-lg shadow-sm transition-all focus:ring-4 focus:ring-[#FDF2F2]">
-                                        Notify Manager
-                                    </button>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

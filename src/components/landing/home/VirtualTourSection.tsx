@@ -1,12 +1,53 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Compass } from 'lucide-react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+interface VirtualConfig {
+  sourceUrl: string;
+  isPublic: boolean;
+}
+
 const VirtualTourSection = () => {
+  const [config, setConfig] = useState<VirtualConfig | null>(null);
+
+  useEffect(() => {
+    const fetchVirtualConfig = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/public/virtual-config`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setConfig({
+              sourceUrl: data.sourceUrl || '',
+              isPublic: data.isPublic !== false // default true if missing
+            });
+          }
+        }
+      } catch {
+        // Silent failure — section stays hidden until config is confirmed public
+      }
+    };
+
+    fetchVirtualConfig();
+  }, []);
+
+  // If config hasn't loaded yet, or admin has set visibility to Private, hide the entire section
+  if (!config || !config.isPublic) return null;
+
+  const handleTourClick = () => {
+    if (config.sourceUrl) {
+      window.open(config.sourceUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <section className="w-full bg-[#F9F6F0] py-20 md:py-28 px-6 md:px-12 lg:px-20 flex items-center justify-center section-reveal">
       <div className="max-w-6xl w-full relative rounded-sm overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center py-32 px-6">
-        
+
         {/* Cinematic Background Image Container */}
         <div className="absolute inset-0 z-0 border-2 border-[#C9A84C]/30">
           <Image
@@ -39,7 +80,11 @@ const VirtualTourSection = () => {
           </p>
 
           <div className="pt-6 text-reveal stagger-4">
-            <button className="btn-interactive pulse-glow flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-[11px] tracking-widest uppercase font-bold rounded-sm">
+            <button
+              onClick={handleTourClick}
+              disabled={!config.sourceUrl}
+              className="btn-interactive pulse-glow flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-[11px] tracking-widest uppercase font-bold rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Compass size={16} strokeWidth={2} />
               Begin the tour
             </button>
