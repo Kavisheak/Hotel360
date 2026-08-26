@@ -567,6 +567,9 @@ export const hotelManagerAPI = {
 export const superAdminAPI = {
   getOverview: () => apiFetch("/api/super-admin/overview"),
   getFinancials: () => apiFetch("/api/super-admin/financials"),
+  getNotifications: () => apiFetch("/api/notifications/history"),
+  markNotificationRead: (id: string) => apiFetch(`/api/notifications/history/${id}/read`, { method: "PUT" }),
+  markAllNotificationsRead: () => apiFetch("/api/notifications/history/read-all", { method: "PUT" }),
   getConfigHealth: () => apiFetch("/api/super-admin/config/health"),
   getPlatformConfig: () => apiFetch("/api/super-admin/config/platform"),
   updatePlatformConfig: (data: any) =>
@@ -574,6 +577,22 @@ export const superAdminAPI = {
       method: "PUT",
       body: JSON.stringify(data)
     }),
+  executeSecurityAction: (action: string) =>
+    apiFetch("/api/super-admin/config/security-action", {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    }),
+  uploadGlbModel: async (file: File) => {
+    const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const formData = new FormData();
+    formData.append("model", file);
+    const res = await fetch(`${BASE}/api/super-admin/config/upload-model`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+    return { ok: res.ok, data: await res.json() };
+  },
   approveRefund: (id: string) => apiFetch(`/api/super-admin/financials/refund/${id}`, { method: 'PUT' }),
   getStaff: () => apiFetch("/api/super-admin/users"),
   createStaff: (data: any) =>

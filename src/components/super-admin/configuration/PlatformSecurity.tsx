@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 
-const PlatformSecurity = ({ data, onChange }: any) => {
+const PlatformSecurity = ({ data, onChange, onSecurityAction }: any) => {
   if (!data) return null;
 
   return (
@@ -31,17 +31,6 @@ const PlatformSecurity = ({ data, onChange }: any) => {
               className="w-full border border-[#E0D8C3] text-xs py-3 px-4 text-gray-700 bg-transparent focus:outline-none"
             />
           </div>
-          <div>
-            <label className="block text-[9px] font-bold tracking-widest text-[#7C6A2E] uppercase mb-2">
-              Require Staff 2FA
-            </label>
-            <input
-              type="text"
-              value={data.require2FA}
-              readOnly
-              className="w-full border border-[#E0D8C3] text-xs py-3 px-4 text-gray-700 bg-transparent focus:outline-none opacity-80"
-            />
-          </div>
         </div>
 
         {/* Maintenance Mode Box */}
@@ -68,15 +57,16 @@ const PlatformSecurity = ({ data, onChange }: any) => {
       </div>
 
       {/* Security Actions */}
-      <div className="pt-2 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <button className="w-full border border-red-200 bg-red-50 hover:bg-red-100 text-red-800 font-bold text-[9px] tracking-widest uppercase py-3 transition-colors">
+      <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button
+          onClick={() => onSecurityAction && onSecurityAction('FORCE_LOGOUT')}
+          className="w-full border border-red-200 bg-red-50 hover:bg-red-100 text-red-800 font-bold text-[9px] tracking-widest uppercase py-3 transition-colors">
           FORCE LOGOUT EVERYONE
         </button>
-        <button className="w-full border border-[#E0D8C3] hover:bg-[#FAF6EE] text-gray-800 font-bold text-[9px] tracking-widest uppercase py-3 transition-colors">
+        <button
+          onClick={() => onSecurityAction && onSecurityAction('RESET_PASSWORDS')}
+          className="w-full border border-[#E0D8C3] hover:bg-[#FAF6EE] text-gray-800 font-bold text-[9px] tracking-widest uppercase py-3 transition-colors">
           RESET STAFF PASSWORDS
-        </button>
-        <button className="w-full border border-[#E0D8C3] hover:bg-[#FAF6EE] text-gray-800 font-bold text-[9px] tracking-widest uppercase py-3 transition-colors">
-          REVOKE API TOKENS
         </button>
       </div>
     </div>
