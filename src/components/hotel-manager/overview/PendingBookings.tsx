@@ -65,12 +65,18 @@ const PendingBookings = () => {
       setRejectError("Min 10 chars required.");
       return;
     }
-    const res = await bookingAPI.updateBookingStatus(id, { status: 'Rejected', rejectionReason: rejectReason });
+    const res = await bookingAPI.rejectBooking(id, { 
+      reason: 'other', 
+      note: `Manager Rejected Booking: ${rejectReason}` 
+    });
+    
     if (res.ok) {
       setRejectingId(null);
       setRejectReason("");
       setSuccessDetails("Hall request rejected. 100% advance deposit refunded to customer.");
       fetchBookings();
+    } else {
+      setRejectError(res.data?.message || "Failed to reject booking.");
     }
   };
 

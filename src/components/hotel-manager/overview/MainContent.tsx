@@ -3,6 +3,7 @@ import ManagerHeader from './Header';
 import Metrics from './Metrics';
 import PendingBookings from './PendingBookings';
 import ConfirmedHighlights from './ConfirmedHighlights';
+import RejectedBookings from './RejectedBookings';
 import ManagerFooter from './Footer';
 import { AlertTriangle, Clock, ArrowRight, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
@@ -53,6 +54,7 @@ const ManagerMainContent = () => (
       <Metrics />
       <PendingBookings />
       <ConfirmedHighlights />
+      <RejectedBookings />
     </main>
     <ManagerFooter />
   </div>

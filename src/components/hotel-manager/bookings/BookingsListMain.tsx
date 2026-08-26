@@ -177,7 +177,6 @@ const BookingsListMain = () => {
     const vendorCats = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
     const activeVendors = vendorCats.map(cat => b.vendors?.[cat]).filter(v => v && v.vendorId);
     const hasVendorDeclined = activeVendors.some(v => v.status === 'Declined');
-    const hasVendorPending = activeVendors.some(v => v.status === 'Pending');
 
     if (["Pending", "Pending Confirmation", "Pending Hall Confirmation", "DEPOSIT_PAID"].includes(b.status)) {
       return (
@@ -192,6 +191,14 @@ const BookingsListMain = () => {
         <div className="flex items-center gap-1.5 text-red-700 font-bold bg-red-50 px-2.5 py-1 rounded-full border border-red-200 shadow-sm w-fit">
           <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
           Cancelled
+        </div>
+      );
+    }
+    if (b.status === 'Rejected') {
+      return (
+        <div className="flex items-center gap-1.5 text-red-700 font-bold bg-red-50 px-2.5 py-1 rounded-full border border-red-200 shadow-sm w-fit">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+          Rejected
         </div>
       );
     }
@@ -211,15 +218,7 @@ const BookingsListMain = () => {
         </div>
       );
     }
-    if (hasVendorPending) {
-      return (
-        <div className="flex items-center gap-1.5 text-orange-700 font-bold bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200 shadow-sm w-fit">
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
-          Vendor Action Required
-        </div>
-      );
-    }
-    
+
     // Check if Balance is due (7 days before)
     const getColomboDateStr = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
     const todayStr = getColomboDateStr(new Date());
