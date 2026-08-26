@@ -147,6 +147,9 @@ export default function BookPage() {
   const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
   const [mobileOpenAccordion, setMobileOpenAccordion] = useState<string | null>(null);
 
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftData, setDraftData] = useState<any>(null);
+
   const { fetchUser, user } = useAuthStore();
   const { vendors: globalVendors, fetchVendors } = useVendorStore();
   const [dbPackages, setDbPackages] = useState<any[]>([]);
@@ -246,17 +249,22 @@ export default function BookPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate).getTime());
-        if (parsed.eventType) setEventType(parsed.eventType);
-        if (parsed.guestCount) setGuestCount(parsed.guestCount);
-        else if (parsed.guests) setGuestCount(parsed.guests);
-        if (parsed.startTime) setStartTime(parsed.startTime);
-        if (parsed.endTime) setEndTime(parsed.endTime);
-        if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
-        if (parsed.currentStep) setCurrentStep(parsed.currentStep);
-        if (parsed.vendors) {
-          finalVendors = { ...finalVendors, ...parsed.vendors };
-          isVendorUpdate = true;
+        if (parsed.currentStep && parsed.currentStep > 1) {
+          setDraftData(parsed);
+          setShowDraftModal(true);
+        } else {
+          if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate).getTime());
+          if (parsed.eventType) setEventType(parsed.eventType);
+          if (parsed.guestCount) setGuestCount(parsed.guestCount);
+          else if (parsed.guests) setGuestCount(parsed.guests);
+          if (parsed.startTime) setStartTime(parsed.startTime);
+          if (parsed.endTime) setEndTime(parsed.endTime);
+          if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
+          if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+          if (parsed.vendors) {
+            finalVendors = { ...finalVendors, ...parsed.vendors };
+            isVendorUpdate = true;
+          }
         }
       } catch (e) { }
     }
@@ -303,6 +311,8 @@ export default function BookPage() {
     if (importFromCart === "true" || fromCartParam === "true") {
       sessionStorage.removeItem("importFromCart");
       sessionStorage.removeItem("bookingDraft");
+      setShowDraftModal(false);
+      setDraftData(null);
       if (fromCartParam === "true") {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.delete("fromCart");
@@ -373,6 +383,29 @@ export default function BookPage() {
     setIsStateLoaded(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRestoreDraft = () => {
+    if (draftData) {
+      if (draftData.selectedDate) setSelectedDate(new Date(draftData.selectedDate).getTime());
+      if (draftData.eventType) setEventType(draftData.eventType);
+      if (draftData.guestCount) setGuestCount(draftData.guestCount);
+      else if (draftData.guests) setGuestCount(draftData.guests);
+      if (draftData.startTime) setStartTime(draftData.startTime);
+      if (draftData.endTime) setEndTime(draftData.endTime);
+      if (draftData.selectedPackage) setSelectedPackage(draftData.selectedPackage);
+      if (draftData.currentStep) setCurrentStep(draftData.currentStep);
+      if (draftData.vendors) {
+        setLocalVendors(prev => ({ ...prev, ...draftData.vendors }));
+      }
+    }
+    setShowDraftModal(false);
+  };
+
+  const handleClearDraft = () => {
+    sessionStorage.removeItem("bookingDraft");
+    setShowDraftModal(false);
+    setDraftData(null);
+  };
 
   useEffect(() => {
     if (!isStateLoaded) return;
@@ -2313,6 +2346,35 @@ export default function BookPage() {
       )}
 
       {/* Footer */}
+
+      {/* Draft Restore Modal */}
+      {showDraftModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center animate-fadeIn">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock size={32} className="text-blue-500" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Resume Booking?</h3>
+            <p className="text-gray-500 text-sm mb-6">
+              It looks like you left an incomplete booking in progress. Would you like to continue from where you left off or start a new booking?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleRestoreDraft}
+                className="w-full bg-[#7C6A2E] hover:bg-[#6A5A27] text-white font-bold py-3 px-4 rounded-xl transition-colors"
+              >
+                Continue Booking
+              </button>
+              <button
+                onClick={handleClearDraft}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl transition-colors"
+              >
+                Start New Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DateRequiredModal
         isOpen={isDateModalOpen}

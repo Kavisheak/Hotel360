@@ -116,7 +116,7 @@ interface BookingState {
   getPendingBookings: () => Booking[];
   getConfirmedBookings: () => Booking[];
   updateBookingStatus: (id: string, status: string) => void;
-  submitFeedback: (id: string, feedback: Feedback) => void;
+  submitFeedback: (id: string, feedback: Feedback) => Promise<void>;
   initiateVendorSwap: (bookingId: string, service: string, newVendorId: string, packageName?: string, financialChoice?: string) => Promise<{ success: boolean; pendingSwap?: boolean; data?: any }>;
   confirmSwapPayment: (bookingId: string, pendingSwapId: string) => Promise<{ success: boolean; data?: any }>;
   removeVendor: (bookingId: string, service: string, action?: 'refund' | 'apply_to_balance') => Promise<void>;
@@ -228,12 +228,50 @@ export const useBookingStore = create<BookingState>()(
           )
         }));
       },
-      submitFeedback: (id, feedback) =>
-        set((state) => ({
-          bookings: state.bookings.map((b) =>
-            b._id === id ? { ...b, feedback } : b
-          )
-        })),
+      submitFeedback: async (id, feedback) => {
+        try {
+          const booking = get().bookings.find(b => (b.id || b._id) === id);
+          if (!booking) return;
+
+          const reviewsPayload: any[] = [];
+          const validServices = ["decorator", "dj", "videographer", "photographer", "cake", "florist"];
+          
+          for (const service of validServices) {
+            const rating = feedback[service as keyof typeof feedback] as number;
+            const reviewText = (feedback.comments as any)[service];
+            const vendorId = booking.vendors?.[service as keyof typeof booking.vendors]?.vendorId;
+            
+            if (rating && vendorId && vendorId !== "none") {
+              reviewsPayload.push({
+                service,
+                vendorId,
+                rating,
+                reviewText: reviewText || ""
+              });
+            }
+          }
+
+          if (reviewsPayload.length > 0) {
+            const res = await customerBookingAPI.submitReview(id, { reviews: reviewsPayload });
+            if (res.ok) {
+              set((state) => ({
+                bookings: state.bookings.map((b) =>
+                  b._id === id || b.id === id ? { ...b, feedback } : b
+                )
+              }));
+            }
+          } else {
+             // Still save local state if there are no vendor reviews (e.g. only food/overall)
+             set((state) => ({
+                bookings: state.bookings.map((b) =>
+                  b._id === id || b.id === id ? { ...b, feedback } : b
+                )
+              }));
+          }
+        } catch (error) {
+          console.error("Failed to submit feedback:", error);
+        }
+      },
       deleteBookingHistory: async (id) => {
         try {
           const res = await customerBookingAPI.deleteBookingHistory(id);
