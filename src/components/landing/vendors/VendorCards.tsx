@@ -60,10 +60,10 @@ export default function VendorCards({
   const [galleryIndices, setGalleryIndices] = useState<Record<string, number>>({});
 
   // Pagination State
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [visibleCount, setVisibleCount] = useState(9);
 
   React.useEffect(() => {
-    setVisibleCount(24);
+    setVisibleCount(9);
   }, [filteredVendors]);
 
   const handleRestrictedAction = (message: string, action: () => void) => {
@@ -460,10 +460,18 @@ export default function VendorCards({
                   </svg>
                   
                   {/* Category Label (Top Left) */}
-                  <div className="absolute top-4 left-4 bg-[#C9A84C] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md border border-[#D4AF37]/50">
+                  <div className="absolute top-4 left-4 bg-[#C9A84C] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md border border-[#D4AF37]/50 z-20">
                     <ImageIcon className="w-3 h-3" />
                     <span className="text-[10px] font-extrabold tracking-widest uppercase">{vendor.categoryLabel || storeCat}</span>
                   </div>
+
+                  {/* AI Match Badge (Top Left, Below Category) */}
+                  {portfolioItem && (portfolioItem as any).matchScore && (
+                    <div className="absolute top-[48px] left-4 bg-emerald-500 text-white px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md border border-emerald-400/50 z-20">
+                      <Sparkles className="w-3 h-3" />
+                      <span className="text-[10px] font-extrabold tracking-widest uppercase">{(portfolioItem as any).matchScore}% Match</span>
+                    </div>
+                  )}
 
                   {/* Favorite Button (Top Right) */}
                   <button 
@@ -651,15 +659,26 @@ export default function VendorCards({
           })}
           </div>
           
-          {visibleCount < flattenedCards.length && (
-            <div className="mt-12 flex justify-center">
-              <button 
-                onClick={() => setVisibleCount(prev => prev + 24)}
-                className="bg-white dark:bg-[#111111] text-[#C9A84C] border border-[#C9A84C] px-10 py-3.5 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#C9A84C] hover:text-white transition-all shadow-sm flex items-center gap-2 group"
-              >
-                Load More 
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+          {(visibleCount < flattenedCards.length || visibleCount > 9) && (
+            <div className="mt-12 flex justify-center gap-4">
+              {visibleCount > 9 && (
+                <button 
+                  onClick={() => setVisibleCount(9)}
+                  className="bg-white dark:bg-[#111111] text-gray-500 border border-gray-300 px-10 py-3.5 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-gray-100 hover:text-gray-700 transition-all shadow-sm flex items-center gap-2 group"
+                >
+                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  See Less
+                </button>
+              )}
+              {visibleCount < flattenedCards.length && (
+                <button 
+                  onClick={() => setVisibleCount(prev => prev + 9)}
+                  className="bg-white dark:bg-[#111111] text-[#C9A84C] border border-[#C9A84C] px-10 py-3.5 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#C9A84C] hover:text-white transition-all shadow-sm flex items-center gap-2 group"
+                >
+                  See More 
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
             </div>
           )}
         </>

@@ -375,8 +375,9 @@ export default function AddPortfolioModal({
         });
 
         let res;
-        if (initialData && initialData.id) {
-          res = await videographerAPI.updatePortfolioItem(initialData.id, formData);
+        if (initialData && (initialData._id || initialData.id)) {
+          const itemId = initialData._id || initialData.id;
+          res = await videographerAPI.updatePortfolioItem(itemId, formData);
         } else {
           res = await videographerAPI.createPortfolioItem(formData);
         }
