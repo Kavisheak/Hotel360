@@ -8,12 +8,15 @@ import { User, Save, Trash2, Loader2, X, Upload } from "lucide-react";
 import getCroppedImg from "@/utils/cropImage";
 import { SectionTitle } from './SectionTitle';
 import { useAuthStore } from '@/store/authStore';
+import { useToastStore } from '@/store/toastStore';
 import { authAPI } from '@/lib/api';
 import { validatePhone } from '@/lib/validation';
 import { getImageUrl } from "@/lib/utils";
+import FeedbackModal from '../shared/FeedbackModal';
 
 const PersonalProfile = () => {
   const { user, fetchUser, updateUser } = useAuthStore();
+  const { addToast } = useToastStore();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -32,7 +35,21 @@ const PersonalProfile = () => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // Luxury Feedback Modal State
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    badgeText?: string;
+    details?: { label: string; value: string }[];
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "success",
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -66,11 +83,22 @@ const PersonalProfile = () => {
       const { ok, data } = await authAPI.uploadAvatar(form);
       if (ok && data.avatar) {
         updateUser({ avatar: data.avatar });
+        addToast({ message: "Profile photo updated successfully!", type: "success" });
       } else {
-        alert(data?.message || "Failed to upload avatar");
+        setFeedback({
+          isOpen: true,
+          title: "Upload Failed",
+          message: data?.message || "Failed to upload avatar. Please try again.",
+          type: "error"
+        });
       }
     } catch (e: any) {
-      alert("Error: " + e.message);
+      setFeedback({
+        isOpen: true,
+        title: "Crop Error",
+        message: e?.message || "An error occurred while processing the profile photo.",
+        type: "error"
+      });
     } finally {
       setUploadingAvatar(false);
       setCropImageSrc(null);
@@ -84,8 +112,14 @@ const PersonalProfile = () => {
 
     if (ok) {
       updateUser({ avatar: "" });
+      addToast({ message: "Profile photo removed.", type: "info" });
     } else {
-      alert(data?.message || "Failed to delete avatar");
+      setFeedback({
+        isOpen: true,
+        title: "Action Failed",
+        message: data?.message || "Failed to remove avatar photo.",
+        type: "error"
+      });
     }
   };
 
@@ -134,9 +168,28 @@ const PersonalProfile = () => {
         phone: formData.phone,
         preferences: { ...user?.preferences, language: formData.language }
       });
-      alert('Profile updated successfully!');
+      setFeedback({
+        isOpen: true,
+        title: "Profile Refined & Saved",
+        message: "Your manager profile information, contact number, and regional preferences have been saved successfully across the system.",
+        type: "success",
+        badgeText: user?.isLeadManager ? "Lead Manager" : "Manager Account",
+        details: [
+          { label: "Full Name", value: `${formData.firstName} ${formData.lastName}` },
+          { label: "Account Email", value: formData.email },
+          { label: "Contact Phone", value: formData.phone || "—" },
+          { label: "Language", value: formData.language }
+        ]
+      });
+      addToast({ message: "Profile updated successfully!", type: "success" });
     } else {
-      alert(res.data?.message || 'Failed to update profile.');
+      setFeedback({
+        isOpen: true,
+        title: "Update Failed",
+        message: res.data?.message || 'Failed to update profile. Please check your connection and try again.',
+        type: "error"
+      });
+      addToast({ message: res.data?.message || 'Failed to update profile.', type: "error" });
     }
   };
 
@@ -175,7 +228,7 @@ const PersonalProfile = () => {
                   type="button" 
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingAvatar}
-                  className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#7C6A2E] border border-[#E0D8C3] rounded hover:bg-[#FDF9F1] transition-colors flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#7C6A2E] border border-[#E0D8C3] rounded hover:bg-[#FDF9F1] transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {uploadingAvatar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" strokeWidth={2} />}
                   {uploadingAvatar ? "Uploading..." : "Change Photo"}
@@ -185,7 +238,7 @@ const PersonalProfile = () => {
                     type="button"
                     onClick={handleAvatarDelete}
                     disabled={uploadingAvatar}
-                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" strokeWidth={2} /> Remove
                   </button>
@@ -196,39 +249,50 @@ const PersonalProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">First Name</label>
-            <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+              <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">First Name</label>
+              <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Last Name</label>
+              <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
+              <input type="email" name="email" value={formData.email} disabled className="w-full bg-gray-100 border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
+              {error && <p className="text-red-500 text-[10px] mt-1">{error}</p>}
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Language Preference</label>
+              <select name="language" value={formData.language} onChange={handleChange} className="w-full md:w-1/2 bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] appearance-none">
+                <option>English (UK)</option>
+                <option>English (US)</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Last Name</label>
-            <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
-          </div>
-          <div>
-            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
-            <input type="email" name="email" value={formData.email} disabled className="w-full bg-gray-100 border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C]" />
-            {error && <p className="text-red-500 text-[10px] mt-1">{error}</p>}
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Language Preference</label>
-            <select name="language" value={formData.language} onChange={handleChange} className="w-full md:w-1/2 bg-[#FDF9F1] border border-[#E0D8C3] px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#B08D2C] appearance-none">
-              <option>English (UK)</option>
-              <option>English (US)</option>
-            </select>
-          </div>
-        </div>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : 'Save Profile Changes'}
-        </button>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md"
+          >
+            {isSaving ? 'Saving...' : 'Save Profile Changes'}
+          </button>
         </div>
       </div>
+
+      {/* Luxury Feedback Modal */}
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={() => setFeedback(prev => ({ ...prev, isOpen: false }))}
+        title={feedback.title}
+        message={feedback.message}
+        type={feedback.type}
+        badgeText={feedback.badgeText}
+        details={feedback.details}
+      />
 
       {/* Crop Modal */}
       {mounted && cropImageSrc && createPortal(
@@ -284,7 +348,7 @@ const PersonalProfile = () => {
                   type="button"
                   onClick={handleCropUpload}
                   disabled={uploadingAvatar}
-                  className="px-6 py-2 bg-[#7C6A2E] text-white font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#635525] transition-colors flex items-center gap-2 disabled:opacity-70"
+                  className="px-6 py-2 bg-[#7C6A2E] text-white font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-[#635525] transition-colors flex items-center gap-2 disabled:opacity-70 cursor-pointer"
                 >
                   {uploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {uploadingAvatar ? "Uploading..." : "Crop & Upload"}

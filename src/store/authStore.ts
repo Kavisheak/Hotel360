@@ -11,6 +11,7 @@ export interface AuthUser {
   city?: string;
   avatar?: string;
   role: string;
+  isLeadManager?: boolean;
   isVerified: boolean;
   shopName?: string;
   ownerNic?: string;

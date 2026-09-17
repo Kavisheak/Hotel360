@@ -592,6 +592,15 @@ export const superAdminAPI = {
       method: "POST",
       body: JSON.stringify({ action }),
     }),
+  broadcastMaintenanceNotice: (data: any) =>
+    apiFetch("/api/super-admin/config/maintenance-broadcast", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  cancelMaintenanceNotice: () =>
+    apiFetch("/api/super-admin/config/maintenance-broadcast", {
+      method: "DELETE",
+    }),
   uploadGlbModel: async (file: File) => {
     const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     const formData = new FormData();
@@ -618,5 +627,10 @@ export const superAdminAPI = {
     apiFetch(`/api/super-admin/users/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
+    }),
+  assignLeadManager: (managerId: string) =>
+    apiFetch("/api/super-admin/users/lead-manager", {
+      method: "PUT",
+      body: JSON.stringify({ managerId }),
     }),
 };

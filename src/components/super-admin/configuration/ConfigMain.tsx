@@ -135,6 +135,7 @@ const ConfigMain = () => {
                   data={config.platformSecurity}
                   onChange={(d: any) => setConfig({ ...config, platformSecurity: d })}
                   onSecurityAction={handleSecurityAction}
+                  showToast={showToast}
                 />
               </div>
               {/* Row 2 Right - Booking Rules (5/12 or 6/12) */}

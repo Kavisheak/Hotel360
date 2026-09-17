@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid, CalendarCheck, Building2, Users, Package,
   Receipt, BarChart3, Image as ImageIcon, Settings, LogOut, Menu, X,
-  PanelLeftClose, PanelLeftOpen, HelpCircle, User, Shield
+  PanelLeftClose, PanelLeftOpen, HelpCircle, User, Shield, Crown
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -175,7 +175,20 @@ const ManagerSidebar = () => {
                 <span className="text-xs font-bold text-gray-800 tracking-wide truncate">
                   {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'A. Sattar'}
                 </span>
-                <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">PROFILE SERVICES</span>
+                {user?.role === 'manager' && (
+                  user?.isLeadManager ? (
+                    <span className="text-[9px] font-bold text-[#7C6A2E] tracking-[0.1em] uppercase truncate flex items-center gap-1 mt-0.5">
+                      <Crown size={10} className="text-[#B08D2C]" /> Lead Manager
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold text-gray-400 tracking-[0.1em] uppercase truncate mt-0.5">
+                      Standby Manager
+                    </span>
+                  )
+                )}
+                {user?.role !== 'manager' && (
+                  <span className="text-[9px] font-semibold text-gray-400 tracking-[0.1em] uppercase truncate">PROFILE SERVICES</span>
+                )}
               </div>
             )}
           </button>

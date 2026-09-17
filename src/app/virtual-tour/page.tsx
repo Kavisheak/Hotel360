@@ -12,7 +12,17 @@ import { useLayoutStore } from "@/store/useLayoutStore";
 export default function VirtualTourPage() {
   const [activeTab, setActiveTab] = useState<"360" | "3d">("360");
   const [eventType, setEventType] = useState<string>("Wedding");
+  const [isPublic, setIsPublic] = useState<boolean | null>(null);
   const { guestCount, setGuestCount, setArrangementStyle } = useLayoutStore();
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/virtual-config`)
+      .then(res => res.json())
+      .then(data => {
+        setIsPublic(data.success ? data.isPublic !== false : true);
+      })
+      .catch(() => setIsPublic(true));
+  }, []);
 
   // Sync event type with arrangement style
   useEffect(() => {
@@ -20,6 +30,35 @@ export default function VirtualTourPage() {
     else if (eventType === "Meeting") setArrangementStyle("Theater");
     else if (eventType === "Seminar") setArrangementStyle("Classroom");
   }, [eventType, setArrangementStyle]);
+
+  if (isPublic === false) {
+    return (
+      <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white">
+        <MainNavbar />
+        <main className="flex-grow flex items-center justify-center px-6 pt-36 pb-20">
+          <div className="max-w-md w-full text-center bg-[#FDFBF7] dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-white/10 p-10 rounded-sm shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-[#FAF6EE] dark:bg-[#252525] border border-[#C9A84C]/40 mx-auto flex items-center justify-center mb-5 text-[#C9A84C]">
+              <View className="w-6 h-6" />
+            </div>
+            <p className="text-[10px] font-bold tracking-[0.25em] text-[#C9A84C] uppercase mb-2">Notice</p>
+            <h2 className="text-2xl font-serif font-bold text-[#2C1E14] dark:text-white mb-3">
+              Virtual Experience Offline
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-light leading-relaxed mb-6">
+              Our 360° virtual tour is temporarily offline while we update our spatial arrangements. We warmly invite you to explore our packages or contact our concierge.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center px-6 py-2.5 bg-[#C9A84C] text-black text-[10px] font-bold uppercase tracking-widest rounded-sm hover:opacity-90 transition-opacity"
+            >
+              Return Home
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-[#0A0A0A] min-h-screen flex flex-col font-sans text-[#1A1512] dark:text-white transition-colors duration-300">
