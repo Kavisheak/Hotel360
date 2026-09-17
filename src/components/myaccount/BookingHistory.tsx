@@ -78,7 +78,9 @@ export default function BookingHistory() {
 
   useEffect(() => {
     bookings.forEach(async (b) => {
-      const bId = b._id || b.id;
+      const bId = (b._id || b.id) as string;
+      if (!bId) return;
+      
       const isPastEvent = new Date(b.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
       const isCompleted = isPastEvent && !["cancelled", "rejected"].includes((b.status || "").toLowerCase()) ? true : (b.status || "").toLowerCase() === "completed";
       
@@ -266,7 +268,7 @@ export default function BookingHistory() {
       const opt = {
         margin: 10,
         filename: `Invoice_${refName.toUpperCase()}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
@@ -314,7 +316,7 @@ export default function BookingHistory() {
               vendors: usedVendors,
             });
           }}
-          isReviewed={reviewedStatuses[detailsModalBooking._id || detailsModalBooking.id]}
+          isReviewed={reviewedStatuses[(detailsModalBooking._id || detailsModalBooking.id) as string]}
         />
       ) : (
       <>
@@ -534,10 +536,10 @@ export default function BookingHistory() {
                           });
                         }}
                         className="flex-1 p-3 border border-[#C9A84C] bg-[#C9A84C]/10 rounded-xl text-[#C9A84C] hover:bg-[#C9A84C] hover:text-white transition-colors flex items-center justify-center gap-2"
-                        title={reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Leave Review"}
+                        title={reviewedStatuses[(booking._id || booking.id) as string] ? "Edit Review" : "Leave Review"}
                       >
                         <Star className="w-4 h-4 fill-current" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Review"}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[(booking._id || booking.id) as string] ? "Edit Review" : "Review"}</span>
                       </button>
                     )}
                     {!["completed", "cancelled", "rejected"].includes((displayStatus || "").toLowerCase()) && (
