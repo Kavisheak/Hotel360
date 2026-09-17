@@ -359,9 +359,6 @@ export default function AuthPage() {
             <motion.div key="login-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Login Form Content */}
               <div className="flex flex-col items-center mb-5">
-                <div className="w-32 h-14 relative">
-                  <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
-                </div>
                 <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Welcome Back
                 </h1>
@@ -480,9 +477,6 @@ export default function AuthPage() {
             <motion.div key="register-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Register Form Content */}
               <div className="flex flex-col items-center mb-2">
-                <div className="w-24 h-12 relative">
-                   <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
-                </div>
                 <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Create Account
                 </h1>

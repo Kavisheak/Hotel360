@@ -600,4 +600,8 @@ export const superAdminAPI = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+  resetStaffPassword: (id: string) =>
+    apiFetch(`/api/super-admin/users/${id}/reset-password`, {
+      method: "PUT",
+    }),
 };

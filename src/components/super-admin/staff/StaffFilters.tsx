@@ -7,6 +7,8 @@ import { type Role } from './types';
 interface StaffFiltersProps {
   activeRole: Role;
   onRoleChange: (role: Role) => void;
+  statusFilter: 'all' | 'active' | 'suspended';
+  onStatusChange: (status: 'all' | 'active' | 'suspended') => void;
   avgRating: string;
 }
 
@@ -18,7 +20,7 @@ const roleTabs: { key: Role; label: string }[] = [
   { key: 'djs',           label: 'DJ ARTISTS'     },
 ];
 
-const StaffFilters = ({ activeRole, onRoleChange, avgRating }: StaffFiltersProps) => {
+const StaffFilters = ({ activeRole, onRoleChange, statusFilter, onStatusChange, avgRating }: StaffFiltersProps) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       {/* Role Tabs + Filter Icon */}
@@ -40,11 +42,23 @@ const StaffFilters = ({ activeRole, onRoleChange, avgRating }: StaffFiltersProps
         {/* Divider */}
         <div className="w-px h-5 bg-[#E0D8C3] mx-2 shrink-0" />
 
-        {/* Filter Toggle */}
-        <button className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase whitespace-nowrap hover:text-[#7C6A2E] transition-colors px-2">
-          <Filter size={12} />
-          ACTIVE FILTERS: NONE
-        </button>
+        {/* Status Filter Dropdown */}
+        <div className="relative flex items-center px-2">
+          <Filter size={12} className="text-[#B08D2C] mr-1.5" />
+          <select 
+            className="text-[10px] font-bold tracking-wider text-gray-600 uppercase bg-transparent outline-none cursor-pointer hover:text-[#7C6A2E] transition-colors appearance-none pr-4"
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value as any)}
+          >
+            <option value="all">ALL STATUSES</option>
+            <option value="active">ACTIVE</option>
+            <option value="suspended">DEACTIVATED</option>
+          </select>
+          {/* Custom Dropdown Arrow */}
+          <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
       </div>
 
       {/* Avg Rating Card */}
