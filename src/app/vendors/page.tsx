@@ -11,6 +11,8 @@ import Footer from "@/components/landing/shared/Footer";
 import { useVendorStore } from "@/store/vendorStore";
 import { useAuthStore } from "@/store/authStore";
 import { useSearchParams } from "next/navigation";
+import { Sparkles, ArrowRight } from "lucide-react";
+import AIVisualMatcherModal from "@/components/landing/vendors/AIVisualMatcherModal";
 
 function VendorsContent() {
   const { fetchUser, user } = useAuthStore();
@@ -30,6 +32,14 @@ function VendorsContent() {
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const [viewMode, setViewMode] = useState<"gallery" | "cards">("cards");
+
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+
+  const handleAiMatchComplete = (analysis: any) => {
+    setAiAnalysis(analysis);
+    setActiveTab("decorators");
+  };
 
   const searchParams = useSearchParams();
 
@@ -53,9 +63,32 @@ function VendorsContent() {
     }
   }, [searchParams]);
 
+  const matchedVendorsForCards = useMemo(() => {
+    if (!aiAnalysis || !aiAnalysis.matches || activeTab !== "decorators") return null;
+    
+    return aiAnalysis.matches.map((match: any) => {
+      const originalVendor = vendors.find(v => v.id === match.vendorId);
+      if (!originalVendor) return null;
+      
+      const matchedItem = originalVendor.portfolioItems?.find(p => (p.id || (p as any)._id) === match.portfolioItemId) || {
+        id: match.portfolioItemId,
+        title: match.title,
+        price: match.price,
+        media: [{ url: match.image, isCover: true }],
+        description: ""
+      };
+      
+      return {
+        ...originalVendor,
+        portfolioItems: [{ ...matchedItem, matchScore: match.matchScore }]
+      };
+    }).filter(Boolean);
+  }, [aiAnalysis, vendors, activeTab]);
+
   const filteredVendors = useMemo(() => {
     let result = vendors.filter(v => {
-      // Basic Tab Matching
+      // AI Match Logic (now handled separately for display, but we can keep filter logic to just match the vendors if we still want to show them in the main grid if AI match is active. Actually, let's just return true for category matching)
+      if (activeTab !== "all" && v.category !== activeTab) return false;
       if (activeTab !== "all" && v.category !== activeTab) return false;
       
       // Keyword Search
@@ -93,7 +126,12 @@ function VendorsContent() {
     if (sortBy === "rating") {
       result.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "popularity") {
-      result.sort((a, b) => b.reviewsCount - a.reviewsCount);
+      // Logarithmic Approach: balance between rating quality and review volume
+      result.sort((a, b) => {
+        const scoreA = a.rating * Math.log10(a.reviewsCount + 1);
+        const scoreB = b.rating * Math.log10(b.reviewsCount + 1);
+        return scoreB - scoreA;
+      });
     } else if (sortBy === "price_low") {
       const getNumericPrice = (p: string) => parseInt(p.replace(/[^0-9]/g, ""), 10) || 0;
       result.sort((a, b) => getNumericPrice(a.startingPrice) - getNumericPrice(b.startingPrice));
@@ -117,6 +155,7 @@ function VendorsContent() {
     setLocationFilter("all");
     setSortBy("popularity");
     setActiveTab("all");
+    setAiAnalysis(null);
   };
 
   return (
@@ -126,6 +165,59 @@ function VendorsContent() {
       <main className="flex-grow">
         <VendorsHero />
         
+        {/* Premium AI Visualizer Banner */}
+        <div className="max-w-7xl mx-auto px-6 mt-8 mb-4">
+          <div className="bg-gradient-to-br from-[#FDFBF7] to-[#FAF6EE] dark:from-[#111] dark:to-[#0A0A0A] border border-[#C9A84C]/40 rounded-xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 group relative overflow-hidden">
+            <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#C9A84C] rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity duration-700"></div>
+            
+            <div className="relative z-10 flex items-center gap-5 w-full md:w-auto">
+              <div className="hidden sm:flex shrink-0 w-12 h-12 rounded-full bg-white dark:bg-[#1A1A1A] border border-[#C9A84C]/30 items-center justify-center text-[#C9A84C] shadow-sm">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg md:text-xl font-serif font-bold text-[#1A1512] dark:text-white flex items-center gap-2 mb-1">
+                  AI Visual Matcher 
+                  <span className="bg-[#C9A84C] text-white text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-sm">New</span>
+                </h4>
+                <p className="text-xs text-gray-500 max-w-xl">
+                  Upload your decoration inspiration and let our AI find the 3-best matching decoration styles for your event.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative z-10 shrink-0 w-full md:w-auto flex items-center gap-3">
+              <div className="hidden lg:flex items-center gap-2 mr-2">
+                <img src="/images/decor_sample_1.png" className="w-10 h-10 rounded object-cover border border-[#C9A84C]/30 opacity-80" alt="Decoration Sample 1" />
+                <img src="/images/decor_sample_2.png" className="w-10 h-10 rounded object-cover border border-[#C9A84C]/30 opacity-90 scale-110 shadow-md" alt="Decoration Sample 2" />
+                <img src="/images/decor_sample_3.png" className="w-10 h-10 rounded object-cover border border-[#C9A84C]/30 opacity-80" alt="Decoration Sample 3" />
+              </div>
+              <button 
+                onClick={() => setIsAiModalOpen(true)}
+                className="group relative overflow-hidden w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-[#C9A84C] via-[#E2C779] to-[#C9A84C] bg-[length:200%_auto] transition-all duration-500 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-[0_0_20px_rgba(201,168,76,0.8)] hover:shadow-[0_0_30px_rgba(201,168,76,1)] hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              >
+                <div className="absolute inset-0 bg-white/20 blur-md rounded-full animate-pulse z-0 pointer-events-none"></div>
+                
+                <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent z-0 pointer-events-none" style={{ animation: 'shimmer 2.5s infinite linear' }}>
+                  <style>{`
+                    @keyframes shimmer {
+                      0% { transform: translateX(-150%) skewX(-12deg); }
+                      60% { transform: translateX(300%) skewX(-12deg); }
+                      100% { transform: translateX(300%) skewX(-12deg); }
+                    }
+                  `}</style>
+                </div>
+
+                <span className="relative z-10 flex items-center gap-2">
+                  Try AI Visual Matcher
+                </span>
+                <div className="relative z-10 flex items-center pl-1">
+                  <Sparkles className="w-4 h-4 opacity-100 animate-pulse text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <VendorsFilters 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -147,6 +239,29 @@ function VendorsContent() {
           setActiveTab={setActiveTab}
           filteredCount={filteredVendors.length}
         />
+
+        {matchedVendorsForCards && matchedVendorsForCards.length > 0 && (
+          <div className="max-w-7xl mx-auto px-6 mt-8 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-serif text-[#1A1512] dark:text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#C9A84C]" />
+                Top Matched Decorations
+              </h3>
+              <button onClick={() => setAiAnalysis(null)} className="text-xs text-gray-500 hover:text-[#C9A84C] underline cursor-pointer">
+                Clear Results
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {matchedVendorsForCards && matchedVendorsForCards.length > 0 && (
+          <VendorCards 
+            filteredVendors={matchedVendorsForCards} 
+            onClearFilters={handleClearFilters} 
+            isGuest={isGuest} 
+            sortBy={sortBy} 
+          />
+        )}
 
         <div className="max-w-7xl mx-auto px-6 mt-8 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -199,6 +314,12 @@ function VendorsContent() {
         <VendorsTrust />
       </main>
       
+      <AIVisualMatcherModal 
+        isOpen={isAiModalOpen} 
+        onClose={() => setIsAiModalOpen(false)} 
+        onMatchComplete={handleAiMatchComplete} 
+      />
+
       <Footer />
     </div>
   );
