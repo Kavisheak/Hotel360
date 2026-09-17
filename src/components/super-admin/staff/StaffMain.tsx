@@ -13,6 +13,7 @@ import EditStaffModal from './EditStaffModal';
 import ResetPasswordModal from './ResetPasswordModal';
 import PasswordResultModal from './PasswordResultModal';
 import { superAdminAPI } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 
 const StaffMain = () => {
   const [activeRole, setActiveRole] = useState<Role>('all');
@@ -39,7 +40,10 @@ const StaffMain = () => {
         const formatted = res.data.data.map((u: any) => {
           let roleCategory = 'other';
           let roleBadge = 'Staff';
-          if (u.role === 'manager') { roleCategory = 'managers'; roleBadge = 'Manager'; }
+          if (u.role === 'manager') {
+            roleCategory = 'managers';
+            roleBadge = u.isLeadManager ? 'Lead Manager' : 'Manager';
+          }
           if (u.role === 'decorator') { roleCategory = 'decorators'; roleBadge = 'Decorator'; }
           if (u.role === 'dj_artist') { roleCategory = 'djs'; roleBadge = 'DJ Artist'; }
           if (u.role === 'videographer') { roleCategory = 'videographers'; roleBadge = 'Videographer'; }
@@ -54,10 +58,11 @@ const StaffMain = () => {
             rating: u.rating || 0,
             reviews: u.reviewsCount || 0,
             status: u.isActive ? 'active' : 'suspended',
-            avatar: u.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80',
+            avatar: getImageUrl(u.avatar) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80',
             completedEvents: u.completedEvents || 0,
             assignedThisWeek: u.assignedThisWeek || 0,
             availability: u.availability || 'Unknown',
+            isLeadManager: !!u.isLeadManager,
           };
         });
         setStaffData(formatted);
@@ -212,6 +217,7 @@ const StaffMain = () => {
         isOpen={isManagerModalOpen}
         onClose={() => setIsManagerModalOpen(false)}
         staffData={staffData}
+        onSuccess={fetchStaff}
       />
 
       <RegisterStaffModal

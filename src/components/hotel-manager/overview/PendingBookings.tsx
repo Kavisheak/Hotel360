@@ -1,10 +1,11 @@
-"use client";
-
 import React, { useEffect, useState } from 'react';
-import { BookOpen, CheckCircle2, Clock, Users, ShieldAlert } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Users, ShieldAlert, Crown } from 'lucide-react';
 import { bookingAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 const PendingBookings = () => {
+  const { user } = useAuthStore();
+  const isStandby = user?.role === 'manager' && !user?.isLeadManager;
   const [isClient, setIsClient] = useState(false);
   const [pendingHallBookings, setPendingHallBookings] = useState<any[]>([]);
   const [waitingVendorBookings, setWaitingVendorBookings] = useState<any[]>([]);
@@ -14,6 +15,7 @@ const PendingBookings = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
   const [successDetails, setSuccessDetails] = useState<string | null>(null);
+  const [standbyNotice, setStandbyNotice] = useState<string | null>(null);
 
   const fetchBookings = async () => {
     setIsLoading(true);
@@ -51,16 +53,26 @@ const PendingBookings = () => {
   const handleApproveHall = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isStandby) {
+      setStandbyNotice("Only the designated Lead Manager has operational authority to approve hall allocations. Your account is currently in View-Only standby mode.");
+      return;
+    }
     const res = await bookingAPI.updateBookingStatus(id, { status: 'Confirmed' });
     if (res.ok) {
       setSuccessDetails(`Hall allocation confirmed! Vendor requests have been activated and dispatched.`);
       fetchBookings();
+    } else if (res.data?.isStandbyMode || res.status === 403) {
+      setStandbyNotice(res.data?.message || "Action restricted to Lead Manager.");
     }
   };
 
   const handleRejectSubmit = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isStandby) {
+      setStandbyNotice("Only the designated Lead Manager has operational authority to reject bookings. Your account is currently in View-Only standby mode.");
+      return;
+    }
     if (rejectReason.trim().length < 10) {
       setRejectError("Min 10 chars required.");
       return;
@@ -75,6 +87,8 @@ const PendingBookings = () => {
       setRejectReason("");
       setSuccessDetails("Hall request rejected. 100% advance deposit refunded to customer.");
       fetchBookings();
+    } else if (res.data?.isStandbyMode || res.status === 403) {
+      setStandbyNotice(res.data?.message || "Action restricted to Lead Manager.");
     } else {
       setRejectError(res.data?.message || "Failed to reject booking.");
     }
@@ -215,13 +229,32 @@ const PendingBookings = () => {
                           </a>
                           <button 
                             onClick={(e) => handleApproveHall(row.id || row._id, e)}
-                            className="flex-1 bg-[#7C6A2E] hover:bg-[#6A5A27] text-white text-[10px] font-bold uppercase tracking-widest py-2.5 rounded-lg transition-colors shadow-sm"
+                            className={`flex-1 text-[10px] font-bold uppercase tracking-widest py-2.5 rounded-lg transition-colors shadow-sm ${
+                              isStandby 
+                                ? 'bg-gray-100 text-gray-400 hover:bg-gray-200 border border-gray-200 cursor-not-allowed' 
+                                : 'bg-[#7C6A2E] hover:bg-[#6A5A27] text-white'
+                            }`}
+                            title={isStandby ? "Approval reserved for Lead Manager" : undefined}
                           >
-                            Approve
+                            {isStandby ? 'Approve (Lead)' : 'Approve'}
                           </button>
                           <button 
-                            onClick={(e) => { e.preventDefault(); setRejectingId(row.id || row._id); setRejectReason(""); setRejectError(""); }}
-                            className="flex-[0.8] bg-white border border-red-200 hover:bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-widest py-2.5 rounded-lg transition-colors"
+                            onClick={(e) => { 
+                              e.preventDefault(); 
+                              if (isStandby) {
+                                setStandbyNotice("Only the designated Lead Manager has operational authority to reject bookings. Your account is currently in View-Only standby mode.");
+                                return;
+                              }
+                              setRejectingId(row.id || row._id); 
+                              setRejectReason(""); 
+                              setRejectError(""); 
+                            }}
+                            className={`flex-[0.8] border text-[10px] font-bold uppercase tracking-widest py-2.5 rounded-lg transition-colors ${
+                              isStandby 
+                                ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed' 
+                                : 'bg-white border-red-200 hover:bg-red-50 text-red-600'
+                            }`}
+                            title={isStandby ? "Rejection reserved for Lead Manager" : undefined}
                           >
                             Reject
                           </button>
@@ -331,6 +364,27 @@ const PendingBookings = () => {
               className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm shadow-sm"
             >
               Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Standby Alert Modal */}
+      {standbyNotice && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] shadow-2xl p-8 max-w-md w-full mx-4 text-center rounded-xl">
+            <div className="w-16 h-16 bg-[#FAF6EE] border-2 border-[#B08D2C]/40 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <ShieldAlert size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">Action Restricted</h3>
+            <p className="text-xs text-gray-600 mb-8 leading-relaxed">
+              {standbyNotice}
+            </p>
+            <button 
+              onClick={() => setStandbyNotice(null)}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm shadow-sm"
+            >
+              Understood
             </button>
           </div>
         </div>

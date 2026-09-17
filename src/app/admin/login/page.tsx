@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
   useEffect(() => {
     if (!isLoading && user) {
       if (user.role.toLowerCase() === "super_admin") {
-        router.replace("/admin/dashboard");
+        router.replace("/super-admin");
       } else {
         // If a non-admin is logged in, boot them out of the admin portal
         router.replace("/");
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
 
     // Update global state now that we have a valid admin session
     await fetchUser(true);
-    router.replace("/admin/dashboard");
+    router.replace("/super-admin");
   };
 
   const formVariants: Variants = {

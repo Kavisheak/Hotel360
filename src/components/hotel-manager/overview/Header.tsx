@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, HelpCircle, Search, Plus, User, Settings, LogOut } from 'lucide-react';
+import { Bell, HelpCircle, Search, Plus, User, Settings, LogOut, Crown, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
@@ -13,9 +13,14 @@ const ManagerHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [standbyNotice, setStandbyNotice] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { clearUser } = useAuthStore();
+  const { user, clearUser, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -39,14 +44,37 @@ const ManagerHeader = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleNewBookingClick = () => {
+    if (user?.role === 'manager' && !user?.isLeadManager) {
+      setStandbyNotice(true);
+      return;
+    }
+    setIsNewBookingOpen(true);
+  };
+
+  const isLead = user?.role === 'super_admin' || user?.isLeadManager;
+
   return (
     <>
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E0D8C3]/60 flex justify-between items-center px-4 lg:px-8 h-16 w-full shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-all">
-        {/* Left: Page title */}
-        <div className="flex items-center gap-6 lg:gap-10 pl-10 lg:pl-0">
+        {/* Left: Page title & Role Designation */}
+        <div className="flex items-center gap-4 pl-10 lg:pl-0">
           <h2 className="font-serif italic text-[#7C6A2E] text-xl lg:text-2xl font-semibold tracking-wide">
             Overview
           </h2>
+          {user?.role === 'manager' && (
+            isLead ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#7C6A2E] text-white text-[9px] font-bold tracking-wider uppercase px-3 py-1 rounded-full shadow-xs border border-[#B08D2C]/40">
+                <Crown size={11} className="text-[#F9DD76]" />
+                Active Lead Manager
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#FAF6EE] text-[#7C6A2E] text-[9px] font-bold tracking-wider uppercase px-3 py-1 rounded-full border border-[#B08D2C]/40" title="Operational authority is held by the active Lead Manager.">
+                <ShieldAlert size={11} className="text-[#B08D2C]" />
+                Standby Mode (View Only)
+              </span>
+            )
+          )}
         </div>
 
         {/* Right: Search + Icons + Avatar */}
@@ -67,8 +95,13 @@ const ManagerHeader = () => {
 
           {/* New Booking Button */}
           <button 
-            onClick={() => setIsNewBookingOpen(true)} 
-            className="hidden sm:flex items-center gap-2 bg-[#7C6A2E] hover:bg-[#6A5A27] text-white px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
+            onClick={handleNewBookingClick} 
+            className={`hidden sm:flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5 ${
+              isLead 
+                ? 'bg-[#7C6A2E] hover:bg-[#6A5A27] text-white' 
+                : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+            }`}
+            title={!isLead ? "New booking creation is reserved for the active Lead Manager" : undefined}
           >
             <Plus size={16} />
             New Booking
@@ -118,17 +151,26 @@ const ManagerHeader = () => {
         </div>
       </header>
 
-      {/* New Booking Modal Popup */}
-      {isNewBookingOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#FDF9F1] w-full max-w-6xl rounded shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-[#E0D8C3] animate-fadeIn text-left">
-            <NewBookingMain 
-              onClose={() => setIsNewBookingOpen(false)}
-              onSuccess={() => {
-                setIsNewBookingOpen(false);
-                window.location.href = "/hotel-manager/bookings";
-              }}
-            />
+      {/* Standby Mode Restrict Modal */}
+      {standbyNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#FDF9F1] border border-[#E0D8C3] max-w-md w-full p-8 text-center rounded-sm shadow-2xl">
+            <div className="w-16 h-16 bg-[#FAF6EE] border-2 border-[#B08D2C]/40 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+              <ShieldAlert size={32} className="text-[#7C6A2E]" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#7C6A2E] mb-2 tracking-wide">
+              Lead Authority Required
+            </h3>
+            <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+              Your account is currently in <strong className="text-gray-900">Standby (View-Only) mode</strong>. Creation of new bookings, contract commitments, and hall approvals are reserved for the designated <strong>Lead Manager</strong>.
+            </p>
+            <button
+              type="button"
+              onClick={() => setStandbyNotice(false)}
+              className="w-full bg-[#7C6A2E] hover:bg-[#5E4F20] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm rounded-sm"
+            >
+              Understood
+            </button>
           </div>
         </div>
       )}

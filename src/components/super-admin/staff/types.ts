@@ -14,6 +14,7 @@ export interface StaffMember {
   completedEvents?: number;
   assignedThisWeek?: number;
   availability?: string;
+  isLeadManager?: boolean;
 }
 
 export const statusConfig = {
