@@ -543,7 +543,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
                     </div>
                   </div>
 
-                  {isDeclined && !locallyRemovedVendors.includes(serviceKey) && (displayStatus || "").toLowerCase() !== "completed" && (
+                  {isDeclined && !locallyRemovedVendors.includes(serviceKey) && (displayStatus || "").toLowerCase() !== "completed" && !(booking.date && new Date(booking.date) < new Date()) && (
                     <div className="mt-4 pt-4 border-t border-red-100 dark:border-red-900/30">
                       <p className="text-[10px] text-red-600 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         ⚠️ Action Required: Vendor Declined

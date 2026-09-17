@@ -437,6 +437,8 @@ export default function BookingHistory() {
 
                 {/* Declined Vendors Action Required */}
                 {(() => {
+                  if (booking.status === "Completed" || (booking.date && new Date(booking.date) < new Date())) return null;
+                  
                   const declinedVendors = [];
                   ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach(svc => {
                     const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
