@@ -14,7 +14,6 @@ import {
   Printer,
   X,
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface MonthData {
   month: string;
@@ -311,29 +310,6 @@ export default function BookingTrafficSection({ data }: BookingTrafficSectionPro
                       rx="3" ry="3"
                     />
 
-                    {/* Hover tooltip */}
-                    {isHov && (
-                      <g>
-                        <rect
-                          x={Math.min(cx - 80, SVG_W - 170)}
-                          y={barTopY - 68}
-                          width={160} height={58}
-                          rx="4" fill="#3D3000"
-                          opacity="0.97"
-                        />
-                        <text x={Math.min(cx, SVG_W - 90)} y={barTopY - 48} textAnchor="middle" fontSize="13" fill="#F9DD76" fontWeight="700">{item.month}</text>
-                        <text x={Math.min(cx, SVG_W - 90)} y={barTopY - 32} textAnchor="middle" fontSize="14" fill="white" fontWeight="800">{item.count} Bookings</text>
-                        <text x={Math.min(cx, SVG_W - 90)} y={barTopY - 16} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.8)">
-                          {item.confirmed ?? 0} Confirmed · {item.pending ?? 0} Pending
-                        </text>
-                        {/* tooltip arrow */}
-                        <polygon
-                          points={`${Math.min(cx, SVG_W - 90) - 6},${barTopY - 10} ${Math.min(cx, SVG_W - 90) + 6},${barTopY - 10} ${Math.min(cx, SVG_W - 90)},${barTopY - 4}`}
-                          fill="#3D3000"
-                        />
-                      </g>
-                    )}
-
                     {/* Count label above bar */}
                     <text
                       x={cx}
@@ -401,6 +377,96 @@ export default function BookingTrafficSection({ data }: BookingTrafficSectionPro
                 x1={0} y1={CHART_H} x2={SVG_W} y2={CHART_H}
                 stroke="#e5e7eb" strokeWidth="1.5"
               />
+
+              {/* ── Prominent, High-Visibility Hover Tooltip (Topmost Layer) ── */}
+              {hoveredIndex !== null && chartSeries[hoveredIndex] && (() => {
+                const item = chartSeries[hoveredIndex];
+                const barX = getBarX(hoveredIndex);
+                const barTopY = getBarTopY(item.count);
+                const cx = barX + barWidth / 2;
+                const tipW = 320;
+                const tipH = 92;
+                const tipX = Math.max(12, Math.min(cx - tipW / 2, SVG_W - tipW - 12));
+                const showBelow = barTopY < (tipH + 25);
+                const tipY = showBelow ? barTopY + 34 : barTopY - tipH - 24;
+                const arrowX = Math.max(tipX + 24, Math.min(cx, tipX + tipW - 24));
+
+                return (
+                  <g style={{ pointerEvents: 'none' }}>
+                    {/* Tooltip Card Background */}
+                    <rect
+                      x={tipX}
+                      y={tipY}
+                      width={tipW}
+                      height={tipH}
+                      rx="8"
+                      fill="#261E04"
+                      stroke="#A88B38"
+                      strokeWidth="1.5"
+                      opacity="0.98"
+                    />
+                    {/* Directional Arrow */}
+                    {showBelow ? (
+                      <polygon
+                        points={`${arrowX - 10},${tipY} ${arrowX + 10},${tipY} ${arrowX},${tipY - 9}`}
+                        fill="#261E04"
+                        stroke="#A88B38"
+                        strokeWidth="1.5"
+                      />
+                    ) : (
+                      <polygon
+                        points={`${arrowX - 10},${tipY + tipH} ${arrowX + 10},${tipY + tipH} ${arrowX},${tipY + tipH + 9}`}
+                        fill="#261E04"
+                        stroke="#A88B38"
+                        strokeWidth="1.5"
+                      />
+                    )}
+                    {/* Arrow coverup line to blend with rect fill */}
+                    {showBelow ? (
+                      <line x1={arrowX - 9} y1={tipY} x2={arrowX + 9} y2={tipY} stroke="#261E04" strokeWidth="2.5" />
+                    ) : (
+                      <line x1={arrowX - 9} y1={tipY + tipH} x2={arrowX + 9} y2={tipY + tipH} stroke="#261E04" strokeWidth="2.5" />
+                    )}
+
+                    {/* Month Header */}
+                    <text
+                      x={tipX + tipW / 2}
+                      y={tipY + 28}
+                      textAnchor="middle"
+                      fontSize="19"
+                      fill="#F9DD76"
+                      fontWeight="800"
+                      letterSpacing="0.5"
+                    >
+                      {item.month}
+                    </text>
+
+                    {/* Total Bookings Count */}
+                    <text
+                      x={tipX + tipW / 2}
+                      y={tipY + 56}
+                      textAnchor="middle"
+                      fontSize="24"
+                      fill="#FFFFFF"
+                      fontWeight="900"
+                    >
+                      {item.count} {item.count === 1 ? 'Booking' : 'Bookings'}
+                    </text>
+
+                    {/* Confirmed / Pending Breakdown */}
+                    <text
+                      x={tipX + tipW / 2}
+                      y={tipY + 80}
+                      textAnchor="middle"
+                      fontSize="17"
+                      fill="#E8DFC8"
+                      fontWeight="600"
+                    >
+                      {item.confirmed ?? 0} Confirmed · {item.pending ?? 0} Pending
+                    </text>
+                  </g>
+                );
+              })()}
             </svg>
           )}
         </div>
@@ -451,9 +517,9 @@ export default function BookingTrafficSection({ data }: BookingTrafficSectionPro
               </div>
               <div className="text-right">
                 <span className="text-2xl font-serif font-bold text-gray-900 block leading-tight">{upcomingEventsCount}</span>
-                <Link href="/manager/bookings" className="text-[9px] font-bold text-[#7C6A2E] hover:underline uppercase tracking-wider block whitespace-nowrap">
-                  View schedule
-                </Link>
+                <span className={`text-[9px] font-semibold tracking-wider inline-block whitespace-nowrap ${upcomingEventsCount > 0 ? 'text-purple-700 font-bold' : 'text-gray-400'}`}>
+                  {upcomingEventsCount > 0 ? 'Scheduled' : 'None scheduled'}
+                </span>
               </div>
             </div>
           </div>
