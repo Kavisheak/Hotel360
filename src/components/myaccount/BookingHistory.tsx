@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Users, Package, Star, Loader2, Download, RefreshCw, MessageSquare, X, Trash2 } from "lucide-react";
 import CompletedEventReview from "./CompletedEventReview";
+import { reviewAPI } from "@/lib/reviewAPI";
 import VendorSwapModal from "./VendorSwapModal";
 import VendorRemovalModal from "./VendorRemovalModal";
 import RefundRequestModal from "./RefundRequestModal";
@@ -35,6 +36,8 @@ export default function BookingHistory() {
     eventName: "",
     vendors: [],
   });
+
+  const [reviewedStatuses, setReviewedStatuses] = useState<Record<string, boolean>>({});
 
   const [detailsModalBooking, setDetailsModalBooking] = useState<Booking | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -73,6 +76,23 @@ export default function BookingHistory() {
     }
   }, [bookings]);
 
+  useEffect(() => {
+    bookings.forEach(async (b) => {
+      const bId = b._id || b.id;
+      const isPastEvent = new Date(b.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+      const isCompleted = isPastEvent && !["cancelled", "rejected"].includes((b.status || "").toLowerCase()) ? true : (b.status || "").toLowerCase() === "completed";
+      
+      if (isCompleted && !reviewedStatuses[bId]) {
+        try {
+          const res = await reviewAPI.getBookingReviews(bId);
+          if (res.ok && res.data?.data?.length > 0) {
+            setReviewedStatuses(prev => ({ ...prev, [bId]: true }));
+          }
+        } catch (e) {}
+      }
+    });
+  }, [bookings]);
+
   const formatCurrency = (val: number) => "LKR " + (val || 0).toLocaleString();
 
   const handleDownloadReceipt = async (booking: any) => {
@@ -101,12 +121,31 @@ export default function BookingHistory() {
     const downloadedTime = new Date().toLocaleString();
     const eventDate = new Date(booking.date).toLocaleDateString();
 
-    const receiptWindow = window.open("", "_blank");
-    if (receiptWindow) {
-      receiptWindow.document.write(`
+    const pricing = booking.pricingBreakdown || {};
+    const hallPrice = (pricing.hallFixedPrice || 0) + (pricing.extraHoursPremium || 0) + (pricing.foodCost || 0) + (pricing.timeslotPremium || 0) + (pricing.customMenuSurcharge || 0);
+    const hallPaid = depositAmount + balanceAmount + bookingCredit;
+    const hallBalance = Math.max(0, hallPrice - hallPaid);
+
+    const vendorRows = ["decorator", "dj", "videographer", "photographer", "cake", "florist"].map(svc => {
+      const cost = pricing[`${svc}Cost`] || 0;
+      if (cost === 0) return null;
+      
+      const advance = paidAdvances.find(a => (a.vendorRole || "").toLowerCase() === svc.toLowerCase());
+      const paid = advance ? (advance.requestedAmount || 0) : 0;
+      const balance = Math.max(0, cost - paid);
+
+      return {
+        service: svc.charAt(0).toUpperCase() + svc.slice(1),
+        cost,
+        paid,
+        balance
+      };
+    }).filter(Boolean);
+
+    const htmlContent = `
         <html>
           <head>
-            <title>Payment Summary - ${booking.bookingRef || booking._id?.slice(-6).toUpperCase()}</title>
+            <title>Detailed Invoice - ${booking.bookingRef || booking._id?.slice(-6).toUpperCase()}</title>
             <style>
               body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; line-height: 1.6; max-width: 800px; margin: 0 auto; }
               .header { border-bottom: 2px solid #C9A84C; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -119,8 +158,10 @@ export default function BookingHistory() {
               .meta-item strong { display: block; font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 4px; }
               
               .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-              .table th { text-align: left; padding: 12px; border-bottom: 2px solid #ddd; color: #555; text-transform: uppercase; font-size: 12px; }
-              .table td { padding: 12px; border-bottom: 1px solid #eee; }
+              .table th { text-align: right; padding: 12px; border-bottom: 2px solid #ddd; color: #555; text-transform: uppercase; font-size: 12px; }
+              .table th:first-child { text-align: left; }
+              .table td { text-align: right; padding: 12px; border-bottom: 1px solid #eee; }
+              .table td:first-child { text-align: left; font-weight: 500; }
               .table tr:last-child td { border-bottom: none; }
               
               .totals { width: 50%; float: right; margin-bottom: 40px; }
@@ -135,10 +176,10 @@ export default function BookingHistory() {
             <div class="header">
               <div>
                 <h1 class="title">EASCCA</h1>
-                <div class="subtitle">Official Payment Summary Receipt</div>
+                <div class="subtitle">Official Detailed Invoice</div>
               </div>
               <div class="download-info">
-                Downloaded on:<br/>
+                Generated on:<br/>
                 <strong>${downloadedTime}</strong>
               </div>
             </div>
@@ -162,72 +203,78 @@ export default function BookingHistory() {
               </div>
             </div>
 
-            <h3>Payment Breakdown</h3>
+            <h3>Detailed Payment Breakdown</h3>
             <table class="table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th style="text-align: right;">Amount (LKR)</th>
+                  <th>Service</th>
+                  <th>Total Cost (LKR)</th>
+                  <th>Amount Paid (LKR)</th>
+                  <th>Balance Due (LKR)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Total Booking Cost (Hall & Vendors)</td>
-                  <td style="text-align: right;">${totalCost.toLocaleString()}</td>
+                  <td>Hall & Catering</td>
+                  <td>${hallPrice.toLocaleString()}</td>
+                  <td style="color: #2e7d32;">${hallPaid.toLocaleString()}</td>
+                  <td style="${hallBalance > 0 ? 'color: #d32f2f;' : ''}">${hallBalance.toLocaleString()}</td>
                 </tr>
-                ${depositAmount > 0 ? `
+                ${vendorRows.map((r: any) => `
                 <tr>
-                  <td style="color: #2e7d32;">✓ Advanced Payment (Hall)</td>
-                  <td style="text-align: right; color: #2e7d32;">- ${depositAmount.toLocaleString()}</td>
-                </tr>
-                ` : ''}
-                ${paidAdvances.map(adv => `
-                <tr>
-                  <td style="color: #2e7d32;">✓ Vendor Advance (${adv.vendorRole})</td>
-                  <td style="text-align: right; color: #2e7d32;">- ${(adv.requestedAmount || 0).toLocaleString()}</td>
+                  <td>${r.service}</td>
+                  <td>${r.cost.toLocaleString()}</td>
+                  <td style="color: #2e7d32;">${r.paid.toLocaleString()}</td>
+                  <td style="${r.balance > 0 ? 'color: #d32f2f;' : ''}">${r.balance.toLocaleString()}</td>
                 </tr>
                 `).join('')}
-                ${balanceAmount > 0 ? `
-                <tr>
-                  <td style="color: #2e7d32;">✓ Balance Payment</td>
-                  <td style="text-align: right; color: #2e7d32;">- ${balanceAmount.toLocaleString()}</td>
-                </tr>
-                ` : ''}
-                ${bookingCredit > 0 ? `
-                <tr>
-                  <td style="color: #ed6c02;">✓ Booking Credit Applied</td>
-                  <td style="text-align: right; color: #ed6c02;">- ${bookingCredit.toLocaleString()}</td>
-                </tr>
-                ` : ''}
               </tbody>
             </table>
 
             <div class="totals">
               <div class="total-row">
-                <span>Total Cost:</span>
+                <span>Overall Total Cost:</span>
                 <span>${totalCost.toLocaleString()}</span>
               </div>
               <div class="total-row">
-                <span>Total Paid:</span>
-                <span>${totalPaid.toLocaleString()}</span>
+                <span>Overall Total Paid:</span>
+                <span style="color: #2e7d32;">${totalPaid.toLocaleString()}</span>
               </div>
               <div class="total-row balance">
-                <span>Remaining Balance Due:</span>
-                <span>${remainingBalance.toLocaleString()}</span>
+                <span>Total Remaining Due:</span>
+                <span style="${remainingBalance > 0 ? 'color: #d32f2f;' : ''}">${remainingBalance.toLocaleString()}</span>
               </div>
             </div>
 
             <div class="footer">
-              This is a digitally generated payment summary for your records.<br/>
+              This is a digitally generated detailed invoice for your records.<br/>
               Thank you for choosing EASCCA Conference Centre.
             </div>
-            <script>
-              window.onload = function() { window.print(); }
-            </script>
+            <div style="height: 60px; clear: both;"></div>
           </body>
         </html>
-      `);
-      receiptWindow.document.close();
+    `;
+    
+    try {
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
+      
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      
+      const refName = booking.bookingRef || booking._id?.slice(-6) || 'receipt';
+      const opt = {
+        margin: 10,
+        filename: `Invoice_${refName.toUpperCase()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(opt).from(container).save();
+    } catch (err) {
+      console.error("Failed to generate PDF", err);
+      alert("Failed to generate PDF invoice.");
     }
   };
 
@@ -250,6 +297,24 @@ export default function BookingHistory() {
               currentVendorId: vendorData?.vendorId || undefined
             });
           }}
+          onReview={() => {
+            const usedVendors: any = [];
+            ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach((svc) => {
+              const v = detailsModalBooking.vendors?.[svc as keyof typeof detailsModalBooking.vendors] as any;
+              if (v?.vendorId && v.status !== "NotRequired" && !["Declined", "Cancelled", "Refunded"].includes(v.status)) {
+                const resolved = globalVendors.find(gv => gv.userId === v.vendorId || gv.id === v.vendorId);
+                usedVendors.push({ service: svc, vendorId: v.vendorId, vendorName: resolved?.name || svc });
+              }
+            });
+            setReviewModal({
+              isOpen: true,
+              bookingId: (detailsModalBooking._id || detailsModalBooking.id) as string,
+              bookingRef: (detailsModalBooking.bookingRef || (detailsModalBooking._id ? detailsModalBooking._id.slice(-6) : detailsModalBooking.id)) as string,
+              eventName: detailsModalBooking.eventName || detailsModalBooking.eventType || "Event",
+              vendors: usedVendors,
+            });
+          }}
+          isReviewed={reviewedStatuses[detailsModalBooking._id || detailsModalBooking.id]}
         />
       ) : (
       <>
@@ -315,12 +380,15 @@ export default function BookingHistory() {
             const actualDepositPaid = (booking.depositAmount || 0) > 0 ? calculatedAdvance : 0;
             const actualTotalPaid = actualDepositPaid + (booking.balanceAmount || 0);
             
+            const isPastEvent = new Date(booking.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+            const displayStatus = isPastEvent && !["cancelled", "rejected"].includes((booking.status || "").toLowerCase()) ? "Completed" : booking.status;
+
             return (
               <div 
                 key={booking._id || booking.id} 
-                className="group relative bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-zinc-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className={`group relative bg-white dark:bg-[#1A1A1A] border ${isPastEvent ? 'border-gray-200 dark:border-zinc-800 opacity-90' : 'border-[#E8DFC9] dark:border-zinc-800'} rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden`}
               >
-                <div className="absolute top-0 left-0 w-1 h-full bg-[#C9A84C] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                {!isPastEvent && <div className="absolute top-0 left-0 w-1 h-full bg-[#C9A84C] opacity-0 group-hover:opacity-100 transition-opacity"></div>}
                 
                 {/* Header Row */}
                 <div className="flex justify-between items-center mb-4">
@@ -335,15 +403,16 @@ export default function BookingHistory() {
                     </button>
                   </div>
                   <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      booking.status === "Confirmed" || booking.status === "Completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : 
-                      booking.status === "Cancelled" || booking.status === "Rejected" ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : 
+                      (displayStatus || "").toLowerCase() === "confirmed" || (displayStatus || "").toLowerCase() === "completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : 
+                      (displayStatus || "").toLowerCase() === "cancelled" || (displayStatus || "").toLowerCase() === "rejected" ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : 
                       "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
                     }`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                    {booking.status === "CancellationRequested" ? "Cancellation Pending" : 
-                     booking.status === "Pending Hall Confirmation" ? "Awaiting Hall" : 
-                     booking.status === "DEPOSIT_PAID" ? "Awaiting Manager Approval" : 
-                     booking.status}
+                    {(displayStatus || "").toLowerCase() === "cancellationrequested" ? "Cancellation Pending" : 
+                     (displayStatus || "").toLowerCase() === "pending hall confirmation" ? "Awaiting Hall" : 
+                     (displayStatus || "").toLowerCase() === "deposit_paid" ? "Awaiting Manager Approval" : 
+                     (displayStatus || "").toLowerCase() === "completed" ? "Event Completed" :
+                     displayStatus}
                   </span>
                 </div>
 
@@ -445,13 +514,13 @@ export default function BookingHistory() {
                     >
                       <Download className="w-4 h-4" />
                     </button>
-                    {booking.status.toLowerCase() === "completed" && (
+                    {(displayStatus || "").toLowerCase() === "completed" && (
                       <button
                         onClick={() => {
                           const usedVendors: any = [];
-                          ["decorator", "dj", "videographer"].forEach((svc) => {
+                          ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach((svc) => {
                             const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
-                            if (v?.vendorId && v.status !== "NotRequired") {
+                            if (v?.vendorId && v.status !== "NotRequired" && !["Declined", "Cancelled", "Refunded"].includes(v.status)) {
                               const resolved = globalVendors.find(gv => gv.userId === v.vendorId || gv.id === v.vendorId);
                               usedVendors.push({ service: svc, vendorId: v.vendorId, vendorName: resolved?.name || svc });
                             }
@@ -464,13 +533,14 @@ export default function BookingHistory() {
                             vendors: usedVendors,
                           });
                         }}
-                        className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors"
-                        title="Leave Review"
+                        className="flex-1 p-3 border border-[#C9A84C] bg-[#C9A84C]/10 rounded-xl text-[#C9A84C] hover:bg-[#C9A84C] hover:text-white transition-colors flex items-center justify-center gap-2"
+                        title={reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Leave Review"}
                       >
                         <Star className="w-4 h-4 fill-current" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Review"}</span>
                       </button>
                     )}
-                    {!["Completed", "Cancelled", "Rejected"].includes(booking.status) && (
+                    {!["completed", "cancelled", "rejected"].includes((displayStatus || "").toLowerCase()) && (
                       <button 
                         onClick={() => {
                           setSelectedBookingForCancel(booking);
@@ -499,6 +569,7 @@ export default function BookingHistory() {
         bookingRef={reviewModal.bookingRef}
         eventName={reviewModal.eventName}
         vendors={reviewModal.vendors}
+        onSuccess={() => setReviewedStatuses(prev => ({ ...prev, [reviewModal.bookingId]: true }))}
       />
 
       {swapModalState.isOpen && (

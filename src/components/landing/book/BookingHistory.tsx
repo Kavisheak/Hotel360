@@ -9,6 +9,8 @@ import { useVendorStore } from "@/store/vendorStore";
 import BookingDetailView from "@/components/shared/BookingDetailView";
 import VendorSwapModal from "@/components/myaccount/VendorSwapModal";
 import RefundRequestModal from "@/components/myaccount/RefundRequestModal";
+import CompletedEventReview from "@/components/myaccount/CompletedEventReview";
+import { reviewAPI } from "@/lib/reviewAPI";
 import { useBookingStore, type Booking } from "@/store/bookingStore";
 
 export default function BookingHistory() {
@@ -32,6 +34,16 @@ export default function BookingHistory() {
 
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean, type: 'single' | 'all', bookingId?: string }>({ isOpen: false, type: 'single' });
 
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    bookingRef: string;
+    eventName: string;
+    vendors: any[];
+  }>({ isOpen: false, bookingId: "", bookingRef: "", eventName: "", vendors: [] });
+
+  const [reviewedStatuses, setReviewedStatuses] = useState<Record<string, boolean>>({});
+
   const { vendors, fetchVendors } = useVendorStore();
 
 
@@ -45,6 +57,23 @@ export default function BookingHistory() {
       const updated = bookings.find(b => (b._id || b.id) === (selectedBooking._id || selectedBooking.id));
       if (updated) setSelectedBooking(updated);
     }
+  }, [bookings]);
+
+  useEffect(() => {
+    bookings.forEach(async (b) => {
+      const bId = b._id || b.id;
+      const isPastEvent = new Date(b.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+      const isCompleted = isPastEvent && !["cancelled", "rejected"].includes((b.status || "").toLowerCase()) ? true : (b.status || "").toLowerCase() === "completed";
+      
+      if (isCompleted && !reviewedStatuses[bId]) {
+        try {
+          const res = await reviewAPI.getBookingReviews(bId);
+          if (res.ok && res.data?.data?.length > 0) {
+            setReviewedStatuses(prev => ({ ...prev, [bId]: true }));
+          }
+        } catch (e) {}
+      }
+    });
   }, [bookings]);
 
   if (isLoading) {
@@ -305,6 +334,24 @@ export default function BookingHistory() {
               currentVendorId: (selectedBooking?.vendors?.[serviceKey as keyof typeof selectedBooking.vendors] as any)?.vendorId || undefined
             });
           }}
+          onReview={() => {
+            const usedVendors: any = [];
+            ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach((svc) => {
+              const v = selectedBooking.vendors?.[svc as keyof typeof selectedBooking.vendors] as any;
+              if (v?.vendorId && v.status !== "NotRequired" && !["Declined", "Cancelled", "Refunded"].includes(v.status)) {
+                const resolved = vendors.find(gv => gv.userId === v.vendorId || gv.id === v.vendorId);
+                usedVendors.push({ service: svc, vendorId: v.vendorId, vendorName: resolved?.name || svc });
+              }
+            });
+            setReviewModal({
+              isOpen: true,
+              bookingId: (selectedBooking._id || selectedBooking.id) as string,
+              bookingRef: (selectedBooking.bookingRef || (selectedBooking._id ? selectedBooking._id.slice(-6) : selectedBooking.id)) as string,
+              eventName: selectedBooking.eventName || selectedBooking.eventType || "Event",
+              vendors: usedVendors,
+            });
+          }}
+          isReviewed={reviewedStatuses[selectedBooking._id || selectedBooking.id]}
         />
       ) : (
       <>
@@ -344,6 +391,9 @@ export default function BookingHistory() {
 
         const actualDepositPaid = (booking.depositAmount || 0) > 0 ? calculatedAdvance : 0;
         const actualTotalPaid = actualDepositPaid + (booking.balanceAmount || 0);
+        
+        const isPastEvent = new Date(booking.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+        const displayStatus = isPastEvent && !["cancelled", "rejected"].includes((booking.status || "").toLowerCase()) ? "Completed" : booking.status;
 
         return (
         <motion.div 
@@ -368,12 +418,15 @@ export default function BookingHistory() {
               </button>
             </div>
             <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                booking.status === "Confirmed" || booking.status === "Completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : 
-                booking.status === "Cancelled" || booking.status === "Rejected" ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : 
+                ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()) ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : 
+                ["cancelled", "rejected"].includes((displayStatus || "").toLowerCase()) ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : 
                 "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
               }`}>
               <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-              {booking.status === "CancellationRequested" ? "Cancellation Pending" : booking.status === "Pending Hall Confirmation" ? "Awaiting Hall" : booking.status}
+              {(displayStatus || "").toLowerCase() === "cancellationrequested" ? "Cancellation Pending" : 
+               (displayStatus || "").toLowerCase() === "pending hall confirmation" ? "Awaiting Hall" : 
+               (displayStatus || "").toLowerCase() === "completed" ? "Event Completed" :
+               displayStatus}
             </span>
           </div>
 
@@ -433,12 +486,39 @@ export default function BookingHistory() {
           </div>
 
           {/* Actions */}
-          <button 
-            onClick={() => setSelectedBooking(booking)}
-            className="w-full py-3 bg-transparent border-2 border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-black rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
-          >
-            View Booking
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setSelectedBooking(booking)}
+              className="flex-1 py-3 bg-transparent border-2 border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-black rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
+            >
+              View Booking
+            </button>
+            {(displayStatus || "").toLowerCase() === "completed" && (
+              <button
+                onClick={() => {
+                  const usedVendors: any = [];
+                  ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach((svc) => {
+                    const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
+                    if (v?.vendorId && v.status !== "NotRequired" && !["Declined", "Cancelled", "Refunded"].includes(v.status)) {
+                      const resolved = vendors.find(gv => gv.userId === v.vendorId || gv.id === v.vendorId);
+                      usedVendors.push({ service: svc, vendorId: v.vendorId, vendorName: resolved?.name || svc });
+                    }
+                  });
+                  setReviewModal({
+                    isOpen: true,
+                    bookingId: (booking._id || booking.id) as string,
+                    bookingRef: (booking.bookingRef || (booking._id ? booking._id.slice(-6) : booking.id)) as string,
+                    eventName: booking.eventName || booking.eventType || "Event",
+                    vendors: usedVendors,
+                  });
+                }}
+                className="flex-1 p-3 border-2 border-[#C9A84C] bg-[#C9A84C]/10 rounded-xl text-[#C9A84C] hover:bg-[#C9A84C] hover:text-white transition-colors flex items-center justify-center gap-2"
+                title={reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Leave Review"}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Review"}</span>
+              </button>
+            )}
+          </div>
 
         </motion.div>
         );
@@ -531,6 +611,18 @@ export default function BookingHistory() {
           onSuccess={async () => {
             await storeFetchBookings();
           }}
+        />
+      )}
+      
+      {reviewModal.isOpen && (
+        <CompletedEventReview 
+          isOpen={reviewModal.isOpen}
+          onClose={() => setReviewModal({ isOpen: false, bookingId: "", bookingRef: "", eventName: "", vendors: [] })}
+          bookingId={reviewModal.bookingId}
+          bookingRef={reviewModal.bookingRef}
+          eventName={reviewModal.eventName}
+          vendors={reviewModal.vendors}
+          onSuccess={() => setReviewedStatuses(prev => ({ ...prev, [reviewModal.bookingId]: true }))}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, CalendarDays, CheckCircle2, ChevronRight, Download, Mail, Phone, MapPin, XCircle, Clock, AlertCircle, CreditCard, Loader2, Ban } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CheckCircle2, ChevronRight, Download, Mail, Phone, MapPin, XCircle, Clock, AlertCircle, CreditCard, Loader2, Ban, Star } from 'lucide-react';
 import { Booking, useBookingStore } from '@/store/bookingStore';
 import { useVendorStore } from '@/store/vendorStore';
 import PolicyModal from "../landing/book/PolicyModal";
@@ -16,12 +16,18 @@ interface BookingDetailViewProps {
   onBack: () => void;
   onCancelBooking: (bookingId: string) => void;
   onAddVendor: (bookingId: string, serviceKey: string) => void;
+  onReview?: () => void;
+  isReviewed?: boolean;
 }
 
-export default function BookingDetailView({ booking, onBack, onCancelBooking, onAddVendor }: BookingDetailViewProps) {
+export default function BookingDetailView({ booking, onBack, onCancelBooking, onAddVendor, onReview, isReviewed }: BookingDetailViewProps) {
   const eventDate = new Date(booking.date);
   const formattedDate = eventDate.toLocaleDateString("en-US", { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
   const bId = booking._id || booking.id || '';
+  
+  const isPastEvent = eventDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+  const displayStatus = isPastEvent && !["Cancelled", "Rejected"].includes(booking.status) ? "Completed" : booking.status;
+
   const { vendors: globalVendors } = useVendorStore();
   const { removeVendor } = useBookingStore();
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
@@ -186,14 +192,13 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
     }
   };
 
-  // Calculate Timeline status
   const statuses = [
     { label: "Booking Created", active: true, done: true },
-    { label: "Advance Paid", active: true, done: ["DEPOSIT_PAID", "Pending Hall Confirmation", "Confirmed", "Completed"].includes(booking.status) },
-    { label: "Manager Confirmation", active: ["Pending Hall Confirmation", "Confirmed", "Completed"].includes(booking.status), done: ["Confirmed", "Completed"].includes(booking.status) },
-    { label: "Vendor Confirmation", active: ["Confirmed", "Completed"].includes(booking.status), done: ["Confirmed", "Completed"].includes(booking.status) && (booking.vendors?.decorator?.status === "Accepted" || booking.vendors?.dj?.status === "Accepted") },
-    { label: "Booking Confirmed", active: booking.status === "Confirmed" || booking.status === "Completed", done: booking.status === "Confirmed" || booking.status === "Completed" },
-    { label: "Event Completed", active: booking.status === "Completed", done: booking.status === "Completed" }
+    { label: "Advance Paid", active: true, done: ["deposit_paid", "pending hall confirmation", "confirmed", "completed"].includes((displayStatus || "").toLowerCase()) },
+    { label: "Manager Confirmation", active: ["pending hall confirmation", "confirmed", "completed"].includes((displayStatus || "").toLowerCase()), done: ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()) },
+    { label: "Vendor Confirmation", active: ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()), done: ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()) && (booking.vendors?.decorator?.status === "Accepted" || booking.vendors?.dj?.status === "Accepted") },
+    { label: "Booking Confirmed", active: ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()), done: ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()) },
+    { label: "Event Completed", active: (displayStatus || "").toLowerCase() === "completed", done: (displayStatus || "").toLowerCase() === "completed" }
   ];
 
   const getVendorStatusColor = (status: string) => {
@@ -259,11 +264,11 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
           <ArrowLeft className="w-4 h-4" /> Back to History
         </button>
         <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-          booking.status === "Confirmed" || booking.status === "Completed" ? "bg-emerald-100 text-emerald-700" :
-          booking.status === "Cancelled" || booking.status === "Rejected" ? "bg-red-100 text-red-700" :
+          ["confirmed", "completed"].includes((displayStatus || "").toLowerCase()) ? "bg-emerald-100 text-emerald-700" :
+          ["cancelled", "rejected"].includes((displayStatus || "").toLowerCase()) ? "bg-red-100 text-red-700" :
           "bg-amber-100 text-amber-700"
         }`}>
-          {booking.status}
+          {(displayStatus || "").toLowerCase() === "completed" ? "Event Completed" : displayStatus}
         </span>
       </div>
 
@@ -393,7 +398,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
                     </div>
                   </div>
 
-                  {booking.status === "Confirmed" && Math.max(0, (booking.totalCost || 0) - netPaid) > 0 && (
+                  {(displayStatus || "").toLowerCase() === "confirmed" && Math.max(0, (booking.totalCost || 0) - netPaid) > 0 && (
                     <div className="pt-4 mt-2 border-t border-[#E8DFC9] dark:border-gray-800">
                       <button
                         onClick={handlePayBalance}
@@ -538,7 +543,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
                     </div>
                   </div>
 
-                  {isDeclined && !locallyRemovedVendors.includes(serviceKey) && (
+                  {isDeclined && !locallyRemovedVendors.includes(serviceKey) && (displayStatus || "").toLowerCase() !== "completed" && (
                     <div className="mt-4 pt-4 border-t border-red-100 dark:border-red-900/30">
                       <p className="text-[10px] text-red-600 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         ⚠️ Action Required: Vendor Declined
@@ -576,8 +581,25 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
           </div>
         </section>
 
-        {/* 5. Rejection & Cancellation */}
-        {(booking.status === "Rejected" || booking.status === "Cancelled") ? (
+        {/* 5. Rejection & Cancellation & Completion */}
+        {(displayStatus || "").toLowerCase() === "completed" ? (
+          <section className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 rounded-xl p-6 text-center">
+             <h3 className="text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 mb-2">
+               <CheckCircle2 className="w-5 h-5" /> Event Successfully Completed
+             </h3>
+             <p className="text-sm text-emerald-600 dark:text-emerald-300 mb-6">
+               This event has already taken place. We hope you had a wonderful experience!
+             </p>
+             {onReview && (
+               <button 
+                 onClick={onReview}
+                 className="px-6 py-3 bg-[#C9A84C] text-[#1A1512] font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-[#B58A59] transition-colors inline-flex items-center gap-2 shadow-md"
+               >
+                 <Star className="w-4 h-4 fill-current" /> {isReviewed ? "Edit Review" : "Leave a Review"}
+               </button>
+             )}
+          </section>
+        ) : (booking.status === "Rejected" || booking.status === "Cancelled") ? (
           <section className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6">
             <h3 className="text-red-700 dark:text-red-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2 mb-2">
               <XCircle className="w-5 h-5" /> Booking {booking.status}
@@ -604,7 +626,7 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
             <h3 className="text-sm font-bold uppercase tracking-widest text-[#1A1512] dark:text-white mb-2">Cancellation Policy</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Your current cancellation eligibility: <strong className="text-amber-600">
-                {booking.status === "Confirmed" ? "25% Hall Penalty, Full Vendor Refund" : "Full refund"}
+                {(booking.status || "").toLowerCase() === "confirmed" ? "25% Hall Penalty, Full Vendor Refund" : "Full refund"}
               </strong>
             </p>
             <div className="flex flex-col sm:flex-row gap-3">

@@ -27,6 +27,7 @@ interface Props {
   bookingRef?: string;
   eventName?: string;
   vendors: VendorInfo[]; // only vendors actually used in this booking
+  onSuccess?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,6 +99,7 @@ export default function CompletedEventReview({
   bookingRef,
   eventName,
   vendors,
+  onSuccess,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<"reviewing" | "success">("reviewing");
@@ -174,8 +176,7 @@ export default function CompletedEventReview({
     }));
   };
 
-  const pendingVendors = vendors.filter((v) => !ratings[v.service]?.alreadyReviewed);
-  const hasAtLeastOneRating = pendingVendors.some((v) => (ratings[v.service]?.rating || 0) > 0);
+  const hasAtLeastOneRating = vendors.some((v) => (ratings[v.service]?.rating || 0) > 0);
 
   // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,7 +185,7 @@ export default function CompletedEventReview({
 
     setIsSubmitting(true);
 
-    const reviewsPayload = pendingVendors
+    const reviewsPayload = vendors
       .filter((v) => (ratings[v.service]?.rating || 0) > 0)
       .map((v) => ({
         service: v.service,
@@ -197,6 +198,7 @@ export default function CompletedEventReview({
       const res = await reviewAPI.submitReview(bookingId, reviewsPayload);
       if (res.ok) {
         setStep("success");
+        if (onSuccess) onSuccess();
         setTimeout(() => {
           onClose();
           setStep("reviewing");
@@ -281,8 +283,8 @@ export default function CompletedEventReview({
 
               {/* Already reviewed notice */}
               {vendors.some((v) => ratings[v.service]?.alreadyReviewed) && (
-                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-lg p-3 text-[11px] text-[#C9A84C] font-medium">
-                  Some vendors have already been reviewed for this event.
+                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-lg p-3 text-[11px] text-[#C9A84C] font-medium flex justify-between items-center">
+                  <span>You have already reviewed some vendors for this event. You can edit and update your reviews below.</span>
                 </div>
               )}
 
@@ -327,11 +329,10 @@ export default function CompletedEventReview({
                       label="Overall Rating"
                       rating={vendorRating.rating}
                       onChange={(v) => updateRating(vendor.service, "rating", v)}
-                      disabled={isAlreadyReviewed}
                     />
 
-                    {/* Review Text — appears only when star is selected and not already reviewed */}
-                    {vendorRating.rating > 0 && !isAlreadyReviewed && (
+                    {/* Review Text — appears only when star is selected */}
+                    {vendorRating.rating > 0 && (
                       <textarea
                         rows={3}
                         placeholder={`Share your experience with the ${SERVICE_LABELS[vendor.service].toLowerCase()}...`}
@@ -341,13 +342,6 @@ export default function CompletedEventReview({
                         }
                         className="w-full bg-white dark:bg-[#0A0A0A] border border-gray-300 dark:border-[#2A2A2A] shadow-inner rounded-lg px-4 py-3 text-xs text-gray-800 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#C9A84C]/60 transition-colors resize-none leading-relaxed"
                       />
-                    )}
-
-                    {/* Already reviewed text display */}
-                    {isAlreadyReviewed && vendorRating.reviewText && (
-                      <p className="text-xs text-gray-500 italic border-l-2 border-[#C9A84C]/30 pl-3">
-                        "{vendorRating.reviewText}"
-                      </p>
                     )}
                   </div>
                 );
@@ -370,7 +364,7 @@ export default function CompletedEventReview({
                   {isSubmitting ? (
                     <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...</>
                   ) : (
-                    <><Star className="w-3.5 h-3.5 fill-current" /> Submit Reviews</>
+                    <><Star className="w-3.5 h-3.5 fill-current" /> {vendors.some(v => ratings[v.service]?.alreadyReviewed) ? "Update Reviews" : "Submit Reviews"}</>
                   )}
                 </button>
               </div>
