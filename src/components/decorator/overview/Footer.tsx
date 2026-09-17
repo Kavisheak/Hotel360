@@ -7,7 +7,7 @@ const Footer = () => {
         {/* Left Side: Brand info, centered on mobile */}
         <div className="text-center md:text-left">
           <p className="font-serif italic text-xl text-[#7C6A2E] mb-1">EASCCA</p>
-          <p className="text-gray-500 text-xs sm:text-sm">© 2024 EASCCA Wedding Hall. All rights reserved.</p>
+          <p className="text-gray-500 text-xs sm:text-sm">© 2026 EASCCA Wedding Hall. All rights reserved.</p>
         </div>
         
         {/* Right Side: Links, wrapped and centered on mobile */}
