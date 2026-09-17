@@ -20,6 +20,14 @@ import { useAuthStore } from "@/store/authStore";
 import { customerBookingAPI, packageAPI, hotelManagerAPI } from "@/lib/api";
 import { useToastStore } from "@/store/toastStore";
 
+type BookingVendorSelection = {
+  decorator: string | null;
+  decoratorPackage: string;
+  dj: string | null;
+  djPackage: string;
+  videographer: string | null;
+  videographerPackage: string;
+};
 function AnimatedPrice({ value, format }: { value: number; format: (val: number) => string }) {
   const [displayValue, setDisplayValue] = useState(value);
   useEffect(() => {
@@ -1403,7 +1411,7 @@ export default function BookPage() {
 
                 {/* Step 2: Venue Package Selection */}
                 {currentStep === 2 && (
-                  <div className="space-y-8 animate-fadeIn">
+                  <div className="space-y-4 animate-fadeIn">
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-4">
                       <h3 className="text-sm font-bold tracking-widest text-[#805D3A] dark:text-[#C9A84C] uppercase">
                         Venue Package Selection
@@ -1441,7 +1449,6 @@ export default function BookPage() {
                     </div>
                   </div>
                 )}
-
                 {/* Step 3: Select Artisans */}
                 {currentStep === 3 && (
                   <div className="space-y-8 animate-fadeIn">
@@ -1562,7 +1569,6 @@ export default function BookPage() {
                       </div>
                     </div>
 
-                    {/* Billing Details */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 p-6 rounded-sm space-y-6">
                       <h3 className="text-lg font-serif font-semibold text-[#2C1E14] dark:text-white">
                         Billing Details
@@ -1632,8 +1638,6 @@ export default function BookPage() {
                 {/* Step 5: Review & Final Confirmation */}
                 {currentStep === 5 && (
                   <div className="space-y-6 animate-fadeIn">
-
-                    {/* Main Dashboard Review Card */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
                       <div className="bg-[#FAFBF7] dark:bg-[#1A1A1A] px-6 py-4 border-b border-[#E8DFC9] dark:border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <h3 className="text-xl font-serif text-[#1A1512] dark:text-white">
@@ -1646,8 +1650,6 @@ export default function BookPage() {
                       </div>
 
                       <div className="p-6 space-y-8">
-
-                        {/* Event & Venue Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <div className="space-y-4">
                             <h4 className="font-bold text-[#A6955C] uppercase tracking-widest text-[10px] pb-2 border-b border-gray-100 dark:border-gray-800">Event Details</h4>
@@ -1683,7 +1685,6 @@ export default function BookPage() {
                           </div>
                         </div>
 
-                        {/* Vendors List */}
                         {(vendors.decorator !== "none" || vendors.videographer !== "none" || vendors.dj !== "none" || vendors.photographer !== "none" || vendors.cake !== "none" || vendors.florist !== "none") && (
                           <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                             <h4 className="font-bold text-[#A6955C] uppercase tracking-widest text-[10px] pb-2 border-b border-gray-100 dark:border-gray-800">Selected Artisans</h4>
@@ -1728,7 +1729,6 @@ export default function BookPage() {
                           </div>
                         )}
 
-                        {/* Additional Notes for Manager */}
                         <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
                           <label className="block text-[10px] uppercase tracking-widest text-[#A6955C] font-bold mb-2">Additional Notes for Manager</label>
                           <textarea
@@ -1739,11 +1739,9 @@ export default function BookPage() {
                             onChange={(e) => setNotes(e.target.value)}
                           />
                         </div>
-
                       </div>
                     </div>
 
-                    {/* Vendor Policy Warning */}
                     <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-md">
                       <div className="flex gap-3">
                         <div className="text-amber-500 mt-0.5 font-bold">⚠️</div>
@@ -1763,7 +1761,6 @@ export default function BookPage() {
                       </div>
                     </div>
 
-                    {/* Cancellation Policy */}
                     <div className="bg-white dark:bg-[#111111] border border-[#E8DFC9] dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
                       <div className="bg-[#FAFBF7] dark:bg-[#1A1A1A] px-6 py-4 border-b border-[#E8DFC9] dark:border-gray-800 flex justify-between items-center">
                         <h4 className="text-[10px] uppercase tracking-widest font-bold text-[#A6955C]">
@@ -1811,7 +1808,6 @@ export default function BookPage() {
                               </div>
                             );
                           }
-                          // Default tiered
                           return (
                             <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                               <div>
@@ -1845,7 +1841,6 @@ export default function BookPage() {
                       </div>
                     </div>
 
-                    {/* Payment Summary Box */}
                     <div className="bg-white dark:bg-[#1A1A1A] border border-[#E8DFC9] dark:border-gray-800 rounded-lg p-6 shadow-sm">
                       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="space-y-2 w-full md:w-auto">
@@ -1872,7 +1867,6 @@ export default function BookPage() {
                         </div>
 
                         <div className="w-full md:w-auto">
-                          {/* Navigation Buttons inline for final step */}
                           <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                             <button
                               onClick={handleBack}
@@ -1893,7 +1887,6 @@ export default function BookPage() {
                     </div>
                   </div>
                 )}
-
                 {/* Navigation Buttons */}
                 {currentStep < 5 && (
                   <div className="flex items-center justify-between pt-8 border-t border-gray-100 dark:border-gray-800 mt-8">
