@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { SectionTitle } from './SectionTitle';
 import { authAPI } from '@/lib/api';
+import { useToastStore } from '@/store/toastStore';
+import FeedbackModal from '../shared/FeedbackModal';
 
 const Security = () => {
+  const { addToast } = useToastStore();
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: ''
@@ -14,32 +17,78 @@ const Security = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    badgeText?: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "success",
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswords(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSave = async () => {
     if (!passwords.currentPassword || !passwords.newPassword) {
-      alert("Both password fields are required.");
+      setFeedback({
+        isOpen: true,
+        title: "Required Fields Missing",
+        message: "Both your current password and new password are required to complete this security update.",
+        type: "warning"
+      });
       return;
     }
     if (passwords.newPassword.length < 6) {
-      alert("New password must be at least 6 characters.");
+      setFeedback({
+        isOpen: true,
+        title: "Password Strength",
+        message: "For enhanced account security, your new password must be at least 6 characters long.",
+        type: "warning"
+      });
       return;
     }
 
     setIsSaving(true);
-    const res = await authAPI.changePassword({
-      currentPassword: passwords.currentPassword,
-      newPassword: passwords.newPassword
-    });
-    
-    setIsSaving(false);
-    if (res.ok) {
-      alert('Password updated successfully!');
-      setPasswords({ currentPassword: '', newPassword: '' });
-    } else {
-      alert(res.data?.message || 'Failed to update password.');
+    try {
+      const res = await authAPI.changePassword({
+        currentPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword
+      });
+      
+      if (res.ok) {
+        setPasswords({ currentPassword: '', newPassword: '' });
+        setFeedback({
+          isOpen: true,
+          title: "Password Updated Securely",
+          message: "Your manager credentials have been encrypted and saved. Please use your new password for your next login.",
+          type: "success",
+          badgeText: "Security Encrypted"
+        });
+        addToast({ message: "Password updated successfully!", type: "success" });
+      } else {
+        setFeedback({
+          isOpen: true,
+          title: "Update Failed",
+          message: res.data?.message || "Failed to update password. Please verify your current password.",
+          type: "error"
+        });
+        addToast({ message: res.data?.message || "Failed to update password.", type: "error" });
+      }
+    } catch (e: any) {
+      setFeedback({
+        isOpen: true,
+        title: "Server Error",
+        message: e?.message || "A network error occurred while updating your credentials.",
+        type: "error"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -61,7 +110,8 @@ const Security = () => {
               <button 
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7C6A2E] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7C6A2E] transition-colors cursor-pointer"
+                aria-label="Toggle password visibility"
               >
                 {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -80,7 +130,8 @@ const Security = () => {
               <button 
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7C6A2E] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7C6A2E] transition-colors cursor-pointer"
+                aria-label="Toggle password visibility"
               >
                 {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -91,11 +142,21 @@ const Security = () => {
         <button 
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors disabled:opacity-50"
+          className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md"
         >
           {isSaving ? 'Updating...' : 'Update Password'}
         </button>
       </div>
+
+      {/* Luxury Feedback Modal */}
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={() => setFeedback(prev => ({ ...prev, isOpen: false }))}
+        title={feedback.title}
+        message={feedback.message}
+        type={feedback.type}
+        badgeText={feedback.badgeText}
+      />
     </div>
   );
 };

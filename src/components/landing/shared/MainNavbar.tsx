@@ -62,11 +62,24 @@ export default function MainNavbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  const [showVirtualTour, setShowVirtualTour] = useState(true);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/virtual-config`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.isPublic === false) {
+          setShowVirtualTour(false);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Packages", path: "/packages" },
     { name: "Vendors", path: "/vendors" },
-    { name: "Virtual Tour", path: "/virtual-tour" },
+    ...(showVirtualTour ? [{ name: "Virtual Tour", path: "/virtual-tour" }] : []),
     { name: "Book", path: "/book" },
     ...(isLoggedIn ? [{ name: "My Account", path: "/customer/myaccount" }] : []),
   ];

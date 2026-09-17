@@ -6,7 +6,7 @@ import OverviewCards from './OverviewCards';
 import TopProviders from './TopProviders';
 import PackageSplit from './PackageSplit';
 import CashPayments from './CashPayments';
-import SystemStatus from './SystemStatus';
+import BookingTrafficSection from './BookingTrafficSection';
 import Footer from './Footer';
 import { superAdminAPI } from '@/lib/api';
 
@@ -69,8 +69,8 @@ const MainContent = () => {
               <CashPayments payments={data.pendingCashPayments} />
             </div>
 
-            {/* Row 3: System Status Bar */}
-            <SystemStatus status={data.systemStatus} />
+            {/* Row 3: Booking Traffic & Demand Analytics Section */}
+            <BookingTrafficSection data={data} />
           </>
         ) : (
           <div className="text-center text-gray-500 mt-10">Failed to load overview data.</div>

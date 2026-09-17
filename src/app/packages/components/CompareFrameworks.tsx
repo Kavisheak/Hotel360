@@ -14,7 +14,7 @@ const compareData = [
 
 export default function CompareFrameworks() {
   return (
-    <section className="w-full bg-[#F0E6D0] dark:bg-[#0A0A0A] py-20 transition-colors duration-300">
+    <section className="w-full bg-[#FDFBF7] dark:bg-[#0A0A0A] py-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
         {/* Table Side */}

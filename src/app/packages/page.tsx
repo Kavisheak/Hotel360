@@ -132,7 +132,7 @@ export default function PackagesPage() {
 
 
 
-      <section className="w-full bg-[#F0E6D0] dark:bg-[#2C1E14] py-16 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-colors duration-300">
+      <section className="w-full bg-[#FDFBF7] dark:bg-[#0A0A0A] py-16 border-t border-[#D4C9A8] dark:border-[#C9A84C]/20 transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-[#2C1E14] dark:text-white">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <div className="w-12 h-12 mb-5 border border-[#D4C9A8] dark:border-[#C9A84C] rounded-sm flex items-center justify-center">

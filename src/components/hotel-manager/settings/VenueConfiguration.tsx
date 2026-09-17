@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { SectionTitle } from './SectionTitle';
-import { Clock } from 'lucide-react';
+import { Clock, ShieldAlert } from 'lucide-react';
 import { hotelManagerAPI } from '@/lib/api';
 import { useToastStore } from '@/store/toastStore';
+import { useAuthStore } from '@/store/authStore';
 
 const VenueConfiguration = () => {
+  const { user } = useAuthStore();
+  const isStandby = user?.role === 'manager' && !user?.isLeadManager;
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { addToast } = useToastStore();
@@ -37,17 +40,24 @@ const VenueConfiguration = () => {
   };
 
   const handleUpdate = async () => {
+    if (isStandby) {
+      addToast({ 
+        message: "Action restricted: Only the designated Lead Manager can update venue configurations. You are currently in View-Only standby mode.", 
+        type: "error" 
+      });
+      return;
+    }
     setIsSaving(true);
     try {
       const res = await hotelManagerAPI.updateVenueSettings(settings);
       if (res.ok) {
         addToast({ message: "Venue configuration updated successfully!", type: "success" });
       } else {
-        addToast({ message: "Failed to update venue configuration.", type: "error" });
+        addToast({ message: res.data?.message || "Failed to update venue configuration.", type: "error" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update failed:", error);
-      addToast({ message: "Server error. Please try again later.", type: "error" });
+      addToast({ message: error?.message || "Server error. Please try again later.", type: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -173,13 +183,25 @@ const VenueConfiguration = () => {
         </div>
       </div>
       
+      {isStandby && (
+        <div className="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 p-3 rounded-sm mb-4">
+          <ShieldAlert size={16} className="shrink-0 text-[#B08D2C]" />
+          <span>Venue configuration modifications are reserved for the designated <strong>Lead Manager</strong>. Your account is currently in <strong>View-Only standby mode</strong>.</span>
+        </div>
+      )}
+      
       <div className="flex items-center gap-4">
         <button 
           onClick={handleUpdate}
-          disabled={isSaving}
-          className="bg-[#7C6A2E] hover:bg-[#635525] text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors disabled:opacity-50"
+          disabled={isSaving || isStandby}
+          className={`text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors ${
+            isStandby 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300' 
+              : 'bg-[#7C6A2E] hover:bg-[#635525] text-white disabled:opacity-50'
+          }`}
+          title={isStandby ? "Venue configuration is restricted to the active Lead Manager" : undefined}
         >
-          {isSaving ? "Updating..." : "Update Venue"}
+          {isSaving ? "Updating..." : isStandby ? "Update (Lead Only)" : "Update Venue"}
         </button>
         <button className="bg-white hover:bg-gray-50 text-gray-600 border border-[#E0D8C3] text-[10px] font-bold uppercase tracking-widest px-8 py-3 rounded-sm transition-colors">
           Cancel

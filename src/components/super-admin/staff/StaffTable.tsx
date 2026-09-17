@@ -1,8 +1,9 @@
 "use client";
 
 import React from 'react';
-import { Star, Pencil, RotateCcw, UserMinus, UserPlus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Pencil, RotateCcw, UserMinus, UserPlus, ChevronLeft, ChevronRight, Crown, Lock } from 'lucide-react';
 import { type StaffMember, statusConfig } from './types';
+import { getImageUrl } from '@/lib/utils';
 
 interface StaffTableProps {
   members: StaffMember[];
@@ -11,10 +12,11 @@ interface StaffTableProps {
   totalCount: number;
   onPageChange: (page: number) => void;
   onToggleStatus?: (id: string) => void;
+  onResetPassword?: (id: string) => void;
   onEdit?: (member: StaffMember) => void;
 }
 
-const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange, onToggleStatus, onEdit }: StaffTableProps) => {
+const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange, onToggleStatus, onResetPassword, onEdit }: StaffTableProps) => {
   return (
     <div className="bg-white border border-[#E0D8C3] overflow-x-auto">
       {/* Gold Column Header Row */}
@@ -36,7 +38,7 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
               {/* Staff Member */}
               <div className="flex items-center gap-3 min-w-0">
                 <img
-                  src={member.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'}
+                  src={getImageUrl(member.avatar) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'}
                   alt={member.name}
                   onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80'; }}
                   className="w-10 h-10 rounded-sm object-cover border border-[#E0D8C3] shrink-0"
@@ -49,9 +51,20 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
 
               {/* Role Badge */}
               <div>
-                <span className="inline-block bg-[#F9DD76] text-[#5E4F20] text-[9px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-sm whitespace-nowrap">
-                  {member.roleBadge}
-                </span>
+                {member.isLeadManager ? (
+                  <span className="inline-flex items-center gap-1.5 bg-[#7C6A2E] text-white text-[9px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-sm shadow-xs whitespace-nowrap border border-[#B08D2C]/40">
+                    <Crown size={11} className="text-[#F9DD76]" />
+                    Lead Manager
+                  </span>
+                ) : member.role === 'manager' ? (
+                  <span className="inline-flex items-center gap-1 bg-[#FAF6EE] text-gray-700 text-[9px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-sm border border-[#E0D8C3] whitespace-nowrap">
+                    Manager (Standby)
+                  </span>
+                ) : (
+                  <span className="inline-block bg-[#F9DD76] text-[#5E4F20] text-[9px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-sm whitespace-nowrap">
+                    {member.roleBadge}
+                  </span>
+                )}
               </div>
 
               {/* Completed Events */}
@@ -85,6 +98,9 @@ const StaffTable = ({ members, currentPage, totalPages, totalCount, onPageChange
               <div className="flex items-center gap-2">
                 <button onClick={() => onEdit && onEdit(member)} className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Edit">
                   <Pencil size={15} />
+                </button>
+                <button onClick={() => onResetPassword && onResetPassword(member.id.toString())} className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="Reset Password">
+                  <Lock size={15} />
                 </button>
                 <button className="p-1.5 text-gray-400 hover:text-[#7C6A2E] transition-colors" title="View History">
                   <RotateCcw size={15} />

@@ -7,6 +7,7 @@ import FloatingEventCart from "@/components/landing/shared/FloatingEventCart";
 import AutoLogout from "@/components/shared/AutoLogout";
 
 import MaintenanceGuard from "@/components/shared/MaintenanceGuard";
+import MaintenanceBanner from "@/components/shared/MaintenanceBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
           <MaintenanceGuard>
+            <MaintenanceBanner />
             {children}
             <FloatingEventCart />
             <ToastProvider />

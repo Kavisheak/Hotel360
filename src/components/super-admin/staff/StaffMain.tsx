@@ -10,15 +10,24 @@ import Footer from '@/components/super-admin/dashboard/Footer';
 import ChangeManagerModal from './ChangeManagerModal';
 import RegisterStaffModal from './RegisterStaffModal';
 import EditStaffModal from './EditStaffModal';
+import ResetPasswordModal from './ResetPasswordModal';
+import PasswordResultModal from './PasswordResultModal';
 import { superAdminAPI } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 
 const StaffMain = () => {
   const [activeRole, setActiveRole] = useState<Role>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isManagerModalOpen, setIsManagerModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<any>(null);
+  const [memberToReset, setMemberToReset] = useState<string | null>(null);
   const [staffData, setStaffData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +40,10 @@ const StaffMain = () => {
         const formatted = res.data.data.map((u: any) => {
           let roleCategory = 'other';
           let roleBadge = 'Staff';
-          if (u.role === 'manager') { roleCategory = 'managers'; roleBadge = 'Manager'; }
+          if (u.role === 'manager') {
+            roleCategory = 'managers';
+            roleBadge = u.isLeadManager ? 'Lead Manager' : 'Manager';
+          }
           if (u.role === 'decorator') { roleCategory = 'decorators'; roleBadge = 'Decorator'; }
           if (u.role === 'dj_artist') { roleCategory = 'djs'; roleBadge = 'DJ Artist'; }
           if (u.role === 'videographer') { roleCategory = 'videographers'; roleBadge = 'Videographer'; }
@@ -46,10 +58,11 @@ const StaffMain = () => {
             rating: u.rating || 0,
             reviews: u.reviewsCount || 0,
             status: u.isActive ? 'active' : 'suspended',
-            avatar: u.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80',
+            avatar: getImageUrl(u.avatar) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80',
             completedEvents: u.completedEvents || 0,
             assignedThisWeek: u.assignedThisWeek || 0,
             availability: u.availability || 'Unknown',
+            isLeadManager: !!u.isLeadManager,
           };
         });
         setStaffData(formatted);
@@ -67,10 +80,15 @@ const StaffMain = () => {
 
 
   const filtered = staffData.filter(m => {
-    if (activeRole === 'managers') return m.roleCategory === 'managers';
-    if (activeRole === 'decorators') return m.roleCategory === 'decorators';
-    if (activeRole === 'videographers') return m.roleCategory === 'videographers';
-    if (activeRole === 'djs') return m.roleCategory === 'djs';
+    // Role filter
+    if (activeRole === 'managers' && m.roleCategory !== 'managers') return false;
+    if (activeRole === 'decorators' && m.roleCategory !== 'decorators') return false;
+    if (activeRole === 'videographers' && m.roleCategory !== 'videographers') return false;
+    if (activeRole === 'djs' && m.roleCategory !== 'djs') return false;
+    
+    // Status filter
+    if (statusFilter !== 'all' && m.status !== statusFilter) return false;
+    
     return true;
   });
 
@@ -122,6 +140,33 @@ const StaffMain = () => {
     document.body.removeChild(link);
   };
 
+  const handleResetPassword = (userId: string) => {
+    setMemberToReset(userId);
+    setIsResetModalOpen(true);
+  };
+
+  const confirmResetPassword = async () => {
+    if (!memberToReset) return;
+    
+    try {
+      setIsResetting(true);
+      const res = await superAdminAPI.resetStaffPassword(memberToReset);
+      if (res.ok) {
+        setGeneratedPassword(res.data?.defaultPassword || null);
+        setIsResetModalOpen(false);
+        setMemberToReset(null);
+        setIsResultModalOpen(true);
+      } else {
+        alert(res.data?.message || "Failed to reset password");
+      }
+    } catch (error) {
+      console.error("Failed to reset password", error);
+      alert("Failed to reset password");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FDF9F1]">
       <Header />
@@ -136,6 +181,8 @@ const StaffMain = () => {
         <StaffFilters
           activeRole={activeRole}
           onRoleChange={role => { setActiveRole(role); setCurrentPage(1); }}
+          statusFilter={statusFilter}
+          onStatusChange={status => { setStatusFilter(status); setCurrentPage(1); }}
           avgRating={
             staffData.length > 0
               ? (staffData.reduce((sum, m) => sum + (m.rating || 0), 0) / staffData.length).toFixed(2)
@@ -155,6 +202,7 @@ const StaffMain = () => {
             totalCount={totalCount}
             onPageChange={setCurrentPage}
             onToggleStatus={handleStatusToggle}
+            onResetPassword={handleResetPassword}
             onEdit={(member) => {
               setMemberToEdit(member);
               setIsEditModalOpen(true);
@@ -169,6 +217,7 @@ const StaffMain = () => {
         isOpen={isManagerModalOpen}
         onClose={() => setIsManagerModalOpen(false)}
         staffData={staffData}
+        onSuccess={fetchStaff}
       />
 
       <RegisterStaffModal
@@ -182,6 +231,22 @@ const StaffMain = () => {
         onClose={() => setIsEditModalOpen(false)}
         onSuccess={fetchStaff}
         member={memberToEdit}
+      />
+
+      <ResetPasswordModal
+        isOpen={isResetModalOpen}
+        onClose={() => {
+          setIsResetModalOpen(false);
+          setMemberToReset(null);
+        }}
+        onConfirm={confirmResetPassword}
+        isResetting={isResetting}
+      />
+
+      <PasswordResultModal
+        isOpen={isResultModalOpen}
+        onClose={() => setIsResultModalOpen(false)}
+        password={generatedPassword}
       />
     </div>
   );

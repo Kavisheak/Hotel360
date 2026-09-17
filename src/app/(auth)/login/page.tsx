@@ -370,16 +370,14 @@ export default function AuthPage() {
             <motion.div key="login-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Login Form Content */}
               <div className="flex flex-col items-center mb-5">
-                <div className="w-32 h-14 relative">
-                  <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
-                </div>
                 {isMaintenanceActive && (
-                  <div className="mt-3 bg-red-900/60 border border-red-500/50 rounded-lg p-2.5 w-full max-w-[280px] text-center shadow-lg backdrop-blur-md">
-                    <p className="text-red-300 font-bold text-xs uppercase tracking-wider animate-pulse flex items-center justify-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Maintenance Mode
-                    </p>
-                    <p className="text-red-200/90 text-[10px] mt-1 hidden sm:block">
-                      Public access disabled. Please check back later.
+                  <div className="mb-3 bg-[#3D3000]/80 border border-[#D4AF37]/50 rounded-xl p-3 w-full max-w-[320px] text-center shadow-xl backdrop-blur-md">
+                    <div className="flex items-center justify-center gap-1.5 text-[#F9DD76] font-semibold text-xs tracking-wider uppercase">
+                      <ShieldCheck className="w-4 h-4 text-[#F9DD76]" />
+                      <span>System Enhancement Underway</span>
+                    </div>
+                    <p className="text-white/90 text-[11px] font-light mt-1.5 leading-relaxed">
+                      EASCCA is currently undergoing scheduled maintenance to elevate your booking experience.
                     </p>
                   </div>
                 )}
