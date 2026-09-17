@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { customerBookingAPI } from "@/lib/api";
-import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare, Trash2 } from "lucide-react";
+import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare, Trash2, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVendorStore } from "@/store/vendorStore";
 
@@ -61,7 +61,9 @@ export default function BookingHistory() {
 
   useEffect(() => {
     bookings.forEach(async (b) => {
-      const bId = b._id || b.id;
+      const bId = (b._id || b.id) as string;
+      if (!bId) return;
+      
       const isPastEvent = new Date(b.date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
       const isCompleted = isPastEvent && !["cancelled", "rejected"].includes((b.status || "").toLowerCase()) ? true : (b.status || "").toLowerCase() === "completed";
       
@@ -351,7 +353,7 @@ export default function BookingHistory() {
               vendors: usedVendors,
             });
           }}
-          isReviewed={reviewedStatuses[selectedBooking._id || selectedBooking.id]}
+          isReviewed={reviewedStatuses[(selectedBooking._id || selectedBooking.id) as string]}
         />
       ) : (
       <>
@@ -513,9 +515,10 @@ export default function BookingHistory() {
                   });
                 }}
                 className="flex-1 p-3 border-2 border-[#C9A84C] bg-[#C9A84C]/10 rounded-xl text-[#C9A84C] hover:bg-[#C9A84C] hover:text-white transition-colors flex items-center justify-center gap-2"
-                title={reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Leave Review"}
+                title={reviewedStatuses[(booking._id || booking.id) as string] ? "Edit Review" : "Leave Review"}
               >
-                <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[booking._id || booking.id] ? "Edit Review" : "Review"}</span>
+                <Star className="w-4 h-4 fill-current" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">{reviewedStatuses[(booking._id || booking.id) as string] ? "Edit Review" : "Review"}</span>
               </button>
             )}
           </div>
