@@ -20,6 +20,19 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     }
   }, [booking.status]);
 
+  const [defaultDeposit, setDefaultDeposit] = useState<number>(40);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/system-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.defaultDeposit !== undefined) {
+          setDefaultDeposit(data.defaultDeposit);
+        }
+      })
+      .catch(() => { });
+  }, []);
+
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState(booking.rejectionReason || '');
   const [rejectError, setRejectError] = useState('');
@@ -89,12 +102,12 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
     }
   };
 
-  const isPendingStatus = 
-    status === 'PENDING' || 
-    status === 'PENDING CONFIRMATION' || 
-    status === 'PENDING HALL CONFIRMATION' || 
+  const isPendingStatus =
+    status === 'PENDING' ||
+    status === 'PENDING CONFIRMATION' ||
+    status === 'PENDING HALL CONFIRMATION' ||
     status === 'DEPOSIT_PAID' ||
-    booking.status === 'Pending' || 
+    booking.status === 'Pending' ||
     booking.status === 'Pending Confirmation' ||
     booking.status === 'Pending Hall Confirmation' ||
     booking.status === 'DEPOSIT_PAID';
@@ -183,7 +196,7 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#B08D2C] mb-4">
           Payment Status & Actions
         </h4>
-        
+
         <div className="space-y-3">
           <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
             <span className="text-gray-500">Method:</span>
@@ -191,11 +204,11 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
           </div>
 
           <div className="flex justify-between text-xs border-b border-[#E0D8C3] pb-2">
-            <span className="text-gray-500">Advance (30%):</span>
+            <span className="text-gray-500">Advance ({defaultDeposit}%):</span>
             <span className={`font-bold ${booking.depositAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
-              {booking.depositAmount > 0 
-                ? `Paid: LKR ${booking.depositAmount.toLocaleString()}` 
-                : `Pending: LKR ${(booking.totalCost * 0.3).toLocaleString()}`
+              {booking.depositAmount > 0
+                ? `Paid: LKR ${booking.depositAmount.toLocaleString()}`
+                : `Pending: LKR ${(booking.totalCost * (defaultDeposit / 100)).toLocaleString()}`
               }
             </span>
           </div>
@@ -204,8 +217,8 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
             <span className="text-gray-500">Balance:</span>
             <div className="text-right">
               <span className={`font-bold ${booking.balanceAmount > 0 ? 'text-green-600' : 'text-amber-600'}`}>
-                {booking.balanceAmount > 0 
-                  ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}` 
+                {booking.balanceAmount > 0
+                  ? `Paid: LKR ${booking.balanceAmount.toLocaleString()}`
                   : `Pending: LKR ${(booking.totalCost - booking.depositAmount).toLocaleString()}`
                 }
               </span>
@@ -222,9 +235,8 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
             <button
               onClick={() => handleRecordPayment('deposit')}
               disabled={isRecordingPayment}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${
-                isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
-              } text-white shadow-sm`}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+                } text-white shadow-sm`}
             >
               Record Advance Received
             </button>
@@ -232,9 +244,8 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
             <button
               onClick={() => handleRecordPayment('balance')}
               disabled={isRecordingPayment}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${
-                isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-              } text-white shadow-sm`}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest mt-2 transition-all ${isRecordingPayment ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                } text-white shadow-sm`}
             >
               Record Balance Received
             </button>
@@ -262,10 +273,10 @@ const ManagerActions = ({ booking, onStatusUpdate }: { booking: any, onStatusUpd
               </div>
               <div>
                 <p className={`text-xs font-semibold ${i === 0 ? 'text-gray-800' : 'text-gray-500'}`}>
-                  {s.status === 'Pending' || s.status === 'Pending Hall Confirmation' ? 'Pending Hall Approval' : 
-                   s.status === 'Confirmed' ? 'Booking Confirmed' : 
-                   s.status === 'Completed' ? 'Event Completed' : 
-                   s.status === 'Rejected' ? 'Booking Rejected' : s.status}
+                  {s.status === 'Pending' || s.status === 'Pending Hall Confirmation' ? 'Pending Hall Approval' :
+                    s.status === 'Confirmed' ? 'Booking Confirmed' :
+                      s.status === 'Completed' ? 'Event Completed' :
+                        s.status === 'Rejected' ? 'Booking Rejected' : s.status}
                 </p>
                 <p className="text-[10px] text-gray-400">
                   {new Date(s.updatedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + new Date(s.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}

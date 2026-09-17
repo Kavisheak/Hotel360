@@ -42,11 +42,6 @@ const BookingRules = ({ data, onChange }: any) => {
                     />
                 </div>
             </div>
-
-            <div className="pt-4 border-t border-[#E0D8C3] flex gap-3">
-                <button className="flex-1 bg-white border border-[#E0D8C3] py-2 text-[10px] font-bold tracking-widest text-[#7C6A2E] hover:bg-[#FAF6EE]">RESET DEFAULTS</button>
-                <button className="flex-1 bg-[#A48F40] text-white py-2 text-[10px] font-bold tracking-widest hover:bg-[#8D7B37]">UPDATE RULES</button>
-            </div>
         </div>
     );
 };

@@ -57,6 +57,20 @@ const ConfigMain = () => {
     }
   };
 
+  const handleSecurityAction = async (action: string) => {
+    try {
+      const res = await superAdminAPI.executeSecurityAction(action);
+      if (res.ok) {
+        showToast(res.data?.message || 'Security action forcefully applied.', 'success');
+      } else {
+        showToast('Failed to execute security lockdown protocols.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Critical system block executing protocol.', 'error');
+    }
+  };
+
   if (!config) {
     return <div className="min-h-screen bg-[#FDF9F1] flex items-center justify-center p-8">Loading Platform Configuration...</div>;
   }
@@ -104,6 +118,7 @@ const ConfigMain = () => {
                 <VirtualExperience
                   data={config.virtualExperience}
                   onChange={(d: any) => setConfig({ ...config, virtualExperience: d })}
+                  showToast={showToast}
                 />
               </div>
               {/* Row 1 Right - AI Sentiment (5/12) */}
@@ -119,6 +134,7 @@ const ConfigMain = () => {
                 <PlatformSecurity
                   data={config.platformSecurity}
                   onChange={(d: any) => setConfig({ ...config, platformSecurity: d })}
+                  onSecurityAction={handleSecurityAction}
                 />
               </div>
               {/* Row 2 Right - Booking Rules (5/12 or 6/12) */}
@@ -147,8 +163,8 @@ const ConfigMain = () => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white border border-[#E0D8C3] max-w-sm w-full p-8 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
             <div className={`p-4 rounded-full mb-5 ${toast.type === 'success' ? 'bg-[#FAF6EE] text-[#7C6A2E]' :
-                toast.type === 'error' ? 'bg-[#FDF2F2] text-[#8C4A4A]' :
-                  'bg-gray-100 text-gray-600'
+              toast.type === 'error' ? 'bg-[#FDF2F2] text-[#8C4A4A]' :
+                'bg-gray-100 text-gray-600'
               }`}>
               {toast.type === 'success' && <CheckCircle size={36} strokeWidth={2} />}
               {toast.type === 'error' && <AlertTriangle size={36} strokeWidth={2} />}
