@@ -321,7 +321,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                   const declinedVendors: any[] = [];
                   ["decorator", "dj", "videographer", "photographer", "cake", "florist"].forEach(svc => {
                     const v = booking.vendors?.[svc as keyof typeof booking.vendors] as any;
-                    if (v && (v.status === "Declined" || v.status === "Refund Pending" || v.status === "Refunded")) {
+                    if (v && ((v.status === "Declined" && !(booking.status === "Completed" || (booking.date && new Date(booking.date) < new Date()))) || v.status === "Refund Pending" || v.status === "Refunded")) {
                       declinedVendors.push({ service: svc, ...v });
                     }
                   });
@@ -333,11 +333,15 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }: Bookin
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-red-800 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-2 py-0.5 rounded border border-red-300">
-                            ⚠️ ACTION REQUIRED: VENDOR DECLINED
+                            {(booking.status === "Completed" || (booking.date && new Date(booking.date) < new Date())) 
+                              ? "VENDOR REFUND STATUS" 
+                              : "⚠️ ACTION REQUIRED: VENDOR DECLINED"}
                           </span>
                         </div>
                         <p className="text-xs text-red-900 dark:text-red-200 mt-1.5 leading-relaxed font-medium">
-                          Your hall booking remains active. Please review the status of the declined service(s).
+                          {(booking.status === "Completed" || (booking.date && new Date(booking.date) < new Date())) 
+                            ? "Review the refund status for services that were declined or cancelled."
+                            : "Your hall booking remains active. Please review the status of the declined service(s)."}
                         </p>
                       </div>
 
