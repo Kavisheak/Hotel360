@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { customerBookingAPI } from "@/lib/api";
-import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare, Trash2 } from "lucide-react";
+import { Loader2, Calendar, Clock, Users, MapPin, SearchX, ChevronDown, ChevronUp, Receipt, Package, Music, Video, Palette, Phone, Mail, RefreshCw, MessageSquare, Trash2, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVendorStore } from "@/store/vendorStore";
 
