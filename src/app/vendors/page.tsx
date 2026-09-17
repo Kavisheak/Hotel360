@@ -193,11 +193,11 @@ function VendorsContent() {
               </div>
               <button 
                 onClick={() => setIsAiModalOpen(true)}
-                className="group relative overflow-hidden w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-[#C9A84C] via-[#E2C779] to-[#C9A84C] bg-[length:200%_auto] transition-all duration-500 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-[0_0_20px_rgba(201,168,76,0.8)] hover:shadow-[0_0_30px_rgba(201,168,76,1)] hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                className="group relative overflow-hidden w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-[#9D7639] via-[#C9A84C] to-[#9D7639] bg-[length:200%_auto] transition-all duration-500 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-[0_0_20px_rgba(157,118,57,0.6)] hover:shadow-[0_0_30px_rgba(157,118,57,0.8)] hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
-                <div className="absolute inset-0 bg-white/20 blur-md rounded-full animate-pulse z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-white/10 blur-md rounded-full animate-pulse z-0 pointer-events-none"></div>
                 
-                <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent z-0 pointer-events-none" style={{ animation: 'shimmer 2.5s infinite linear' }}>
+                <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent z-0 pointer-events-none" style={{ animation: 'shimmer 2.5s infinite linear' }}>
                   <style>{`
                     @keyframes shimmer {
                       0% { transform: translateX(-150%) skewX(-12deg); }
@@ -211,7 +211,7 @@ function VendorsContent() {
                   Try AI Visual Matcher
                 </span>
                 <div className="relative z-10 flex items-center pl-1">
-                  <Sparkles className="w-4 h-4 opacity-100 animate-pulse text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+                  <Sparkles className="w-4 h-4 opacity-100 animate-pulse text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.6)]" />
                 </div>
               </button>
             </div>
@@ -263,10 +263,7 @@ function VendorsContent() {
           />
         )}
 
-        <div className="max-w-7xl mx-auto px-6 mt-8 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            Showing <span className="font-bold text-[#2C1E14] dark:text-white">{filteredVendors.length}</span> verified vendors
-          </p>
+        <div className="max-w-7xl mx-auto px-6 mt-8 mb-6 flex flex-col sm:flex-row items-center justify-end gap-4">
           <div className="flex items-center gap-4">
             <div className="flex bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/10 rounded-full p-1 shadow-sm">
               <button 
