@@ -195,6 +195,7 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
       return [
         { id: "overview", label: "Overview" },
         { id: "packages", label: "Packages" },
+        { id: "reviews", label: "Reviews" },
         { id: "about", label: "About" },
       ];
     }
@@ -488,12 +489,28 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                                     'aspect-square'
                                   } ${isLastVisible ? 'cursor-pointer' : ''}`}
                                 >
-                                  <img 
-                                    src={typeof img === 'string' ? img : img.url} 
-                                    alt={img.caption || `${alb.title} photo ${i + 1}`}
-                                    className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
-                                    loading="lazy"
-                                  />
+                                  {(() => {
+                                    const url = typeof img === 'string' ? img : img.url;
+                                    const isVideo = typeof url === 'string' && url.match(/\.(mp4|webm|ogg|mov)$/i);
+                                    if (isVideo) {
+                                      return (
+                                        <video
+                                          src={url}
+                                          className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                          controls
+                                          preload="metadata"
+                                        />
+                                      );
+                                    }
+                                    return (
+                                      <img 
+                                        src={url} 
+                                        alt={img.caption || `${alb.title} photo ${i + 1}`}
+                                        className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                        loading="lazy"
+                                      />
+                                    );
+                                  })()}
                                   {isLastVisible && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70">
                                       <span className="text-white text-3xl font-bold">+{extraCount}</span>
@@ -507,41 +524,39 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                       })()}
 
                       {/* Post Footer Actions */}
-                      {vendor.category !== "videographers" && (
-                        <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
-                          {(() => {
-                            const isVendorSelected = cartVendors[storeCat] === vendor.id;
-                            const isThisDesignSelected = isVendorSelected && requestedDesigns[storeCat] === alb._id;
-                            
-                            return (
-                              <button 
-                                onClick={() => handleSelectDesignClick(alb._id, alb.price || 0)} 
-                                className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
-                                  isThisDesignSelected 
-                                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
-                                    : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
-                                }`}
-                              >
-                                {isThisDesignSelected ? (
-                                  <>
-                                    <X className="w-4 h-4" /> Deselect Design
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="w-4 h-4" /> Select This Design
-                                  </>
-                                )}
-                              </button>
-                            );
-                          })()}
-                          <button 
-                            onClick={() => setExpandedReviews(expandedReviews === alb._id ? null : alb._id)}
-                            className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === alb._id ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
-                          >
-                            {expandedReviews === alb._id ? 'Hide Reviews' : 'View Reviews'} {(alb as any).reviews && (alb as any).reviews.length > 0 ? `(${(alb as any).reviews.length})` : ""}
-                          </button>
-                        </div>
-                      )}
+                      <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
+                        {vendor.category !== "videographers" && (() => {
+                          const isVendorSelected = cartVendors[storeCat] === vendor.id;
+                          const isThisDesignSelected = isVendorSelected && requestedDesigns[storeCat] === alb._id;
+                          
+                          return (
+                            <button 
+                              onClick={() => handleSelectDesignClick(alb._id, alb.price || 0)} 
+                              className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
+                                isThisDesignSelected 
+                                  ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
+                                  : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
+                              }`}
+                            >
+                              {isThisDesignSelected ? (
+                                <>
+                                  <X className="w-4 h-4" /> Deselect Design
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4" /> Select This Design
+                                </>
+                              )}
+                            </button>
+                          );
+                        })()}
+                        <button 
+                          onClick={() => setExpandedReviews(expandedReviews === alb._id ? null : alb._id)}
+                          className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === alb._id ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
+                        >
+                          {expandedReviews === alb._id ? 'Hide Reviews' : 'View Reviews'} {(alb as any).reviews && (alb as any).reviews.length > 0 ? `(${(alb as any).reviews.length})` : ""}
+                        </button>
+                      </div>
 
                       {/* Expandable Reviews Section for this specific design */}
                       <AnimatePresence>
@@ -651,12 +666,27 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                                     'aspect-square'
                                   } ${isLastVisible ? 'cursor-pointer' : ''}`}
                                 >
-                                  <img 
-                                    src={img} 
-                                    alt={`${vendor.name} portfolio ${i + 1}`}
-                                    className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
-                                    loading="lazy"
-                                  />
+                                  {(() => {
+                                    const isVideo = typeof img === 'string' && img.match(/\.(mp4|webm|ogg|mov)$/i);
+                                    if (isVideo) {
+                                      return (
+                                        <video
+                                          src={img}
+                                          className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                          controls
+                                          preload="metadata"
+                                        />
+                                      );
+                                    }
+                                    return (
+                                      <img 
+                                        src={img} 
+                                        alt={`${vendor.name} portfolio ${i + 1}`}
+                                        className={`w-full h-full object-cover transition-transform duration-700 ${isLastVisible ? '' : 'group-hover:scale-105'}`}
+                                        loading="lazy"
+                                      />
+                                    );
+                                  })()}
                                   {isLastVisible && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-colors hover:bg-black/70">
                                       <span className="text-white text-3xl font-bold">+{extraCount}</span>
@@ -670,39 +700,37 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                       })()}
 
                       {/* Post Footer Actions */}
-                      {vendor.category !== "videographers" && (
-                        <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
-                          {(() => {
-                            const isVendorSelected = cartVendors[storeCat] === vendor.id;
-                            return (
-                              <button 
-                                onClick={handleSelectVendorClick} 
-                                className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
-                                  isVendorSelected 
-                                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
-                                    : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
-                                }`}
-                              >
-                                {isVendorSelected ? (
-                                  <>
-                                    <X className="w-4 h-4" /> Deselect Design
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="w-4 h-4" /> Select This Design
-                                  </>
-                                )}
-                              </button>
-                            );
-                          })()}
-                          <button 
-                            onClick={() => setExpandedReviews(expandedReviews === 'static' ? null : 'static')}
-                            className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === 'static' ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
-                          >
-                            {expandedReviews === 'static' ? 'Hide Reviews' : 'View Reviews'} {vendor.reviews && vendor.reviews.length > 0 ? `(${vendor.reviews.length})` : ""}
-                          </button>
-                        </div>
-                      )}
+                      <div className="p-4 border-t border-[#E8DFC9] dark:border-white/10 flex flex-col sm:flex-row gap-3">
+                        {vendor.category !== "videographers" && (() => {
+                          const isVendorSelected = cartVendors[storeCat] === vendor.id;
+                          return (
+                            <button 
+                              onClick={handleSelectVendorClick} 
+                              className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
+                                isVendorSelected 
+                                  ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20" 
+                                  : "bg-[#C69C6D] text-white hover:bg-[#B58B5C]"
+                              }`}
+                            >
+                              {isVendorSelected ? (
+                                <>
+                                  <X className="w-4 h-4" /> Deselect Design
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4" /> Select This Design
+                                </>
+                              )}
+                            </button>
+                          );
+                        })()}
+                        <button 
+                          onClick={() => setExpandedReviews(expandedReviews === 'static' ? null : 'static')}
+                          className={`flex-1 py-2.5 text-[11px] uppercase font-bold tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2 border border-[#E8DFC9] dark:border-[#C9A84C]/30 ${expandedReviews === 'static' ? 'bg-[#E8DFC9] dark:bg-[#C9A84C]/20 text-[#1A1512] dark:text-white' : 'text-[#1A1512] dark:text-white hover:bg-[#FAF6EE] dark:hover:bg-white/5'}`}
+                        >
+                          {expandedReviews === 'static' ? 'Hide Reviews' : 'View Reviews'} {vendor.reviews && vendor.reviews.length > 0 ? `(${vendor.reviews.length})` : ""}
+                        </button>
+                      </div>
 
                       {/* Expandable Reviews Section for Static Portfolio */}
                       <AnimatePresence>
@@ -753,6 +781,46 @@ export default function VendorProfileContent({ vendor, isBooking = false }: Vend
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* REVIEWS TAB (specifically for vendors without portfolios like DJs) */}
+          {activeTab === "reviews" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-3xl mx-auto">
+              <div className="bg-white dark:bg-[#111315] border border-[#E8DFC9] dark:border-[#C9A84C]/20 rounded-xl overflow-hidden shadow-sm p-6 md:p-8">
+                <h3 className="text-xl font-serif font-bold text-[#1A1512] dark:text-white mb-6 border-b border-[#E8DFC9] dark:border-white/10 pb-4 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-[#C69C6D] fill-[#C69C6D]" /> Customer Reviews
+                </h3>
+                {vendor.reviews && vendor.reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {vendor.reviews.map((rev: any, idx: number) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-black border border-[#E8DFC9] dark:border-white/10 p-5 rounded-sm shadow-sm space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#FAF6EE] dark:bg-[#111315] text-[#A6955C] flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                              {rev.client ? rev.client.substring(0, 2) : "C"}
+                            </div>
+                            <span className="font-bold text-[#1A1512] dark:text-white text-[13px]">{rev.client}</span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(5)].map((_, starIdx) => (
+                              <Star key={starIdx} className={`w-3.5 h-3.5 ${starIdx < Math.round(rev.rating) ? 'text-[#C69C6D] fill-[#C69C6D]' : 'text-gray-300 fill-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-gray-700 dark:text-gray-300 text-[13px] italic leading-relaxed">
+                          "{rev.text}"
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center border border-dashed border-[#E8DFC9] dark:border-white/10 rounded-sm bg-gray-50/50 dark:bg-white/5">
+                    <MessageSquare className="w-8 h-8 text-gray-300 dark:text-white/20 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm font-medium">No reviews yet for this vendor.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -65,6 +65,20 @@ export interface Vendor {
   availableIslandWide?: boolean;
   contactPhone?: string;
   contactEmail?: string;
+  isVerified?: boolean;
+  musicGenres?: string[];
+  servicesOffered?: string[];
+  eventTypesServed?: string[];
+  experience?: string;
+  contactPerson?: string;
+  serviceAreas?: string[];
+  whatsappNumber?: string;
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  coverImage?: string;
+  culturalExpertise?: string[];
+  updatedAt?: string;
 }
 
 interface VendorState {
