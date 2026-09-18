@@ -668,11 +668,16 @@ export default function BookingVendorSelector({
                 <div className="space-y-6">
                   {selectedVendor && (
                     <div className="flex flex-col md:flex-row gap-6 items-start border-b border-[#E8DFC9] dark:border-gray-800 pb-6">
-                      <img 
-                        src={(selectedVendor.coverImage || selectedVendor.image).startsWith('http') ? (selectedVendor.coverImage || selectedVendor.image) : `${API_URL}${(selectedVendor.coverImage || selectedVendor.image)}`} 
-                        alt={selectedVendor.name} 
-                        className="w-full md:w-48 h-32 rounded-sm object-cover border border-[#E8DFC9]/50" 
-                      />
+                      {(() => {
+                        const vendorImg = selectedVendor.coverImage || selectedVendor.image;
+                        return (
+                          <img 
+                            src={vendorImg.startsWith('http') ? vendorImg : `${API_URL}${vendorImg}`} 
+                            alt={selectedVendor.name} 
+                            className="w-full md:w-48 h-32 rounded-sm object-cover border border-[#E8DFC9]/50" 
+                          />
+                        );
+                      })()}
                       <div className="space-y-1">
                         <h5 className="text-xl font-bold text-[#1A1512] dark:text-white">{selectedVendor.name}</h5>
                         <p className="text-xs text-gray-500">
