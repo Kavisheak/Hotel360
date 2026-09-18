@@ -308,10 +308,11 @@ export default function VendorCards({
       });
     }
     images = [...new Set(images)];
+    const fallbackImage = vendor.coverImage || vendor.image;
     if (images.length === 0) {
-      images = [vendor.image, vendor.image, vendor.image];
+      images = [fallbackImage, fallbackImage, fallbackImage];
     } else if (images.length < 3) {
-      images = [...images, ...Array(3 - images.length).fill(vendor.image)];
+      images = [...images, ...Array(3 - images.length).fill(fallbackImage)];
     }
     return images;
   };
@@ -400,13 +401,13 @@ export default function VendorCards({
             const availability = getAvailability(vendor);
             
             // Get cover & gallery images for this specific portfolio card
-            let coverImage = vendor.image;
+            let coverImage = vendor.coverImage || vendor.image;
             let coverIsVideo = false;
             let galleryMedia: { url: string, isVideo: boolean }[] = [];
 
             if (portfolioItem && portfolioItem.media && portfolioItem.media.length > 0) {
               const coverMedia = portfolioItem.media.find((m: any) => m.isCover) || portfolioItem.media[0];
-              coverImage = coverMedia?.url || vendor.image;
+              coverImage = coverMedia?.url || vendor.coverImage || vendor.image;
               coverIsVideo = (coverMedia?.resourceType === 'video' || coverMedia?.mediaType === 'video');
               galleryMedia = portfolioItem.media.map((m: any) => ({
                 url: m.url,
@@ -414,7 +415,11 @@ export default function VendorCards({
               }));
             } else {
               const urls = getGalleryImages(vendor);
-              if (urls.length > 0) coverImage = urls[0];
+              if (storeCat === 'dj' && vendor.coverImage) {
+                 coverImage = vendor.coverImage;
+              } else if (urls.length > 0) {
+                 coverImage = urls[0];
+              }
               galleryMedia = urls.map(url => ({ 
                 url, 
                 isVideo: url.includes('.mp4') || url.includes('.webm') || url.includes('/video/') 
@@ -422,11 +427,12 @@ export default function VendorCards({
             }
 
             if (galleryMedia.length < 3) {
-              galleryMedia = [...galleryMedia, ...Array(3 - galleryMedia.length).fill({ url: vendor.image, isVideo: false })];
+              const fallbackMedia = vendor.coverImage || vendor.image;
+              galleryMedia = [...galleryMedia, ...Array(3 - galleryMedia.length).fill({ url: fallbackMedia, isVideo: false })];
             }
 
             const currentGalleryIdx = galleryIndices[cardKey] || 0;
-            const hasPortfolio = galleryMedia.length > 0 && galleryMedia[0].url !== vendor.image;
+            const hasPortfolio = galleryMedia.length > 0 && galleryMedia[0].url !== (vendor.coverImage || vendor.image);
 
             const cardTitle = portfolioItem?.title ? portfolioItem.title : vendor.name;
             const cardPrice = portfolioItem?.price && portfolioItem.price > 0 ? `LKR ${portfolioItem.price.toLocaleString()}` : vendor.startingPrice;

@@ -669,7 +669,7 @@ export default function BookingVendorSelector({
                   {selectedVendor && (
                     <div className="flex flex-col md:flex-row gap-6 items-start border-b border-[#E8DFC9] dark:border-gray-800 pb-6">
                       <img 
-                        src={selectedVendor.image.startsWith('http') ? selectedVendor.image : `${API_URL}${selectedVendor.image}`} 
+                        src={(selectedVendor.coverImage || selectedVendor.image).startsWith('http') ? (selectedVendor.coverImage || selectedVendor.image) : `${API_URL}${(selectedVendor.coverImage || selectedVendor.image)}`} 
                         alt={selectedVendor.name} 
                         className="w-full md:w-48 h-32 rounded-sm object-cover border border-[#E8DFC9]/50" 
                       />

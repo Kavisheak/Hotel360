@@ -44,7 +44,7 @@ export default function SavedVendors() {
               {/* Cover Photo */}
               <div className="relative h-44 w-full bg-gray-100">
                 <img
-                  src={vendor.image}
+                  src={vendor.coverImage || vendor.image}
                   alt={vendor.name}
                   className="w-full h-full object-cover"
                 />
