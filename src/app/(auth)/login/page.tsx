@@ -31,6 +31,7 @@ export default function AuthPage() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [isForgotLoading, setIsForgotLoading] = useState(false);
+  const [isRegSubmitting, setIsRegSubmitting] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotError, setForgotError] = useState("");
 
@@ -272,6 +273,8 @@ export default function AuthPage() {
       return;
     }
 
+    setIsRegSubmitting(true);
+
     const { ok, data } = await authAPI.signup({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -282,6 +285,7 @@ export default function AuthPage() {
 
     if (!ok) {
       alert(data?.message || "Failed to create account");
+      setIsRegSubmitting(false);
       return;
     }
 
@@ -501,9 +505,6 @@ export default function AuthPage() {
             <motion.div key="register-form" variants={rightSideVariants} initial="initial" animate="animate" exit="exit" className="p-5 md:p-6">
               {/* Register Form Content */}
               <div className="flex flex-col items-center mb-2">
-                <div className="w-24 h-12 relative">
-                  <Image src="/images/elite_logo.png" alt="EASCCA Logo" fill className="object-contain" priority />
-                </div>
                 <h1 className="text-2xl font-serif text-white text-center mb-0.5 mt-2">
                   Create Account
                 </h1>
@@ -727,9 +728,10 @@ export default function AuthPage() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 shadow-sm border border-[#C9A84C]/20 mt-1"
+                  disabled={isRegSubmitting}
+                  className="w-full bg-gradient-to-r from-[#E6D5A7] via-[#D4B86A] to-[#C9A84C] text-gray-900 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold hover:shadow-lg hover:opacity-90 transition-all duration-300 shadow-sm border border-[#C9A84C]/20 mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Account <ArrowRight className="w-3.5 h-3.5" />
+                  {isRegSubmitting ? "Creating Account..." : "Create Account"} <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>
 
