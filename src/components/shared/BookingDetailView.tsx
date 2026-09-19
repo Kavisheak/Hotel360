@@ -9,6 +9,7 @@ import VendorRemovalModal from "../myaccount/VendorRemovalModal";
 import ApplyBalanceModal from "./ApplyBalanceModal";
 import { customerBookingAPI } from '@/lib/api';
 import { startPayHerePayment } from "@/utils/payhere";
+import { useToastStore } from "@/store/toastStore";
 import { useEffect } from 'react';
 
 interface BookingDetailViewProps {
@@ -179,15 +180,15 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
         paymentType: "balance",
         onSuccess: () => {
           setIsPaying(false);
-          alert("Balance payment successful!");
-          window.location.reload();
+          useToastStore.getState().addToast({ message: "Balance payment successful!", type: "success" });
+          useBookingStore.getState().fetchUserBookings();
         },
         onDismiss: () => setIsPaying(false),
         onError: () => setIsPaying(false),
       });
 
     } catch (err: any) {
-      alert("Error preparing payment: " + err.message);
+      useToastStore.getState().addToast({ message: "Error preparing payment: " + err.message, type: "error" });
       setIsPaying(false);
     }
   };
@@ -407,6 +408,39 @@ export default function BookingDetailView({ booking, onBack, onCancelBooking, on
                       >
                         {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
                         {isPaying ? "Processing..." : "Pay Remaining Balance"}
+                      </button>
+                    </div>
+                  )}
+                  {((displayStatus || "").toLowerCase() === "pending" || (displayStatus || "").toLowerCase() === "payment pending" || (displayStatus || "").toLowerCase() === "payment_pending") && (
+                    <div className="pt-4 mt-2 border-t border-[#E8DFC9] dark:border-gray-800">
+                      <button
+                        onClick={async () => {
+                          try {
+                            setIsPaying(true);
+                            await startPayHerePayment({ 
+                              bookingId: bId, 
+                              paymentType: "deposit",
+                              onSuccess: () => {
+                                setIsPaying(false);
+                                useToastStore.getState().addToast({ message: "Deposit payment successful!", type: "success" });
+                                useBookingStore.getState().fetchUserBookings();
+                              },
+                              onDismiss: () => setIsPaying(false),
+                              onError: (err: any) => {
+                                useToastStore.getState().addToast({ message: `Payment failed or cancelled: ${err?.message || "Unknown error"}`, type: "error" });
+                                setIsPaying(false);
+                              }
+                            });
+                          } catch (err: any) {
+                            useToastStore.getState().addToast({ message: `Error initializing payment: ${err?.message || "Unknown error"}`, type: "error" });
+                            setIsPaying(false);
+                          }
+                        }}
+                        disabled={isPaying}
+                        className="w-full py-3 bg-amber-600 text-white font-bold text-xs uppercase tracking-widest rounded hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
+                      >
+                        {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                        {isPaying ? "Processing..." : "Pay Deposit Now"}
                       </button>
                     </div>
                   )}

@@ -26,6 +26,8 @@ export interface PortfolioItem {
   colorTheme?: string[];
   servicesProvided?: string[];
   media: PortfolioMedia[];
+  rating?: number;
+  reviewsCount?: number;
 }
 
 export interface VendorReview {

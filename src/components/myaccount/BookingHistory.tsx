@@ -10,6 +10,8 @@ import RefundRequestModal from "./RefundRequestModal";
 import BookingDetailView from "../shared/BookingDetailView";
 import { useBookingStore, type Booking } from "@/store/bookingStore";
 import { useVendorStore } from "@/store/vendorStore";
+import { startPayHerePayment } from "@/utils/payhere";
+import { useToastStore } from "@/store/toastStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -504,6 +506,33 @@ export default function BookingHistory() {
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3">
+                  {((displayStatus || "").toLowerCase() === "pending" || (displayStatus || "").toLowerCase() === "payment pending" || (displayStatus || "").toLowerCase() === "payment_pending") ? (
+                    <button 
+                      onClick={async () => {
+                        try {
+                          await startPayHerePayment({ 
+                            bookingId: (booking._id || booking.id) as string, 
+                            paymentType: "deposit",
+                            onSuccess: () => {
+                              useBookingStore.getState().fetchUserBookings();
+                              useToastStore.getState().addToast({ message: "Deposit payment successful!", type: "success" });
+                            },
+                            onDismiss: () => {
+                              console.log("Payment modal dismissed");
+                            },
+                            onError: (err: any) => {
+                              useToastStore.getState().addToast({ message: `Payment failed or cancelled: ${err?.message || "Unknown error"}`, type: "error" });
+                            }
+                          });
+                        } catch (err: any) {
+                          useToastStore.getState().addToast({ message: `Error initializing payment: ${err?.message || "Unknown error"}`, type: "error" });
+                        }
+                      }}
+                      className="flex-1 py-3 bg-[#C9A84C] border-2 border-[#C9A84C] text-[#2C1E14] hover:bg-[#B58B5C] hover:border-[#B58B5C] dark:hover:text-black rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
+                    >
+                      Pay Deposit Now
+                    </button>
+                  ) : null}
                   <button 
                     onClick={() => setDetailsModalBooking(booking)}
                     className="flex-1 py-3 bg-transparent border-2 border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C] hover:text-[#2C1E14] dark:hover:text-black rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
