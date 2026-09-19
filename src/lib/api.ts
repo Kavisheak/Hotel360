@@ -23,7 +23,13 @@ export const apiFetch = async (endpoint: string, options: ApiOptions = {}) => {
 
     const data = await res.json();
 
-    if (res.status === 401 && endpoint !== "/api/auth/me" && endpoint !== "/api/auth/me/password") {
+    if (
+      res.status === 401 && 
+      endpoint !== "/api/auth/me" && 
+      endpoint !== "/api/auth/me/password" && 
+      endpoint !== "/api/auth/signin" && 
+      endpoint !== "/api/auth/admin-signin"
+    ) {
       import("../store/authStore").then(({ useAuthStore }) => {
         useAuthStore.getState().clearUser();
       });

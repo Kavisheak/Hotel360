@@ -38,6 +38,15 @@ const Metrics = () => {
       }
     };
     fetchMetrics();
+
+    const handleAction = () => fetchMetrics();
+    window.addEventListener('bookingAction', handleAction);
+    const interval = setInterval(fetchMetrics, 30000);
+
+    return () => {
+      window.removeEventListener('bookingAction', handleAction);
+      clearInterval(interval);
+    };
   }, []);
 
   const formatCurrency = (val: number) => {
