@@ -174,6 +174,21 @@ const ManagerHeader = () => {
           </div>
         </div>
       )}
+
+      {/* New Booking Modal Popup */}
+      {isNewBookingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#FDF9F1] w-full max-w-6xl rounded shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-[#E0D8C3] animate-fadeIn">
+            <NewBookingMain
+              onClose={() => setIsNewBookingOpen(false)}
+              onSuccess={() => {
+                setIsNewBookingOpen(false);
+                window.location.reload(); // Refresh to show the new booking
+              }}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

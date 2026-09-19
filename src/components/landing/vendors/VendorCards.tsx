@@ -361,7 +361,39 @@ export default function VendorCards({
     }];
   });
 
-  if (sortBy === "newest") {
+  // Apply sorting directly to the flattened cards to ensure individual designs 
+  // are accurately ranked, rather than grouping them purely by vendor popularity.
+  if (sortBy === "rating") {
+    flattenedCards.sort((a, b) => {
+      const ratingA = (a.portfolioItem as any)?.rating ?? a.vendor.rating;
+      const ratingB = (b.portfolioItem as any)?.rating ?? b.vendor.rating;
+      return ratingB - ratingA;
+    });
+  } else if (sortBy === "popularity") {
+    flattenedCards.sort((a, b) => {
+      const ratingA = (a.portfolioItem as any)?.rating ?? a.vendor.rating;
+      const revsA = (a.portfolioItem as any)?.reviewsCount ?? a.vendor.reviewsCount;
+      const scoreA = ratingA * Math.log10(revsA + 1);
+      
+      const ratingB = (b.portfolioItem as any)?.rating ?? b.vendor.rating;
+      const revsB = (b.portfolioItem as any)?.reviewsCount ?? b.vendor.reviewsCount;
+      const scoreB = ratingB * Math.log10(revsB + 1);
+      
+      return scoreB - scoreA;
+    });
+  } else if (sortBy === "price_low") {
+    flattenedCards.sort((a, b) => {
+      const priceA = a.portfolioItem?.price && a.portfolioItem.price > 0 ? a.portfolioItem.price : (parseInt(a.vendor.startingPrice?.replace(/[^0-9]/g, ""), 10) || 0);
+      const priceB = b.portfolioItem?.price && b.portfolioItem.price > 0 ? b.portfolioItem.price : (parseInt(b.vendor.startingPrice?.replace(/[^0-9]/g, ""), 10) || 0);
+      return priceA - priceB;
+    });
+  } else if (sortBy === "price_high") {
+    flattenedCards.sort((a, b) => {
+      const priceA = a.portfolioItem?.price && a.portfolioItem.price > 0 ? a.portfolioItem.price : (parseInt(a.vendor.startingPrice?.replace(/[^0-9]/g, ""), 10) || 0);
+      const priceB = b.portfolioItem?.price && b.portfolioItem.price > 0 ? b.portfolioItem.price : (parseInt(b.vendor.startingPrice?.replace(/[^0-9]/g, ""), 10) || 0);
+      return priceB - priceA;
+    });
+  } else if (sortBy === "newest") {
     flattenedCards.sort((a, b) => {
       const timeA = new Date(a.portfolioItem?.createdAt || a.vendor.updatedAt || a.vendor.createdAt || a.createdAt || 0).getTime();
       const timeB = new Date(b.portfolioItem?.createdAt || b.vendor.updatedAt || b.vendor.createdAt || b.createdAt || 0).getTime();
@@ -518,7 +550,7 @@ export default function VendorCards({
                   <div className="flex items-center justify-center gap-3 text-[11px] text-gray-500 font-medium whitespace-nowrap mb-4 relative z-10">
                     <span className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-[#D4AF37] fill-current" />
-                      <strong className="text-gray-800 text-xs">{vendor.rating}</strong> ({vendor.reviewsCount} reviews)
+                      <strong className="text-gray-800 text-xs">{(portfolioItem as any)?.rating ?? vendor.rating}</strong> ({(portfolioItem as any)?.reviewsCount ?? vendor.reviewsCount} reviews)
                     </span>
                     <span className="text-gray-200">|</span>
                     <span className="flex items-center gap-1.5 truncate">
