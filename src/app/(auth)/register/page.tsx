@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     phone?: string;
@@ -66,6 +67,8 @@ export default function RegisterPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     const { authAPI } = await import("@/lib/api");
     const { ok, data } = await authAPI.signup({
       firstName: firstName.trim(),
@@ -77,11 +80,13 @@ export default function RegisterPage() {
 
     if (!ok) {
       alert(data?.message || "Failed to create account");
+      setIsSubmitting(false);
       return;
     }
 
     await fetchUser(true);
     router.replace("/");
+    // Intentionally omitting setIsSubmitting(false) here so button stays disabled during redirect
   };
 
   useEffect(() => {
@@ -330,9 +335,10 @@ export default function RegisterPage() {
               {/* Button */}
               <button
                 type="submit"
-                className="btn-interactive w-full h-[74px] bg-[#C9A84C] hover:bg-[#B89238] transition uppercase tracking-[5px] text-[16px] font-semibold text-[#2C1E14]"
+                disabled={isSubmitting}
+                className={`btn-interactive w-full h-[74px] transition uppercase tracking-[5px] text-[16px] font-semibold text-[#2C1E14] ${isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-[#C9A84C] hover:bg-[#B89238]"}`}
               >
-                Create Account
+                {isSubmitting ? "Creating Account..." : "Create Account"}
               </button>
 
               {/* Bottom */}

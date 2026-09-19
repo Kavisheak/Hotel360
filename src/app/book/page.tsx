@@ -112,7 +112,7 @@ export default function BookPage() {
   const [billingAddress, setBillingAddress] = useState("");
   const [billingCity, setBillingCity] = useState("");
   const [billingPostalCode, setBillingPostalCode] = useState("");
-  const [billingCountry, setBillingCountry] = useState("France");
+  const [billingCountry, setBillingCountry] = useState("Sri Lanka");
   const [paymentMethod, setPaymentMethod] = useState<"Visa" | "MasterCard" | "PayPal" | "Stripe">("Visa");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
