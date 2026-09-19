@@ -92,15 +92,23 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
 
   const availableOptions = availableVendors.flatMap(v => {
     let pkgs: any[] = [];
-    if (v.category === "decorators" && v.portfolioItems && v.portfolioItems.length > 0) {
-      pkgs = v.portfolioItems.map((pi: any) => ({
+    if (v.portfolioItems && v.portfolioItems.length > 0) {
+      pkgs = [...pkgs, ...v.portfolioItems.map((pi: any) => ({
         name: pi.title,
         price: pi.price > 0 ? pi.price : v.startingPrice,
         isDesign: true,
         designData: pi
-      }));
-    } else {
-      pkgs = (v.packages && v.packages.length > 0) ? v.packages : [{ name: "Standard Package", price: v.startingPrice }];
+      }))];
+    }
+    if (v.packages && v.packages.length > 0) {
+      pkgs = [...pkgs, ...v.packages.map((pkg: any) => ({
+        ...pkg,
+        isDesign: false,
+        designData: null
+      }))];
+    }
+    if (pkgs.length === 0) {
+      pkgs = [{ name: "Standard Package", price: v.startingPrice }];
     }
 
     return pkgs.map((pkg: any) => {
@@ -337,7 +345,16 @@ export default function VendorSwapModal({ isOpen, onClose, bookingId, serviceCat
         ) : (
           availableVendors.map((vendor, idx) => {
             const isVendorSelected = selectedVendor === vendor.id;
-            const pkgs = (vendor.packages && vendor.packages.length > 0) ? vendor.packages : [{ name: "Standard Package", price: vendor.startingPrice }];
+            let pkgs: any[] = [];
+            if (vendor.portfolioItems && vendor.portfolioItems.length > 0) {
+              pkgs = [...pkgs, ...vendor.portfolioItems.map((pi: any) => ({ name: pi.title, price: pi.price > 0 ? pi.price : vendor.startingPrice, description: pi.description }))];
+            }
+            if (vendor.packages && vendor.packages.length > 0) {
+              pkgs = [...pkgs, ...vendor.packages];
+            }
+            if (pkgs.length === 0) {
+              pkgs = [{ name: "Standard Package", price: vendor.startingPrice }];
+            }
             
             return (
               <div key={idx} className={`rounded-lg border transition-all ${isVendorSelected ? 'border-[#C69C6D] bg-[#FDFBF7] dark:bg-[#C69C6D]/10' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1A1A]'}`}>
