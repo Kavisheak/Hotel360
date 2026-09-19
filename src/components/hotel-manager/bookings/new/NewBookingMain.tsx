@@ -1195,33 +1195,57 @@ export default function NewBookingMain({ onClose, onSuccess }: NewBookingMainPro
                       <p className="text-xs text-gray-500">
                         Based on your guest count of <strong>{guestCount}</strong>, we recommend the <strong>{guestCount <= 250 ? "Silver" : guestCount <= 450 ? "Gold" : "Diamond"}</strong> package.
                       </p>
-                      <PackageCards
-                        activePackage={selectedPackage}
-                        setActivePackage={setSelectedPackage}
-                        packages={dbPackages && dbPackages.length > 0 ? dbPackages.map((pkg) => {
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+                        {dbPackages?.map((pkg) => {
+                          const isActive = selectedPackage === (pkg._id || pkg.id);
                           const nameLower = pkg.name.toLowerCase();
-                          let slug = "gold";
-                          if (nameLower.includes("silver")) slug = "silver";
-                          else if (nameLower.includes("diamond")) slug = "diamond";
-
-                          return {
-                            id: pkg._id || pkg.id || slug,
-                            name: pkg.name,
-                            price: typeof pkg.price === 'number' ? `LKR ${pkg.price.toLocaleString()}` : pkg.price,
-                            guests: pkg.maxGuests ? `Up to ${pkg.maxGuests} guests` : "Guests",
-                            description: pkg.description || "",
-                            features: pkg.features || []
+                          let theme = {
+                            bg: "bg-[#F0F4F8]", border: "border-[#4A6478]/30", activeBg: "bg-[#4A6478]", text: "text-[#4A6478]", shadow: "shadow-[#4A6478]/10"
                           };
-                        }).sort((a, b) => {
-                          const order = { "silver": 1, "gold": 2, "diamond": 3 };
-                          return (order[a.id as keyof typeof order] || 4) - (order[b.id as keyof typeof order] || 4);
-                        }) : undefined}
-                        onSelect={(id) => {
-                          setSelectedPackage(id);
-                          setCurrentStep(3);
-                        }}
-                        isCompact={true}
-                      />
+                          if (nameLower.includes("silver")) {
+                            theme = { bg: "bg-[#F5F6F8]", border: "border-[#8899A6]/30", activeBg: "bg-[#8899A6]", text: "text-[#8899A6]", shadow: "shadow-[#8899A6]/10" };
+                          } else if (nameLower.includes("gold")) {
+                            theme = { bg: "bg-[#FAEFDF]", border: "border-[#D19A3B]/30", activeBg: "bg-[#D19A3B]", text: "text-[#B38D4F]", shadow: "shadow-[#D19A3B]/10" };
+                          }
+
+                          return (
+                            <div
+                              key={pkg._id || pkg.id}
+                              onClick={() => {
+                                setSelectedPackage(pkg._id || pkg.id);
+                                setCurrentStep(3);
+                              }}
+                              className={`relative cursor-pointer transition-all duration-300 rounded-xl border-2 p-5 flex flex-col h-full
+                                ${isActive ? `${theme.border} ${theme.shadow} shadow-lg scale-[1.02]` : 'border-gray-100 hover:border-gray-200 hover:shadow-md bg-white'}
+                              `}
+                            >
+                              {isActive && (
+                                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full ${theme.activeBg} text-white flex items-center justify-center shadow-md`}>
+                                  <CheckCircle2 size={18} />
+                                </div>
+                              )}
+                              <div className={`w-12 h-12 rounded-full ${theme.bg} flex items-center justify-center mb-4 shrink-0`}>
+                                <Gem className={`w-6 h-6 ${theme.text}`} />
+                              </div>
+                              <h4 className={`text-lg font-serif uppercase tracking-widest font-bold ${theme.text} mb-1`}>
+                                {pkg.name.split(' ')[0]}
+                              </h4>
+                              <p className="text-xl font-bold text-gray-800 mb-4">
+                                {typeof pkg.price === 'number' ? `LKR ${pkg.price.toLocaleString()}` : pkg.price}
+                              </p>
+                              
+                              <div className="flex-grow space-y-3 mt-2 max-h-[160px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                                {pkg.features?.map((feature: string, idx: number) => (
+                                  <div key={idx} className="flex items-start gap-2 text-xs text-gray-600 font-medium">
+                                    <Check className={`w-3.5 h-3.5 ${theme.text} shrink-0 mt-0.5`} />
+                                    <span>{feature}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}
