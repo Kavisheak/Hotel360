@@ -73,16 +73,53 @@ export default function NotificationCenter({ role, theme = "gold" }: Notificatio
         try {
           const res = await notificationAPI.getNotificationHistory();
           if (res.ok && res.data?.success) {
-            const mapped = res.data.notifications.map((n: any) => ({
-              id: n._id,
-              title: n.title,
-              message: n.message,
-              time: n.createdAt ? timeAgo(new Date(n.createdAt)) : 'Just now',
-              type: n.type === "BOOKING_UPDATE" ? "booking" : "system",
-              read: n.deliveryStatus === 'read',
-              link: userRole === 'customer' ? "/customer/myaccount?tab=overview" : undefined,
-              _id: n._id
-            }));
+            const mapped = res.data.notifications.map((n: any) => {
+              const rawType = (n.type || "").toUpperCase();
+              let notifType: "booking" | "payment" | "alert" | "system" | "review" = "system";
+              if (rawType.includes("ALERT") || rawType.includes("GRIEVANCE") || rawType.includes("DECLINED") || rawType.includes("REJECTED")) {
+                notifType = "alert";
+              } else if (rawType.includes("PAYMENT") || rawType.includes("REFUND") || rawType.includes("ESCROW")) {
+                notifType = "payment";
+              } else if (rawType.includes("REVIEW") || rawType.includes("SENTIMENT")) {
+                notifType = "review";
+              } else if (rawType.includes("BOOKING")) {
+                notifType = "booking";
+              }
+
+              let notifLink: string | undefined = undefined;
+              if (userRole === "customer") {
+                notifLink = "/customer/myaccount?tab=overview";
+              } else if (userRole === "super_admin") {
+                if (rawType.includes("SENTIMENT") || rawType.includes("GRIEVANCE") || rawType.includes("ALERT")) {
+                  notifLink = "/super-admin/sentiment-analytics";
+                } else if (rawType.includes("VENDOR") || rawType.includes("STAFF") || rawType.includes("PROVIDER")) {
+                  notifLink = "/super-admin/staff-management";
+                } else if (rawType.includes("PAYMENT") || rawType.includes("REFUND") || rawType.includes("ESCROW")) {
+                  notifLink = "/super-admin/finance";
+                } else {
+                  notifLink = "/super-admin";
+                }
+              } else if (userRole === "manager" || userRole === "hotel_manager") {
+                if (rawType.includes("BOOKING")) {
+                  notifLink = "/manager/bookings";
+                } else if (rawType.includes("GRIEVANCE") || rawType.includes("REVIEW")) {
+                  notifLink = "/manager/reviews";
+                } else {
+                  notifLink = "/manager";
+                }
+              }
+
+              return {
+                id: n._id,
+                title: n.title,
+                message: n.message,
+                time: n.createdAt ? timeAgo(new Date(n.createdAt)) : 'Just now',
+                type: notifType,
+                read: n.deliveryStatus === 'read',
+                link: notifLink,
+                _id: n._id
+              };
+            });
             
             const newUnreadCount = mapped.filter((n: any) => !n.read).length;
             previousUnreadCount.current = newUnreadCount;
