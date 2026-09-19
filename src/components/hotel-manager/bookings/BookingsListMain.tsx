@@ -76,6 +76,13 @@ const BookingsListMain = () => {
   useEffect(() => {
     setIsClient(true);
     fetchBookings();
+    
+    // Auto-refresh bookings every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchBookings();
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchBookings = async () => {

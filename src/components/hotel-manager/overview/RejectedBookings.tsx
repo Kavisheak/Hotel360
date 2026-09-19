@@ -17,6 +17,15 @@ const RejectedBookings = () => {
       }
     };
     fetchBookings();
+
+    const handleAction = () => fetchBookings();
+    window.addEventListener('bookingAction', handleAction);
+    const interval = setInterval(fetchBookings, 30000);
+
+    return () => {
+      window.removeEventListener('bookingAction', handleAction);
+      clearInterval(interval);
+    };
   }, []);
 
   return (

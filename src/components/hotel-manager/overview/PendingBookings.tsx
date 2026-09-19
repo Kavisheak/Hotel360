@@ -48,6 +48,15 @@ const PendingBookings = () => {
   useEffect(() => {
     setIsClient(true);
     fetchBookings();
+
+    const handleAction = () => fetchBookings();
+    window.addEventListener('bookingAction', handleAction);
+    const interval = setInterval(fetchBookings, 30000);
+
+    return () => {
+      window.removeEventListener('bookingAction', handleAction);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleApproveHall = async (id: string, e: React.MouseEvent) => {
@@ -61,6 +70,7 @@ const PendingBookings = () => {
     if (res.ok) {
       setSuccessDetails(`Hall allocation confirmed! Vendor requests have been activated and dispatched.`);
       fetchBookings();
+      window.dispatchEvent(new Event('bookingAction'));
     } else if (res.data?.isStandbyMode || res.status === 403) {
       setStandbyNotice(res.data?.message || "Action restricted to Lead Manager.");
     }
@@ -87,6 +97,7 @@ const PendingBookings = () => {
       setRejectReason("");
       setSuccessDetails("Hall request rejected. 100% advance deposit refunded to customer.");
       fetchBookings();
+      window.dispatchEvent(new Event('bookingAction'));
     } else if (res.data?.isStandbyMode || res.status === 403) {
       setStandbyNotice(res.data?.message || "Action restricted to Lead Manager.");
     } else {
