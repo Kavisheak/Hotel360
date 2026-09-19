@@ -576,6 +576,10 @@ export const hotelManagerAPI = {
 // ─── Super Admin API ─────────────────────────────────────────────────────────────
 export const superAdminAPI = {
   getOverview: () => apiFetch("/api/super-admin/overview"),
+  resolveGrievance: (id: string) =>
+    apiFetch(`/api/super-admin/overview/resolve-grievance/${id}`, {
+      method: "POST",
+    }),
   getFinancials: () => apiFetch("/api/super-admin/financials"),
   getNotifications: () => apiFetch("/api/notifications/history"),
   markNotificationRead: (id: string) => apiFetch(`/api/notifications/history/${id}/read`, { method: "PUT" }),
