@@ -302,14 +302,7 @@ const PackagesMain = () => {
 
             {/* Right Sidebar Panel */}
             <div className="space-y-6">
-              <GlobalParameters
-                deposit={deposit}
-                onDepositChange={setDeposit}
-                taxRate={taxRate}
-                onTaxRateChange={setTaxRate}
-                enforcement={enforcement}
-                onEnforcementToggle={() => setEnforcement(e => !e)}
-              />
+
               <PackagePreview />
               <PriceLockReminder />
             </div>
