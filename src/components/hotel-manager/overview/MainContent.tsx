@@ -68,36 +68,7 @@ const ManagerMainContent = () => {
           </div>
         )}
 
-        {/* Prioritized Operational Alerts Banner */}
-        <div className="bg-white border border-[#E0D8C3]/60 p-5 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)]">
-          <div className="flex items-start gap-4">
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl shrink-0 border border-amber-100/50">
-              <AlertTriangle size={18} />
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-gray-900 text-sm tracking-wide">Operational Event Feed</span>
-                <span className="px-2.5 py-0.5 bg-amber-50 border border-amber-100 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  Live Status
-                </span>
-              </div>
-              <p className="text-gray-500 text-sm mt-1 font-light">
-                • Booking hold <span className="font-semibold text-gray-800">#HOLD-8819</span> expires in 1h 45m.
-                <span className="mx-2">|</span>
-                • Vendor <span className="font-bold">Royal Decorators</span> submitted verification documents for review.
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/hotel-manager/bookings"
-              className="px-5 py-2.5 bg-[#7C6A2E] hover:bg-[#6A5A27] text-white font-bold rounded-full flex items-center gap-2 transition-all duration-300 text-xs uppercase tracking-widest shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
-            >
-              Review Pending <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
 
         <Metrics />
         <PendingBookings />
